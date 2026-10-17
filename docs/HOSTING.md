@@ -9,8 +9,9 @@
 | CrazyGames | `crazygames.zip`, `cover_*.png` (16:9, 2:3, 1:1), `preview.mp4` | developer portal form (no public API) | no store logos/prices in covers; QA review follows |
 | Steam | `steam.dir/*.png` capsules, library art, 5+ screenshots, trailer | Steamworks UI for the store page; `steamcmd +run_app_build` for builds | $100 app fee is the owner's; web build needs a desktop wrapper |
 | YouTube | `youtube.video`, `thumbnail`, title, description, tags | Data API v3 `videos.insert` (OAuth) then `thumbnails.set` | description has `<ITCH_URL>` placeholder: fill after itch is live |
+| Cloudflare Pages | `bundle.zip` (web build, entry `index.html`) | `wrangler pages deploy <unzipped dir> --project-name <id>` (free tier) | API token from `CLOUDFLARE_API_TOKEN` or `~/.config/gamepress/cloudflare.env`; dry run by default, `--live` to deploy; free `*.pages.dev` URL |
 
-Order: itch first (gives the URL), then YouTube (link in description/pinned comment), CrazyGames, Steam last.
+Order: itch first (gives the URL), then YouTube (link in description/pinned comment), CrazyGames, Steam last. Cloudflare Pages is the free hosted-URL option — deploy any time after `publish-pack` for a shareable playable link.
 Credentials: environment variables or OS keychain only; never in the repo, logs or manifests. Verify each store's current spec before upload (`presets/platforms.json`).
 Result contract per host: `{ ok, url, id }`; write results to `publish/<id>/hosted.json`.
 

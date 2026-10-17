@@ -162,6 +162,20 @@ const PLATFORMS = [
       'Keep a consistent channel per game series for the algorithm',
     ],
   },
+  {
+    id: "cloudflare", name: "Cloudflare", purpose: "Free static hosting — deploy the playable game to a public URL",
+    fields: [
+      { key: "cloudflare_api_token", label: "API token", hint: "dash.cloudflare.com → My Profile → API Tokens", secret: true },
+      { key: "cloudflare_account", label: "Account name (optional)", hint: "Shown in the Cloudflare dashboard" },
+    ],
+    howto: [
+      'Create a free account at <a href="https://dash.cloudflare.com/sign-up" target="_blank">dash.cloudflare.com</a>',
+      'Create an API token: <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank">My Profile → API Tokens → Create Token</a> — use the "Edit Cloudflare Workers" template',
+      'Install wrangler: <code>npm i -g wrangler</code>, then either <code>wrangler login</code> or set <code>CLOUDFLARE_API_TOKEN</code>',
+      'gamepress reads the token from <code>CLOUDFLARE_API_TOKEN</code> or <code>~/.config/gamepress/cloudflare.env</code> — the field above is for your reference only',
+      'Deploy: <code>gamepress deploy cloudflare &lt;id&gt; --live</code> (dry run by default)',
+    ],
+  },
 ];
 
 // Pipeline steps mapped to required credential keys + tracks
@@ -188,6 +202,8 @@ const PIPELINE = [
     needs: ["crazygames_user"], needsLabel: "CrazyGames developer account" },
   { track: "web-store", cmd: "gamepress deploy --target steam", desc: "Upload depot + set store page assets",
     needs: ["steam_app_id", "steamworks_user"], needsLabel: "Steam App ID + Steamworks access" },
+  { track: "web-store", cmd: "gamepress deploy cloudflare <id>", desc: "Deploy playable build to free Cloudflare Pages hosting",
+    needs: ["cloudflare_api_token"], needsLabel: "Cloudflare API token" },
   { track: "roblox", cmd: "gamepress roblox-ship", desc: "Safe publish place via Open Cloud",
     needs: ["roblox_api_key", "roblox_universe_id", "roblox_place_id"], needsLabel: "Roblox API key + universe + place IDs" },
 ];
