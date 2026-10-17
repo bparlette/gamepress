@@ -1,0 +1,44 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE grid-chaser. ONE screen, ONE mechanic: swipe to steer through a maze, eat every dot, zombies chase, big fish reverse the chase. 3-SECOND RULE: orange cat = player, green zombies = enemy, goal = eat all the dots.
+  DON'T BUILD: multiple mazes, extra ghost types beyond two, cutscenes, fruit. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, pick, shuffle, clamp } from '../_vendor/gp2d.js';
+import { drawChar } from '../_vendor/gpsprites.js';
+import { DIRS, bfs } from '../_vendor/gpgrid.js';
+const S = { title: 'PAC CAT', sub: 'Swipe to turn', hook: 'Eat everything. Avoid the zombies.', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#0b0f26', wall: '#3a5bff', style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const CW = 7, CH = 8, W = CW * 2 + 1, H = CH * 2 + 1, TS = 36, OX = 0, OY = 180;
+let wall, dots, pl, gh, scared, eaten, left, swipe, combo, botT;
+function maze() { wall = Array.from({ length: H }, () => Array(W).fill(true)); const seen = new Set(), st = [[0, 0]]; wall[1][1] = false; seen.add('0,0');
+  while (st.length) { const [cx, cy] = st.at(-1), nb = shuffle(DIRS).map(([dx, dy]) => [cx + dx, cy + dy]).filter(([x, y]) => x >= 0 && y >= 0 && x < CW && y < CH && !seen.has(x + ',' + y)); if (!nb.length) { st.pop(); continue; } const [nx, ny] = nb[0]; seen.add(nx + ',' + ny); wall[cy * 2 + 1 + (ny - cy)][cx * 2 + 1 + (nx - cx)] = false; wall[ny * 2 + 1][nx * 2 + 1] = false; st.push([nx, ny]); }
+  for (let i = 0; i < 22; i++) { const x = ri(2, W - 3), y = ri(2, H - 3); if (wall[y][x] && ((!wall[y][x - 1] && !wall[y][x + 1]) || (!wall[y - 1][x] && !wall[y + 1][x]))) wall[y][x] = false; } }
+const ri = (a, b) => Math.floor(rnd(a, b + 1)), free = (x, y) => x >= 0 && y >= 0 && x < W && y < H && !wall[y][x];
+const mk = (x, y, sp) => ({ tx: x, ty: y, nx: x, ny: y, prog: 0, sp, dx: 0, dy: 0 });
+function init() { maze(); dots = new Map(); eaten = 0; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (free(x, y) && (x + y) % 2 === 0) dots.set(x + ',' + y, 1); for (const [x, y] of [[1, 1], [W - 2, 1], [1, H - 2], [W - 2, H - 2]]) dots.set(x + ',' + y, 2);
+  pl = mk(7, H - 2, 5.4); pl.want = [0, 0]; dots.delete('7,' + (H - 2)); gh = [mk(1, 1, 4.1), mk(W - 2, 1, 3.8)]; gh.forEach((q, i) => { q.home = [q.tx, q.ty]; q.i = i; }); scared = 0; left = dots.size; swipe = null; combo = 0; botT = 0; g.score = 0; }
+g.onReset = init; init();
+const px = e => (e.tx + (e.nx - e.tx) * e.prog) * TS + TS / 2 + OX, py = e => (e.ty + (e.ny - e.ty) * e.prog) * TS + TS / 2 + OY;
+function step(e, dt, choose) { e.prog += e.sp * dt; let guard = 0; while (e.prog >= 1 && guard++ < 3) { e.tx = e.nx; e.ty = e.ny; e.prog -= 1; arrive(e); const d = choose(e); if (d && free(e.tx + d[0], e.ty + d[1])) { e.dx = d[0]; e.dy = d[1]; e.nx = e.tx + d[0]; e.ny = e.ty + d[1]; } else { e.dx = e.dy = 0; e.nx = e.tx; e.ny = e.ty; e.prog = 0; } } }
+function arrive(e) { if (e !== pl) return; const k = e.tx + ',' + e.ty, v = dots.get(k); if (v) { dots.delete(k); left--; if (v === 2) { scared = 6; combo = 0; sfx('powerup'); g.flash('#4aa8ff', .3); g.showBanner('FISH POWER!', .8); } else { eaten++; g.score += 10; sfx('pop', { pitch: comboPitch(eaten % 12), vol: .5 }); } if (left <= 0) { g.end({ win: true, score: g.score, label: 'SCORE' }); g.burst(px(pl), py(pl), 40, { color: ['#ffd34d', '#fff'], speed: 440 }); } } }
+function dirTo(e, tgt, away) { const opts = DIRS.filter(([dx, dy]) => free(e.tx + dx, e.ty + dy) && !(dx === -e.dx && dy === -e.dy && DIRS.filter(([a, b]) => free(e.tx + a, e.ty + b)).length > 1)); if (!opts.length) return [-e.dx, -e.dy]; if (R() < .15) return pick(opts); opts.sort((a, b) => { const da = Math.hypot(e.tx + a[0] - tgt.x, e.ty + a[1] - tgt.y), db = Math.hypot(e.tx + b[0] - tgt.x, e.ty + b[1] - tgt.y); return away ? db - da : da - db; }); return opts[0]; }
+function botDir() { const gp = gh.filter(q => !q.dead); const danger = (x, y) => !g.dumb() && scared <= 0 && gp.some(q => Math.abs(q.tx - x) + Math.abs(q.ty - y) <= 2); let path = bfs({ x: pl.tx, y: pl.ty }, (x, y) => dots.has(x + ',' + y), (x, y) => free(x, y) && !danger(x, y), W, H) || bfs({ x: pl.tx, y: pl.ty }, (x, y) => dots.has(x + ',' + y), free, W, H); return path ? [path[0].x - pl.tx, path[0].y - pl.ty] : [0, 0]; }
+function update(dt) {
+  if (g.mode !== 'play') return; scared = Math.max(0, scared - dt); const k = g.keys;
+  if (g.pressed.ArrowLeft || g.pressed.KeyA) pl.want = [-1, 0]; if (g.pressed.ArrowRight || g.pressed.KeyD) pl.want = [1, 0]; if (g.pressed.ArrowUp || g.pressed.KeyW) pl.want = [0, -1]; if (g.pressed.ArrowDown || g.pressed.KeyS) pl.want = [0, 1];
+  if (g.taps.length) swipe = { x: g.ptr.x, y: g.ptr.y }; if (swipe && g.ptr.down) { const dx = g.ptr.x - swipe.x, dy = g.ptr.y - swipe.y; if (Math.hypot(dx, dy) > 24) { pl.want = Math.abs(dx) > Math.abs(dy) ? [Math.sign(dx), 0] : [0, Math.sign(dy)]; swipe = { x: g.ptr.x, y: g.ptr.y }; } } else if (!g.ptr.down) swipe = null;
+  if (g.auto) { botT -= dt; if (botT <= 0) { botT = .08; pl.want = botDir(); } }
+  if (pl.want[0] === -pl.dx && pl.want[1] === -pl.dy && (pl.dx || pl.dy)) { [pl.tx, pl.nx] = [pl.nx, pl.tx]; [pl.ty, pl.ny] = [pl.ny, pl.ty]; pl.prog = 1 - pl.prog; pl.dx = pl.want[0]; pl.dy = pl.want[1]; }
+  step(pl, dt, e => (free(e.tx + e.want[0], e.ty + e.want[1]) ? e.want : (free(e.tx + e.dx, e.ty + e.dy) ? [e.dx, e.dy] : null)));
+  for (const q of gh) { if (q.dead) { q.dead -= dt; if (q.dead <= 0) { q.dead = 0; Object.assign(q, mk(q.home[0], q.home[1], q.sp), { home: q.home, i: q.i }); } continue; } q.sp = scared > 0 ? 2.8 : (q.i ? 3.8 : 4.1);
+    step(q, dt, e => dirTo(e, q.i ? { x: pl.tx + pl.dx * 3, y: pl.ty + pl.dy * 3 } : { x: pl.tx, y: pl.ty }, scared > 0));
+    if (Math.hypot(px(q) - px(pl), py(q) - py(pl)) < 26) { if (scared > 0) { combo++; q.dead = 3; g.score += 200 * combo; sfx('coin', { pitch: comboPitch(combo * 2) }); g.popup('+' + 200 * combo, px(q), py(q) - 30, '#7dff7d', 36); g.burst(px(q), py(q), 14, { color: '#8fcf7a', speed: 260 }); g.hitstop(.05); } else { sfx('hit'); g.hitstop(.12); g.burst(px(pl), py(pl), 24, { color: [S.heroColor, '#fff'], speed: 380 }); g.end({ win: false, score: g.score, label: 'SCORE' }); } } }
+  g.hud.l = `${g.score}`; g.hud.r = `DOTS ${left}`; g.state = { left, scared: Math.round(scared * 10) / 10, score: g.score };
+}
+function draw(c) {
+  c.lineCap = 'round'; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (wall[y][x]) { c.fillStyle = '#0e1840'; c.fillRect(x * TS + OX, y * TS + OY, TS, TS); c.strokeStyle = S.wall; c.lineWidth = 5; c.beginPath(); for (const [dx, dy] of DIRS) if (!wall[y + dy]?.[x + dx] && wall[y + dy] !== undefined && x + dx >= 0 && x + dx < W) { const x0 = x * TS + OX + (dx === 1 ? TS : 0), y0 = y * TS + OY + (dy === 1 ? TS : 0); if (dx) { c.moveTo(x0, y0 + 3); c.lineTo(x0, y0 + TS - 3); } else { c.moveTo(x0 + 3, y0); c.lineTo(x0 + TS - 3, y0); } } c.stroke(); }
+  for (const [k, v] of dots) { const [x, y] = k.split(',').map(Number), cx = x * TS + TS / 2 + OX, cy = y * TS + TS / 2 + OY; c.fillStyle = v === 2 ? '#4aa8ff' : '#ffd34d'; if (v === 2) { c.beginPath(); c.ellipse(cx, cy, 13 + Math.sin(g.t * 8) * 2, 7, 0, 0, 7); c.moveTo(cx + 12, cy); c.lineTo(cx + 20, cy - 7); c.lineTo(cx + 20, cy + 7); c.fill(); } else { c.beginPath(); c.arc(cx, cy, 4.5, 0, 7); c.fill(); } }
+  for (const q of gh) if (!q.dead) drawChar(S.foe, c, px(q), py(q) + 16, 40, { dir: q.dx || 1, t: g.t, anim: 'walk', color: scared > 0 ? (scared < 2 && Math.floor(g.t * 8) % 2 ? '#fff' : '#6aa0ff') : undefined });
+  drawChar('cat', c, px(pl), py(pl) + 16, 40, { color: S.heroColor, dir: pl.dx || pl.want[0] || 1, t: g.t, anim: pl.dx || pl.dy ? 'walk' : 'idle', hurt: g.mode === 'over' });
+}
+g.run(update, draw);
+</script></body></html>

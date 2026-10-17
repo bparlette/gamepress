@@ -30,7 +30,7 @@ import { ideate, applyAnswers } from '../lib/ideate.mjs';
 import { make, doctor, lint, vision, RECIPES } from '../lib/extras.mjs';
 import { config, status, grade, runAll } from '../lib/pipeline.mjs';
 import { catalogCommand } from '../lib/catalog.mjs';
-import { research, scaffold, testGame, bundle, publishPack, publishDemo, copyDraft, buildTarget } from '../lib/tasks.mjs';
+import { botCheck, research, scaffold, testGame, bundle, publishPack, publishDemo, copyDraft, buildTarget } from '../lib/tasks.mjs';
 import { publishRoblox, shipRoblox, runLuau } from '../lib/roblox.mjs';
 import * as hosts from '../lib/hosts/index.mjs';
 import { voices, bumpVersion, makeIcons } from '../lib/studio.mjs';
@@ -314,6 +314,7 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
   copy: () => out({ copy: copyDraft(need('copy')) }, o => 'wrote ' + o.copy),
   build: () => out(buildTarget(need('build --target web|steam|roblox'), flag('target', 'web'), { gamesDir: CFG().games }), o => JSON.stringify(o)),
   deploy: () => hosts[positional[0]]?.upload(JSON.parse(readFileSync(join(flag('dir', 'publish'), positional[1] || die('usage: gamepress deploy <itch|crazygames|steam|youtube> <id> [--live]'), 'manifest.json'), 'utf8')), { dryRun: !argv.includes('--live') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die(e.message)) || die('unknown host'),
+  botcheck: () => botCheck(positional[0] ? resolve(CFG().games, positional[0]) : die("usage: gamepress botcheck <game-id>"), { root: CFG().games, seconds: +flag('seconds', 40) }).then(r => out(r, o => `${o.ok ? 'OK' : 'CHECK'}: ends ${JSON.stringify(o.ends)}${o.errors.length ? ' errors ' + o.errors : ''}`)).catch(e => die('botcheck: ' + e.message)),
   test: () => testGame(positional[0] || die('usage: gamepress test <game dir or url> [--root dir]'), { root: flag('root') }).then(v => { console.log(JSON.stringify(v, null, 1)); process.exit(v.ok ? 0 : 1); }).catch(e => die('test failed: ' + e.message)),
   bundle: () => console.log(bundle(positional[0] || die('usage: gamepress bundle <game dir> [--out dist]'), flag('out', 'dist'))),
   'publish-demo': () => console.log(JSON.stringify(publishDemo(positional[0] || die('usage: gamepress tracks [name] | publish-demo <id> --catalog <games.json> [--push]'), { catalog: flag('catalog') || die('--catalog required'), videoDir: flag('video', 'press/video'), push: argv.includes('--push') }))),

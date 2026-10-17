@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE cozy-farm. ONE screen, ONE mechanic: tap an isometric tile to till, plant, then harvest it before sunset. 3-SECOND RULE: you tap tiles = player, the sunset timer = enemy, goal = harvest the quota.
+  DON'T BUILD: inventory, shop, npcs, seasons. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, pick, clamp } from '../_vendor/gp2d.js';
+import { drawChar } from '../_vendor/gpsprites.js';
+const S = { title: 'COZY CAT FARM', sub: 'Tap tiles: till, plant, harvest', hook: 'Tiny farm, huge dopamine', hero: 'cat', crop: '#ff7a3c', bg: '#9ad7a0', quota: 12, day: 30, grow: 3, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const N = 5, TW = 118, TH = 62, OX = 270, OY = 400, iso = (i, j) => ({ x: OX + (i - j) * TW / 2, y: OY + (i + j) * TH / 2 });
+let tiles, left, harvested, combo, comboT, bot, pets;
+function init() { tiles = Array.from({ length: N * N }, (_, k) => ({ i: k % N, j: Math.floor(k / N), s: 0, t: 0, pop: 0 })); left = g.dumb() ? S.day * .45 : S.day; harvested = 0; combo = 0; comboT = 0; bot = { t: .8, k: 0 }; g.score = 0; pets = Array.from({ length: 3 }, (_, k) => ({ x: 60 + k * 180, y: 790 + (k % 2) * 30, d: 1, t: rnd(0, 5), c: ['#ff9a3c', '#f4efe4', '#9aa0aa'][k] })); }
+g.onReset = init; init();
+function tapTile(t) { if (t.s === 0) { t.s = 1; sfx('click'); g.burst(iso(t.i, t.j).x, iso(t.i, t.j).y, 5, { color: '#7a5a3a', speed: 90, size: 7 }); } else if (t.s === 1) { t.s = 2; t.t = 0; sfx('pop'); } else if (t.s === 3) { t.s = 0; harvested++; combo = comboT > 0 ? combo + 1 : 1; comboT = 1.6; g.score += 5 * combo; const p = iso(t.i, t.j); sfx('coin', { pitch: comboPitch(combo) }); g.popup(`+$${5 * combo}`, p.x, p.y - 40, '#ffd34d', 34); g.burst(p.x, p.y - 20, 10, { color: [S.crop, '#ffd34d', '#fff'], speed: 200 }); if (combo > 2) g.shake(3); } t.pop = .25; }
+function hit(x, y) { for (const t of [...tiles].sort((a, b) => (b.i + b.j) - (a.i + a.j))) { const c = iso(t.i, t.j); if (Math.abs(x - c.x) / (TW / 2) + Math.abs(y - c.y) / (TH / 2) <= 1) return t; } return null; }
+function update(dt) {
+  if (g.mode !== 'play') return; left -= dt; comboT -= dt; if (comboT <= 0) combo = 0;
+  for (const tp of g.taps) { const t = hit(tp.x, tp.y); if (t) tapTile(t); }
+  for (const t of tiles) { t.pop = Math.max(0, t.pop - dt); if (t.s === 2) { t.t += dt; if (t.t >= S.grow) { t.s = 3; sfx('pop', { pitch: 1.5, vol: .5 }); } } }
+  if (g.auto) { bot.t -= dt; if (bot.t <= 0) { bot.t = g.dumb() ? .95 : .2; const pri = [3, 1, 0]; let tg = null; for (const s of pri) { tg = tiles.find(t => t.s === s); if (tg) break; } if (tg) tapTile(tg); } }
+  for (const p of pets) { p.t += dt; p.x += p.d * 40 * dt; if (p.x > 500 || p.x < 40) p.d *= -1; }
+  if (harvested >= S.quota) { g.end({ win: true, score: g.score, label: 'COINS' }); g.burst(270, 400, 40, { color: ['#ffd34d', '#fff', S.crop], speed: 420 }); }
+  else if (left <= 0) { g.end({ win: false, score: g.score, label: 'COINS' }); }
+  g.hud.l = `$${g.score}`; g.hud.r = `${harvested}/${S.quota}`; g.state = { harvested, left: Math.round(left), combo };
+}
+function draw(c) {
+  const k = clamp(1 - left / (g.dumb() ? S.day * .45 : S.day), 0, 1); const gr = c.createLinearGradient(0, 0, 0, 960); gr.addColorStop(0, `rgb(${Math.round(150 + 90 * k)},${Math.round(210 - 70 * k)},${Math.round(255 - 130 * k)})`); gr.addColorStop(1, S.bg); c.fillStyle = gr; c.fillRect(0, 0, 540, 960);
+  c.fillStyle = `rgba(255,${Math.round(220 - 100 * k)},120,${.85})`; c.beginPath(); c.arc(100 + k * 340, 220 - Math.sin(k * 3.14) * 90 + k * 60, 44, 0, 7); c.fill();
+  c.fillStyle = '#7bc16a'; c.beginPath(); c.moveTo(0, 960); c.lineTo(0, 250); c.lineTo(540, 250); c.lineTo(540, 960); c.fill();
+  for (const t of [...tiles].sort((a, b) => (a.i + a.j) - (b.i + b.j))) { const p = iso(t.i, t.j), bob = t.pop * 30 * Math.sin(t.pop / .25 * 3.14); c.beginPath(); c.moveTo(p.x, p.y - TH / 2); c.lineTo(p.x + TW / 2, p.y); c.lineTo(p.x, p.y + TH / 2); c.lineTo(p.x - TW / 2, p.y); c.closePath(); c.fillStyle = t.s === 0 ? '#79c866' : '#8a5f3a'; c.fill(); c.lineWidth = 3; c.strokeStyle = t.s === 0 ? '#4f9a46' : '#5b3d22'; c.stroke();
+    if (t.s >= 1) { c.strokeStyle = '#6b4a2e'; c.lineWidth = 2; for (let r = -1; r <= 1; r++) { c.beginPath(); c.moveTo(p.x - 28 + r * 10, p.y + r * 5 - 8); c.lineTo(p.x + 8 + r * 10, p.y + r * 5 + 10); c.stroke(); } }
+    if (t.s === 2) { const u = Math.min(1, t.t / S.grow); c.strokeStyle = '#2f8f3a'; c.lineWidth = 5; c.beginPath(); c.moveTo(p.x, p.y + 6); c.lineTo(p.x, p.y + 6 - 8 - 22 * u); c.stroke(); c.fillStyle = '#4caf50'; c.beginPath(); c.ellipse(p.x - 8, p.y - 12 * u, 10 * u + 3, 5 * u + 2, -.5, 0, 7); c.ellipse(p.x + 8, p.y - 12 * u, 10 * u + 3, 5 * u + 2, .5, 0, 7); c.fill(); }
+    if (t.s === 3) { c.fillStyle = '#2f8f3a'; c.fillRect(p.x - 3, p.y - 22 - bob, 6, 18); c.fillStyle = S.crop; c.beginPath(); c.arc(p.x, p.y - 14 - bob, 17, 0, 7); c.fill(); c.lineWidth = 3; c.strokeStyle = '#000'; c.stroke(); c.fillStyle = 'rgba(255,255,255,.5)'; c.beginPath(); c.arc(p.x - 6, p.y - 20 - bob, 5, 0, 7); c.fill(); if (Math.sin(g.t * 8 + t.i) > .6) { c.fillStyle = '#fff'; c.fillRect(p.x + 14, p.y - 34, 4, 10); c.fillRect(p.x + 11, p.y - 31, 10, 4); } } }
+  for (const p of pets) drawChar(S.hero, c, p.x, p.y, 70, { color: p.c, dir: p.d, t: p.t, anim: 'walk' });
+  c.fillStyle = `rgba(255,110,40,${k * .28})`; c.fillRect(0, 0, 540, 960); g.bar(150, 900, 240, 18, left / (g.dumb() ? S.day * .45 : S.day), '#ffd34d'); if (combo > 1) g.text(`x${combo}`, 270, 860, { size: 64, align: 'center', color: '#fff' });
+}
+g.run(update, draw);
+</script></body></html>

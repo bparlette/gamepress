@@ -1,0 +1,39 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE footsies-duel. ONE screen, ONE mechanic: strike, parry and step on a single line; every hit pushes the other fighter toward the cliff. 3-SECOND RULE: orange cat = player, green zombie = enemy, goal = push the zombie off the edge.
+  DON'T BUILD: character select, more than three moves, online play, menus. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
+import { drawChar } from '../_vendor/gpsprites.js';
+const S = { title: 'CAT DUEL', sub: 'Strike, parry, step. Push them off.', hook: 'First to push wins', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#ff9a5a', style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const FY = 700, L = 20, Rr = 520;
+let a, b, streak, botT, aiT;
+const fighter = (x, d) => ({ x, d, st: 'idle', t: 0, vx: 0, fl: 0 });
+function init() { a = fighter(200, 1); b = fighter(340, -1); streak = 0; botT = 0; aiT = .5; g.score = 0; }
+g.onReset = init; init();
+const dst = () => Math.abs(a.x - b.x);
+function start(f, st) { if (f.st !== 'idle') return; f.st = st; f.t = 0; if (st === 'strike') sfx('whoosh', { vol: .5 }); if (st === 'parry') sfx('click', { pitch: 1.4 }); }
+function resolve(att, def) { const parried = def.st === 'parry' && def.t < .28 && def.t > .02; if (parried) { sfx('ding', { pitch: 1.5 }); g.hitstop(.1); g.slowmo(.5, .35); g.flash('#fff', .35); g.burst((att.x + def.x) / 2, FY - 70, 14, { color: ['#fff', '#ffd34d'], speed: 340 }); g.popup('PARRY!', (att.x + def.x) / 2, FY - 150, '#7dff7d', 46); att.st = 'stagger'; att.t = 0; att.vx = -att.d * 260; def.st = 'idle'; if (def === a) { streak++; g.score += 100 * streak; } }
+  else { sfx('hit', { pitch: att === a ? comboPitch(streak) : .8 }); g.hitstop(.08); g.shake(9); g.burst(def.x, FY - 70, 12, { color: ['#fff', att === a ? '#8fcf7a' : S.heroColor], speed: 300 }); def.st = 'stagger'; def.t = 0; def.vx = att.d * 330; if (att === a) { streak++; g.score += 50 * streak; g.popup('HIT', def.x, FY - 150, '#fff', 36); } else streak = 0; } }
+function tick(f, o, dt) { f.t += dt; f.fl -= dt; f.x += f.vx * dt; f.vx *= Math.pow(.02, dt);
+  if (f.st === 'strike') { if (f.t >= .14 && !f.hit) { f.hit = true; if (dst() < 120) resolve(f, o); } if (f.t > .42) { f.st = 'idle'; f.hit = false; } } else if (f.st === 'parry') { if (f.t > .5) f.st = 'idle'; } else if (f.st === 'stagger' && f.t > .55) f.st = 'idle'; }
+function update(dt) {
+  if (g.mode !== 'play') return; const Bs = g.btn('s', 20, 840, 120, 100, 'STRIKE', { key: 'KeyJ' }), Bp = g.btn('p', 150, 840, 120, 100, 'PARRY', { key: 'KeyK' }), Bl = g.btn('l', 300, 840, 100, 100, '◀', { key: 'ArrowLeft' }), Br = g.btn('r', 410, 840, 110, 100, '▶', { key: 'ArrowRight' });
+  if (Bs.pressed) start(a, 'strike'); if (Bp.pressed) start(a, 'parry'); if (a.st === 'idle') a.x += ((Br.held ? 1 : 0) - (Bl.held ? 1 : 0)) * 150 * dt;
+  if (g.auto) { botT -= dt; const near = dst() < 150; if (g.dumb()) { if (botT <= 0) { botT = .5; if (near) start(a, 'strike'); else a.x += 60; } if (!near && a.st === 'idle') a.x += 130 * dt; } else { if (b.st === 'strike' && b.t < .1 && near && a.st === 'idle') start(a, 'parry'); else if (a.st === 'idle' && near && (b.st === 'stagger' || b.st === 'parry' && b.t > .3 || (b.st === 'idle' && botT <= 0 && R() < .5))) { start(a, 'strike'); botT = .5; } else if (a.st === 'idle' && dst() > 140) a.x += 120 * dt; else if (a.st === 'idle' && dst() < 100 && b.st === 'idle') a.x -= 100 * dt; } }
+  aiT -= dt; if (b.st === 'idle') { if (a.st === 'strike' && a.t < .1 && dst() < 150 && R() < .35) start(b, 'parry'); else if (dst() > 112) b.x -= 80 * dt; else if (aiT <= 0) { aiT = rnd(.5, 1.0); start(b, 'strike'); } }
+  tick(a, b, dt); tick(b, a, dt); if (a.st !== 'strike' && a.x > b.x - 70) a.x = b.x - 70; if (b.x < a.x + 70) b.x = a.x + 70;
+  if (b.x > Rr) { g.score += 500; g.burst(b.x, FY - 60, 30, { color: ['#8fcf7a', '#fff'], speed: 460 }); sfx('boom', { vol: .6 }); g.end({ win: true, score: g.score, label: 'SCORE' }); } else if (a.x < L) { sfx('hit'); g.burst(a.x, FY - 60, 30, { color: [S.heroColor, '#fff'], speed: 460 }); g.end({ win: false, score: g.score, label: 'SCORE' }); }
+  g.hud.l = `${g.score}`; g.hud.r = streak > 1 ? `x${streak}` : ''; g.state = { a: Math.round(a.x), b: Math.round(b.x), streak };
+}
+function draw(c) {
+  const gr = c.createLinearGradient(0, 0, 0, 700); gr.addColorStop(0, '#ff7a4a'); gr.addColorStop(1, '#ffd9a8'); c.fillStyle = gr; c.fillRect(0, 0, 540, 780); c.fillStyle = '#ffeaa8'; c.beginPath(); c.arc(270, 520, 90, 0, 7); c.fill();
+  c.fillStyle = '#ff4a1a'; c.fillRect(0, 800, 540, 160); for (let i = 0; i < 9; i++) { c.fillStyle = '#ffb02a'; c.beginPath(); c.arc(i * 70 + Math.sin(g.t * 3 + i) * 10, 810 + Math.sin(g.t * 2 + i) * 6, 22, 0, 7); c.fill(); }
+  c.fillStyle = '#6b4a2e'; c.fillRect(L - 20, FY, Rr - L + 40, 100); c.fillStyle = '#6bbf59'; c.fillRect(L - 20, FY, Rr - L + 40, 16); c.strokeStyle = '#000'; c.lineWidth = 5; c.strokeRect(L - 20, FY, Rr - L + 40, 100);
+  c.fillStyle = 'rgba(255,60,60,.5)'; c.fillRect(0, FY - 4, L - 20, 8); c.fillRect(Rr + 20, FY - 4, 40, 8);
+  const draw1 = (f, kind, col) => { const lean = f.st === 'strike' && f.t > .1 ? f.d * 22 : f.st === 'stagger' ? -f.d * 16 : 0; drawChar(kind, c, f.x + lean, FY + 4, 150, { color: col, dir: f.d, t: g.t, anim: f.vx ? 'idle' : 'idle', hurt: f.st === 'stagger' }); if (f.st === 'parry') { c.strokeStyle = '#7dff7d'; c.lineWidth = 6; c.beginPath(); c.arc(f.x + f.d * 40, FY - 80, 50, f.d > 0 ? -1 : Math.PI - 1, f.d > 0 ? 1 : Math.PI + 1); c.stroke(); } if (f.st === 'strike' && f.t > .1) { c.fillStyle = 'rgba(255,255,255,.8)'; c.beginPath(); c.arc(f.x + f.d * 90, FY - 80, 26, 0, 7); c.fill(); } };
+  draw1(a, 'cat', S.heroColor); draw1(b, S.foe, undefined);
+  c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(L, 130, 500, 8); c.fillStyle = S.heroColor; c.beginPath(); c.arc(L + (a.x - L) / (Rr - L) * 500, 134, 11, 0, 7); c.fill(); c.fillStyle = '#8fcf7a'; c.beginPath(); c.arc(L + (b.x - L) / (Rr - L) * 500, 134, 11, 0, 7); c.fill();
+}
+g.run(update, draw);
+</script></body></html>

@@ -1,0 +1,40 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE arena-brawler. ONE screen, ONE mechanic: walk the street and punch zombie waves; hit streaks climb in pitch. 3-SECOND RULE: orange cat = player, green zombies = enemy, goal = knock them all out.
+  DON'T BUILD: weapon pickups, more than 3 waves, co-op, menus. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, ri, clamp, dist } from '../_vendor/gp2d.js';
+import { drawChar, heart } from '../_vendor/gpsprites.js';
+const S = { title: 'ZOMBIE BRAWL', sub: 'Drag to move, punch the zombies', hook: '1 cat vs the whole street', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#ffb27a', waves: [3, 4, 1], style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const Y0 = 560, Y1 = 800;
+let p, en, wave, combo, comboT, botT, spawnT;
+function init() { p = { x: 120, y: 700, d: 1, hp: 5, atk: 0, cd: 0, t: 0, inv: 0, tx: 120, ty: 700 }; en = []; wave = -1; combo = 0; comboT = 0; botT = 0; spawnT = .5; g.score = 0; nextWave(); }
+function nextWave() { wave++; if (wave >= S.waves.length) { g.end({ win: true, score: g.score, label: 'SCORE' }); g.burst(p.x, p.y - 40, 40, { color: ['#ffd34d', '#fff'], speed: 440 }); return; } const n = S.waves[wave], boss = wave === S.waves.length - 1; for (let i = 0; i < n; i++) en.push({ x: 600 + i * 90, y: rnd(Y0 + 30, Y1 - 10), hp: boss ? 9 : 3, max: boss ? 9 : 3, boss, d: -1, t: rnd(0, 5), cd: rnd(.6, 1.4), fl: 0, kb: 0 }); g.showBanner(boss ? 'BOSS!' : 'WAVE ' + (wave + 1), 1); sfx(boss ? 'boom' : 'whoosh'); }
+g.onReset = init; init();
+function punch() { if (p.cd > 0 || g.mode !== 'play') return; p.cd = .34; p.atk = .18; sfx('whoosh', { vol: .5 }); let hit = false;
+  for (const e of en) if (e.hp > 0 && Math.abs(e.y - p.y) < 40 && (e.x - p.x) * p.d > -10 && (e.x - p.x) * p.d < 96) { hit = true; e.hp--; e.fl = .15; e.kb = .25; e.vx = p.d * 220; combo = comboT > 0 ? combo + 1 : 1; comboT = 1; g.score += 10 * combo; sfx('hit', { pitch: comboPitch(combo) }); g.hitstop(.05); g.shake(5); g.burst(e.x, e.y - 50, 8, { color: ['#fff', '#8fcf7a', '#ffd34d'], speed: 260, size: 7 }); g.popup(combo > 1 ? `${combo} HIT` : 'POW', e.x, e.y - 100, '#fff', 30 + combo * 3); if (e.hp <= 0) { sfx('boom', { vol: .5 }); g.burst(e.x, e.y - 40, 24, { color: ['#8fcf7a', '#fff'], speed: 380 }); g.score += e.boss ? 200 : 50; if (e.boss) { g.slowmo(.3, 1.2); g.flash('#fff', .5); } } }
+  if (!hit) combo = 0; }
+function update(dt) {
+  if (g.mode !== 'play') return; p.t += dt; p.cd -= dt; p.atk -= dt; p.inv -= dt; comboT -= dt; if (comboT <= 0) combo = 0;
+  const P = g.btn('p', 360, 820, 160, 110, 'PUNCH', { key: 'Space' }); if (P.pressed) punch();
+  let mx = (g.keys.ArrowRight ? 1 : 0) - (g.keys.ArrowLeft ? 1 : 0), my = (g.keys.ArrowDown ? 1 : 0) - (g.keys.ArrowUp ? 1 : 0);
+  if (g.ptr.down && g.ptr.x < 350) { const dx = g.ptr.x - p.x, dy = g.ptr.y - p.y; if (Math.hypot(dx, dy) > 20) { mx = Math.sign(dx); my = Math.sign(dy) * (Math.abs(dy) > 14 ? 1 : 0); } }
+  if (g.auto) { botT -= dt; const t = en.filter(e => e.hp > 0).sort((a, b) => dist(a, p) - dist(b, p))[0]; if (t && !g.dumb()) { mx = Math.abs(t.x - p.x) > 70 ? Math.sign(t.x - p.x) : 0; my = Math.abs(t.y - p.y) > 14 ? Math.sign(t.y - p.y) : 0; p.d = t.x >= p.x ? 1 : -1; if (Math.abs(t.x - p.x) < 90 && Math.abs(t.y - p.y) < 30 && botT <= 0) { punch(); botT = .1; } } else { mx = 0; my = 0; if (botT <= 0) { punch(); botT = .6; } } }
+  if (mx) p.d = mx; p.x = clamp(p.x + mx * 230 * dt, 40, 500); p.y = clamp(p.y + my * 170 * dt, Y0 + 20, Y1);
+  for (const e of en) { if (e.hp <= 0) { e.dead = (e.dead || 0) + dt; continue; } e.t += dt; e.fl -= dt; e.cd -= dt; if (e.kb > 0) { e.kb -= dt; e.x += e.vx * dt; continue; } const dx = p.x - e.x, dy = p.y - e.y; e.d = dx > 0 ? 1 : -1;
+    if (Math.abs(dx) > 62 || Math.abs(dy) > 24) { e.x += Math.sign(dx) * (e.boss ? 52 : 68) * dt; e.y += Math.sign(dy) * 40 * dt * (Math.abs(dy) > 8 ? 1 : 0); } else if (e.cd <= 0) { e.cd = e.boss ? 1.1 : 1.5; e.atk = .2; if (p.inv <= 0) { p.hp--; p.inv = .8; sfx('hit'); g.shake(9); g.hitstop(.06); g.flash('#ff3b3b', .25); combo = 0; if (p.hp <= 0) { g.burst(p.x, p.y - 40, 26, { color: [S.heroColor, '#fff'], speed: 380 }); g.end({ win: false, score: g.score, label: 'SCORE' }); } } } }
+  en = en.filter(e => e.hp > 0 || e.dead < .35); if (!en.some(e => e.hp > 0) && g.mode === 'play') { spawnT -= dt; if (spawnT <= 0) { spawnT = 1; nextWave(); } }
+  g.hud.l = `${g.score}`; g.hud.r = combo > 1 ? `${combo} COMBO` : ''; g.state = { hp: p.hp, wave, enemies: en.filter(e => e.hp > 0).length, score: g.score };
+}
+function draw(c) {
+  const gr = c.createLinearGradient(0, 0, 0, 560); gr.addColorStop(0, '#ff8a5a'); gr.addColorStop(1, '#ffd9a8'); c.fillStyle = gr; c.fillRect(0, 0, 540, 560);
+  for (let i = 0; i < 7; i++) { c.fillStyle = ['#7a5a8a', '#6a4a7a', '#8a6a9a'][i % 3]; c.fillRect(i * 80 - 10, 340 - (i * 37 % 120), 72, 220 + (i * 37 % 120)); c.fillStyle = '#ffe08a'; for (let y = 0; y < 5; y++) c.fillRect(i * 80 + 8, 380 - (i * 37 % 120) + y * 40, 14, 20); }
+  c.fillStyle = '#4a4f5c'; c.fillRect(0, 540, 540, 300); c.fillStyle = '#8a8f9c'; c.fillRect(0, 540, 540, 14); c.fillStyle = '#ffd34d'; for (let x = 0; x < 540; x += 90) c.fillRect(x, 690, 50, 8);
+  for (const e of [...en, p].sort((a, b) => a.y - b.y)) { c.fillStyle = 'rgba(0,0,0,.3)'; c.beginPath(); c.ellipse(e.x, e.y, e === p ? 26 : (e.boss ? 40 : 26), 8, 0, 0, 7); c.fill(); }
+  for (const e of en) { c.save(); if (e.hp <= 0) { c.globalAlpha = Math.max(0, 1 - e.dead / .35); } drawChar(S.foe, c, e.x, e.y, e.boss ? 170 : 100, { dir: e.d, t: e.t, anim: e.kb > 0 ? 'idle' : 'walk', hurt: e.fl > 0, color: e.boss ? '#5a9a4a' : undefined }); c.restore(); if (e.hp > 0 && e.hp < e.max) g.bar(e.x - 30, e.y - (e.boss ? 190 : 118), 60, 8, e.hp / e.max, '#ff5a5a'); }
+  c.save(); if (p.inv > 0 && Math.floor(g.t * 20) % 2) c.globalAlpha = .4; drawChar('cat', c, p.x + (p.atk > 0 ? p.d * 14 : 0), p.y, 100, { color: S.heroColor, dir: p.d, t: p.t, anim: 'walk', hurt: g.mode === 'over' }); c.restore();
+  if (p.atk > 0) { c.fillStyle = '#fff'; c.beginPath(); c.arc(p.x + p.d * 72, p.y - 50, 20 + (.18 - p.atk) * 120, 0, 7); c.globalAlpha = .6; c.fill(); c.globalAlpha = 1; }
+  for (let i = 0; i < p.hp; i++) heart(c, 40 + i * 44, 110, 34);
+}
+g.run(update, draw);
+</script></body></html>

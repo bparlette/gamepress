@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE one-tap-reflex. ONE screen, ONE mechanic: tap to flap through gaps. 3-SECOND RULE: orange jetpack cat = player, green pipes = enemy, goal = pass the gaps.
+  DON'T BUILD: skins/shop, levels, leaderboards, menus beyond start/restart. Edit the SPEC JSON, not the code (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, clamp, lerp } from '../_vendor/gp2d.js';
+import { drawChar } from '../_vendor/gpsprites.js';
+const S = { title: 'FLAP CAT', sub: 'Tap to flap', hook: 'One tap. One cat. Impossible?', hero: 'cat', heroColor: '#ff9a3c', bg: '#59c9ff', pipe: '#4caf50', gap: 250, speed: 210, winScore: 10, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+let cat, pipes, streak, speed, cd, clouds = Array.from({ length: 6 }, (_, i) => ({ x: i * 110, y: rnd(80, 420), s: rnd(.6, 1.4) }));
+const mk = x => ({ x, gy: rnd(230, 560), w: 96, scored: false });
+function init() { cat = { x: 150, y: 460, vy: 0, t: 0 }; pipes = [0, 1, 2, 3].map(i => mk(640 + i * 270)); streak = 0; speed = S.speed; cd = 0; g.score = 0; }
+g.onReset = init; init();
+function flap() { cat.vy = -450; sfx('jump', { pitch: comboPitch(streak) }); g.burst(cat.x - 30, cat.y + 20, 4, { color: ['#ffd34d', '#ff8a3c'], speed: 90, up: -60, size: 8, life: .35 }); }
+function die() { sfx('hit'); g.hitstop(.12); g.burst(cat.x, cat.y, 22, { color: [S.heroColor, '#fff', '#ffd34d'], speed: 380 }); g.end({ win: false, score: g.score, label: 'PIPES' }); }
+function update(dt) {
+  if (g.mode !== 'play') return; cat.t += dt; cd -= dt;
+  const nxt = pipes.find(p => p.x + p.w > cat.x - 34);
+  let want = g.pressed.Space || g.pressed.ArrowUp || g.taps.length > 0;
+  if (g.auto) { const tgt = nxt.gy + S.gap / 2 + 4, lazy = g.dumb() && g.score >= 3; if (!lazy && cd <= 0 && cat.y + cat.vy * .06 > tgt + 20) { want = true; cd = .2; } }
+  if (want) flap();
+  cat.vy += 1500 * dt; cat.y += cat.vy * dt; speed += dt * 4;
+  for (const p of pipes) { p.x -= speed * dt; if (!p.scored && p.x + p.w < cat.x) { p.scored = true; g.score++; streak++; sfx('coin', { pitch: comboPitch(streak) }); g.popup('+1', cat.x + 60, cat.y - 60, '#fff'); if (g.score % 5 === 0) { g.showBanner('x2 SPEED', .9); sfx('powerup'); S.gap = Math.max(190, S.gap - 12); } if (g.score >= S.winScore) { g.end({ win: true, score: g.score, label: 'PIPES' }); } } }
+  while (pipes[0].x < -120) { pipes.shift(); pipes.push(mk(pipes.at(-1).x + 270)); }
+  const hit = pipes.some(p => cat.x + 28 > p.x && cat.x - 28 < p.x + p.w && (cat.y - 40 < p.gy || cat.y + 40 > p.gy + S.gap));
+  if (hit || cat.y > g.H - 90 || cat.y < -40) die();
+  g.state = { y: Math.round(cat.y), score: g.score, speed: Math.round(speed), gy: Math.round(nxt.gy), px: Math.round(nxt.x) };
+}
+function draw(c) {
+  for (const cl of clouds) { cl.x = (cl.x - 20 * g.dt + 700) % 700; c.fillStyle = 'rgba(255,255,255,.75)'; c.beginPath(); c.arc(cl.x - 40, cl.y, 36 * cl.s, 0, 7); c.arc(cl.x, cl.y - 14, 46 * cl.s, 0, 7); c.arc(cl.x + 44, cl.y, 34 * cl.s, 0, 7); c.fill(); }
+  for (const p of pipes) for (const [y0, y1] of [[-20, p.gy], [p.gy + S.gap, g.H]]) { c.fillStyle = S.pipe; c.fillRect(p.x, y0, p.w, y1 - y0); c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(p.x + 8, y0, 14, y1 - y0); const cap = y0 < 0 ? y1 - 40 : y0; c.fillStyle = S.pipe; c.fillRect(p.x - 10, cap, p.w + 20, 40); c.strokeStyle = '#143d16'; c.lineWidth = 5; c.strokeRect(p.x, y0, p.w, y1 - y0); c.strokeRect(p.x - 10, cap, p.w + 20, 40); }
+  c.fillStyle = '#8b5a2b'; c.fillRect(0, g.H - 70, g.W, 70); c.fillStyle = '#6bbf59'; c.fillRect(0, g.H - 70, g.W, 18);
+  c.save(); c.translate(cat.x, cat.y); c.rotate(clamp(cat.vy / 900, -.5, .9)); c.fillStyle = '#ffd34d'; c.beginPath(); c.moveTo(-34, 14); c.lineTo(-62 - Math.sin(g.t * 50) * 8, 30); c.lineTo(-34, 36); c.fill(); drawChar(S.hero, c, 0, 46, 96, { color: S.heroColor, t: g.t, anim: 'walk', hurt: g.mode === 'over' }); c.restore();
+  g.text(String(g.score), g.W / 2, 150, { size: 120, align: 'center' });
+}
+g.run(update, draw);
+</script></body></html>

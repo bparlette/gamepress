@@ -1,0 +1,51 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE precision-platformer. ONE screen of mechanic: run and jump with coyote time and jump buffering. 3-SECOND RULE: orange cat = player, red spikes and pits = enemy, goal = the flag.
+  DON'T BUILD: powerups, enemies besides spikes, a level longer than 64 tiles, menus. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
+import { drawChar, coin as coinS } from '../_vendor/gpsprites.js';
+import { moveBox } from '../_vendor/gpphys.js';
+const S = { title: 'CAT DASH', sub: 'Run, jump, reach the flag', hook: "Don't fall. Don't blink.", hero: 'cat', heroColor: '#ff9a3c', bg: '#7fd4ff', ground: '#6b4a2e', grass: '#6bbf59', spike: '#e63946', style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const T = 48, COLS = 64, ROWS = 12, OY = 140, map = Array.from({ length: ROWS }, () => Array(COLS).fill('.'));
+for (let x = 0; x < COLS; x++) for (const y of [10, 11]) map[y][x] = '#';
+for (const [a, b] of [[14, 15], [30, 31], [46, 47]]) for (let x = a; x <= b; x++) { map[10][x] = '.'; map[11][x] = '.'; }
+for (const x of [22, 23, 39, 40, 55, 56]) map[9][x] = '^';
+for (const [x, y] of [[18, 7], [19, 7], [20, 7], [36, 8], [37, 8], [27, 9], [50, 9]]) map[y][x] = '#';
+for (const [x, y] of [[19, 6], [26, 7], [31, 8], [37, 7], [44, 7], [52, 7], [58, 8]]) map[y][x] = 'o'; map[9][62] = 'F';
+const solid = (tx, ty) => tx < 0 || tx >= COLS ? true : ty >= ROWS ? false : map[ty]?.[tx] === '#';
+let p, cam, coy, buf, jumpHeld, coins, clouds = Array.from({ length: 5 }, () => ({ x: rnd(0, 1400), y: rnd(60, 300), s: rnd(.7, 1.3) })), botDelay;
+function init() { p = { x: 3 * T, y: 9 * T - 44 + 4, w: 30, h: 42, vx: 0, vy: 0, dir: 1, t: 0, air: false }; cam = 0; coy = 0; buf = 0; coins = 0; botDelay = 0; map.forEach((r, y) => r.forEach((c, x) => { if (c === 'x') map[y][x] = 'o'; })); g.score = 0; }
+g.onReset = init; init();
+function die() { sfx('hit'); g.hitstop(.1); g.burst(p.x + 15, p.y + 20, 20, { color: [S.heroColor, '#fff'], speed: 340 }); g.end({ win: false, score: Math.round(p.x / T), label: 'TILES' }); }
+function update(dt) {
+  if (g.mode !== 'play') return; p.t += dt;
+  const L = g.btn('l', 20, 830, 120, 100, '◀', { key: 'ArrowLeft' }), Rb = g.btn('r', 150, 830, 120, 100, '▶', { key: 'ArrowRight' }), J = g.btn('j', 380, 830, 140, 100, 'JUMP', { key: 'Space' });
+  let mv = (Rb.held || g.keys.KeyD ? 1 : 0) - (L.held || g.keys.KeyA ? 1 : 0), jp = J.pressed || g.pressed.ArrowUp; jumpHeld = J.held || g.keys.Space || g.keys.ArrowUp;
+  if (g.auto) { mv = 1; g.sim.r = true; const ax = p.x + p.w + 44, gx = Math.floor(ax / T), fy = Math.floor((p.y + p.h) / T);
+    const sx = Math.floor((p.x + p.w + 24) / T), spk = map[9]?.[sx] === '^' || map[9]?.[sx + 1] === '^';
+    const need = spk || !solid(gx, fy) && !solid(gx - 0, fy + 1) && !solid(Math.floor((p.x + p.w + 20) / T), fy) || solid(Math.floor((p.x + p.w + 12) / T), fy - 1);
+    if (need && !p.air) { botDelay += dt; if (botDelay >= (g.dumb() ? .26 : 0)) { jp = true; jumpHeld = true; botDelay = 0; } } else botDelay = 0; g.sim.j = p.air && p.vy < 0; }
+  p.vx = mv * 250; if (mv) p.dir = mv; coy -= dt; buf -= dt; if (jp) buf = .12;
+  if (buf > 0 && coy > 0) { p.vy = -660; buf = 0; coy = 0; sfx('jump'); g.burst(p.x + 15, p.y + 42, 5, { color: '#fff', speed: 80, size: 6, life: .3 }); }
+  p.vy += (p.vy < 0 && !jumpHeld ? 3400 : 1900) * dt; p.vy = Math.min(p.vy, 900);
+  const h = moveBox(p, solid, T, dt); if (h.ground) { if (p.air) { g.burst(p.x + 15, p.y + 42, 4, { color: '#fff', speed: 70, size: 5, life: .25 }); sfx('step', { vol: .6 }); } coy = .1; p.air = false; } else p.air = true;
+  const cx = Math.floor((p.x + 15) / T), cy = Math.floor((p.y + 24) / T), tile = map[cy]?.[cx]; const feet = map[Math.floor((p.y + p.h - 4) / T)]?.[cx];
+  if (tile === 'o' || feet === 'o') { const ty = tile === 'o' ? cy : Math.floor((p.y + p.h - 4) / T); map[ty][cx] = 'x'; coins++; g.score += 10; sfx('coin', { pitch: comboPitch(coins) }); g.popup('+10', p.x, p.y - 20, '#ffd34d', 28); }
+  if (map[Math.floor((p.y + p.h - 6) / T)]?.[cx] === '^' || map[Math.floor((p.y + 20) / T)]?.[cx] === '^' || p.y > OY + ROWS * T + 60) die();
+  if (map[cy]?.[cx] === 'F' || cx >= 62) { g.score += 100; g.popup('FLAG!', p.x, p.y - 40, '#fff', 56); g.burst(p.x, p.y, 40, { color: ['#ffd34d', '#fff', '#ff6b6b'], speed: 420 }); g.end({ win: true, score: g.score, label: 'POINTS' }); }
+  cam = clamp(p.x - 160, 0, COLS * T - 540); g.state = { x: Math.round(p.x), y: Math.round(p.y), coins };
+}
+function draw(c) {
+  for (const cl of clouds) { const x = (cl.x - cam * .3 + 3000) % 1400 - 200; c.fillStyle = 'rgba(255,255,255,.8)'; c.beginPath(); c.arc(x, cl.y, 34 * cl.s, 0, 7); c.arc(x + 36, cl.y - 12, 42 * cl.s, 0, 7); c.arc(x + 76, cl.y, 32 * cl.s, 0, 7); c.fill(); }
+  c.save(); c.translate(-cam, OY);
+  for (let y = 0; y < ROWS; y++) for (let x = Math.floor(cam / T); x < Math.floor((cam + 540) / T) + 2; x++) { const t = map[y]?.[x], px = x * T, py = y * T;
+    if (t === '#') { c.fillStyle = S.ground; c.fillRect(px, py, T, T); if (!solid(x, y - 1)) { c.fillStyle = S.grass; c.fillRect(px, py, T, 12); } c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 2; c.strokeRect(px + 1, py + 1, T - 2, T - 2); }
+    else if (t === '^') { c.fillStyle = S.spike; for (let i = 0; i < 2; i++) { c.beginPath(); c.moveTo(px + i * 24, py + T); c.lineTo(px + i * 24 + 12, py + 8); c.lineTo(px + i * 24 + 24, py + T); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 2; c.stroke(); } }
+    else if (t === 'o') coinS(c, px + T / 2, py + T / 2, 12, g.t + x);
+    else if (t === 'F') { c.fillStyle = '#ddd'; c.fillRect(px + 20, py - 90, 6, 138); c.fillStyle = '#e63946'; c.beginPath(); c.moveTo(px + 26, py - 90); c.lineTo(px + 76, py - 70 + Math.sin(g.t * 6) * 4); c.lineTo(px + 26, py - 50); c.fill(); } }
+  drawChar(S.hero, c, p.x + 15, p.y + 46, 62, { color: S.heroColor, dir: p.dir, t: p.t, anim: p.air ? 'idle' : (Math.abs(p.vx) > 1 ? 'walk' : 'idle'), hurt: g.mode === 'over' });
+  c.restore(); g.text(`COINS ${coins}`, 24, 70, { size: 38, color: '#ffd34d' }); g.text(`${Math.round(p.x / T)}/${COLS - 2}`, 516, 70, { size: 38, align: 'right' });
+}
+g.run(update, draw);
+</script></body></html>

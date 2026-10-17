@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qwen Coder 14B - AI Task Workbench</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --card: #181b24;
+      --border: #2a2f3f;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --code-bg: #090a0f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(24, 27, 36, 0.85);
+      backdrop-filter: blur(8px);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.1);
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+    }
+    #chat-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .msg {
+      display: flex;
+      flex-direction: column;
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: white;
+      border-bottom-right-radius: 2px;
+    }
+    .msg.assistant {
+      align-self: flex-start;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 2px;
+    }
+    pre {
+      background: var(--code-bg);
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+    }
+    footer {
+      padding: 16px 24px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+    }
+    form {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      gap: 12px;
+    }
+    textarea {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--text);
+      font-size: 14px;
+      resize: none;
+      height: 48px;
+      outline: none;
+    }
+    textarea:focus { border-color: var(--accent); }
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: var(--accent-hover); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h2 style="font-size: 16px; font-weight: 600;">⚡ Qwen2.5-Coder-14B Task Workbench</h2>
+      <p style="font-size: 12px; color: var(--muted);">Local Ollama Inference Engine</p>
+    </div>
+    <div class="badge" id="status-badge">Locked in VRAM</div>
+  </header>
+
+  <main id="chat-container">
+    <div class="msg assistant">
+      <strong>Qwen2.5-Coder-14B:</strong>
+      <p>I am running locally on your hardware. Provide coding instructions, task specifications, or scripts to execute.</p>
+    </div>
+  </main>
+
+  <footer>
+    <form id="chat-form">
+      <textarea id="prompt" placeholder="Ask Qwen to write scripts, debug code, or complete tasks... (Enter to submit, Shift+Enter for new line)"></textarea>
+      <button type="submit" id="submit-btn">Send</button>
+    </form>
+  </footer>
+
+  <script>
+    const container = document.getElementById('chat-container');
+    const form = document.getElementById('chat-form');
+    const promptInput = document.getElementById('prompt');
+    const submitBtn = document.getElementById('submit-btn');
+
+    let history = [
+      { role: "system", content: "You are Qwen2.5-Coder-14B, a helpful and precise expert software engineering AI assistant." }
+    ];
+
+    promptInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        form.dispatchEvent(new Event('submit'));
+      }
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = promptInput.value.trim();
+      if (!text) return;
+
+      promptInput.value = '';
+      submitBtn.disabled = true;
+
+      // Append user msg
+      const userDiv = document.createElement('div');
+      userDiv.className = 'msg user';
+      userDiv.textContent = text;
+      container.appendChild(userDiv);
+      container.scrollTop = container.scrollHeight;
+
+      history.push({ role: "user", content: text });
+
+      // Append assistant streaming msg
+      const assistDiv = document.createElement('div');
+      assistDiv.className = 'msg assistant';
+      assistDiv.innerHTML = '<strong>Qwen:</strong> <span class="content">Thinking...</span>';
+      container.appendChild(assistDiv);
+      const contentSpan = assistDiv.querySelector('.content');
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: history })
+        });
+
+        if (!res.ok) throw new Error('Failed to generate response: ' + res.statusText);
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let fullResponse = '';
+        contentSpan.textContent = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            try {
+              const data = JSON.parse(line);
+              if (data.message && data.message.content) {
+                fullResponse += data.message.content;
+                contentSpan.textContent = fullResponse;
+                container.scrollTop = container.scrollHeight;
+              }
+            } catch {}
+          }
+        }
+
+        history.push({ role: "assistant", content: fullResponse });
+      } catch (err) {
+        contentSpan.textContent = '❌ Error: ' + err.message;
+      } finally {
+        submitBtn.disabled = false;
+        promptInput.focus();
+      }
+    });
+  </script>
+</body>
+</html>

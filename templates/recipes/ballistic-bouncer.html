@@ -1,0 +1,43 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE ballistic-bouncer. ONE screen, ONE mechanic: aim and fire one ball, it bounces through pegs, clear every orange peg. 3-SECOND RULE: cannon + ball = player, gravity and the drain = enemy, goal = clear the orange pegs.
+  DON'T BUILD: powerup menu, 20 levels, character picks. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, ri, clamp, shuffle } from '../_vendor/gp2d.js';
+import { face } from '../_vendor/gpsprites.js';
+import { World } from '../_vendor/gpphys.js';
+const S = { title: 'CAT PEGGLE', sub: 'Aim and tap to fire', hook: 'One shot. 50 pegs.', hero: 'cat', bg: '#2a1650', peg: '#4aa8ff', target: '#ff8a1f', balls: 6, orange: 8, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const CX = 270, CY = 100;
+let w, pegs, ball, aim, ballsLeft, streak, bucket, botT, shotT, trail, orange;
+const mkWorld = () => World({ gy: 1500, walls: { l: 1, r: 1, t: 1, b: 0 }, bounce: .66, damp: 1, y1: 960, sub: 3 });
+function init() { w = mkWorld(); pegs = []; const pts = []; for (let r = 0; r < 7; r++) for (let c = 0; c < 7 - (r % 2); c++) pts.push({ x: 60 + c * 70 + (r % 2) * 35, y: 290 + r * 72 }); const keep = pts.filter(() => R() > .15), pick = new Set(shuffle(keep.map((_, i) => i)).slice(0, S.orange));
+  keep.forEach((q, i) => { const b = w.add({ x: q.x, y: q.y, r: 15, static: true, bounce: .66, data: { orange: pick.has(i), hit: false, fade: 0 } }); pegs.push(b); }); ball = null; aim = Math.PI / 2; ballsLeft = g.dumb() ? 3 : S.balls; streak = 0; bucket = { x: 270, d: 1 }; botT = .6; shotT = 0; trail = []; orange = S.orange; g.score = 0;
+  w.onHit = (a, b2) => { const pg = a.static ? a : b2.static ? b2 : null; if (!pg || pg.data.hit) return; pg.data.hit = true; streak++; g.score += pg.data.orange ? 100 * streak : 10 * streak; sfx(pg.data.orange ? 'ding' : 'pop', { pitch: comboPitch(streak) }); g.burst(pg.x, pg.y, 6, { color: [pg.data.orange ? S.target : S.peg, '#fff'], speed: 160, size: 6 }); if (pg.data.orange) { orange--; g.popup('+' + 100 * streak, pg.x, pg.y - 20, '#ffd34d', 28); g.shake(3); } };
+  w.onDrain = b => { if (b === ball) landed(b); }; }
+g.onReset = init; init();
+function landed(b) { w.remove(b); const inB = Math.abs(b.x - bucket.x) < 70; ball = null; if (inB) { ballsLeft++; sfx('powerup'); g.popup('FREE BALL', 270, 880, '#7dff7d', 40); }
+  for (const p of pegs.filter(p => p.data.hit)) { g.burst(p.x, p.y, 5, { color: S.peg, speed: 120, size: 5 }); w.remove(p); } pegs = pegs.filter(p => !p.data.hit); streak = 0; trail = [];
+  if (orange <= 0) { g.end({ win: true, score: g.score, label: 'SCORE' }); g.burst(270, 400, 50, { color: ['#ffd34d', '#fff', S.target], speed: 460 }); } else if (ballsLeft <= 0) g.end({ win: false, score: g.score, label: 'SCORE' }); }
+function sim(a) { const sw = mkWorld(); for (const p of pegs) sw.add({ x: p.x, y: p.y, r: 15, static: true, bounce: .66, data: { o: p.data.orange } }); const seen = new Set(); let n = 0; sw.onHit = (x, y) => { const pg = x.static ? x : y.static ? y : null; if (pg && !seen.has(pg)) { seen.add(pg); n += pg.data.o ? 10 : 1; } };
+  const b = sw.add({ x: CX, y: CY, r: 11, vx: Math.cos(a) * 880, vy: Math.sin(a) * 880, bounce: .66, data: {} }); let drained = false; sw.onDrain = () => { drained = true; }; for (let i = 0; i < 200 && !drained; i++) sw.step(1 / 60); return n + (Math.abs(b.x - bucket.x) < 70 && drained ? 4 : 0); }
+function fire() { if (ball || ballsLeft <= 0 || g.mode !== 'play') return; ballsLeft--; streak = 0; ball = w.add({ x: CX + Math.cos(aim) * 44, y: CY + Math.sin(aim) * 44, r: 11, vx: Math.cos(aim) * 880, vy: Math.sin(aim) * 880, bounce: .66, data: {} }); shotT = 0; sfx('shoot'); g.shake(4); g.burst(CX + Math.cos(aim) * 44, CY + Math.sin(aim) * 44, 8, { color: ['#fff', '#ffd34d'], speed: 200, size: 5 }); }
+function update(dt) {
+  if (g.mode !== 'play') return; bucket.x += bucket.d * 120 * dt; if (bucket.x > 450 || bucket.x < 90) bucket.d *= -1;
+  if (g.ptr.down || g.taps.length) { if (g.ptr.y > CY + 20) aim = clamp(Math.atan2(g.ptr.y - CY, g.ptr.x - CX), .3, Math.PI - .3); }
+  if (g.keys.ArrowLeft) aim = Math.min(Math.PI - .3, aim + dt); if (g.keys.ArrowRight) aim = Math.max(.3, aim - dt);
+  if (g.taps.length || g.pressed.Space) fire();
+  if (g.auto && !ball && ballsLeft > 0) { botT -= dt; if (botT <= 0) { botT = .5; let best = -1, ba = Math.PI / 2; const cand = g.dumb() ? [rnd(.4, 2.7)] : Array.from({ length: 16 }, (_, i) => .35 + i * (Math.PI - .7) / 15); for (const a of cand) { const sc = g.dumb() ? 0 : sim(a); if (sc > best) { best = sc; ba = a; } } aim = ba; fire(); } }
+  if (ball) { shotT += dt; trail.push({ x: ball.x, y: ball.y }); if (trail.length > 14) trail.shift(); if (shotT > 7) landed(ball); const last = pegs.filter(p => p.data.orange && !p.data.hit); if (last.length === 1 && g.slowT <= 0 && Math.hypot(ball.x - last[0].x, ball.y - last[0].y) < 110) { g.slowmo(.3, .9); } }
+  w.step(dt * (g.timeScale < 1 ? 1 : 1)); g.hud.l = `SCORE ${g.score}`; g.hud.r = `ORANGE ${orange}`; g.state = { orange, balls: ballsLeft, score: g.score };
+}
+function draw(c) {
+  const gr = c.createLinearGradient(0, 0, 0, 960); gr.addColorStop(0, '#3a1d6e'); gr.addColorStop(1, '#1a0d36'); c.fillStyle = gr; c.fillRect(0, 0, 540, 960);
+  for (const p of pegs) { c.beginPath(); c.arc(p.x, p.y, p.r, 0, 7); c.fillStyle = p.data.hit ? '#fff' : p.data.orange ? S.target : S.peg; c.fill(); c.lineWidth = 3; c.strokeStyle = '#000'; c.stroke(); c.fillStyle = 'rgba(255,255,255,.45)'; c.beginPath(); c.arc(p.x - 5, p.y - 5, 4.5, 0, 7); c.fill(); }
+  if (!ball && g.mode === 'play') { c.setLineDash([8, 10]); c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 4; c.beginPath(); c.moveTo(CX + Math.cos(aim) * 60, CY + Math.sin(aim) * 60); c.lineTo(CX + Math.cos(aim) * 200, CY + Math.sin(aim) * 200); c.stroke(); c.setLineDash([]); }
+  c.save(); c.translate(CX, CY); c.rotate(aim); c.fillStyle = '#7a8bb0'; c.fillRect(0, -16, 58, 32); c.strokeStyle = '#000'; c.lineWidth = 4; c.strokeRect(0, -16, 58, 32); c.restore(); c.fillStyle = '#4a5578'; c.beginPath(); c.arc(CX, CY, 34, 0, 7); c.fill(); c.stroke(); face(c, S.hero, CX, CY + 2, 24);
+  for (let i = 0; i < trail.length; i++) { c.globalAlpha = i / trail.length * .5; c.fillStyle = '#fff'; c.beginPath(); c.arc(trail[i].x, trail[i].y, 9 * i / trail.length + 2, 0, 7); c.fill(); } c.globalAlpha = 1;
+  if (ball) { c.beginPath(); c.arc(ball.x, ball.y, 11, 0, 7); c.fillStyle = '#fff'; c.fill(); c.lineWidth = 3; c.strokeStyle = '#000'; c.stroke(); }
+  c.fillStyle = '#ffd34d'; c.beginPath(); c.roundRect(bucket.x - 62, 925, 124, 28, 10); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 4; c.stroke(); for (let i = 0; i < ballsLeft && i < 8; i++) face(c, S.hero, 30 + i * 36, 150, 14);
+}
+g.run(update, draw);
+</script></body></html>

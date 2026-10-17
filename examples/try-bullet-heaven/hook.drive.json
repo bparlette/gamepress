@@ -1,0 +1,47 @@
+{
+  "name": "try-bullet-heaven-hook",
+  "root": "${GP_GAMES:-../../../../../../../../tmp/gp-try}",
+  "path": "try-bullet-heaven/index.html?auto=1&seed=7&style=toon",
+  "viewport": [
+    540,
+    960
+  ],
+  "scale": 2,
+  "fps": 30,
+  "seed": 5,
+  "duration": 30,
+  "report": "window.__game",
+  "input": [],
+  "captions": [
+    {
+      "t": 0,
+      "until": 4,
+      "text": "10,000 zombies vs one cat",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 24,
+      "until": 30,
+      "text": "Play free. Link in bio",
+      "pos": "bottom",
+      "style": "cta"
+    }
+  ],
+  "slowmo": [],
+  "blur": 2,
+  "fade": {
+    "in": 0.2,
+    "out": 0.4
+  },
+  "thumb": 16.5,
+  "audio": {
+    "source": "window.__events",
+    "music": "bed",
+    "musicGain": 0.3,
+    "bed": {
+      "bpm": 136,
+      "root": 62
+    }
+  }
+}
