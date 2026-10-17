@@ -13,3 +13,10 @@
 Order: itch first (gives the URL), then YouTube (link in description/pinned comment), CrazyGames, Steam last.
 Credentials: environment variables or OS keychain only; never in the repo, logs or manifests. Verify each store's current spec before upload (`presets/platforms.json`).
 Result contract per host: `{ ok, url, id }`; write results to `publish/<id>/hosted.json`.
+
+## Demo page at scale (hundreds of games)
+`brad-demos/shell.js` handles 100s of games from one `games.json` (about 600 bytes per game): a search box (title, category, tags), collapsible
+categories (only the first two are open past 60 games, and only open categories create cards), 60 cards per page with "Show more", lazy thumbnails,
+and only the playing game's iframe alive. Give each game `tags` in `meta.json` so search finds it. Past ~2,000 games, split `games.json` into per-category
+files and fetch a category on first expand (the picker's `makeCard`/`fillGrid` need no change). A landing page that links to several demo pages also works:
+host each page as its own `brad-demos`-style folder and list them in a small index.
