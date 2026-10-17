@@ -1,0 +1,85 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE demolition: a voxel structure (castle | tower | pyramid) is blown apart by artillery. Edit the SPEC JSON (gamepress make).*/
+// Voxel Demolition: a castle of ~9,000 voxel cubes, one InstancedMesh. Arrows aim, SPACE fires artillery, A/D orbit (touch: tap to fire).
+// Unhit voxels sleep (no per-frame work). A blast wakes voxels in a radius; woken voxels wake the ones standing on them.
+import { createStage, instances, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
+import { toon, catGeo, dogGeo, zombieGeo, crowd, sky, groundTex, particles } from '../_vendor/gpkit.js';
+const S = { title: 'VOXEL DEMOLITION', sub: 'Aim, fire, bring it down.', shape: 'castle', bystander: 'cat', bystanderColors: [0xff9a3c, 0xf4efe4, 0x9aa0aa], wall: [0xd9c7a6, 0xb9a58a, 0xc9b794, 0xa89878], roof: [0xc0392b, 0xd04a3a], bg: 0xf2b27a, skyTop: 0x4a8cff, skyBottom: 0xffc98a, ammo: 12, winPct: 85, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const GEO = { cat: catGeo, dog: dogGeo, zombie: zombieGeo };
+const st = createStage({ style: S.style, bg: S.bg, fitWidth: 17 }); st.light(); sky(st.scene, S.skyTop, S.skyBottom, [45, 140]); const fx = particles(st.scene, 500);
+const N = 30, V = 0.42, CX = 15, CZ = 15;
+const floor = new THREE.Mesh(new THREE.CircleGeometry(60, 48), toon(0xffffff, { map: groundTex('grass', 18) })); floor.rotation.x = -Math.PI / 2; st.scene.add(floor);
+// ---- shape: keep + 4 round towers with cone roofs + gate arch + battlements
+const solid = new Map(), key = (x, y, z) => (x * 64 + y) * 64 + z, vox = [];
+const put = (x, y, z, c) => { if (x < 0 || z < 0 || y < 0 || x >= N || z >= N || y >= N) return; solid.set(key(x, y, z), vox.length); vox.push({ x, y, z, c, awake: false, vx: 0, vy: 0, vz: 0, px: 0, py: 0, pz: 0, rx: 0, ry: 0, rz: 0, vrx: 0, vry: 0, landed: false, q: -1 }); };
+const [W0, W1, W2, W3] = S.wall, [R0, R1] = S.roof;
+const SHAPES = {
+  castle: (x, y, z) => { const dx = x - CX, dz = z - CZ; let c = 0;
+    if (Math.abs(dx) <= 8 && Math.abs(dz) <= 8 && y <= 14) { c = y % 5 === 4 ? W1 : W0; if (Math.abs(dx) <= 2 && dz >= 6 && y <= 6) return 0; if (y === 15 && ((x + z) % 2 === 0) && (Math.abs(dx) === 8 || Math.abs(dz) === 8)) c = W0; }
+    else if (y === 15 && Math.abs(dx) <= 8 && Math.abs(dz) <= 8 && (Math.abs(dx) === 8 || Math.abs(dz) === 8) && (x + z) % 2 === 0) c = W2;
+    for (const [tx, tz] of [[-9, -9], [9, -9], [-9, 9], [9, 9]]) { const r = Math.hypot(x - CX - tx, z - CZ - tz);
+      if (y <= 20 && r <= 4) c = y % 6 === 5 ? W3 : W2; else if (y > 20 && y <= 26 && r <= 4 - (y - 20) * .66) c = y % 2 ? R0 : R1; }
+    if (y >= 15 && y <= 19 && Math.abs(dx) <= 4 && Math.abs(dz) <= 4) c = c || W0; return c; },
+  tower: (x, y, z) => { const dx = x - CX, dz = z - CZ, r = Math.max(Math.abs(dx), Math.abs(dz));
+    if (r <= 5 && y <= 21) { if (y > 1 && y % 5 === 3 && (Math.abs(dx) === 5 || Math.abs(dz) === 5) && (Math.abs(dx) + Math.abs(dz)) % 3 === 0) return W3; return y % 6 === 5 ? W1 : (r === 5 ? W2 : W0); }
+    if (y > 21 && y <= 26 && r <= 6 - (y - 21)) return y % 2 ? R0 : R1; return 0; },
+  pyramid: (x, y, z) => { const dx = x - CX, dz = z - CZ, r = Math.max(Math.abs(dx), Math.abs(dz)); return y <= 24 && r <= 12 - y * .5 ? (y % 4 === 3 ? W1 : (r === Math.floor(12 - y * .5) ? W2 : W0)) : 0; },
+};
+const shapeFn = SHAPES[S.shape] || SHAPES.castle;
+for (let x = 0; x < N; x++) for (let z = 0; z < N; z++) for (let y = 0; y < 27; y++) { const c = shapeFn(x, y, z); if (c) put(x, y, z, c); }
+const count = vox.length, mesh = instances(new THREE.BoxGeometry(1, 1, 1), toon(0xffffff), count, { dynamic: true }); st.scene.add(mesh.mesh);
+const CATS = crowd(st.scene, GEO[S.bystander](), 40, true, S.bystander === 'zombie' ? .75 : .35), cat = Array.from({ length: 40 }, (_, i) => ({ x: rand(-9, 9), z: rand(-9, 9), a: rand(0, 6), sc: 0 })); for (let i = 0; i < 40; i++) CATS.color(i, S.bystanderColors[i % S.bystanderColors.length]);
+for (let t = 0; t < 14; t++) { const a = rand(0, 6.28), r = rand(9, 22), tr = new THREE.Mesh(new THREE.ConeGeometry(1.2, 3.6, 7), toon(0x2f8f4a)); tr.position.set(Math.cos(a) * r, 1.8, Math.sin(a) * r); st.scene.add(tr); }
+vox.forEach((v, i) => { v.px = (v.x - CX) * V; v.py = v.y * V + V / 2; v.pz = (v.z - CZ) * V; mesh.color(i, new THREE.Color(v.c).offsetHSL(0, 0, rand(-.04, .04)).getHex()); mesh.set(i, v.px, v.py, v.pz, V * .98); }); mesh.done();
+const shell = new THREE.Mesh(new THREE.SphereGeometry(.35, 12, 10), new THREE.MeshStandardMaterial({ color: 0x222222 })); shell.visible = false; st.scene.add(shell);
+const marker = new THREE.Mesh(new THREE.RingGeometry(.4, .55, 24), new THREE.MeshBasicMaterial({ color: 0xff3b30, side: THREE.DoubleSide, depthTest: false })); marker.renderOrder = 9; st.scene.add(marker);
+const dust = instances(new THREE.SphereGeometry(.18, 6, 5), new THREE.MeshBasicMaterial({ color: 0xeadcc0, transparent: true, opacity: .6 }), 400); st.scene.add(dust.mesh); const puffs = [];
+
+let aimX = -2.2, aimY = 3.5, orbit = 0.5, orbitV = 0, shellP = null, cd = 0, shots = 0, killed = 0, queue = [], settled = 0, ammo = S.ammo, outT = 0;
+function wakeVox(i, vx, vy, vz) { const v = vox[i]; if (v.awake) return; v.awake = true; v.vx = vx; v.vy = vy; v.vz = vz; v.vrx = rand(-5, 5); v.vry = rand(-5, 5); killed++; solid.delete(key(v.x, v.y, v.z)); const up = solid.get(key(v.x, v.y + 1, v.z)); if (up !== undefined) queue.push({ i: up, t: .05 + rand(0, .04) }); }
+function blast(x, y, z, R, power) {
+  st.shake(10); sfx('boom'); sfx('meow', .5); fx.burst(30, { x, y, z, size: .7, life: 1.3, color: 0xe8dcc0, g: 1 }, 5); for (const c of cat) c.sc = 1; for (let k = 0; k < 14; k++) puffs.push({ x: x + rand(-1, 1), y: y + rand(-1, 1), z: z + rand(-1, 1), vx: rand(-2, 2), vy: rand(0, 3), vz: rand(-2, 2), l: 1 });
+  for (let i = 0; i < count; i++) { const v = vox[i]; if (v.awake) continue; const dx = v.px - x, dy = v.py - y, dz = v.pz - z, d = Math.hypot(dx, dy, dz); if (d < R) { const f = power * (1 - d / R) + 2; wakeVox(i, dx / (d + .1) * f + rand(-1, 1), dy / (d + .1) * f + 3, dz / (d + .1) * f + rand(-1, 1)); } }
+}
+function fire() { if (cd > 0 || shellP || ammo <= 0) return; ammo--; shots++; cd = .5; sfx('whoosh');
+  const cam = st.camera.position, tx = Math.sin(orbit) * 0, dir = new THREE.Vector3(Math.sin(orbit), 0, Math.cos(orbit));
+  const right = new THREE.Vector3(Math.cos(orbit), 0, -Math.sin(orbit));
+  const target = new THREE.Vector3().addScaledVector(right, aimX).add(new THREE.Vector3(0, aimY, 0)).addScaledVector(dir, 3.6);
+  const origin = new THREE.Vector3().copy(dir).multiplyScalar(14).add(new THREE.Vector3(0, 1.2, 0)).addScaledVector(right, aimX * .3); const T = .9;
+  shellP = { p: origin, v: target.clone().sub(origin).divideScalar(T).add(new THREE.Vector3(0, 9.8 * T / 2 * 0, 0)), t: 0 }; }
+st.onPointerDown = () => fire();
+function update(dt) {
+  fx.update(dt); for (const c of cat) { c.a += rand(-1, 1) * dt * 4; const d = Math.hypot(c.x, c.z) || 1; const sp = c.sc ? 7 : 1.2; c.x += (c.sc ? c.x / d : Math.cos(c.a)) * sp * dt; c.z += (c.sc ? c.z / d : Math.sin(c.a)) * sp * dt; if (Math.hypot(c.x, c.z) > 26) { c.x *= .3; c.z *= .3; c.sc = 0; } }
+  cd -= dt; const k = st.keys;
+  aimX = clamp(aimX + ((k.arrowright ? 1 : 0) - (k.arrowleft ? 1 : 0)) * 5 * dt, -4.5, 4.5); aimY = clamp(aimY + ((k.arrowup ? 1 : 0) - (k.arrowdown ? 1 : 0)) * 5 * dt, .6, 9);
+  if (st.ptr.down) { aimX = clamp(st.ptr.x * 5, -4.5, 4.5); aimY = clamp(6 - (st.ptr.y + 1) * 4.2, .6, 9); }
+  orbitV += (((k.d ? 1 : 0) - (k.a ? 1 : 0)) * 1.1 - orbitV) * Math.min(1, dt * 4); orbit += orbitV * dt;
+  if (k[' ']) fire();
+  if (shellP) { shellP.t += dt; shellP.p.addScaledVector(shellP.v, dt); shell.visible = true; shell.position.copy(shellP.p);
+    const q = shellP.p; const gx = Math.round(q.x / V + CX), gy = Math.floor(q.y / V), gz = Math.round(q.z / V + CZ);
+    if (solid.has(key(gx, gy, gz)) || shellP.t > 1.4) { blast(q.x, q.y, q.z, 3.1 + 1.2 * Math.min(1, shots / 8), 11); shell.visible = false; shellP = null; } }
+  for (const e of queue) e.t -= dt; for (let qi = queue.length - 1; qi >= 0; qi--) if (queue[qi].t <= 0) { const e = queue.splice(qi, 1)[0]; wakeVox(e.i, rand(-.6, .6), 0, rand(-.6, .6)); }
+  for (let i = 0; i < count; i++) { const v = vox[i]; if (!v.awake || v.landed) continue;
+    v.vy -= 14 * dt; v.px += v.vx * dt; v.py += v.vy * dt; v.pz += v.vz * dt; v.rx += v.vrx * dt; v.ry += v.vry * dt;
+    if (v.py < V / 2) { v.py = V / 2; if (Math.abs(v.vy) > 2.5 && Math.random() < .02) puffs.push({ x: v.px, y: .2, z: v.pz, vx: rand(-1, 1), vy: 1, vz: rand(-1, 1), l: .8 }); v.vy *= -.3; v.vx *= .7; v.vz *= .7; v.vrx *= .5; v.vry *= .5; if (Math.abs(v.vy) < .6 && Math.hypot(v.vx, v.vz) < .5) { v.landed = true; settled++; } } }
+  for (const p of puffs) { p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.l -= dt; } for (let i = puffs.length - 1; i >= 0; i--) if (puffs[i].l <= 0) puffs.splice(i, 1);
+  const pct = Math.round(100 * killed / count);
+  st.hud.left(`DEMOLISHED<br><span style="color:#ffd34d;font-size:8vmin">${pct}%</span>`); st.hud.right(`SHELLS ${ammo}<br>${killed.toLocaleString()} voxels`);
+  st.hud.hint('Arrows aim · SPACE fire · A/D orbit'); if (pct >= S.winPct && !st.won) { st.won = true; st.hud.banner('GONE!', 3); sfx('win'); st.slowmo(.3, 1.2); st.flash('#fff', .6); st.end({ win: true, score: pct, label: 'DEMOLISHED %' }); }
+  if (ammo <= 0 && !shellP && !st.won) { outT += dt; if (outT > 2.5 && !st.lost) { st.lost = true; st.end({ win: false, score: pct, label: 'DEMOLISHED %' }); } }
+  window.__game = { pct, killed, voxels: count, shots, ammo };
+}
+function pre() {
+  cat.forEach((c, i) => CATS.set(i, c.x, 0, c.z, .7, Math.atan2(c.x, c.z) * (c.sc ? 1 : 0) + c.a, 0, 0)); CATS.done(40);
+  const o = new THREE.Object3D(); let dirty = false;
+  for (let i = 0; i < count; i++) { const v = vox[i]; if (v.awake && !(v.landed && v.done)) { mesh.set(i, v.px, v.py, v.pz, V * .98, V * .98, V * .98, v.rx, v.ry, 0); if (v.landed) v.done = true; dirty = true; } }
+  if (dirty) mesh.done(); mesh.mesh.instanceMatrix.needsUpdate = true;
+  puffs.forEach((p, i) => i < 400 && dust.set(i, p.x, p.y, p.z, p.l * 1.2)); dust.mesh.count = Math.min(400, puffs.length); dust.done();
+  const R = st.dist * .95 + 2; st.camera.position.set(Math.sin(orbit) * R, 8.5 + Math.sin(st.t * .3) * .3, Math.cos(orbit) * R); st.camera.lookAt(0, 5.6, 0);
+  const dir = new THREE.Vector3(Math.sin(orbit), 0, Math.cos(orbit)), right = new THREE.Vector3(Math.cos(orbit), 0, -Math.sin(orbit));
+  marker.position.copy(new THREE.Vector3().addScaledVector(right, aimX).addScaledVector(dir, 3.6).add(new THREE.Vector3(0, aimY, 0))); marker.lookAt(st.camera.position); marker.visible = ammo > 0;
+}
+st.shell({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, onReset: () => location.reload() });
+st.run(update, pre);
+</script></body></html>

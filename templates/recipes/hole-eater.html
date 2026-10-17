@@ -4,8 +4,8 @@
   Edit the SPEC JSON, not the code (gamepress make). Anything smaller than the hole falls in; animals and people run away; everything is one InstancedMesh per type.*/
 import { createStage, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
 import { toon, catGeo, dogGeo, personGeo, crowdGeo, treeGeo, houseGeo, towerGeo, carGeo, busGeo, coinGeo, benchGeo, barrelGeo, crowd, particles, sky, groundTex, walkClock } from '../_vendor/gpkit.js';
-const S = { title: 'HOLE EATER', sub: 'Swallow everything. 90 seconds.', seconds: 90, ringColor: 0x7b4bff, skyTop: 0x4aa8ff, skyBottom: 0xdff3ff, bg: 0x9fd8ff, ground: 'grass', winScore: 900, roster: null, countScale: 1, /*SPEC*/ ...{} /*END*/ };
-const st = createStage({ bg: S.bg, fitWidth: 16, fov: 50 }); st.light(); sky(st.scene, S.skyTop, S.skyBottom, [160, 520]); const fx = particles(st.scene, 400);
+const S = { title: 'HOLE EATER', sub: 'Swallow everything. 90 seconds.', seconds: 90, ringColor: 0x7b4bff, skyTop: 0x4aa8ff, skyBottom: 0xdff3ff, bg: 0x9fd8ff, ground: 'grass', winScore: 900, roster: null, countScale: 1, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const st = createStage({ style: S.style, bg: S.bg, fitWidth: 16, fov: 50 }); st.light(); sky(st.scene, S.skyTop, S.skyBottom, [160, 520]); const fx = particles(st.scene, 400);
 const A = 46, GROW = +(new URLSearchParams(location.search).get('grow') || 1);
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), toon(0xffffff, { map: groundTex(S.ground, 290) })); ground.rotation.x = -Math.PI / 2; st.scene.add(ground);
 for (let i = -3; i <= 3; i++) for (const [w, h] of [[2.4, A * 2.6], [A * 2.6, 2.4]]) { const r = new THREE.Mesh(new THREE.PlaneGeometry(w, h), toon(0x4a4f5c)); r.rotation.x = -Math.PI / 2; r.position.set(w < 3 ? i * 15 : 0, .02, w < 3 ? 0 : i * 15); st.scene.add(r); }

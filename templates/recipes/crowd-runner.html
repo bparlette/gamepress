@@ -6,9 +6,9 @@
 import { createStage, instances, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
 import { toon, zombieGeo, catGeo, crowd, hero, particles, sky, groundTex, walkClock } from '../_vendor/gpkit.js';
 const S = { title: 'CROWD RUNNER', sub: 'Steer through the gates. Topple the boss.', hero: 'zombie', heroColors: [0x7fbf6a, 0x8fcf7a, 0x6aa85a], foe: 'cat', foeColors: [0xff9a3c, 0x9aa0aa, 0xf4efe4], bossColor: 0xff9a3c, bossScale: 10, bossHP: 900, bg: 0x8fd3ff, skyTop: 0x3f8cff, skyBottom: 0xffe7b8, ground: 'grass', road: 'asphalt', start: 5, winText: 'BOSS DOWN!', bossText: 'BOSS!', crowdLabel: 'CROWD',
-  gates: ['+20', 'x2', '-15', 'x3', '+50', 'x2', '-30', 'x4'], /*SPEC*/ ...{} /*END*/ };
+  gates: ['+20', 'x2', '-15', 'x3', '+50', 'x2', '-30', 'x4'], style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const GEO = { zombie: zombieGeo, cat: catGeo };
-const st = createStage({ bg: S.bg, fitWidth: 9.5, fov: 55, fog: [40, 110] }); st.light(); sky(st.scene, S.skyTop, S.skyBottom, [50, 150]);
+const st = createStage({ style: S.style, bg: S.bg, fitWidth: 9.5, fov: 55, fog: [40, 110] }); st.light(); sky(st.scene, S.skyTop, S.skyBottom, [50, 150]);
 const TRACK = 190, MAXDRAW = 700;
 const road = new THREE.Mesh(new THREE.PlaneGeometry(10, TRACK + 60), toon(0xffffff, { map: groundTex(S.road, 10) })); road.rotation.x = -Math.PI / 2; road.position.z = TRACK / 2; st.scene.add(road);
 const grass = new THREE.Mesh(new THREE.PlaneGeometry(200, TRACK + 200), toon(0xffffff, { map: groundTex(S.ground, 60) })); grass.rotation.x = -Math.PI / 2; grass.position.set(0, -.02, TRACK / 2); st.scene.add(grass);

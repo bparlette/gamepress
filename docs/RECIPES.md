@@ -16,6 +16,11 @@ If nothing matches, the generic 10 assets still apply: cats, dogs, crowds of peo
 | `crowd-runner` | steer a crowd through math gates, topple a boss | `title sub hero(zombie\|cat) heroColors foe foeColors bossColor bossScale bossHP skyTop skyBottom bg ground road start gates bossText winText crowdLabel` |
 | `hole-eater` | growing hole swallows a 16-type city (coins, cats, dogs, crowds, small/big trees, cars, buses, houses, towers, mansions, skyscrapers, explosive barrels with chain reactions, golden cats); animals and people run away | `title sub seconds ringColor skyTop skyBottom bg ground winScore countScale roster` (roster = list of prop ids to include) |
 
+| `glass-drop` | hero drops through rows of two glass panes, one breaks (lives, replay) | `title sub hero(cat\|dog\|zombie) heroColors rows lives bg lavaColor glassColor pillarColor` |
+| `demolition` | artillery vs a voxel structure (about 9,000 cubes), bystanders flee | `title sub shape(castle\|tower\|pyramid) bystander bystanderColors wall[4] roof[2] ammo winPct bg skyTop skyBottom` |
+
+**Every recipe takes `style`:** `toon` (default), `roblox` (blocky plastic), `comic` (ink lines + halftone), `painted`, `pixel16`, `pixel8`. It is the first question `ideate` asks. Any game on the shared kit also previews in any style by adding `?style=comic` to its URL.
+
 Colours are `"#rrggbb"`. Gates are strings: `"+20"`, `"x3"`, `"-15"` (minus gates are red). Meta keys also allowed in the spec: `hook` (first caption), `tagline`, `description`, `tags`, `youtubeTitle`, `category`.
 
 Example: `{"title":"Cat Stampede","hero":"cat","foe":"zombie","bossText":"ZOMBIE KING","gates":["+25","x2","-20","x3"],"hook":"5 cats vs a ZOMBIE KING"}`

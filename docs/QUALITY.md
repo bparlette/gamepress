@@ -21,3 +21,5 @@ part of the screen? impact feedback visible? text not overlapping the HUD? Fix a
 
 ## The kit (use it, do not hand-roll)
 `g/_vendor/gp3d.js`: `st.shell` (title/pause/results/replay/best/mute), `st.end`, game feel (`hitstop`, `slowmo`, `popup`, `flash`, `kick`), `st.cine` camera moves. `gpkit.js`: toon, `catGeo/zombieGeo/carGeo`, `crowd(...legs)` with walk cycle (`walkClock`), `hero`, `particles`, `sky`, `groundTex`, `blobs`. Check yourself with `gamepress grade <id>`: it scores the source and the video and prints fixes. It is a floor; always look at the stills it writes.
+
+`createStage({style})` / `?style=`: toon, roblox (blocky Lambert), comic, painted, pixel16, pixel8 (post-process shader in gp3d.js; boxy geometry for roblox/pixel). Games must call kit builders after createStage so the style applies.

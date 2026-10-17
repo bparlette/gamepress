@@ -34,7 +34,7 @@ Script everything from game idea to hosted game, each step usable alone, for fou
 | `new --target web\|roblox`, `copy`, `build --target web\|steam\|roblox` | built (Steam needs a Steamworks app to go live) |
 | `deploy itch\|crazygames\|steam\|youtube` | stubs: the hosting AI implements uploads |
 | Game kit (shell, feel, walk cycle, camera moves) | built; 2 of 12 demos migrated, the rest are mechanical (see QUALITY.md) |
-| `make` recipes (crowd-runner, hole-eater), `doctor`, `lint`, `grade --vision`, test hints | built: docs/RECIPES.md |
+| `make` recipes (crowd-runner, hole-eater, glass-drop, demolition) and 6 art styles, `doctor`, `lint`, `grade --vision`, test hints | built: docs/RECIPES.md |
 | Not done | itch butler upload, YouTube upload, Steamworks features, Roblox trailer capture, rebuild of the other 10 demos on the kit |
 
 ## The workflow

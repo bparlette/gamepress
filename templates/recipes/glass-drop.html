@@ -1,0 +1,49 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE glass-drop: a hero drops through rows of two glass panes, one holds and one shatters. Edit the SPEC JSON (gamepress make).*/
+// Glass Drop: a cat drops through 20 rows of two glass panes. One of each pair holds, the other shatters. Which one? SPACE or tap drops the next ball.
+// Panes are MeshPhysicalMaterial (transmission .95, roughness .05): no textures. Each ball gets a fresh random layout.
+import { createStage, instances, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
+import { toon, catGeo, dogGeo, zombieGeo, hero, particles } from '../_vendor/gpkit.js';
+const S = { title: 'GLASS DROP', sub: 'Which pane holds? Tap to drop.', hero: 'cat', heroColors: [0xff9a3c, 0x9aa0aa, 0xf4efe4, 0xd9a066, 0x3b3b44], rows: 20, lives: 9, bg: 0x1d2b4a, lavaColor: 0xff4a1a, glassColor: 0x9fdcff, pillarColor: 0x3a4d7a, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const GEO = { cat: catGeo, dog: dogGeo, zombie: zombieGeo };
+const st = createStage({ style: S.style, bg: S.bg, fitWidth: 7.5, fov: 55 }); st.light(); const fx = particles(st.scene, 300);
+const ROWS = S.rows, GAP = 3, PW = 2.2, COLX = [-1.3, 1.3], BR = .5;
+st.scene.add(new THREE.PointLight(0xff5a2a, 60, 90)); st.scene.children.at(-1).position.set(0, -ROWS * GAP - 6, 4);
+const lava = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshBasicMaterial({ color: S.lavaColor })); lava.rotation.x = -Math.PI / 2; lava.position.y = -ROWS * GAP - 8; st.scene.add(lava);
+const pillars = []; for (let i = 0; i < 40; i++) { const m = new THREE.Mesh(new THREE.BoxGeometry(rand(.6, 1.6), rand(10, 40), rand(.6, 1.6)), toon(S.pillarColor)); m.position.set(rand(-9, 9), -rand(0, ROWS * GAP), -rand(3, 14)); if (Math.abs(m.position.x) < 2.5) m.position.x += 4; st.scene.add(m); }
+const glass = new THREE.MeshPhysicalMaterial({ color: S.glassColor, transmission: .95, roughness: .05, thickness: .5, ior: 1.45, transparent: true, opacity: .75 });
+const panes = []; for (let r = 0; r < ROWS; r++) for (let c = 0; c < 2; c++) { const m = new THREE.Mesh(new THREE.BoxGeometry(PW, .14, PW), glass); m.position.set(COLX[c], -r * GAP, 0); m.add(new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), new THREE.LineBasicMaterial({ color: 0xbfeaff }))); st.scene.add(m); panes.push({ r, c, m, weak: false, broken: false, y: -r * GAP }); }
+const frame = new THREE.Mesh(new THREE.BoxGeometry(.12, ROWS * GAP + 6, .12), new THREE.MeshStandardMaterial({ color: 0x8aa0c8 })); for (const x of [-2.6, 0, 2.6]) { const f = frame.clone(); f.position.set(x, -ROWS * GAP / 2 + 1.5, -1.3); st.scene.add(f); }
+const ball = hero(GEO[S.hero](), S.heroColors[0], .05); ball.scale.setScalar(1.3); st.scene.add(ball); let lives = S.lives, over = false;
+const shardI = instances(new THREE.BoxGeometry(.28, .06, .28), glass, 900); st.scene.add(shardI.mesh); const shards = [];
+let b, ballNo = 0, best = 0, camY = 3, falls = 0, idle = 0.8, slow = 1, dead = false, alive = false;
+const pane = (r, c) => panes[r * 2 + c];
+function drop() { ballNo++; panes.forEach(p => { p.broken = false; p.m.visible = true; }); for (let r = 0; r < ROWS; r++) { const w = Math.random() < .5 ? 0 : 1; pane(r, 0).weak = w === 0; pane(r, 1).weak = w === 1; }
+  const c = Math.random() < .5 ? 0 : 1; b = { x: COLX[c], y: 4, vx: 0, vy: 0, col: c, row: -1, bounces: 0, tx: COLX[c], falls: 0, hue: (ballNo * .17) % 1 }; ball.material.color.setHex(S.heroColors[ballNo % S.heroColors.length]); alive = true; dead = false; st.hud.banner('BALL ' + ballNo, 1); }
+function crack(p) { p.broken = true; p.m.visible = false; sfx('crash'); st.shake(5); slow = .3; fx.burst(14, { x: p.m.position.x, y: p.y, z: 0, size: .12, life: .8, color: 0xbfeaff, g: 8 }, 4); for (let i = 0; i < 40; i++) shards.push({ x: p.m.position.x + rand(-1, 1), y: p.y, z: rand(-1, 1), vx: rand(-3, 3), vy: rand(0, 4), vz: rand(-3, 3), r: rand(0, 6) }); }
+function update(dt0) {
+  fx.update(dt0); if (Math.random() < .5) fx.emit({ x: rand(-6, 6), y: -ROWS * GAP - 6, z: rand(-3, 3), vy: rand(3, 8), size: .25, life: 2, color: 0xff7a1a, g: -1 });
+  slow += (1 - slow) * Math.min(1, dt0 * 2); const dt = dt0 * slow;
+  idle -= dt0; if ((st.keys[' '] || idle <= 0) && !alive && !over) { drop(); idle = 1.4; }
+  if (alive) {
+    const py = b.y; b.vy -= 22 * dt; b.y += b.vy * dt; b.x += b.vx * dt; if (Math.abs(b.x - b.tx) < .06) { b.x = b.tx; b.vx = 0; }
+    for (let r = 0; r < ROWS; r++) { const p = pane(r, b.col), top = p.y + .07 + BR; if (!p.broken && py >= top && b.y < top && b.vy < 0 && Math.abs(b.x - p.m.position.x) < PW / 2) {
+      if (p.weak) { crack(p); b.falls++; best = Math.max(best, r + 1); b.row = r; b.vy *= .85; if (b.falls >= 3) { alive = false; dead = true; sfx('meow'); st.shake(9); st.hitstop(.1); lives--; st.hud.banner(lives > 0 ? 'OUCH! ' + lives + ' LIVES' : 'GAME OVER', 1.4); idle = 1.4; if (lives <= 0) { over = true; st.end({ win: false, score: best, label: 'ROW' }); } } }
+      else { b.falls = 0; b.row = r; best = Math.max(best, r + 1); b.y = top; b.vy = Math.abs(b.vy) * .45; b.bounces++; sfx('ding', .5); st.shake(1.5);
+        if (b.bounces >= 2 && b.vy < 4.2) { b.bounces = 0; const nc = Math.random() < .5 ? 0 : 1; b.col = nc; b.tx = COLX[nc]; b.vx = (b.tx - b.x) / .6; b.vy = 7.2; } else if (b.bounces < 2) b.vy = Math.max(b.vy, 5); } } }
+    if (b.y < -ROWS * GAP - 2) { alive = false; st.hud.banner('CLEARED!', 2); sfx('win'); best = ROWS; idle = 2; over = true; st.slowmo(.3, 1); st.end({ win: true, score: ROWS, label: 'ROW' }); }
+    if (b.y < -ROWS * GAP - 7) alive = false;
+  }
+  for (const s of shards) { s.vy -= 14 * dt; s.x += s.vx * dt; s.y += s.vy * dt; s.z += s.vz * dt; s.r += dt * 6; } while (shards.length > 900) shards.shift();
+  const ty = b ? clamp(b.y, -ROWS * GAP, 4) : 3; camY += (ty - camY) * Math.min(1, dt0 * 4);
+  st.hud.left(`ROW<br><span style="color:#ffd34d;font-size:8vmin">${b && b.row >= 0 ? b.row + 1 : 0}</span>/${ROWS}`); st.hud.right(`LIVES ${lives}<br>BEST ${best}`); st.hud.hint('Which pane holds? SPACE or tap = drop');
+  window.__game = { ball: ballNo, row: b ? b.row + 1 : 0, best, alive };
+}
+st.onPointerDown = () => { if (!alive && !over) idle = 0; };
+st.shell({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, onReset: () => { lives = S.lives; ballNo = 0; best = 0; over = false; idle = .8; } });
+function pre() { if (b) { ball.position.set(b.x, b.y - BR, 0); ball.rotation.set(alive && b.vy < -4 ? st.t * 9 : 0, b.vx > .3 ? 1.2 : b.vx < -.3 ? -1.2 : 0.3, alive && b.vy < -4 ? st.t * 5 : 0); ball.visible = alive || b.y > -ROWS * GAP - 6; }
+  shards.forEach((s, i) => shardI.set(i, s.x, s.y, s.z, 1, 1, 1, s.r, s.r * .6, 0)); shardI.mesh.count = shards.length; shardI.done();
+  st.camera.position.set(0, camY + 4.5, st.dist * 1.15 + 3); st.camera.lookAt(0, camY - 1.5, 0); }
+ball.visible = false; st.run(update, pre);
+</script></body></html>
