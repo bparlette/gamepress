@@ -38,7 +38,7 @@ The Luau Execution API endpoints and scope names follow Roblox's open-beta docs;
 3. **The place file**: Studio > File > **Save to File As...** > `.rbxl` (binary; preferred) or `.rbxlx`. Or keep the game in Rojo source form and use `--rojo` (needs `rojo` installed; the project builds to `build.rbxl`).
 
 ## What it does
-POSTs the file to `https://apis.roblox.com/universes/v1/universes/{universe}/places/{place}/versions?versionType=Published` with `x-api-key`. Response: `{ "versionNumber": N }`. `Saved` stores a version without making it live. The file size limit and rate limits are Roblox's (see the Place Publishing docs); one publish per place per call.
+POSTs the file to `https://apis.roblox.com/universes/v1/{universe}/places/{place}/versions?versionType=Published` with `x-api-key`. Response: `{ "versionNumber": N }`. `Saved` stores a version without making it live. The file size limit and rate limits are Roblox's (see the Place Publishing docs); one publish per place per call.
 
 ## Pitfalls
 - 401/403: key missing `universe-places` write, wrong experience, or IP restriction. 404: wrong universe/place id.
