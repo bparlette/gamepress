@@ -1,8 +1,10 @@
 # gamepress
 
-Capture scenes from a game and build every asset its store pages need: Steam capsules and screenshots,
-itch.io cover/banner/GIF, CrazyGames covers, trailers, and vertical social clips. One command per step, no
-npm dependencies (Node 22+, ffmpeg, and Chrome for web captures).
+**The goal:** script as much as possible of the path from game idea to hosted game — and make every
+step usable on its own. Three deployment targets: **local demo**, **Steam** (plus itch.io and CrazyGames),
+and **Roblox**. Any AI should be able to pick up gamepress, run the parts it needs, and spend as few
+tokens as possible doing it: one command per step, machine-readable output, idempotent re-runs,
+one-line actionable errors. No npm dependencies (Node 22+, ffmpeg, and Chrome for web captures).
 
 ```
 gamepress init                      # press/ folder + starter capture plan
