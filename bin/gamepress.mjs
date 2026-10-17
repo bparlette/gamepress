@@ -37,6 +37,8 @@ import { voices, bumpVersion, makeIcons, compositeCapsuleLogo } from '../lib/stu
 import { probeLocalAi, healGame, isLocalAiEnabled } from '../lib/local_ai.mjs';
 import { buildLegoGame } from '../lib/lego.mjs';
 import { gatherStats } from '../lib/stats.mjs';
+import { listPresets, loadPreset, savePreset, deletePreset, sanitizeAnswers, readAnswersFile, recordLastAnswers, readLastAnswers, promptAnswers } from '../lib/presets.mjs';
+
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PRESETS = JSON.parse(readFileSync(join(HERE, '..', 'presets', 'platforms.json'), 'utf8'));
@@ -312,23 +314,32 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
   grade: async () => { const r = grade(need('grade'), CFG(), { threshold: +flag('threshold', 80) }); if (argv.includes('--vision') && r.stills) { r.vision = await vision(r.stills); if (r.vision.available && r.vision.score < 75) { r.pass = false; r.fixes.push(...r.vision.failed.map(q => 'vision: ' + q)); } } out(r, o => `${o.id}: ${o.score}/100 ${o.pass ? 'PASS' : 'FAIL'}${o.fixes.length ? '\n  fix: ' + o.fixes.join('\n  fix: ') : ''}`); process.exit(r.pass ? 0 : 1); },
   all: () => runAll(need('all --track hook|demo|web-store'), flag('track', 'demo'), CFG(), { force: argv.includes('--force'), heal: argv.includes('--heal'), localAi: LOCAL_AI, vo: flag('vo') || argv.includes('--vo'), log: m => !JSON_OUT && console.log(m) }).then(r => out(r, o => `${o.id}: ran [${o.ran}] skipped [${o.skipped}] -> next: ${o.status.next || 'done'}`)).catch(e => die(e.message)),
   auto: async () => {
-    const idea = positional.join(' ') || die('usage: gamepress auto "<game idea>" [--id x] [--track demo|web-store|hook] [--style comic] [--lego] [--local-ai] [--heal] [--vo]');
+    const idea = positional.join(' ') || die('usage: gamepress auto "<game idea>" [--id x] [--track demo|web-store|hook] [--style comic] [--answers answers.json] [--preset name] [--prompt] [--lego] [--local-ai] [--heal] [--vo]');
     const br = ideate(idea, { live: !argv.includes('--offline') });
     const id = flag('id') || br.file.split('/').pop().replace('.json', '');
     let hookLine = flag('hook') || '';
-    if (br.recipe && !argv.includes('--lego')) {
-      const ans = {}; if (flag('style')) ans.style = Math.max(0, ['toon', 'roblox', 'comic', 'painted', 'pixel16', 'pixel8'].indexOf(flag('style')));
-      if (br.questions.some(q => q.id === 'hook')) ans.hook = 0;
-      const spec = { ...applyAnswers(br.recipe, ans), title: flag('title') || idea.replace(/\b\w/g, c => c.toUpperCase()).slice(0, 28), ...(hookLine ? { hook: hookLine } : {}) };
+    const ans = {};
+    for (const q of (br.questions || [])) ans[q.id] = q.default ?? 0;
+    if (flag('style')) ans.style = Math.max(0, ['toon', 'roblox', 'comic', 'painted', 'pixel16', 'pixel8'].indexOf(flag('style')));
+    if (flag('preset')) try { Object.assign(ans, sanitizeAnswers(loadPreset(flag('preset')).answers, br.questions || [])); } catch (e) { die('preset: ' + e.message); }
+    if (flag('answers')) try { Object.assign(ans, sanitizeAnswers(readAnswersFile(flag('answers')), br.questions || [])); } catch (e) { die(e.message); }
+    if (argv.includes('--prompt')) { if (JSON_OUT) die('--prompt cannot be combined with --json'); try { Object.assign(ans, await promptAnswers(br.questions || [], ans)); } catch (e) { die(e.message); } }
+
+    let recipeName = br.recipe;
+    if (recipeName && !argv.includes('--lego')) {
+      if ((br.questions || []).some(q => q.id === 'hook') && ans.hook === undefined) ans.hook = 0;
+      const spec = { ...applyAnswers(recipeName, ans), title: flag('title') || idea.replace(/\b\w/g, c => c.toUpperCase()).slice(0, 28), ...(hookLine ? { hook: hookLine } : {}) };
       hookLine = spec.hook;
-      make(id, { recipe: br.recipe, spec, games: CFG().games, examples: CFG().examples, force: argv.includes('--force') });
+      recordLastAnswers(CFG().state, { idea, id, recipe: recipeName, archetype: br.archetype, answers: ans, spec });
+      make(id, { recipe: recipeName, spec, games: CFG().games, examples: CFG().examples, force: argv.includes('--force') });
     } else {
       const lg = await buildLegoGame(id, { idea, gamesDir: CFG().games, examples: CFG().examples, localAi: LOCAL_AI });
       hookLine = lg.spec.hookText;
-      br.recipe = 'lego:' + lg.spec.controller + '+' + lg.spec.hook;
+      recipeName = 'lego:' + lg.spec.controller + '+' + lg.spec.hook;
+      recordLastAnswers(CFG().state, { idea, id, recipe: recipeName, archetype: br.archetype, answers: ans, spec: lg.spec });
     }
     await runAll(id, flag('track', 'demo'), CFG(), { force: true, heal: argv.includes('--heal'), localAi: LOCAL_AI, vo: flag('vo') || argv.includes('--vo'), log: m => !JSON_OUT && console.log(m) })
-      .then(r => out({ idea, id, recipe: br.recipe, hook: hookLine, ...r }, o => `${id}: ${o.ran} done; hook "${hookLine}"`)).catch(e => die(e.message));
+      .then(r => out({ idea, id, recipe: recipeName, hook: hookLine, ...r }, o => `${id}: ${o.ran} done; hook "${hookLine}"`)).catch(e => die(e.message));
   },
   lego: async () => {
     const id = need('lego');
@@ -348,6 +359,14 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
     .then(r => out(r, o => o.games.map(g => `${g.id.padEnd(20)} grade=${String(g.gradeScore ?? '-').padStart(3)} yt=${g.ytViews} itch=${g.itchViews} -> ${g.verdict}`).join('\n') || 'no games found')).catch(e => die('stats: ' + e.message)),
   'local-ai': () => probeLocalAi().then(r => out({ ...r, enabledByDefault: LOCAL_AI }, o => `local-ai: ${o.available ? `AVAILABLE (${o.model} at ${o.host})` : `NOT RUNNING (${o.reason}) — optional, all commands work without it`}`)),
   ideate: () => out(ideate(positional.join(' ') || die('usage: gamepress ideate "<game idea>" [--offline]'), { live: !argv.includes('--offline') }), o => `${o.live?.insights ? 'live: common words [' + o.live.insights.commonWords + '], numbers ' + o.live.insights.titlesWithNumber + ', vs ' + o.live.insights.titlesWithVs + '; inspiration (do not copy): ' + o.live.suggestedHooks.join(' | ') + '\n' : o.live?.error ? o.live.error + '\n' : ''}${o.archetype}${o.recipe ? ' (recipe ' + o.recipe + ')' : ''}\nreferences: ${o.references.join('; ')}\none-ups:\n - ${o.oneUps.join('\n - ')}\nassets: ${o.assets.map(a => a.id + (a.have ? '' : '*')).join(', ')} (*=build it)\nquestions:\n${o.questions.map(q => ' ? ' + q.ask + '\n' + q.options.map((x, i) => `    ${i}) ${x.label}`).join('\n')).join('\n')}\nsaved ${o.file}\nnext: ${o.next}`),
+  preset: () => { const sub = positional[0] || die('usage: gamepress preset save <name> | list | show <name> | delete <name> [--json]');
+    try {
+      if (sub === 'list') return out(listPresets(), ps => ps.length ? ps.map(p => `${p.name}${p.archetype ? ` (${p.archetype})` : ''} — ${p.answers} answers${p.created ? `, saved ${p.created.slice(0, 10)}` : ''}${p.broken ? ' [broken]' : ''}`).join('\n') : 'no presets saved yet (run: gamepress auto "<idea>", then: gamepress preset save <name>)');
+      if (sub === 'show') return out(loadPreset(positional[1] || flag('name') || die('usage: gamepress preset show <name>')));
+      if (sub === 'delete') { deletePreset(positional[1] || flag('name') || die('usage: gamepress preset delete <name>')); return out({ ok: true }, () => 'deleted'); }
+      if (sub === 'save') { const name = positional[1] || flag('name') || die('usage: gamepress preset save <name>'); const last = readLastAnswers(CFG().state); if (!last) die('no recent auto run: run gamepress auto "<idea>" first'); const f = savePreset(name, last); return out({ ok: true, name, file: f }, o => `saved preset "${o.name}" → ${o.file}`); }
+      die('usage: gamepress preset save <name> | list | show <name> | delete <name>');
+    } catch (e) { die('preset: ' + e.message); } },
   make: () => { const base = flag('spec') ? JSON.parse(readFileSync(flag('spec'), 'utf8')) : {}; const sp = { ...(flag('answers') ? applyAnswers(flag('recipe'), JSON.parse(readFileSync(flag('answers'), 'utf8'))) : {}), ...base }; if (!flag('spec') && !flag('answers')) die(`usage: gamepress make <id> --recipe ${Object.keys(RECIPES).join('|')} --spec spec.json (see docs/RECIPES.md)`) ; out(make(need('make'), { recipe: flag('recipe'), spec: sp, games: CFG().games, examples: CFG().examples, force: argv.includes('--force') })); },
   recipes: () => { const R = Object.values(REGISTRY); if (argv.includes('--md')) { const md = ['# Recipe catalog', '', 'Generated by `gamepress recipes --md` from `presets/recipes.json`. Rules: `docs/RECIPE-RULES.md`. Build one: `gamepress make <id> --recipe <recipe> [--answers a.json]`, or `gamepress auto "<idea>"`.', '', '| Recipe | Title | Hook | 3-second rule | Touch | Don\'t build |', '|---|---|---|---|---|---|', ...R.map(r => `| \`${r.id}\` (${r.engine}) | ${r.title} | ${r.hook} | ${r.threeSecond} | ${r.touch} | ${r.dontBuild.slice(0, 3).join('; ')} |`), '', 'Viral-format recipes built earlier (3D, in `templates/recipes/`): `hole-eater`, `crowd-runner`, `glass-drop`, `demolition`.'].join('\n'); writeFileSync('docs/RECIPES-CATALOG.md', md + '\n'); console.log('wrote docs/RECIPES-CATALOG.md'); } else out(R.map(r => ({ id: r.id, title: r.title, hook: r.hook, engine: r.engine, seconds: r.seconds })), o => o.map(r => `${r.id.padEnd(24)} ${r.engine}  ${String(r.seconds).padStart(2)}s  ${r.title}: ${r.hook}`).join('\n')); },
   doctor: () => { const r = doctor(); out(r, o => o.rows.map(x => `${x.ok ? '✓' : x.optional ? '·' : '✗'} ${x.name}${x.fix ? '  -> ' + x.fix : ''}`).join('\n')); process.exit(r.ok ? 0 : 1); },
@@ -370,5 +389,5 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
   voices: () => voices(positional[0] || die('usage: gamepress voices <script.json> [--dir press]'), { dir: flag('dir', 'press') }).then(r => out({ command: 'voices', ...r }, o => `voices: ${o.synthesized} synthesized, ${o.skipped} skipped, ${o.failed} failed → ${o.manifest}`)).catch(e => die('voices: ' + e.message)),
   version: () => { try { const r = bumpVersion(positional[0] || 'patch', { dir: flag('dir', '.') }); out({ command: 'version', ...r }, o => `${o.from} → ${o.to} (${o.file}); changelog template added to ${o.changelog}`); } catch (e) { die('version: ' + e.message); } },
   icons: () => { try { const r = makeIcons(flag('logo') || die('usage: gamepress icons --logo <logo.png> [--name Title]'), { dir: flag('dir', 'press'), name: flag('name', 'Game') }); out({ command: 'icons', ...r }, o => `icons → ${o.dir}/ (${o.files.join(', ')})`); } catch (e) { die('icons: ' + e.message); } } }[cmd] ||
-  (() => die('usage: gamepress auto | lego | context | heal | hooks | stats | local-ai | recipes | ideate | make | doctor | lint | status | all | grade | copy | build | deploy | host | repo | botcheck | research | new | test | bundle | publish-pack | roblox | init | capture | drive | catalog | scenes | pack | check | voices | version | icons   (options: --json, --local-ai, --no-local-ai, --heal, --vo)')))();
+  (() => die('usage: gamepress auto | lego | context | heal | hooks | stats | local-ai | recipes | preset | ideate | make | doctor | lint | status | all | grade | copy | build | deploy | host | repo | botcheck | research | new | test | bundle | publish-pack | roblox | init | capture | drive | catalog | scenes | pack | check | voices | version | icons   (options: --json, --local-ai, --no-local-ai, --heal, --vo, --answers, --preset, --prompt)')))();
 

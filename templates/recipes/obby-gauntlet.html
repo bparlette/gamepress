@@ -25,7 +25,7 @@ function update(dt) {
   fx.update(dt); if (over) { overT += dt; if (AUTO && overT > 2.4 && !(window.__ends?.at(-1)?.win)) { attempt++; init(); st.hud.banner('GO!', .7); } return; } p.t += dt;
   const k = st.keys; let steer = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0); if (st.ptr.down) steer = clamp(st.ptr.x * 2.2 - p.x * .5, -1, 1); if (k[' '] || k.arrowup || st.ptr.down && !p.held) jumpBuf = .12; p.held = st.ptr.down;
   if (AUTO) { botCd -= dt; const ax = p.z + 2.0, plat = platAt(0, p.z + .6), nextGap = !platAt(0, p.z + 1.5) , cur = COURSE.find(c => p.z >= c[0] && p.z <= c[0] + c[1]); steer = clamp(-p.x * 1.5, -1, 1);
-    if (dumb) { steer = 0; } else { if (!p.air && nextGap && botCd <= 0) { jumpBuf = .1; botCd = .5; }
+    if (dumb) { steer = 0; if (!p.air && nextGap && botCd <= 0 && p.z < 22) { jumpBuf = .1; botCd = .5; } } else { if (!p.air && nextGap && botCd <= 0) { jumpBuf = .1; botCd = .5; }
       if (!p.air && botCd <= 0) for (let tt = .05; tt <= .5; tt += .05) { if (barHit(p.x, p.z + S.speed * tt, spinAng + 2.0 * tt)) { if (tt >= .1) { jumpBuf = .1; botCd = .9; } break; } } } }
   jumpBuf -= dt; if (jumpBuf > 0 && !p.air) { p.vy = 11.5; p.air = true; jumpBuf = 0; sfx('jump'); fx.burst(5, { x: p.x, y: .1, z: p.z, size: .22, life: .4, color: 0xffffff, g: 3 }, 2); }
   p.vx += (steer * 6 - p.vx) * Math.min(1, dt * 10); p.x += p.vx * dt; p.z += S.speed * dt; p.vy -= 30 * dt; p.y += p.vy * dt;
