@@ -1,1115 +1,1037 @@
 {
- "_note": "One-screen, one-mechanic recipes. dontBuild is the scope-creep guard; threeSecond is the 3-second rule (player, enemy, goal must be obvious). engine 2d uses kit/gp2d.js, 3d uses gp3d.js.",
- "recipes": [
-  {
-   "id": "one-tap-reflex",
-   "title": "FLAP CAT",
-   "hook": "One tap. One cat. Impossible?",
-   "hooks": [
-    "One tap. One cat. Impossible?",
-    "Only 1 in 100 beat level 1",
-    "I rage quit at 7"
-   ],
-   "seconds": 23,
-   "engine": "2d",
-   "colors": "css",
-   "match": "flappy|geometry dash|one.?tap|tap to (jump|fly)|reflex|gap",
-   "refs": [
-    "Flappy Bird",
-    "Geometry Dash",
-    "Jetpack Joyride"
-   ],
-   "oneUps": [
-    "Gaps shrink and speed climbs with an 'x2 SPEED' banner",
-    "Pitch rises on every pipe in a streak",
-    "Slow-mo on a near miss"
-   ],
-   "dontBuild": [
-    "no skins or shop",
-    "no levels",
-    "no leaderboard",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=orange jetpack cat, enemy=green pipes, goal=fly through the gaps",
-   "touch": "tap anywhere",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "daily-deduction",
-   "title": "WORD CAT",
-   "hook": "Can you solve it in 6?",
-   "hooks": [
-    "Can you solve it in 6?",
-    "99% fail the 3rd word",
-    "The hardest word of the day"
-   ],
-   "seconds": 27,
-   "engine": "2d",
-   "colors": "css",
-   "match": "wordle|connections|daily|word|guess|deduc|puzzle",
-   "refs": [
-    "Wordle",
-    "Connections",
-    "Mastermind"
-   ],
-   "oneUps": [
-    "Colour reveal flips with rising pitch",
-    "A cat reacts to every guess",
-    "Streak counter that survives restarts (local only)"
-   ],
-   "dontBuild": [
-    "no accounts",
-    "no sharing screen",
-    "no dictionary beyond 200 words",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=the on-screen keyboard, enemy=6 tries, goal=turn all 5 tiles green",
-   "touch": "tap letters",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "precision-platformer",
-   "title": "CAT DASH",
-   "hook": "Don't fall. Don't blink.",
-   "hooks": [
-    "Don't fall. Don't blink.",
-    "One jump too early",
-    "Pixel-perfect or nothing"
-   ],
-   "seconds": 20,
-   "engine": "2d",
-   "colors": "css",
-   "match": "platform|mario|celeste|jump|side.?scroll|precision",
-   "refs": [
-    "Super Mario Bros",
-    "Celeste",
-    "Super Meat Boy"
-   ],
-   "oneUps": [
-    "Coyote time and jump buffering so it feels fair",
-    "Death puffs with instant respawn",
-    "A dash move that pitch-shifts the sound"
-   ],
-   "dontBuild": [
-    "no powerups",
-    "no more than one screen of level",
-    "no enemies besides spikes",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=orange cat, enemy=red spikes and pits, goal=the flag",
-   "touch": "left/right + jump buttons",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "cozy-farm",
-   "title": "COZY CAT FARM",
-   "hook": "Tiny farm, huge dopamine",
-   "hooks": [
-    "Tiny farm, huge dopamine",
-    "Harvest 20 before sunset",
-    "My cats run this farm now"
-   ],
-   "seconds": 30,
-   "engine": "2d",
-   "colors": "css",
-   "match": "farm|cozy|stardew|animal crossing|life sim|garden|isometric",
-   "refs": [
-    "Stardew Valley",
-    "Animal Crossing",
-    "Hay Day"
-   ],
-   "oneUps": [
-    "Harvest combo pops with rising pitch",
-    "Cats wander and nap on crops",
-    "A sunset countdown that tints the screen"
-   ],
-   "dontBuild": [
-    "no inventory",
-    "no shop",
-    "no npcs",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=you tapping tiles, enemy=sunset timer, goal=harvest the quota",
-   "touch": "tap tiles",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "bullet-heaven",
-   "title": "ZOMBIE SURVIVORS",
-   "hook": "10,000 zombies vs one cat",
-   "hooks": [
-    "10,000 zombies vs one cat",
-    "Survive 60 seconds. Good luck",
-    "The swarm never stops"
-   ],
-   "seconds": 31,
-   "engine": "2d",
-   "colors": "css",
-   "match": "vampire survivors|survivor|bullet heaven|horde|swarm|auto.?shoot|survive",
-   "refs": [
-    "Vampire Survivors",
-    "Survivor.io",
-    "Brotato"
-   ],
-   "oneUps": [
-    "Gem magnet vacuum with a pitch-up streak",
-    "Auto-upgrades with screen-clearing nova",
-    "Boss zombie at 45 seconds"
-   ],
-   "dontBuild": [
-    "no upgrade menu (auto-pick)",
-    "no meta progression",
-    "no map",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=cat in the middle, enemy=green zombie swarm, goal=survive",
-   "touch": "drag to move",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "obby-gauntlet",
-   "title": "CAT OBBY",
-   "hook": "Beat the obby or rage quit",
-   "hooks": [
-    "Beat the obby or rage quit",
-    "Stage 1 is a lie",
-    "Only up. Don't look down"
-   ],
-   "seconds": 18,
-   "engine": "3d",
-   "colors": "num",
-   "match": "obby|only up|parkour|gauntlet|platform gauntlet|roblox obby",
-   "refs": [
-    "Roblox Obby",
-    "Only Up!",
-    "Fall Guys"
-   ],
-   "oneUps": [
-    "Spinning bars and moving platforms",
-    "Checkpoint flags with confetti",
-    "Camera dips with the fall for drama"
-   ],
-   "dontBuild": [
-    "no checkpoints menu",
-    "no shop",
-    "no more than 12 platforms",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=cat, enemy=lava and spinners, goal=the golden flag",
-   "touch": "tap to jump, drag to steer",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "rail-runner",
-   "title": "SUBWAY CAT",
-   "hook": "Run from the zombie king",
-   "hooks": [
-    "Run from the zombie king",
-    "3 lanes. 1 mistake",
-    "Subway Surfers but cats"
-   ],
-   "seconds": 19,
-   "engine": "3d",
-   "colors": "num",
-   "match": "subway|temple run|endless runner|rail|lane|runner",
-   "refs": [
-    "Subway Surfers",
-    "Temple Run",
-    "Crossy Road"
-   ],
-   "oneUps": [
-    "Coin streak pitches up",
-    "Zombie king chasing behind you",
-    "Near-miss slow-mo"
-   ],
-   "dontBuild": [
-    "no missions",
-    "no characters shop",
-    "no hoverboards",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=cat, enemy=trains and barriers, goal=run as far as possible",
-   "touch": "swipe left/right/up",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "ballistic-bouncer",
-   "title": "CAT PEGGLE",
-   "hook": "One shot. 50 pegs.",
-   "hooks": [
-    "One shot. 50 pegs.",
-    "The luckiest shot ever",
-    "Clear the board in 1 ball"
-   ],
-   "seconds": 32,
-   "engine": "2d",
-   "colors": "css",
-   "match": "peggle|breakout|arkanoid|angry birds|bounce|pegs|brick",
-   "refs": [
-    "Peggle",
-    "Breakout",
-    "Angry Birds"
-   ],
-   "oneUps": [
-    "Last-peg slow-mo with zoom",
-    "Free-ball bucket at the bottom",
-    "Peg combo pitch ladder"
-   ],
-   "dontBuild": [
-    "no powerup menu",
-    "no 20 levels",
-    "no characters",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=the ball and cannon, enemy=gravity, goal=clear the orange pegs",
-   "touch": "drag to aim, tap to fire",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "grid-chaser",
-   "title": "PAC CAT",
-   "hook": "Eat everything. Avoid the zombies.",
-   "hooks": [
-    "Eat everything. Avoid the zombies.",
-    "Pac-Man but cats",
-    "One wrong turn"
-   ],
-   "seconds": 39,
-   "engine": "2d",
-   "colors": "css",
-   "match": "pac.?man|bomberman|maze|chase|dots|ghost",
-   "refs": [
-    "Pac-Man",
-    "Bomberman",
-    "Dig Dug"
-   ],
-   "oneUps": [
-    "Power fish turns zombies scared",
-    "Chomp streak pitch ladder",
-    "Fruit bonus pop"
-   ],
-   "dontBuild": [
-    "no multiple mazes",
-    "no ghost AI variants beyond two",
-    "no cutscenes",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=orange cat, enemy=green zombies, goal=eat all the fish dots",
-   "touch": "swipe to turn",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "falling-blocks",
-   "title": "BLOCK CATS",
-   "hook": "Stack it or lose it",
-   "hooks": [
-    "Stack it or lose it",
-    "Tetris but cats",
-    "Clear 4 lines at once"
-   ],
-   "seconds": 22,
-   "engine": "2d",
-   "colors": "css",
-   "match": "tetris|falling block|columns|stack|block puzzle|match",
-   "refs": [
-    "Tetris",
-    "Columns",
-    "Dr. Mario"
-   ],
-   "oneUps": [
-    "Line clear flash with pitch ladder",
-    "Garbage rises when you stall",
-    "Cat pieces with faces"
-   ],
-   "dontBuild": [
-    "no hold queue",
-    "no 7-bag variants beyond one",
-    "no marathon modes",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=falling piece, enemy=the top of the board, goal=clear lines",
-   "touch": "tap rotate, drag move",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "merge-sandbox",
-   "title": "MERGE PETS",
-   "hook": "Merge to a MEGA cat",
-   "hooks": [
-    "Merge to a MEGA cat",
-    "Don't let it overflow",
-    "The watermelon game but cats"
-   ],
-   "seconds": 28,
-   "engine": "2d",
-   "colors": "css",
-   "match": "suika|2048|merge|watermelon|combine|evolve",
-   "refs": [
-    "Suika Game",
-    "2048",
-    "Threes"
-   ],
-   "oneUps": [
-    "Chain-merge pitch ladder",
-    "Final form screen-fill flash",
-    "Overflow line flashes red"
-   ],
-   "dontBuild": [
-    "no daily",
-    "no shop",
-    "no more than 8 tiers",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=your dropper, enemy=the overflow line, goal=merge up to the biggest pet",
-   "touch": "drag and tap to drop",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "arena-brawler",
-   "title": "ZOMBIE BRAWL",
-   "hook": "1 cat vs the whole street",
-   "hooks": [
-    "1 cat vs the whole street",
-    "Beat the boss at 0 HP",
-    "Combo breaker"
-   ],
-   "seconds": 32,
-   "engine": "2d",
-   "colors": "css",
-   "match": "beat.?em|brawler|double dragon|kung.?fu|street fight|fighter",
-   "refs": [
-    "Double Dragon",
-    "Kung-Fu Master",
-    "Streets of Rage"
-   ],
-   "oneUps": [
-    "Hit-stop and combo pitch ladder",
-    "Final-hit slow-mo",
-    "Boss zombie with a health bar"
-   ],
-   "dontBuild": [
-    "no weapons pickups",
-    "no 5 stages",
-    "no co-op",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=orange cat, enemy=green zombies, goal=knock them all out",
-   "touch": "drag + punch button",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "scrolling-shmup",
-   "title": "CAT FIGHTER",
-   "hook": "Dodge the bullet hell",
-   "hooks": [
-    "Dodge the bullet hell",
-    "Gradius but cats",
-    "The boss is 10 screens tall"
-   ],
-   "seconds": 30,
-   "engine": "2d",
-   "colors": "css",
-   "match": "shmup|shoot.?em|gradius|ikaruga|bullet hell|space shooter|galaga",
-   "refs": [
-    "Gradius",
-    "Ikaruga",
-    "Galaga"
-   ],
-   "oneUps": [
-    "Bullet-clearing bomb with screen flash",
-    "Boss with 3 patterns",
-    "Pitch ladder on chain kills"
-   ],
-   "dontBuild": [
-    "no weapon shop",
-    "no multiple ships",
-    "no story",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=cat in a ship, enemy=zombie ufos, goal=survive and shoot the boss",
-   "touch": "drag to move, auto-fire",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "run-and-gun",
-   "title": "CONTRA CAT",
-   "hook": "Run. Jump. Shoot.",
-   "hooks": [
-    "Run. Jump. Shoot.",
-    "One life. No mercy.",
-    "Contra but cats"
-   ],
-   "seconds": 20,
-   "engine": "2d",
-   "colors": "css",
-   "match": "contra|metal slug|run.?and.?gun|run and gun|shooter platform",
-   "refs": [
-    "Contra",
-    "Metal Slug",
-    "Cuphead"
-   ],
-   "oneUps": [
-    "Spread-shot pickup",
-    "Boss zombie at the end",
-    "Screen shake on every kill"
-   ],
-   "dontBuild": [
-    "no weapon wheel",
-    "no 8 levels",
-    "no co-op",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=orange cat with a gun, enemy=zombies, goal=run to the right and survive",
-   "touch": "buttons: jump, shoot",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "mini-metroidvania",
-   "title": "CAT CAVE",
-   "hook": "Find the double jump",
-   "hooks": [
-    "Find the double jump",
-    "This door was locked 5 minutes ago",
-    "Metroidvania in 30 seconds"
-   ],
-   "seconds": 15,
-   "engine": "2d",
-   "colors": "css",
-   "match": "metroidvania|hollow knight|metroid|ability gate|backtrack",
-   "refs": [
-    "Hollow Knight",
-    "Metroid Dread",
-    "Castlevania"
-   ],
-   "oneUps": [
-    "Orb pickup unlocks a gate with a flash",
-    "Room transitions that slide",
-    "Ghost trail on double jump"
-   ],
-   "dontBuild": [
-    "no map screen",
-    "no more than 3 rooms",
-    "no boss",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=cat, enemy=spikes, goal=get the orb then reach the exit",
-   "touch": "left/right + jump buttons",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "footsies-duel",
-   "title": "CAT DUEL",
-   "hook": "First to push wins",
-   "hooks": [
-    "First to push wins",
-    "Parry or die",
-    "Nidhogg but cats"
-   ],
-   "seconds": 14,
-   "engine": "2d",
-   "colors": "css",
-   "match": "footsies|divekick|nidhogg|duel|1v1|fighting game|parry",
-   "refs": [
-    "Nidhogg",
-    "Divekick",
-    "Street Fighter"
-   ],
-   "oneUps": [
-    "Parry flash with slow-mo",
-    "Tug-of-war arena edge",
-    "Combo pitch ladder"
-   ],
-   "dontBuild": [
-    "no character select",
-    "no 12 moves",
-    "no online",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=orange cat, enemy=green zombie, goal=push the zombie off the edge",
-   "touch": "3 buttons: strike, parry, step",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "mini-zelda",
-   "title": "CAT DUNGEON",
-   "hook": "Get the key. Open the door.",
-   "hooks": [
-    "Get the key. Open the door.",
-    "Zelda in 30 seconds",
-    "Hearts and a sword"
-   ],
-   "seconds": 21,
-   "engine": "2d",
-   "colors": "css",
-   "match": "zelda|dungeon|link's awakening|top.?down adventure|key door",
-   "refs": [
-    "Zelda",
-    "Link's Awakening",
-    "Hades"
-   ],
-   "oneUps": [
-    "Sword swing hit-stop",
-    "Key pickup fanfare",
-    "Hearts that drop pieces"
-   ],
-   "dontBuild": [
-    "no inventory",
-    "no map",
-    "no more than 3 rooms",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=cat with a sword, enemy=zombies, goal=find the key and open the door",
-   "touch": "drag + sword button",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "turn-based-3v3",
-   "title": "PET BATTLE",
-   "hook": "3 cats vs 3 zombies",
-   "hooks": [
-    "3 cats vs 3 zombies",
-    "Super effective!",
-    "Pick the right move"
-   ],
-   "seconds": 28,
-   "engine": "2d",
-   "colors": "css",
-   "match": "pokemon|turn.?based|battle|rpg|3v3|monster",
-   "refs": [
-    "Pokemon",
-    "Final Fantasy",
-    "Slay the Spire"
-   ],
-   "oneUps": [
-    "Super-effective flash with pitch rise",
-    "Faint animation",
-    "Type chart icons"
-   ],
-   "dontBuild": [
-    "no catching",
-    "no 150 pets",
-    "no items",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=your cat team, enemy=zombie team, goal=faint all three",
-   "touch": "tap move buttons",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "micro-tower-defense",
-   "title": "CAT DEFENSE",
-   "hook": "Don't let the zombies through",
-   "hooks": [
-    "Don't let the zombies through",
-    "Bloons but cats",
-    "Place 5 towers. Survive 5 waves"
-   ],
-   "seconds": 35,
-   "engine": "2d",
-   "colors": "css",
-   "match": "tower defense|bloons|kingdom rush|defend|lane defense|td",
-   "refs": [
-    "Bloons TD",
-    "Kingdom Rush",
-    "Plants vs Zombies"
-   ],
-   "oneUps": [
-    "Tower upgrade burst",
-    "Boss wave siren",
-    "Cash pitch ladder"
-   ],
-   "dontBuild": [
-    "no tower tree",
-    "no 10 maps",
-    "no hero units",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=you placing cat towers, enemy=zombie wave, goal=stop them reaching the base",
-   "touch": "tap tiles",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "kart-racer",
-   "title": "CAT KART",
-   "hook": "Win by a whisker",
-   "hooks": [
-    "Win by a whisker",
-    "Mario Kart but cats",
-    "Last place to first"
-   ],
-   "seconds": 22,
-   "engine": "3d",
-   "colors": "num",
-   "match": "kart|mario kart|racer|racing|micro machines|race",
-   "refs": [
-    "Mario Kart",
-    "Micro Machines",
-    "Crash Team Racing"
-   ],
-   "oneUps": [
-    "Boost pads with speed lines",
-    "Rival karts with rubber-banding",
-    "Photo finish slow-mo"
-   ],
-   "dontBuild": [
-    "no item roulette",
-    "no 8 tracks",
-    "no drifting tutorial",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=cat kart, enemy=rival karts, goal=finish first",
-   "touch": "left/right halves",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "card-roguelite",
-   "title": "CARD CATS",
-   "hook": "Beat the blind with 5 cards",
-   "hooks": [
-    "Beat the blind with 5 cards",
-    "Balatro but cats",
-    "The best hand wins"
-   ],
-   "seconds": 21,
-   "engine": "2d",
-   "colors": "css",
-   "match": "balatro|slay the spire|deckbuilder|card|poker|roguelike card",
-   "refs": [
-    "Balatro",
-    "Slay the Spire",
-    "Inscryption"
-   ],
-   "oneUps": [
-    "Score tally with pitch ladder",
-    "Jokers as cat faces",
-    "Big-hand slow-mo and flash"
-   ],
-   "dontBuild": [
-    "no shop",
-    "no 15 jokers",
-    "no run map",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=your hand of cards, enemy=the target score, goal=beat the score before hands run out",
-   "touch": "tap cards, tap Play",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "idle-tycoon",
-   "title": "CAT FACTORY",
-   "hook": "Make 1,000,000 fish",
-   "hooks": [
-    "Make 1,000,000 fish",
-    "Idle games are secretly addictive",
-    "Upgrade everything"
-   ],
-   "seconds": 28,
-   "engine": "2d",
-   "colors": "css",
-   "match": "tycoon|idle|incremental|factory|clicker|cookie clicker|automation",
-   "refs": [
-    "Cookie Clicker",
-    "Roblox Tycoon",
-    "Factorio"
-   ],
-   "oneUps": [
-    "Numbers climb with a pitch ladder",
-    "Machine upgrade bursts",
-    "Time-boxed quota with a lose state"
-   ],
-   "dontBuild": [
-    "no prestige",
-    "no more than 4 machines",
-    "no offline progress",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=you tapping upgrades, enemy=the clock, goal=hit the fish quota",
-   "touch": "tap buttons",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "hide-and-seek",
-   "title": "PROP CAT",
-   "hook": "Don't move when it looks",
-   "hooks": [
-    "Don't move when it looks",
-    "Prop Hunt but cats",
-    "Red light, green light"
-   ],
-   "seconds": 21,
-   "engine": "2d",
-   "colors": "css",
-   "match": "prop hunt|hide and seek|among us|hide|disguise|red light green light|stealth",
-   "refs": [
-    "Prop Hunt",
-    "Among Us",
-    "Red Light Green Light"
-   ],
-   "oneUps": [
-    "Hunter sweep cone",
-    "Freeze-frame near miss",
-    "Disguise swap pop"
-   ],
-   "dontBuild": [
-    "no multiplayer",
-    "no 5 maps",
-    "no voice chat",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=cat disguised as a barrel, enemy=zombie hunter, goal=reach the exit unseen",
-   "touch": "hold to move, release to freeze",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "trajectory-artillery",
-   "title": "CAT ARTILLERY",
-   "hook": "Aim. Fire. Dig a crater.",
-   "hooks": [
-    "Aim. Fire. Dig a crater.",
-    "Worms but cats",
-    "Wind changes everything"
-   ],
-   "seconds": 16,
-   "engine": "2d",
-   "colors": "css",
-   "match": "worms|scorched earth|artillery|trajectory|cannon|tank|turn.?based shooter",
-   "refs": [
-    "Worms",
-    "Scorched Earth",
-    "Angry Birds"
-   ],
-   "oneUps": [
-    "Destructible terrain craters",
-    "Wind arrow",
-    "Slow-mo on the winning shot"
-   ],
-   "dontBuild": [
-    "no weapon menu",
-    "no 5 weapons",
-    "no teams",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=left cat, enemy=right zombie, goal=hit the zombie",
-   "touch": "drag back to aim, release to fire",
-   "category": "Classic Homebrew"
-  },
-  {
-   "id": "slice-swipe",
-   "title": "CAT NINJA",
-   "hook": "Slice everything. Do not touch the bomb.",
-   "hooks": [
-    "Slice everything. Do not touch the bomb.",
-    "1 bomb ends the run",
-    "Fruit Ninja but cats"
-   ],
-   "seconds": 16,
-   "engine": "2d",
-   "colors": "css",
-   "match": "fruit ninja|slice|swipe|cut fruit|ninja|slash",
-   "refs": [
-    "Fruit Ninja",
-    "Fruit Ninja style slicing clips",
-    "Cut the cat food shorts"
-   ],
-   "oneUps": [
-    "Combo pitch ladder with multiplier popups",
-    "Slow-mo on the final slice",
-    "Halves fly apart with juice"
-   ],
-   "dontBuild": [
-    "no blade shop",
-    "no more than 3 item kinds",
-    "no modes",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=your finger slash, enemy=zombie bombs and missed fish, goal=slice them all",
-   "touch": "swipe",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "stack-timing",
-   "title": "CAT STACK",
-   "hook": "One mistimed tap and it shrinks",
-   "hooks": [
-    "One mistimed tap and it shrinks",
-    "How high can you stack?",
-    "The tower never lies"
-   ],
-   "seconds": 17,
-   "engine": "2d",
-   "colors": "css",
-   "match": "stack|tower|timing|tap to drop|block stacking|balance",
-   "refs": [
-    "Stack (Ketchapp)",
-    "Tower Bloxx",
-    "Stack tower shorts"
-   ],
-   "oneUps": [
-    "Perfect-drop chime ladder",
-    "Camera pull-up as the tower grows",
-    "The cat waves from the top"
-   ],
-   "dontBuild": [
-    "no themes shop",
-    "no power-ups",
-    "no modes",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=the sliding block, enemy=the shrinking width, goal=stack 12 blocks",
-   "touch": "tap",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "plinko-drop",
-   "title": "CAT PLINKO",
-   "hook": "Drop it. Win big.",
-   "hooks": [
-    "Drop it. Win big.",
-    "Where would you drop it?",
-    "The luckiest drop ever"
-   ],
-   "seconds": 26,
-   "engine": "2d",
-   "colors": "css",
-   "match": "plinko|pachinko|ball drop|galton|pegs|slots",
-   "refs": [
-    "Plinko (Price is Right)",
-    "Plinko shorts",
-    "Pachinko clips"
-   ],
-   "oneUps": [
-    "Payout slots with x10 jackpots",
-    "Drop-point preview",
-    "Peg-hit pitch ladder"
-   ],
-   "dontBuild": [
-    "no board shop",
-    "no bet menu",
-    "no more than 1 board",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=the falling cat, enemy=the low-pay slots, goal=reach the coin target",
-   "touch": "tap where to drop",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "ragdoll-launch",
-   "title": "CAT CANNON",
-   "hook": "How far can a cat fly?",
-   "hooks": [
-    "How far can a cat fly?",
-    "Cannon vs gravity",
-    "Full power or nothing"
-   ],
-   "seconds": 21,
-   "engine": "2d",
-   "colors": "css",
-   "match": "launch|cannon|ragdoll|fling|catapult|how far",
-   "refs": [
-    "Learn to Fly",
-    "Ragdoll launch compilations",
-    "Happy Wheels"
-   ],
-   "oneUps": [
-    "Boost trampolines along the ground",
-    "Distance markers every 100 m",
-    "Slow-mo at the peak"
-   ],
-   "dontBuild": [
-    "no upgrades",
-    "no more than 3 launches",
-    "no shop",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=the flying cat, enemy=the ground, goal=reach the target distance",
-   "touch": "tap at full power",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "sort-puzzle",
-   "title": "CAT SORT",
-   "hook": "Satisfying? Try the last tube.",
-   "hooks": [
-    "Satisfying? Try the last tube.",
-    "Sort the cats",
-    "The calm puzzle that fools you"
-   ],
-   "seconds": 20,
-   "engine": "2d",
-   "colors": "css",
-   "match": "sort|ball sort|water sort|tubes|sorting puzzle|color sort",
-   "refs": [
-    "Ball Sort Puzzle",
-    "Water Sort",
-    "Satisfying sorting shorts"
-   ],
-   "oneUps": [
-    "Solver-checked puzzles that always work",
-    "Pour pop with pitch by group size",
-    "Perfect-solve bonus"
-   ],
-   "dontBuild": [
-    "no level list",
-    "no hint shop",
-    "no undo packs",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=the tubes of cats, enemy=the move counter, goal=one colour per tube",
-   "touch": "tap tube then tube",
-   "category": "Viral Demos"
-  },
-  {
-   "id": "rope-cut",
-   "title": "CAT ROPE",
-   "hook": "Feed the cat. Cut at the right time.",
-   "hooks": [
-    "Feed the cat. Cut at the right time.",
-    "One swipe, one chance",
-    "Cut the rope but cats"
-   ],
-   "seconds": 12,
-   "engine": "2d",
-   "colors": "css",
-   "match": "cut the rope|rope|swing|feed|pendulum|physics puzzle",
-   "refs": [
-    "Cut the Rope",
-    "Rope physics shorts",
-    "Feed the monster clips"
-   ],
-   "oneUps": [
-    "Slow-mo on the cut",
-    "Mouth opens as the fish nears",
-    "Tries counter with retry"
-   ],
-   "dontBuild": [
-    "no more than 3 gadgets",
-    "no stars shop",
-    "no level packs",
-    "no inventory",
-    "no save system",
-    "no menus beyond start and restart",
-    "no settings screen",
-    "no second mechanic"
-   ],
-   "threeSecond": "player=the swinging fish, enemy=a missed drop, goal=drop it in the cat's mouth",
-   "touch": "swipe the rope",
-   "category": "Viral Demos"
-  }
- ]
+  "_note": "One-screen, one-mechanic recipes. dontBuild is the scope-creep guard; threeSecond is the 3-second rule (player, enemy, goal must be obvious). engine 2d uses kit/gp2d.js, 3d uses gp3d.js.",
+  "recipes": [
+    {
+      "id": "one-tap-reflex",
+      "title": "FLAP CAT",
+      "hook": "One tap. One cat. Impossible?",
+      "hooks": [
+        "One tap. One cat. Impossible?",
+        "Only 1 in 100 beat level 1",
+        "I rage quit at 7"
+      ],
+      "seconds": 23,
+      "engine": "2d",
+      "colors": "css",
+      "match": "flappy|geometry dash|one.?tap|tap to (jump|fly)|reflex|gap",
+      "refs": [
+        "Flappy Bird",
+        "Geometry Dash",
+        "Jetpack Joyride"
+      ],
+      "oneUps": [
+        "Gaps shrink and speed climbs with an 'x2 SPEED' banner",
+        "Pitch rises on every pipe in a streak",
+        "Slow-mo on a near miss"
+      ],
+      "dontBuild": [
+        "no skins or shop",
+        "no levels",
+        "no leaderboard",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=orange jetpack cat, enemy=green pipes, goal=fly through the gaps",
+      "touch": "tap anywhere",
+      "viral": {
+        "hook": "Mid-air flap toward a tight pipe gap",
+        "bot": "Attempt 0 clips pipe 3; Attempt 1 threads 12 pipes with near-miss slow-mo",
+        "escalation": "Speed +5% per pipe, gap shrinks, pitch rises",
+        "climax": "Freeze on near miss, mega chime on high score",
+        "personality": "Cocky speedrunner who trash-talks the pipes, then threads them perfectly"
+      }
+    },
+    {
+      "id": "daily-deduction",
+      "title": "WORD CAT",
+      "hook": "Can you solve it in 6?",
+      "hooks": [
+        "Can you solve it in 6?",
+        "99% fail the 3rd word",
+        "The hardest word of the day"
+      ],
+      "seconds": 27,
+      "engine": "2d",
+      "colors": "css",
+      "match": "wordle|connections|daily|word|guess|deduc|puzzle",
+      "refs": [
+        "Wordle",
+        "Connections",
+        "Mastermind"
+      ],
+      "oneUps": [
+        "Colour reveal flips with rising pitch",
+        "A cat reacts to every guess",
+        "Streak counter that survives restarts (local only)"
+      ],
+      "dontBuild": [
+        "no accounts",
+        "no sharing screen",
+        "no dictionary beyond 200 words",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=the on-screen keyboard, enemy=6 tries, goal=turn all 5 tiles green",
+      "touch": "tap letters",
+      "viral": {
+        "hook": "5th row filled, 4 yellow letters, cursor on final tile",
+        "bot": "Types bad word, backspaces, locks correct word",
+        "escalation": "Timer ticks, tiles flip with mechanical clack",
+        "climax": "Green ripple wave, synth bloom",
+        "personality": "Smug word nerd who types a joke answer first, backspaces dramatically, then nails it"
+      }
+    },
+    {
+      "id": "precision-platformer",
+      "title": "CAT DASH",
+      "hook": "Don't fall. Don't blink.",
+      "hooks": [
+        "Don't fall. Don't blink.",
+        "One jump too early",
+        "Pixel-perfect or nothing"
+      ],
+      "seconds": 20,
+      "engine": "2d",
+      "colors": "css",
+      "match": "platform|mario|celeste|jump|side.?scroll|precision",
+      "refs": [
+        "Super Mario Bros",
+        "Celeste",
+        "Super Meat Boy"
+      ],
+      "oneUps": [
+        "Coyote time and jump buffering so it feels fair",
+        "Death puffs with instant respawn",
+        "A dash move that pitch-shifts the sound"
+      ],
+      "dontBuild": [
+        "no powerups",
+        "no more than one screen of level",
+        "no enemies besides spikes",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=orange cat, enemy=red spikes and pits, goal=the flag",
+      "touch": "left/right + jump buttons",
+      "viral": {
+        "hook": "1-pixel crumbling ledge over spikes",
+        "bot": "Coyote jump, wall-slide to 2px above hazard",
+        "escalation": "Hazards pulse red, parallax speeds up",
+        "climax": "Micro-pause on landing, bass thud + dust",
+        "personality": "Showoff who does unnecessary flips before every jump and lands them all"
+      }
+    },
+    {
+      "id": "cozy-farm",
+      "title": "COZY CAT FARM",
+      "hook": "Tiny farm, huge dopamine",
+      "hooks": [
+        "Tiny farm, huge dopamine",
+        "Harvest 20 before sunset",
+        "My cats run this farm now"
+      ],
+      "seconds": 30,
+      "engine": "2d",
+      "colors": "css",
+      "match": "farm|cozy|stardew|animal crossing|life sim|garden|isometric",
+      "refs": [
+        "Stardew Valley",
+        "Animal Crossing",
+        "Hay Day"
+      ],
+      "oneUps": [
+        "Harvest combo pops with rising pitch",
+        "Cats wander and nap on crops",
+        "A sunset countdown that tints the screen"
+      ],
+      "dontBuild": [
+        "no inventory",
+        "no shop",
+        "no npcs",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=you tapping tiles, enemy=sunset timer, goal=harvest the quota",
+      "touch": "tap tiles",
+      "viral": {
+        "hook": "100 sparkling ripe crops ready for one swipe",
+        "bot": "Single circular drag harvests entire field",
+        "escalation": "+10/+20/+50 coin cascades, pentatonic pop sounds",
+        "climax": "Golden border glow, cash register ding",
+        "personality": "Chaotic harvest goblin \u2014 grabs everything, spins in circles, pure joy"
+      }
+    },
+    {
+      "id": "bullet-heaven",
+      "title": "ZOMBIE SURVIVORS",
+      "hook": "10,000 zombies vs one cat",
+      "hooks": [
+        "10,000 zombies vs one cat",
+        "Survive 60 seconds. Good luck",
+        "The swarm never stops"
+      ],
+      "seconds": 31,
+      "engine": "2d",
+      "colors": "css",
+      "match": "vampire survivors|survivor|bullet heaven|horde|swarm|auto.?shoot|survive",
+      "refs": [
+        "Vampire Survivors",
+        "Survivor.io",
+        "Brotato"
+      ],
+      "oneUps": [
+        "Gem magnet vacuum with a pitch-up streak",
+        "Auto-upgrades with screen-clearing nova",
+        "Boss zombie at 45 seconds"
+      ],
+      "dontBuild": [
+        "no upgrade menu (auto-pick)",
+        "no meta progression",
+        "no map",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=cat in the middle, enemy=green zombie swarm, goal=survive",
+      "touch": "drag to move",
+      "viral": {
+        "hook": "Encircled by 3000 enemies, 10 HP left",
+        "bot": "Stays still until 1s before hit, fires radial nova",
+        "escalation": "XP gems vacuum in, level-up banner flashes",
+        "climax": "Screen-wide shockwave, chromatic glitch",
+        "personality": "Calm under pressure, stands still way too long, then unleashes hell"
+      }
+    },
+    {
+      "id": "obby-gauntlet",
+      "title": "CAT OBBY",
+      "hook": "Beat the obby or rage quit",
+      "hooks": [
+        "Beat the obby or rage quit",
+        "Stage 1 is a lie",
+        "Only up. Don't look down"
+      ],
+      "seconds": 18,
+      "engine": "3d",
+      "colors": "num",
+      "match": "obby|only up|parkour|gauntlet|platform gauntlet|roblox obby",
+      "refs": [
+        "Roblox Obby",
+        "Only Up!",
+        "Fall Guys"
+      ],
+      "oneUps": [
+        "Spinning bars and moving platforms",
+        "Checkpoint flags with confetti",
+        "Camera dips with the fall for drama"
+      ],
+      "dontBuild": [
+        "no checkpoints menu",
+        "no shop",
+        "no more than 12 platforms",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=cat, enemy=lava and spinners, goal=the golden flag",
+      "touch": "tap to jump, drag to steer",
+      "viral": {
+        "hook": "Jumping over spinning laser bars",
+        "bot": "Misses final jump attempt 0 (ragdoll); speedrun attempt 1",
+        "escalation": "Tiles turn red and drop, speed lines warp",
+        "climax": "Confetti blast, horn + slow-mo",
+        "personality": "Rage-prone but stubborn \u2014 eats dirt on attempt 0, then speedruns like nothing happened"
+      }
+    },
+    {
+      "id": "rail-runner",
+      "title": "SUBWAY CAT",
+      "hook": "Run from the zombie king",
+      "hooks": [
+        "Run from the zombie king",
+        "3 lanes. 1 mistake",
+        "Subway Surfers but cats"
+      ],
+      "seconds": 19,
+      "engine": "3d",
+      "colors": "num",
+      "match": "subway|temple run|endless runner|rail|lane|runner",
+      "refs": [
+        "Subway Surfers",
+        "Temple Run",
+        "Crossy Road"
+      ],
+      "oneUps": [
+        "Coin streak pitches up",
+        "Zombie king chasing behind you",
+        "Near-miss slow-mo"
+      ],
+      "dontBuild": [
+        "no missions",
+        "no characters shop",
+        "no hoverboards",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=cat, enemy=trains and barriers, goal=run as far as possible",
+      "touch": "swipe left/right/up",
+      "viral": {
+        "hook": "Train 10m away, barricades left and right",
+        "bot": "Last-ms roll under barrier, rail grind sparks",
+        "escalation": "Multiplier 2x to 32x, track tightens",
+        "climax": "Magnet vacuums 200 coins, ascending arpeggios",
+        "personality": "Reckless daredevil who grinds rails they had no business grinding"
+      }
+    },
+    {
+      "id": "ballistic-bouncer",
+      "title": "CAT PEGGLE",
+      "hook": "One shot. 50 pegs.",
+      "hooks": [
+        "One shot. 50 pegs.",
+        "The luckiest shot ever",
+        "Clear the board in 1 ball"
+      ],
+      "seconds": 32,
+      "engine": "2d",
+      "colors": "css",
+      "match": "peggle|breakout|arkanoid|angry birds|bounce|pegs|brick",
+      "refs": [
+        "Peggle",
+        "Breakout",
+        "Angry Birds"
+      ],
+      "oneUps": [
+        "Last-peg slow-mo with zoom",
+        "Free-ball bucket at the bottom",
+        "Peg combo pitch ladder"
+      ],
+      "dontBuild": [
+        "no powerup menu",
+        "no 20 levels",
+        "no characters",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=the ball and cannon, enemy=gravity, goal=clear the orange pegs",
+      "touch": "drag to aim, tap to fire",
+      "viral": {
+        "hook": "Zoom on ball between last two orange pegs",
+        "bot": "Trajectory pulses, bumper bounce to final peg",
+        "escalation": "Hit pitch ascends, camera tracks ball",
+        "climax": "Ode to Joy brass, rainbow explosion",
+        "personality": "Pool shark energy \u2014 calls the shot, banks it off three bumpers, sinks it"
+      }
+    },
+    {
+      "id": "grid-chaser",
+      "title": "PAC CAT",
+      "hook": "Eat everything. Avoid the zombies.",
+      "hooks": [
+        "Eat everything. Avoid the zombies.",
+        "Pac-Man but cats",
+        "One wrong turn"
+      ],
+      "seconds": 39,
+      "engine": "2d",
+      "colors": "css",
+      "match": "pac.?man|bomberman|maze|chase|dots|ghost",
+      "refs": [
+        "Pac-Man",
+        "Bomberman",
+        "Dig Dug"
+      ],
+      "oneUps": [
+        "Power fish turns zombies scared",
+        "Chomp streak pitch ladder",
+        "Fruit bonus pop"
+      ],
+      "dontBuild": [
+        "no multiple mazes",
+        "no ghost AI variants beyond two",
+        "no cutscenes",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=orange cat, enemy=green zombies, goal=eat all the fish dots",
+      "touch": "swipe to turn",
+      "viral": {
+        "hook": "4 ghosts 1 tile behind in dead-end",
+        "bot": "Grabs power pellet before contact, turns to face",
+        "escalation": "Ghost blue flash, siren doubles, multipliers stack",
+        "climax": "Crunch chomp, eyes zip to cage",
+        "personality": "Greedy little ghost-eater who baits chases just to turn the tables"
+      }
+    },
+    {
+      "id": "falling-blocks",
+      "title": "BLOCK CATS",
+      "hook": "Stack it or lose it",
+      "hooks": [
+        "Stack it or lose it",
+        "Tetris but cats",
+        "Clear 4 lines at once"
+      ],
+      "seconds": 22,
+      "engine": "2d",
+      "colors": "css",
+      "match": "tetris|falling block|columns|stack|block puzzle|match",
+      "refs": [
+        "Tetris",
+        "Columns",
+        "Dr. Mario"
+      ],
+      "oneUps": [
+        "Line clear flash with pitch ladder",
+        "Garbage rises when you stall",
+        "Cat pieces with faces"
+      ],
+      "dontBuild": [
+        "no hold queue",
+        "no 7-bag variants beyond one",
+        "no marathon modes",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=falling piece, enemy=the top of the board, goal=clear lines",
+      "touch": "tap rotate, drag move",
+      "viral": {
+        "hook": "4-deep well open, flashing I-piece entering",
+        "bot": "Hard drop, instant collapse",
+        "escalation": "Garbage rises, laser ghost trail",
+        "climax": "Heavy shake on Tetris, synth chord",
+        "personality": "Speed demon, hard-drops everything, no hesitation, no regrets"
+      }
+    },
+    {
+      "id": "merge-sandbox",
+      "title": "MERGE PETS",
+      "hook": "Merge to a MEGA cat",
+      "hooks": [
+        "Merge to a MEGA cat",
+        "Don't let it overflow",
+        "The watermelon game but cats"
+      ],
+      "seconds": 28,
+      "engine": "2d",
+      "colors": "css",
+      "match": "suika|2048|merge|watermelon|combine|evolve",
+      "refs": [
+        "Suika Game",
+        "2048",
+        "Threes"
+      ],
+      "oneUps": [
+        "Chain-merge pitch ladder",
+        "Final form screen-fill flash",
+        "Overflow line flashes red"
+      ],
+      "dontBuild": [
+        "no daily",
+        "no shop",
+        "no more than 8 tiers",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=your dropper, enemy=the overflow line, goal=merge up to the biggest pet",
+      "touch": "drag and tap to drop",
+      "viral": {
+        "hook": "Two massive objects touching at 99% capacity",
+        "bot": "Drops tiny item down gap, chain reaction",
+        "escalation": "Siren pulses red, items wobble",
+        "climax": "Mega fusion, rainbow burst",
+        "personality": "Mad scientist, drops things in weird spots just to watch the chaos unfold"
+      }
+    },
+    {
+      "id": "arena-brawler",
+      "title": "ZOMBIE BRAWL",
+      "hook": "1 cat vs the whole street",
+      "hooks": [
+        "1 cat vs the whole street",
+        "Beat the boss at 0 HP",
+        "Combo breaker"
+      ],
+      "seconds": 32,
+      "engine": "2d",
+      "colors": "css",
+      "match": "beat.?em|brawler|double dragon|kung.?fu|street fight|fighter",
+      "refs": [
+        "Double Dragon",
+        "Kung-Fu Master",
+        "Streets of Rage"
+      ],
+      "oneUps": [
+        "Hit-stop and combo pitch ladder",
+        "Final-hit slow-mo",
+        "Boss zombie with a health bar"
+      ],
+      "dontBuild": [
+        "no weapons pickups",
+        "no 5 stages",
+        "no co-op",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=orange cat, enemy=green zombies, goal=knock them all out",
+      "touch": "drag + punch button",
+      "viral": {
+        "hook": "8 enemies charging, winding up heavy punch",
+        "bot": "Counter-parry, 10-hit wall juggle",
+        "escalation": "Hit-stop scales 2-6 frames, damage digits spray",
+        "climax": "Inverted flash, KO gong",
+        "personality": "Street brawler with main-character energy \u2014 parries with a smirk, juggles for style points"
+      }
+    },
+    {
+      "id": "scrolling-shmup",
+      "title": "CAT FIGHTER",
+      "hook": "Dodge the bullet hell",
+      "hooks": [
+        "Dodge the bullet hell",
+        "Gradius but cats",
+        "The boss is 10 screens tall"
+      ],
+      "seconds": 30,
+      "engine": "2d",
+      "colors": "css",
+      "match": "shmup|shoot.?em|gradius|ikaruga|bullet hell|space shooter|galaga",
+      "refs": [
+        "Gradius",
+        "Ikaruga",
+        "Galaga"
+      ],
+      "oneUps": [
+        "Bullet-clearing bomb with screen flash",
+        "Boss with 3 patterns",
+        "Pitch ladder on chain kills"
+      ],
+      "dontBuild": [
+        "no weapon shop",
+        "no multiple ships",
+        "no story",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=cat in a ship, enemy=zombie ufos, goal=survive and shoot the boss",
+      "touch": "drag to move, auto-fire",
+      "viral": {
+        "hook": "Screen covered in pink/cyan bullet patterns",
+        "bot": "Grazes by 2px (sparks), fires screen-clear bomb",
+        "escalation": "Boss HP chunks, graze counter ticks",
+        "climax": "Boss split explosion, deep rumble",
+        "personality": "Bullet-grazer who lives for the 2-pixel dodge and shows off doing it"
+      }
+    },
+    {
+      "id": "run-and-gun",
+      "title": "CONTRA CAT",
+      "hook": "Run. Jump. Shoot.",
+      "hooks": [
+        "Run. Jump. Shoot.",
+        "One life. No mercy.",
+        "Contra but cats"
+      ],
+      "seconds": 20,
+      "engine": "2d",
+      "colors": "css",
+      "match": "contra|metal slug|run.?and.?gun|run and gun|shooter platform",
+      "refs": [
+        "Contra",
+        "Metal Slug",
+        "Cuphead"
+      ],
+      "oneUps": [
+        "Spread-shot pickup",
+        "Boss zombie at the end",
+        "Screen shake on every kill"
+      ],
+      "dontBuild": [
+        "no weapon wheel",
+        "no 8 levels",
+        "no co-op",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=orange cat with a gun, enemy=zombies, goal=run to the right and survive",
+      "touch": "buttons: jump, shoot",
+      "viral": {
+        "hook": "Collapsing bridge, firing at giant robot",
+        "bot": "Somersault over missile, shoot barrel behind enemy",
+        "escalation": "Scroll speeds up, fire rate ramps",
+        "climax": "Plating shatters, cascading fireballs",
+        "personality": "Action hero who somersaults over missiles they could have just walked around"
+      }
+    },
+    {
+      "id": "mini-metroidvania",
+      "title": "CAT CAVE",
+      "hook": "Find the double jump",
+      "hooks": [
+        "Find the double jump",
+        "This door was locked 5 minutes ago",
+        "Metroidvania in 30 seconds"
+      ],
+      "seconds": 15,
+      "engine": "2d",
+      "colors": "css",
+      "match": "metroidvania|hollow knight|metroid|ability gate|backtrack",
+      "refs": [
+        "Hollow Knight",
+        "Metroid Dread",
+        "Castlevania"
+      ],
+      "oneUps": [
+        "Orb pickup unlocks a gate with a flash",
+        "Room transitions that slide",
+        "Ghost trail on double jump"
+      ],
+      "dontBuild": [
+        "no map screen",
+        "no more than 3 rooms",
+        "no boss",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=cat, enemy=spikes, goal=get the orb then reach the exit",
+      "touch": "left/right + jump buttons",
+      "viral": {
+        "hook": "Locked blue door, double-jump over boss laser",
+        "bot": "Dash-strikes weak spot, collects upgrade",
+        "escalation": "Upgrade banner slides, bars expand",
+        "climax": "Fanfare, aura color change",
+        "personality": "Curious explorer who gasps at every upgrade like it is Christmas morning"
+      }
+    },
+    {
+      "id": "footsies-duel",
+      "title": "CAT DUEL",
+      "hook": "First to push wins",
+      "hooks": [
+        "First to push wins",
+        "Parry or die",
+        "Nidhogg but cats"
+      ],
+      "seconds": 14,
+      "engine": "2d",
+      "colors": "css",
+      "match": "footsies|divekick|nidhogg|duel|1v1|fighting game|parry",
+      "refs": [
+        "Nidhogg",
+        "Divekick",
+        "Street Fighter"
+      ],
+      "oneUps": [
+        "Parry flash with slow-mo",
+        "Tug-of-war arena edge",
+        "Combo pitch ladder"
+      ],
+      "dontBuild": [
+        "no character select",
+        "no 12 moves",
+        "no online",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=orange cat, enemy=green zombie, goal=push the zombie off the edge",
+      "touch": "3 buttons: strike, parry, step",
+      "viral": {
+        "hook": "Both at 1% HP, 3 seconds left",
+        "bot": "Baits whiffed sweep, frame-1 punish",
+        "escalation": "10-frame freeze on connect, zoom crop",
+        "climax": "K.O. slam, bass boom + silence",
+        "personality": "Ice-cold duelist who baits whiffs with a taunt, then punishes in one frame"
+      }
+    },
+    {
+      "id": "mini-zelda",
+      "title": "CAT DUNGEON",
+      "hook": "Get the key. Open the door.",
+      "hooks": [
+        "Get the key. Open the door.",
+        "Zelda in 30 seconds",
+        "Hearts and a sword"
+      ],
+      "seconds": 21,
+      "engine": "2d",
+      "colors": "css",
+      "match": "zelda|dungeon|link's awakening|top.?down adventure|key door",
+      "refs": [
+        "Zelda",
+        "Link's Awakening",
+        "Hades"
+      ],
+      "oneUps": [
+        "Sword swing hit-stop",
+        "Key pickup fanfare",
+        "Hearts that drop pieces"
+      ],
+      "dontBuild": [
+        "no inventory",
+        "no map",
+        "no more than 3 rooms",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=cat with a sword, enemy=zombies, goal=find the key and open the door",
+      "touch": "drag + sword button",
+      "viral": {
+        "hook": "Boss swings flail, dodge-roll into dark room",
+        "bot": "Lights torch, exposes eye weakness, 3 slashes",
+        "escalation": "Walls drop, heart beeps",
+        "climax": "Discovery chime, chest beam",
+        "personality": "Heroic doofus who dodge-rolls into walls before finding the actual solution"
+      }
+    },
+    {
+      "id": "turn-based-3v3",
+      "title": "PET BATTLE",
+      "hook": "3 cats vs 3 zombies",
+      "hooks": [
+        "3 cats vs 3 zombies",
+        "Super effective!",
+        "Pick the right move"
+      ],
+      "seconds": 28,
+      "engine": "2d",
+      "colors": "css",
+      "match": "pokemon|turn.?based|battle|rpg|3v3|monster",
+      "refs": [
+        "Pokemon",
+        "Final Fantasy",
+        "Slay the Spire"
+      ],
+      "oneUps": [
+        "Super-effective flash with pitch rise",
+        "Faint animation",
+        "Type chart icons"
+      ],
+      "dontBuild": [
+        "no catching",
+        "no 150 pets",
+        "no items",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=your cat team, enemy=zombie team, goal=faint all three",
+      "touch": "tap move buttons",
+      "viral": {
+        "hook": "1 unit left vs 3, 5% HP, Ultimate ready",
+        "bot": "Full-party AoE ultimate, weakness cascade",
+        "escalation": "Turn timeline highlights, damage cascades",
+        "climax": "Dynamic camera, elemental burst",
+        "personality": "Dramatic tactician who saves the ultimate for the most cinematic possible moment"
+      }
+    },
+    {
+      "id": "micro-tower-defense",
+      "title": "CAT DEFENSE",
+      "hook": "Don't let the zombies through",
+      "hooks": [
+        "Don't let the zombies through",
+        "Bloons but cats",
+        "Place 5 towers. Survive 5 waves"
+      ],
+      "seconds": 35,
+      "engine": "2d",
+      "colors": "css",
+      "match": "tower defense|bloons|kingdom rush|defend|lane defense|td",
+      "refs": [
+        "Bloons TD",
+        "Kingdom Rush",
+        "Plants vs Zombies"
+      ],
+      "oneUps": [
+        "Tower upgrade burst",
+        "Boss wave siren",
+        "Cash pitch ladder"
+      ],
+      "dontBuild": [
+        "no tower tree",
+        "no 10 maps",
+        "no hero units",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=you placing cat towers, enemy=zombie wave, goal=stop them reaching the base",
+      "touch": "tap tiles",
+      "viral": {
+        "hook": "500 creeps 5px from exit",
+        "bot": "Places ultimate tower at junction, chain lightning",
+        "escalation": "Pop counter 60/sec, pitch climbs",
+        "climax": "Screen clears, gem burst",
+        "personality": "Tower baron who places the perfect tower at the last possible second, every time"
+      }
+    },
+    {
+      "id": "kart-racer",
+      "title": "CAT KART",
+      "hook": "Win by a whisker",
+      "hooks": [
+        "Win by a whisker",
+        "Mario Kart but cats",
+        "Last place to first"
+      ],
+      "seconds": 22,
+      "engine": "3d",
+      "colors": "num",
+      "match": "kart|mario kart|racer|racing|micro machines|race",
+      "refs": [
+        "Mario Kart",
+        "Micro Machines",
+        "Crash Team Racing"
+      ],
+      "oneUps": [
+        "Boost pads with speed lines",
+        "Rival karts with rubber-banding",
+        "Photo finish slow-mo"
+      ],
+      "dontBuild": [
+        "no item roulette",
+        "no 8 tracks",
+        "no drifting tutorial",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=cat kart, enemy=rival karts, goal=finish first",
+      "touch": "left/right halves",
+      "viral": {
+        "hook": "Final lap final corner, 2nd place drafting",
+        "bot": "Red shell, drift boost, wins by a nose",
+        "escalation": "Drift sparks blue\u2192purple, wind FX",
+        "climax": "Checkered flag, crowd roar",
+        "personality": "Dirty racer \u2014 bumps, drafts, cuts corners, wins by a pixel with a smirk"
+      }
+    },
+    {
+      "id": "card-roguelite",
+      "title": "CARD CATS",
+      "hook": "Beat the blind with 5 cards",
+      "hooks": [
+        "Beat the blind with 5 cards",
+        "Balatro but cats",
+        "The best hand wins"
+      ],
+      "seconds": 21,
+      "engine": "2d",
+      "colors": "css",
+      "match": "balatro|slay the spire|deckbuilder|card|poker|roguelike card",
+      "refs": [
+        "Balatro",
+        "Slay the Spire",
+        "Inscryption"
+      ],
+      "oneUps": [
+        "Score tally with pitch ladder",
+        "Jokers as cat faces",
+        "Big-hand slow-mo and flash"
+      ],
+      "dontBuild": [
+        "no shop",
+        "no 15 jokers",
+        "no run map",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=your hand of cards, enemy=the target score, goal=beat the score before hands run out",
+      "touch": "tap cards, tap Play",
+      "viral": {
+        "hook": "1 card left, 400k chips needed on Boss Blind",
+        "bot": "Plays 5-card flush, jokers trigger sequentially",
+        "escalation": "Mult x2\u2192x64, chip flames brighten",
+        "climax": "Fire from score counter, goal shatters",
+        "personality": "High-roller who slow-plays the winning hand just to watch the mult counter explode"
+      }
+    },
+    {
+      "id": "idle-tycoon",
+      "title": "CAT FACTORY",
+      "hook": "Make 1,000,000 fish",
+      "hooks": [
+        "Make 1,000,000 fish",
+        "Idle games are secretly addictive",
+        "Upgrade everything"
+      ],
+      "seconds": 28,
+      "engine": "2d",
+      "colors": "css",
+      "match": "tycoon|idle|incremental|factory|clicker|cookie clicker|automation",
+      "refs": [
+        "Cookie Clicker",
+        "Roblox Tycoon",
+        "Factorio"
+      ],
+      "oneUps": [
+        "Numbers climb with a pitch ladder",
+        "Machine upgrade bursts",
+        "Time-boxed quota with a lose state"
+      ],
+      "dontBuild": [
+        "no prestige",
+        "no more than 4 machines",
+        "no offline progress",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=you tapping upgrades, enemy=the clock, goal=hit the fish quota",
+      "touch": "tap buttons",
+      "viral": {
+        "hook": "Conveyor jammed with gold, upgrade flashing",
+        "bot": "Taps BUY 10x SPEED, belt becomes laser",
+        "escalation": "Digits 1e12\u21921e18, counter blur",
+        "climax": "Cash rain, ascending chimes",
+        "personality": "Unhinged capitalist who slams the 10x button and cackles as numbers go vertical"
+      }
+    },
+    {
+      "id": "hide-and-seek",
+      "title": "PROP CAT",
+      "hook": "Don't move when it looks",
+      "hooks": [
+        "Don't move when it looks",
+        "Prop Hunt but cats",
+        "Red light, green light"
+      ],
+      "seconds": 21,
+      "engine": "2d",
+      "colors": "css",
+      "match": "prop hunt|hide and seek|among us|hide|disguise|red light green light|stealth",
+      "refs": [
+        "Prop Hunt",
+        "Among Us",
+        "Red Light Green Light"
+      ],
+      "oneUps": [
+        "Hunter sweep cone",
+        "Freeze-frame near miss",
+        "Disguise swap pop"
+      ],
+      "dontBuild": [
+        "no multiplayer",
+        "no 5 maps",
+        "no voice chat",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=cat disguised as a barrel, enemy=zombie hunter, goal=reach the exit unseen",
+      "touch": "hold to move, release to freeze",
+      "viral": {
+        "hook": "Disguised as cone, seeker 1 inch away",
+        "bot": "Seeker passes, morphs to can, darts to vent",
+        "escalation": "Heartbeat quickens, red vignette",
+        "climax": "ESCAPED stamp, slide-whistle",
+        "personality": "Mischievous shapeshifter who waves at the seeker right before vanishing"
+      }
+    },
+    {
+      "id": "trajectory-artillery",
+      "title": "CAT ARTILLERY",
+      "hook": "Aim. Fire. Dig a crater.",
+      "hooks": [
+        "Aim. Fire. Dig a crater.",
+        "Worms but cats",
+        "Wind changes everything"
+      ],
+      "seconds": 16,
+      "engine": "2d",
+      "colors": "css",
+      "match": "worms|scorched earth|artillery|trajectory|cannon|tank|turn.?based shooter",
+      "refs": [
+        "Worms",
+        "Scorched Earth",
+        "Angry Birds"
+      ],
+      "oneUps": [
+        "Destructible terrain craters",
+        "Wind arrow",
+        "Slow-mo on the winning shot"
+      ],
+      "dontBuild": [
+        "no weapon menu",
+        "no 5 weapons",
+        "no teams",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=left cat, enemy=right zombie, goal=hit the zombie",
+      "touch": "drag back to aim, release to fire",
+      "viral": {
+        "hook": "Sliver of land left, max headwind",
+        "bot": "Bounces grenade off cliffs into bunker",
+        "escalation": "Trajectory dots calculate, camera tracks",
+        "climax": "Terrain craters, enemy flies off",
+        "personality": "Physics gremlin who celebrates a lucky bounce like it was all skill"
+      }
+    }
+  ]
 }
