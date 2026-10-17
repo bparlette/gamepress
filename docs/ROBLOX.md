@@ -11,6 +11,9 @@ node bin/gamepress.mjs roblox --rojo default.project.json --universe ... --place
 Ids can come from env instead of flags: `ROBLOX_UNIVERSE_ID`, `ROBLOX_PLACE_ID` (keep them in your shell profile, not the repo).
 The place id is NOT in the experience overview URL (that URL holds the universe id). Get it from Creator Dashboard > the experience > **Places** (or open the place in Studio: Game Explorer shows it; `game.PlaceId` in the command bar prints it). A private/unpublished experience hides its place id from public APIs.
 
+## Easiest: `scripts/roblox-key.sh`
+Opens TextEdit with a template: paste the key (and place id), save, close. The key goes into the macOS Keychain (`gamepress-roblox-api-key`), ids into `~/.config/gamepress/roblox.env`, and the temp file is wiped. gamepress reads them automatically (env vars still win). Remove later: `security delete-generic-password -s gamepress-roblox-api-key`.
+
 ## API key permissions (exactly these, nothing else)
 Dashboard > Credentials > Create API Key > **Access Permissions** > "Select API System", then add the scopes below and pick **this experience only** (never "all experiences").
 | API system (search box) | Scope / operation | Lets gamepress |
