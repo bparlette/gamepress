@@ -1,0 +1,17 @@
+{
+  "id": "gravity-janitor",
+  "title": "Gravity Janitor",
+  "tagline": "I made a janitor game where gravity flips every 5 seconds",
+  "description": "Mop a space station while gravity flips and cats float off the ceiling.",
+  "tags": [
+    "janitor",
+    "space",
+    "gravity",
+    "cats",
+    "browser game",
+    "html5"
+  ],
+  "youtubeTitle": "I made a janitor game where gravity flips every 5 seconds",
+  "category": "Viral Demos",
+  "price": 0
+}

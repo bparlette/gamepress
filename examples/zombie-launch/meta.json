@@ -1,0 +1,17 @@
+{
+  "id": "zombie-launch",
+  "title": "Zombie Launch",
+  "tagline": "Cannon. Zombie. Zero brain cells.",
+  "description": "Fire a zombie ragdoll into barricades, bumpers, glass and TNT.",
+  "tags": [
+    "ragdoll",
+    "zombie",
+    "physics",
+    "cannon",
+    "browser game",
+    "html5"
+  ],
+  "youtubeTitle": "Cannon. Zombie. Zero brain cells.",
+  "category": "Viral Demos",
+  "price": 0
+}

@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+// __TITLE__: one-screen demo. Contract (see docs/QUALITY.md): portrait-first, fixed 1/60 step, Math.random only, window.__game state,
+// sfx() calls (logged to window.__events), ?clean=1 ?dpr=1 ?auto=1 switches, keys primary + pointer secondary.
+import { createStage, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
+import { toon, catGeo, zombieGeo, carGeo, crowd, hero, particles, sky, groundTex, blobs } from '../_vendor/gpkit.js';
+const st = createStage({ bg: 0x2a1238, fitWidth: 12 }); st.light(); sky(st.scene, 0x4a8cff, 0xffd9a8, [50, 160]);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), toon(0xffffff, { map: groundTex('grass', 40) })); ground.rotation.x = -Math.PI / 2; st.scene.add(ground);
+const fx = particles(st.scene, 400), cats = crowd(st.scene, catGeo(), 50);
+let score = 0;
+for (let i = 0; i < 50; i++) cats.color(i, [0xff9a3c, 0xf4efe4, 0x9aa0aa][i % 3]);
+function update(dt) {                       // fixed 1/60 s: input -> sim -> HUD -> window.__game
+  fx.update(dt);
+  if (st.keys[' ']) { score++; sfx('meow', .4); fx.burst(4, { x: 0, y: 1, z: 0, size: .2, life: .6, color: 0xffd34d }, 3); }
+  st.hud.left(`SCORE<br>${score}`); st.hud.hint('SPACE');
+  window.__game = { score };
+}
+function pre() {                            // per rendered frame: write instance matrices, move camera
+  for (let i = 0; i < 50; i++) cats.set(i, (i % 10 - 4.5) * 1.2, Math.abs(Math.sin(st.t * 3 + i)) * .3, ((i / 10) | 0) * 1.2 - 3, .7, Math.PI);
+  cats.done(50); st.camera.position.set(0, 6, st.dist + 4); st.camera.lookAt(0, 0, 0);
+}
+st.run(update, pre);
+</script></body></html>

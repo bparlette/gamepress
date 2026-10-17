@@ -1,7 +1,7 @@
 {
-  "name": "crowd-multiplier-hook",
+  "name": "zombie-plow-hook",
   "root": "../../../hawk-pub/brad-demos/g",
-  "path": "crowd-multiplier/index.html?auto=1&dpr=1&clean=1",
+  "path": "zombie-plow/index.html?speed=1.5&dpr=1&clean=1",
   "viewport": [
     540,
     960
@@ -9,41 +9,41 @@
   "scale": 2,
   "fps": 30,
   "seed": 5,
-  "duration": 26,
+  "duration": 16,
   "report": "window.__game",
   "input": [],
   "captions": [
     {
       "t": 0,
       "until": 4,
-      "text": "5 guys vs a castle",
+      "text": "4,900 zombies. One plow.",
       "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 4,
+      "until": 8,
+      "text": "it does not stop",
+      "pos": "upper",
       "style": "hook"
     },
     {
       "t": 14,
-      "until": 18,
-      "text": "the math is mathing",
-      "pos": "top",
-      "style": "hook"
-    },
-    {
-      "t": 20,
-      "until": 26,
+      "until": 20,
       "text": "Play free. Link in bio",
       "pos": "bottom",
       "style": "cta"
     }
   ],
   "slowmo": [],
-  "thumb": 15,
+  "thumb": 8,
   "audio": {
     "source": "window.__events",
     "music": "bed",
     "musicGain": 0.3,
     "bed": {
-      "bpm": 136,
-      "root": 62
+      "bpm": 90,
+      "root": 46
     }
   }
 }

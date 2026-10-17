@@ -1,5 +1,7 @@
 # How the demo games were made
 
+> **Look kit (v2):** the demos use `_vendor/gpkit.js` (toon shading, merged low-poly cats/zombies/cars, particles, sky, textures). See `docs/QUALITY.md` for the bar and `AGENTS.md` for the end-to-end pipeline. Hordes are cats and zombies, not primitives.
+
 Ten one-screen demos (plus Tiny Kaiju and Gravity Janitor) built to be **filmed**: each has one visual that works in the
 first second, a payoff inside 15 seconds, and a scriptable control scheme. They live in `brad-demos/g/<id>/` of the
 Hawk repo and are published on the demo page. This document is the recipe, so a new demo takes an afternoon.
@@ -57,16 +59,16 @@ Rules every demo follows (they are what make the videos reproducible; see `docs/
 |---|---|---|---|
 | `tiny-kaiju` | a 2-inch monster vs a dollhouse | Canvas 2D; support-chain collapse; hit-stop | A/D, Space stomp, Z tail, X fire |
 | `gravity-janitor` | mop a space station while gravity flips | Canvas 2D; spills peel off and rain on the new floor | A/D, hold Space |
-| `ball-avalanche` | 5 balls become 24,000 | InstancedMesh + lattice pegs; gate = clone spawner | A/D or drag |
-| `ragdoll-launch` | cannon, crash dummy, bricks, glass, TNT | 12-point Verlet ragdoll; sleeping bricks wake their column | W/S, hold Space |
+| `cat-avalanche` | 5 balls become 24,000 | InstancedMesh + lattice pegs; gate = clone spawner | A/D or drag |
+| `zombie-launch` | cannon, crash dummy, bricks, glass, TNT | 12-point Verlet ragdoll; sleeping bricks wake their column | W/S, hold Space |
 | `voxel-demolition` | a ~9,000-voxel castle | SDF-ish shape to voxels; wake-on-blast; support chain | arrows, Space, A/D orbit |
-| `marble-elimination` | 36 named marbles, last 30% out each round | segment and circle collisions; no input | none (Space skips) |
+| `cat-derby` | 36 named marbles, last 30% out each round | segment and circle collisions; no input | none (Space skips) |
 | `glass-stairs` | which pane holds? | MeshPhysicalMaterial transmission .95 | Space / tap |
 | `black-hole` | hole eats coins to skyscrapers | shrink-and-sink; size from eaten volume | WASD / drag |
 | `speed-ramp` | impossible ramp, barge landing | analytic ramp, ballistic air phase, FOV kick, CSS speed lines | hold Space, W/S, A/D |
 | `rope-bridge` | stack heavier vehicles until it snaps | Verlet chain; per-link snap threshold | Space / tap |
-| `crowd-multiplier` | stickmen through math gates, topple a castle | 450 drawn instances, real count in HUD; `?auto=1` autopilot | A/D or drag |
-| `bulldozer-wedge` | a plow sweeps 10,000 pegs | spatial hash for moving pegs; edge = abyss | A/D or drag |
+| `zombie-horde` | stickmen through math gates, topple a castle | 450 drawn instances, real count in HUD; `?auto=1` autopilot | A/D or drag |
+| `zombie-plow` | a plow sweeps 10,000 pegs | spatial hash for moving pegs; edge = abyss | A/D or drag |
 
 ## Adding a game to the demo page
 

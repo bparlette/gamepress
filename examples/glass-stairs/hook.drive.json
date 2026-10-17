@@ -16,15 +16,15 @@
     {
       "t": 0,
       "until": 4,
-      "text": "Which pane holds?",
+      "text": "Will the cat survive?",
       "pos": "top",
       "style": "hook"
     },
     {
       "t": 4,
       "until": 8,
-      "text": "bet in the comments",
-      "pos": "top",
+      "text": "9 lives. 20 panes.",
+      "pos": "upper",
       "style": "hook"
     },
     {

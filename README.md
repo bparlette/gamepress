@@ -12,7 +12,10 @@ gamepress pack                      # raw -> out/steam, out/itch, out/crazygames
 gamepress check                     # verify sizes, counts, GIF size, video length per store
 gamepress drive plan.json           # scripted, frame-locked playthrough of ANY web game -> captioned MP4 with audio
 gamepress catalog games.json ...    # add a game + thumbnail to a demo-page catalog
+gamepress research|new|test|bundle|publish-pack|host   # AI pipeline: see AGENTS.md
 ```
+
+> **AI agents: start at [`AGENTS.md`](AGENTS.md).** It drives research, build, test, film, package and the hosting hand-off.
 
 > This repo is intended to be renamed `tools`. Nothing in it depends on the name; all paths are relative.
 

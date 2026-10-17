@@ -65,15 +65,15 @@
     {
       "t": 0,
       "until": 4,
-      "text": "Starts by eating coins",
+      "text": "It starts by eating coins",
       "pos": "top",
       "style": "hook"
     },
     {
       "t": 10,
       "until": 14,
-      "text": "now it is eating houses",
-      "pos": "top",
+      "text": "now the zombies and cats",
+      "pos": "upper",
       "style": "hook"
     },
     {

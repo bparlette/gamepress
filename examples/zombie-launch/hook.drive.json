@@ -1,0 +1,88 @@
+{
+  "name": "zombie-launch-hook",
+  "root": "../../../hawk-pub/brad-demos/g",
+  "path": "zombie-launch/index.html?dpr=1&clean=1",
+  "viewport": [
+    540,
+    960
+  ],
+  "scale": 2,
+  "fps": 30,
+  "seed": 5,
+  "duration": 20,
+  "report": "window.__game",
+  "thumb": 6,
+  "input": [
+    {
+      "t": 0.5,
+      "down": "s"
+    },
+    {
+      "t": 0.6,
+      "up": "s"
+    },
+    {
+      "t": 1.0,
+      "down": " "
+    },
+    {
+      "t": 1.9,
+      "up": " "
+    },
+    {
+      "t": 7.0,
+      "down": " "
+    },
+    {
+      "t": 8.2,
+      "up": " "
+    },
+    {
+      "t": 13.0,
+      "down": "w"
+    },
+    {
+      "t": 13.2,
+      "up": "w"
+    },
+    {
+      "t": 13.4,
+      "down": " "
+    },
+    {
+      "t": 14.5,
+      "up": " "
+    }
+  ],
+  "captions": [
+    {
+      "t": 0,
+      "until": 3,
+      "text": "Cannon. Zombie. Zero brain cells.",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 15,
+      "until": 20,
+      "text": "Play free. Link in bio",
+      "pos": "bottom",
+      "style": "cta"
+    }
+  ],
+  "slowmo": [],
+  "audio": {
+    "source": "window.__events",
+    "music": "bed",
+    "musicGain": 0.3,
+    "bed": {
+      "bpm": 132,
+      "root": 55
+    },
+    "map": {
+      "boom": "boom",
+      "ding": "ding",
+      "crash": "crash"
+    }
+  }
+}

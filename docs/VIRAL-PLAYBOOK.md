@@ -27,16 +27,16 @@ Each plan is in `examples/<id>/hook.drive.json`. Suggested titles (edit freely):
 |---|---|---|---|
 | tiny-kaiju | He is 2 inches tall and he hates this dollhouse | "HE IS 2 INCHES TALL" | "what should he destroy next?" |
 | gravity-janitor | I made a janitor game where gravity flips every 5 seconds | "Night shift on a space station" | "how long would you last?" |
-| ball-avalanche | 5 balls turned into 24,000 | "5 balls. 6 gates." | "which gate is the best?" |
-| ragdoll-launch | Cannon. Crash dummy. Zero brain cells. | same | "highest score?" |
+| cat-avalanche | 5 balls turned into 24,000 | "5 balls. 6 gates." | "which gate is the best?" |
+| zombie-launch | Cannon. Crash dummy. Zero brain cells. | same | "highest score?" |
 | voxel-demolition | 9,000 voxels vs 12 shells | "9,000 voxels. 12 shells." | "what landmark next?" |
-| marble-elimination | 36 marbles. Last 11 are out. Pick yours | "36 marbles" | "drop your marble's name" |
+| cat-derby | 36 marbles. Last 11 are out. Pick yours | "36 marbles" | "drop your marble's name" |
 | glass-stairs | Which pane holds? | "Which pane holds?" | "left or right?" |
 | black-hole | It starts by eating coins | "Starts by eating coins" | "can it eat the skyscraper?" |
 | speed-ramp | This ramp is too steep | "This ramp is too steep" | "can you land it?" |
 | rope-bridge | How much can this bridge hold? | same | "which vehicle breaks it?" |
-| crowd-multiplier | 5 guys vs a castle (the math is mathing) | "5 guys vs a castle" | "left or right gate?" |
-| bulldozer-wedge | 10,000 pegs. One wedge. It does not stop | same | "satisfying or stressful?" |
+| zombie-horde | 5 guys vs a castle (the math is mathing) | "5 guys vs a castle" | "left or right gate?" |
+| zombie-plow | 10,000 pegs. One wedge. It does not stop | same | "satisfying or stressful?" |
 
 Posting: one Short per day from the queue; put the playable link in the pinned comment and channel bio (Shorts descriptions
 do not link out reliably). Link the demo page https://bparlette.github.io/Hawk/brad-demos/. Reply to the first 30 comments quickly.

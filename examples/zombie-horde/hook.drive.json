@@ -1,7 +1,7 @@
 {
-  "name": "marble-elimination-hook",
+  "name": "zombie-horde-hook",
   "root": "../../../hawk-pub/brad-demos/g",
-  "path": "marble-elimination/index.html?speed=2&dpr=1&clean=1",
+  "path": "zombie-horde/index.html?auto=1&dpr=1&clean=1",
   "viewport": [
     540,
     960
@@ -9,41 +9,41 @@
   "scale": 2,
   "fps": 30,
   "seed": 5,
-  "duration": 24,
+  "duration": 26,
   "report": "window.__game",
   "input": [],
   "captions": [
     {
       "t": 0,
       "until": 4,
-      "text": "36 marbles. Last 11 are OUT.",
+      "text": "5 zombies vs a GIANT CAT",
       "pos": "top",
       "style": "hook"
     },
     {
-      "t": 4,
-      "until": 8,
-      "text": "pick yours in the comments",
-      "pos": "top",
+      "t": 14,
+      "until": 18,
+      "text": "the math is mathing",
+      "pos": "upper",
       "style": "hook"
     },
     {
-      "t": 19,
-      "until": 25,
+      "t": 20,
+      "until": 26,
       "text": "Play free. Link in bio",
       "pos": "bottom",
       "style": "cta"
     }
   ],
   "slowmo": [],
-  "thumb": 6,
+  "thumb": 15,
   "audio": {
     "source": "window.__events",
     "music": "bed",
     "musicGain": 0.3,
     "bed": {
-      "bpm": 120,
-      "root": 58
+      "bpm": 136,
+      "root": 62
     }
   }
 }

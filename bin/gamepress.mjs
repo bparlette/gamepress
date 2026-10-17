@@ -25,6 +25,8 @@ import { join, resolve, basename, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { drive } from '../lib/drive.mjs';
 import { catalogCommand } from '../lib/catalog.mjs';
+import { research, scaffold, testGame, bundle, publishPack } from '../lib/tasks.mjs';
+import * as hosts from '../lib/hosts/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PRESETS = JSON.parse(readFileSync(join(HERE, '..', 'presets', 'platforms.json'), 'utf8'));
@@ -284,5 +286,11 @@ function die(msg) { console.error(msg); process.exit(1); }
 ({ init, capture: () => capture(positional[0] || die('usage: gamepress capture <plan.json>')),
   catalog: () => { const g = k => flag(k); catalogCommand({ catalogPath: positional[0] || die('usage: gamepress catalog <games.json> --id ...'), still: g('still'), thumbDir: g('thumbdir') || 'thumbs',
     entry: { id: g('id') || die('--id required'), title: g('title') || g('id'), category: g('category') || 'Other', keys: JSON.parse(g('keys') || '{}'), labels: JSON.parse(g('labels') || '{}'), autostart: [], orientation: g('orientation') || 'any', path: g('path') || die('--path required'), ...(g('note') ? { note: g('note') } : {}) } }); console.log('catalog updated'); },
+  research: () => console.log(JSON.stringify(research(positional[0] || die('usage: gamepress research <channel/shorts url>'), flag('out', 'research')), null, 1)),
+  new: () => console.log('created', scaffold(positional[0] || die('usage: gamepress new <id> [--games dir] [--title T]'), { games: flag('games', 'games'), title: flag('title') })),
+  test: () => testGame(positional[0] || die('usage: gamepress test <game dir or url> [--root dir]'), { root: flag('root') }).then(v => { console.log(JSON.stringify(v, null, 1)); process.exit(v.ok ? 0 : 1); }).catch(e => die('test failed: ' + e.message)),
+  bundle: () => console.log(bundle(positional[0] || die('usage: gamepress bundle <game dir> [--out dist]'), flag('out', 'dist'))),
+  'publish-pack': () => console.log(JSON.stringify(publishPack(positional[0] || die('usage: gamepress publish-pack <id> --games <dir>'), { gamesDir: flag('games'), videoDir: flag('video', 'press/video') }), null, 1)),
+  host: () => hosts[positional[0]]?.upload(JSON.parse(readFileSync(join(flag('dir', 'publish'), positional[1] || die('usage: gamepress host <itch|crazygames|steam|youtube> <id>'), 'manifest.json'), 'utf8')), { dryRun: !argv.includes('--live') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die(e.message)) || die('unknown host'),
   drive: () => drive(positional[0] || die('usage: gamepress drive <plan.json>'), { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false }).catch(e => die('drive failed: ' + e.message)), scenes: () => scenes(positional[0]), pack, check }[cmd] ||
-  (() => die('usage: gamepress init | capture <plan.json> | drive <plan.json> | catalog <games.json> | scenes <video> | pack | check   (options: --dir press, --platforms steam,itch, --focus 0.5,0.4)')))();
+  (() => die('usage: gamepress research | new | test | bundle | publish-pack | host | init | capture <plan.json> | drive <plan.json> | catalog <games.json> | scenes <video> | pack | check   (options: --dir press, --platforms steam,itch, --focus 0.5,0.4)')))();
