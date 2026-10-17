@@ -19,7 +19,8 @@
       "build",
       "make",
       "doctor",
-      "lint"
+      "lint",
+      "ideate"
     ],
     "purpose": "Research, build/scaffold, headless test, scripted gameplay video, store images."
   },

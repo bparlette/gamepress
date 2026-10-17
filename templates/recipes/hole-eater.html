@@ -1,60 +1,74 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
 <script type="module">
-// Black Hole City: steer a hole that swallows coins, benches, trees, cars, houses, then skyscrapers. WASD / arrows / drag.
-// Anything smaller than the hole falls in (shrinks toward the centre); everything is one InstancedMesh per prop type.
-/*RECIPE hole-eater: steer a growing hole that swallows a city. Edit the SPEC JSON, not the code (gamepress make).*/
-import { createStage, instances, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
-import { toon, zombieGeo, catGeo, crowd, particles, sky, groundTex, walkClock } from '../_vendor/gpkit.js';
-const S = { title: 'HOLE EATER', sub: 'Swallow everything. 90 seconds.', seconds: 90, ringColor: 0x7b4bff, skyTop: 0x4aa8ff, skyBottom: 0xdff3ff, bg: 0x9fd8ff, ground: 'grass', levels: ['COINS', 'BENCHES', 'TREES', 'CARS', 'HOUSES', 'SKYSCRAPERS'], winScore: 800, /*SPEC*/ ...{} /*END*/ };
-const st = createStage({ bg: S.bg, fitWidth: 16, fov: 50 }); st.light(); sky(st.scene, S.skyTop, S.skyBottom, [70, 190]); const fx = particles(st.scene, 400);
-const A = 46, GROW = +(new URLSearchParams(location.search).get('grow') || 1); // half-size of the map
+/*RECIPE hole-eater: steer a growing hole that swallows a city of 14 prop types (coins, cats, dogs, people, trees, cars, buses, houses, towers...).
+  Edit the SPEC JSON, not the code (gamepress make). Anything smaller than the hole falls in; animals and people run away; everything is one InstancedMesh per type.*/
+import { createStage, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
+import { toon, catGeo, dogGeo, personGeo, crowdGeo, treeGeo, houseGeo, towerGeo, carGeo, busGeo, coinGeo, benchGeo, barrelGeo, crowd, particles, sky, groundTex, walkClock } from '../_vendor/gpkit.js';
+const S = { title: 'HOLE EATER', sub: 'Swallow everything. 90 seconds.', seconds: 90, ringColor: 0x7b4bff, skyTop: 0x4aa8ff, skyBottom: 0xdff3ff, bg: 0x9fd8ff, ground: 'grass', winScore: 900, roster: null, countScale: 1, /*SPEC*/ ...{} /*END*/ };
+const st = createStage({ bg: S.bg, fitWidth: 16, fov: 50 }); st.light(); sky(st.scene, S.skyTop, S.skyBottom, [160, 520]); const fx = particles(st.scene, 400);
+const A = 46, GROW = +(new URLSearchParams(location.search).get('grow') || 1);
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(700, 700), toon(0xffffff, { map: groundTex(S.ground, 290) })); ground.rotation.x = -Math.PI / 2; st.scene.add(ground);
 for (let i = -3; i <= 3; i++) for (const [w, h] of [[2.4, A * 2.6], [A * 2.6, 2.4]]) { const r = new THREE.Mesh(new THREE.PlaneGeometry(w, h), toon(0x4a4f5c)); r.rotation.x = -Math.PI / 2; r.position.set(w < 3 ? i * 15 : 0, .02, w < 3 ? 0 : i * 15); st.scene.add(r); }
 const hole = new THREE.Mesh(new THREE.CircleGeometry(1, 40), new THREE.MeshBasicMaterial({ color: 0x000000 })); hole.rotation.x = -Math.PI / 2; hole.position.y = .06; st.scene.add(hole);
 const aura = new THREE.Mesh(new THREE.RingGeometry(1.12, 1.7, 40), new THREE.MeshBasicMaterial({ color: S.ringColor, transparent: true, opacity: .3, side: THREE.DoubleSide, depthWrite: false })); aura.rotation.x = -Math.PI / 2; aura.position.y = .065; st.scene.add(aura);
-let tleft = S.seconds, over = false;
 const ring = new THREE.Mesh(new THREE.RingGeometry(1, 1.12, 40), new THREE.MeshBasicMaterial({ color: S.ringColor, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = .07; st.scene.add(ring);
-// prop types: [geometry, size (footprint radius), height, volume score, count, colors]
-const TYPES = [
-  { n: 'coin', g: new THREE.CylinderGeometry(.35, .35, .08, 12), r: .35, h: .08, vol: .3, count: 110, col: [0xffd34d] },
-  { n: 'bench', g: new THREE.BoxGeometry(1.4, .5, .5), r: .8, h: .5, vol: 1.2, count: 40, col: [0x8a5a2e] },
-  { n: 'tree', g: new THREE.ConeGeometry(.9, 2.6, 8), r: .9, h: 2.6, vol: 2.5, count: 50, col: [0x2f8f4a, 0x3aa65a] },
-  { n: 'car', g: new THREE.BoxGeometry(2.4, 1.1, 1.2), r: 1.4, h: 1.1, vol: 4, count: 44, col: [0xe63946, 0x457b9d, 0xf1c453, 0xeeeeee] },
-  { n: 'house', g: new THREE.BoxGeometry(4, 3, 4), r: 2.8, h: 3, vol: 14, count: 32, col: [0xff8a3c, 0xffd23c, 0xff6b9a, 0x6ec6ff] },
-  { n: 'tower', g: new THREE.BoxGeometry(5, 14, 5), r: 3.6, h: 14, vol: 40, count: 20, col: [0x3a7bd5, 0xe0457b, 0x7b4bff, 0x1fb6a6] },
+// id, plural label, geometry, footprint radius r, height h (for sinking), volume score, count, model scale sc, tints, leg height (walk cycle), mob speed (runs away), sound, where (road|any|grid)
+const PET = [0xff9a3c, 0xf4efe4, 0x9aa0aa, 0x6b4a2e], DOG = [0xc98a4b, 0xf4efe4, 0x4a3a2a, 0xd9b27c], SHIRT = [0xe63946, 0x2a9d8f, 0xf1c453, 0x457b9d, 0xff7ab6], LEAF = [0x2f8f4a, 0x3aa65a, 0x5cb85c], WALL = [0xff8a3c, 0xffd23c, 0xff6b9a, 0x6ec6ff, 0xb8e986], CAR = [0xe63946, 0x457b9d, 0xf1c453, 0xeeeeee, 0x7b4bff];
+const ALL = [
+  { id: 'coin', label: 'COINS', geo: coinGeo, r: .35, h: .1, vol: .3, count: 110, sc: 1, col: [0xffd34d], where: 'road' },
+  { id: 'cat', label: 'CATS', geo: catGeo, r: .5, h: .7, vol: .8, count: 34, sc: .7, col: PET, legs: .35, mob: 4.5, snd: 'meow', burst: 0xff9a3c },
+  { id: 'dog', label: 'DOGS', geo: dogGeo, r: .6, h: .75, vol: 1, count: 28, sc: .75, col: DOG, legs: .4, mob: 5, snd: 'bark', burst: 0xc98a4b },
+  { id: 'barrel', label: 'BARRELS', geo: barrelGeo, r: .55, h: 1.1, vol: 2, count: 18, sc: 1, col: [0xe63946], boom: 7 },
+  { id: 'gold-cat', label: 'GOLDEN CATS', geo: catGeo, r: .6, h: .8, vol: 14, count: 4, sc: .8, col: [0xffd34d], legs: .35, mob: 6.5, snd: 'win', burst: 0xffd34d },
+  { id: 'bench', label: 'BENCHES', geo: benchGeo, r: .8, h: .9, vol: 1.2, count: 30, sc: 1, col: [0x8a5a2e, 0x2f6fb5] },
+  { id: 'people', label: 'CROWDS', geo: crowdGeo, r: 1.0, h: 1.1, vol: 2, count: 22, sc: .6, col: SHIRT, legs: .75, mob: 2.6, snd: 'pop', burst: 0xffc9a0 },
+  { id: 'pine-s', label: 'PINES', geo: () => treeGeo('pine'), r: .8, h: 1.7, vol: 2, count: 28, sc: .55, col: LEAF },
+  { id: 'tree-s', label: 'TREES', geo: () => treeGeo('round'), r: .9, h: 1.8, vol: 2.4, count: 40, sc: .6, col: LEAF },
+  { id: 'car', label: 'CARS', geo: carGeo, r: 1.45, h: 1, vol: 4, count: 40, sc: .7, col: CAR, where: 'road' },
+  { id: 'dog-big', label: 'BIG DOGS', geo: dogGeo, r: 1.6, h: 2.2, vol: 5, count: 10, sc: 2.2, col: DOG, legs: .4, mob: 4, snd: 'bark', burst: 0xc98a4b },
+  { id: 'cat-big', label: 'GIANT CATS', geo: catGeo, r: 1.8, h: 2.6, vol: 6, count: 10, sc: 2.6, col: PET, legs: .35, mob: 3.4, snd: 'meow', burst: 0xff9a3c },
+  { id: 'tree-b', label: 'BIG TREES', geo: () => treeGeo('round'), r: 2.2, h: 4.8, vol: 8, count: 24, sc: 1.6, col: LEAF },
+  { id: 'bus', label: 'BUSES', geo: busGeo, r: 2.6, h: 2.2, vol: 18, count: 10, sc: .95, col: [0xf1c453, 0xe63946, 0x2a9d8f], where: 'road' },
+  { id: 'house', label: 'HOUSES', geo: houseGeo, r: 3.0, h: 4.4, vol: 14, count: 32, sc: 1, col: WALL },
+  { id: 'tower', label: 'TOWERS', geo: () => towerGeo(5, 14), r: 3.7, h: 14, vol: 40, count: 20, sc: 1, col: [0x6c8cd5, 0xe0a458, 0x9d8cff, 0x6fd3c0], where: 'grid' },
+  { id: 'mansion', label: 'MANSIONS', geo: houseGeo, r: 4.6, h: 7, vol: 30, count: 10, sc: 1.7, col: WALL },
+  { id: 'skyscraper', label: 'SKYSCRAPERS', geo: () => towerGeo(6, 22), r: 5.4, h: 22, vol: 70, count: 12, sc: 1.2, col: [0x3a7bd5, 0xe0457b, 0x7b4bff, 0x1fb6a6], where: 'grid' },
 ];
-const winTex = (c, w, h) => { const cv = document.createElement('canvas'); cv.width = 64; cv.height = 128; const g = cv.getContext('2d'); g.fillStyle = c; g.fillRect(0, 0, 64, 128); for (let y = 8; y < 120; y += 18) for (let x = 8; x < 60; x += 18) { g.fillStyle = Math.random() < .35 ? '#ffe9a0' : '#2c3a58'; g.fillRect(x, y, 10, 10); } const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t; };
-TYPES[4].win = winTex('#d7a06a'); TYPES[5].win = winTex('#8892b0');
+const TYPES = (S.roster ? ALL.filter(T => S.roster.includes(T.id)) : ALL).sort((a, b) => a.r - b.r);
 const onRoad = (x, z) => [-45, -30, -15, 0, 15, 30, 45].some(c => Math.abs(x - c) < 2 || Math.abs(z - c) < 2);
-const props = [];
-for (const T of TYPES) { const im = instances(T.g, T.win ? toon(0xffffff, { map: T.win }) : toon(0xffffff), T.count, { dynamic: true }); st.scene.add(im.mesh); T.im = im; T.items = [];
-  for (let i = 0; i < T.count; i++) { let x, z, tries = 0; do { x = rand(-A, A); z = rand(-A, A); tries++; } while (((T.n === 'coin' || T.n === 'car') ? !onRoad(x, z) : onRoad(x, z) || Math.hypot(x, z) < 6) && tries < 40);
-    if (T.n === 'tower') { x = (Math.floor(rand(-3, 3)) + .5) * 15 + rand(-3, 3); z = (Math.floor(rand(-3, 3)) + .5) * 15 + rand(-3, 3); }
-    const it = { x, z, s: 1, fall: 0, gone: false, rot: rand(0, 6) }; T.items.push(it); im.color(i, T.col[i % T.col.length]); } }
-const PN = 120, PED = Array.from({ length: PN }, (_, i) => ({ zom: i % 2 === 0, x: rand(-A, A), z: rand(-A, A), a: rand(0, 6), fall: 0, gone: false }));
-const ZB = crowd(st.scene, zombieGeo(), PN / 2, true, .75), CT = crowd(st.scene, catGeo(), PN / 2, true, .35); for (let i = 0; i < PN / 2; i++) { ZB.color(i, 0x8fcf7a); CT.color(i, [0xff9a3c, 0xf4efe4, 0x9aa0aa][i % 3]); }
+for (const T of TYPES) {
+  T.count = Math.max(2, Math.round(T.count * S.countScale)); T.cr = crowd(st.scene, T.geo(), T.count, true, T.legs || 0); T.items = [];
+  for (let i = 0; i < T.count; i++) { let x, z, tries = 0;
+    do { x = rand(-A, A); z = rand(-A, A); tries++; } while ((T.where === 'road' ? !onRoad(x, z) : onRoad(x, z) || Math.hypot(x, z) < 6) && tries < 40);
+    if (T.where === 'grid') { x = (Math.floor(rand(-3, 3)) + .5) * 15 + rand(-3, 3); z = (Math.floor(rand(-3, 3)) + .5) * 15 + rand(-3, 3); }
+    T.items.push({ x, z, s: 1, fall: 0, gone: false, rot: rand(0, 6) }); T.cr.color(i, T.col[i % T.col.length]); }
+}
+const nextLevel = () => { const i = TYPES.findIndex(T => T.r >= size * .78); return i < 0 ? TYPES.length : i; };
 let screamCd = 0; const AUTOP = new URLSearchParams(location.search).has('auto');
-let hx = 0, hz = 0, size = 1.4, eaten = 0, shown = 0, lvl = 0; const LV = S.levels;
+let hx = 0, hz = 0, size = 1.4, eaten = 0, lvl = nextLevel(), tleft = S.seconds, over = false;
 const ray = new THREE.Raycaster(), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), tmp = new THREE.Vector3();
-function reset() { for (const T of TYPES) for (const it of T.items) { it.fall = 0; it.gone = false; it.s = 1; } for (const p of PED) { p.fall = 0; p.gone = false; } hx = hz = 0; eaten = 0; lvl = 0; tleft = S.seconds; over = false; endT = 0; st.hud.banner('GO!', .8); }
+function reset() { for (const T of TYPES) for (const it of T.items) { it.fall = 0; it.gone = false; it.s = 1; } hx = hz = 0; eaten = 0; size = 1.4; lvl = nextLevel(); tleft = S.seconds; over = false; st.hud.banner('GO!', .8); }
 st.shell({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, onReset: reset });
-st.cine([{ t: 0, p: [0, 0, 0] }, { t: 0.01, p: [0, -3, -4] }, { t: 4, p: [0, 0, 0] }]);
+st.cine([{ t: 0, p: [0, 7, 9] }, { t: 3.5, p: [0, 0, 0] }]);   // pull-back reveal: starts high so nothing clips the lens
 function update(dt) {
   if (over) { fx.update(dt); return; }
-  walkClock.value = st.t;
-  tleft -= dt;
+  walkClock.value = st.t; tleft -= dt;
   const k = st.keys; let mx = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0), mz = (k.s || k.arrowdown ? 1 : 0) - (k.w || k.arrowup ? 1 : 0);
   if (st.ptr.down) { ray.setFromCamera({ x: st.ptr.x, y: -st.ptr.y }, st.camera); if (ray.ray.intersectPlane(plane, tmp)) { const dx = tmp.x - hx, dz = tmp.z - hz, d = Math.hypot(dx, dz); if (d > .3) { mx = dx / d; mz = dz / d; } } }
-  const l = Math.hypot(mx, mz) || 1, sp = 7 + size * 1.4; hx = clamp(hx + mx / l * sp * dt, -A, A); hz = clamp(hz + mz / l * sp * dt, -A, A);
-  for (const T of TYPES) for (const it of T.items) { if (it.gone) continue; const d = Math.hypot(it.x - hx, it.z - hz);
-    if (it.fall === 0 && d < size * .92 && T.r < size * .78) { it.fall = 1e-3; }
-    if (it.fall > 0) { it.fall += dt * 1.6; it.x += (hx - it.x) * Math.min(1, dt * 8); it.z += (hz - it.z) * Math.min(1, dt * 8); it.s = Math.max(0, 1 - it.fall); if (it.fall >= 1) { it.gone = true; eaten += T.vol * GROW; if (T.n !== 'coin') { sfx('pop', .4); st.shake(T.vol > 10 ? 3 : 1); if (T.vol > 10) { st.popup('+' + Math.round(T.vol), { x: hx, y: 3, z: hz }, '#c9a8ff'); st.hitstop(.04); st.kick(3); } } else if (Math.random() < .3) sfx('tick', .3); } } }
-  screamCd -= dt;
-  for (const p of PED) { if (p.gone) continue; const dx = p.x - hx, dz = p.z - hz, d = Math.hypot(dx, dz);
-    if (p.fall === 0) { if (d < size * 2.4 && !p.zom) p.a = Math.atan2(dz, dx); else if (p.zom && d < 28) p.a = Math.atan2(-dz, -dx) + Math.sin(st.t) * .3; else p.a += rand(-1, 1) * dt * 2; p.x = clamp(p.x + Math.cos(p.a) * (p.zom ? 2.2 : 5) * dt, -A, A); p.z = clamp(p.z + Math.sin(p.a) * (p.zom ? 2.2 : 5) * dt, -A, A); if (d < size * .85) { p.fall = 1e-3; if (screamCd <= 0) { sfx(p.zom ? 'groan' : 'meow', .5); screamCd = .12; } } }
-    else { p.fall += dt * 1.8; p.x += (hx - p.x) * Math.min(1, dt * 7); p.z += (hz - p.z) * Math.min(1, dt * 7); if (p.fall >= 1) { p.gone = true; eaten += .8 * GROW; fx.burst(8, { x: hx, y: .5, z: hz, size: .2, life: .6, color: p.zom ? 0x8bff4a : 0xff9a3c, g: 4 }, 3); } } }
+  const l = Math.hypot(mx, mz) || 1, sp = 7 + size * 1.4; hx = clamp(hx + mx / l * sp * dt, -A, A); hz = clamp(hz + mz / l * sp * dt, -A, A); screamCd -= dt;
+  for (const T of TYPES) for (const it of T.items) { if (it.gone) continue; const dx = it.x - hx, dz = it.z - hz, d = Math.hypot(dx, dz);
+    if (T.mob && it.fall === 0) { if (d < size * 2.8) it.rot = Math.atan2(dz, dx) + Math.sin(st.t * 3 + it.x) * .4; else it.rot += rand(-1, 1) * dt * 2; it.x = clamp(it.x + Math.cos(it.rot) * T.mob * dt, -A, A); it.z = clamp(it.z + Math.sin(it.rot) * T.mob * dt, -A, A); }
+    if (it.fall === 0 && d < size * .92 && T.r < size * .78) it.fall = 1e-3;
+    if (it.fall > 0) { it.fall += dt * 1.7; it.x += (hx - it.x) * Math.min(1, dt * 8); it.z += (hz - it.z) * Math.min(1, dt * 8); it.s = Math.max(0, 1 - it.fall);
+      if (it.fall >= 1) { it.gone = true; eaten += T.vol * GROW;
+        if (T.boom) { sfx('boom', .7); st.shake(6); st.hitstop(.07); st.flash('#ff9a3c', .4); st.popup('CHAIN!', { x: hx, y: 4, z: hz }, '#ff9a3c', 8); fx.burst(20, { x: hx, y: 1, z: hz, size: .35, life: .7, color: 0xff7a1a, g: 2 }, 6);
+          for (const U of TYPES) for (const o of U.items) if (!o.gone && o.fall === 0 && U.r < size * 1.5 && Math.hypot(o.x - hx, o.z - hz) < T.boom) o.fall = 1e-3; }
+        if (T.mob) { if (screamCd <= 0) { sfx(T.snd, .5); screamCd = .12; } fx.burst(8, { x: hx, y: .5, z: hz, size: .2, life: .6, color: T.burst, g: 4 }, 3); }
+        else if (T.id !== 'coin') { sfx('pop', .4); st.shake(T.vol > 10 ? 3 : 1); if (T.vol > 10) { st.popup('+' + Math.round(T.vol), { x: hx, y: 3, z: hz }, '#c9a8ff'); st.hitstop(.04); st.kick(3); } }
+        else if (screamCd <= 0) { sfx('tick', .3); screamCd = .05; }
+        if (T.vol >= 5 && T.mob) st.popup('+' + Math.round(T.vol), { x: hx, y: 3, z: hz }, '#ffd34d'); } } }
   fx.update(dt);
-  size = 1.4 + Math.sqrt(eaten) * .5; const nl = TYPES.findIndex(T => T.r >= size * .78); const cl = nl < 0 ? TYPES.length : nl; if (cl > lvl && lvl < LV.length) { lvl = cl; if (lvl < TYPES.length) { st.hud.banner('NOW EATING ' + LV[lvl].toString(), 1.6); sfx('win'); st.slowmo(.4, .6); st.flash('#7b4bff', .35); } else st.hud.banner('EAT THE CITY', 2); }
+  size = 1.4 + Math.sqrt(eaten) * .36; const cl = nextLevel(); if (cl > lvl) { lvl = cl; if (lvl < TYPES.length) { st.hud.banner('NOW EATING ' + TYPES[lvl].label, 1.6); sfx('win'); st.slowmo(.4, .6); st.flash('#7b4bff', .35); } else st.hud.banner('EAT THE CITY', 2); }
   const total = TYPES.reduce((a, T) => a + T.items.filter(i => !i.gone).length, 0);
   st.hud.left(`SIZE<br><span style="color:#ffd34d;font-size:8vmin">${size.toFixed(1)}m</span>`); st.hud.right(`EATEN ${Math.round(eaten)}<br>LEFT ${total}<br>${Math.ceil(Math.max(0, tleft))}s`); st.hud.hint('WASD / drag to move the hole');
   if (tleft <= 0 || total === 0) { over = true; st.hud.banner(total === 0 ? 'CITY EATEN!' : 'TIME UP', 3); sfx('win'); st.flash('#7b4bff', .5); st.end({ win: total === 0 || eaten > S.winScore, score: Math.round(eaten), label: 'EATEN' }); }
@@ -62,10 +76,9 @@ function update(dt) {
 }
 const camP = new THREE.Vector3(0, 12, 12), look = new THREE.Vector3();
 function pre() {
-  for (const T of TYPES) { T.items.forEach((it, i) => T.im.set(i, it.x, it.gone ? -50 : T.h / 2 * it.s - (it.fall > 0 ? it.fall * T.h * .6 : 0), it.z, it.s, it.s, it.s, 0, it.rot, 0)); T.im.done(); }
-  { let zi = 0, ci = 0; for (const p of PED) { const s = p.gone ? 0 : (1 - p.fall) * .75, y = p.fall ? -p.fall * 1.2 : Math.abs(Math.sin(st.t * 11 + p.a * 3)) * .15; (p.zom ? ZB : CT).set(p.zom ? zi++ : ci++, p.x, y, p.z, s, p.fall ? st.t * 8 : -p.a + Math.PI / 2, 0, p.fall ? .5 : 0); } ZB.done(zi); CT.done(ci); }
-  hole.scale.setScalar(size); ring.scale.setScalar(size); aura.scale.setScalar(size); aura.rotation.z = st.t * 2; aura.position.x = hx; aura.position.z = hz; hole.position.x = ring.position.x = hx; hole.position.z = ring.position.z = hz;
-  const h = 8 + size * 6.0, z = 7 + size * 4.6; camP.set(hx, h, hz + z * 1.0); st.camera.position.lerp(camP, .08); look.set(hx, 0, hz - 1); st.camera.lookAt(look);
+  for (const T of TYPES) { T.items.forEach((it, i) => { const yaw = T.mob ? Math.PI / 2 - it.rot : it.rot; T.cr.set(i, it.x, it.gone ? -50 : -(it.fall > 0 ? it.fall * T.h * .6 : 0), it.z, T.sc * it.s, yaw, it.fall > 0 ? it.fall * .6 : 0, it.fall > 0 ? it.fall * .4 : 0); }); T.cr.done(T.count); }
+  hole.scale.setScalar(size); ring.scale.setScalar(size); aura.scale.setScalar(size); aura.rotation.z = st.t * 2; hole.position.x = ring.position.x = aura.position.x = hx; hole.position.z = ring.position.z = aura.position.z = hz;
+  const h = 8 + size * 6.0, z = 7 + size * 4.6; camP.set(hx, h, hz + z); st.camera.position.lerp(camP, .08); look.set(hx, 0, hz - 1); st.camera.lookAt(look);
 }
 st.camera.position.set(0, 14, 14); st.run(update, pre);
 </script></body></html>

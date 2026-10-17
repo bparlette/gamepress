@@ -1,0 +1,59 @@
+{
+  "_note": "Playbook the ideate command matches against. refs are well-known formats (verify with --live). assets: have=true means gpkit already builds it; false means build it with build() parts. Questions carry spec patches for the recipe.",
+  "generic": {
+    "assets": [
+      { "id": "cat", "have": true, "why": "cats are the channel's proven hook: small and giant versions" },
+      { "id": "dog", "have": true, "why": "pairs with cats; small and giant versions" },
+      { "id": "person-crowd", "have": true, "why": "groups of people read instantly and scream/scatter" },
+      { "id": "car+bus", "have": true, "why": "vehicles give scale steps and satisfying crunches" },
+      { "id": "house+tower", "have": true, "why": "buildings are the big payoff tier" },
+      { "id": "tree-small+big", "have": true, "why": "cheap filler that makes a world look alive" },
+      { "id": "golden-rare-item", "have": true, "why": "one shiny rare object per screen = a chase goal and a thumbnail" },
+      { "id": "explosive-barrel", "have": true, "why": "chain reactions are the most replayed moments" },
+      { "id": "giant-boss-creature", "have": true, "why": "a giant cat/zombie as the final payoff (hero() at scale 10)" },
+      { "id": "ufo-or-dragon-cameo", "have": false, "why": "a surprise flyby gives a rewatch moment and a caption hook" }
+    ],
+    "oneUps": ["Add a named escalation ('NOW EATING BUSES') so the viewer waits for the next tier", "Hide one absurdly big final object that only fits at the end", "End on a slow-motion payoff with a counter number that is bigger than the viewer expects", "Make the first 2 seconds already show the weirdest thing in the game", "Give every big hit a number popup and a sound"],
+    "questions": [
+      { "id": "hook", "ask": "Which hook line for the first caption?", "custom": true, "options": [{ "label": "Use the idea as a challenge ('I let a X eat the WHOLE city')" }, { "label": "Absurd matchup ('5 cats vs a ZOMBIE KING')" }, { "label": "Impossible number ('1,000,000 zombies')" }] }
+    ]
+  },
+  "archetypes": {
+    "eater": {
+      "match": "hole|eat|swallow|devour|black hole|donut|vacuum|sinkhole",
+      "recipe": "hole-eater",
+      "refs": ["Hole.io (growing hole, size tiers)", "Donut County (physics swallow, comedic escalation)", "Roblox 'Eat the World' style growth sims", "TikTok 'black hole eats a whole map' clips"],
+      "oneUps": ["Animals and people RUN AWAY and scream (done: cats, dogs, crowds flee)", "Size tiers with named banners, ending on skyscrapers", "A giant cat and giant dog that only fit late", "Golden cats worth 14x that run faster (done)", "Explosive barrels: eating one blasts everything nearby into the hole (done)", "Rival hole that eats you if you are smaller (not built yet)"],
+      "searchQueries": ["black hole eats city shorts", "hole io viral shorts", "eat everything game satisfying shorts", "hole game cats dogs shorts"],
+      "questions": [
+        { "id": "theme", "ask": "What does the hole eat?", "options": [{ "label": "A whole city: pets, people, cars, houses, towers (default)" }, { "label": "Pets only: cats and dogs, small to giant", "spec": { "roster": ["coin", "cat", "dog", "cat-big", "dog-big", "bench", "people"] } }, { "label": "Traffic jam: cars, buses, towers", "spec": { "roster": ["coin", "car", "bus", "people", "tower", "skyscraper", "house"] } }, { "label": "Suburb: houses, trees, mansions", "spec": { "roster": ["coin", "cat", "dog", "pine-s", "tree-s", "tree-b", "house", "mansion", "people", "car"] } }] },
+        { "id": "mood", "ask": "Visual mood?", "options": [{ "label": "Bright day (default)" }, { "label": "Sunset", "spec": { "skyTop": "#ff7a5a", "skyBottom": "#ffd9a8", "bg": "#ffb98a", "ringColor": "#ff3b6b" } }, { "label": "Neon night", "spec": { "skyTop": "#0b1030", "skyBottom": "#3b1f6b", "bg": "#1a1040", "ringColor": "#00e5ff" } }] },
+        { "id": "seconds", "ask": "Round length?", "options": [{ "label": "60 s", "spec": { "seconds": 60 } }, { "label": "90 s (default)" }, { "label": "120 s", "spec": { "seconds": 120 } }] },
+        { "id": "hook", "ask": "Hook line?", "custom": true, "options": [{ "label": "Black hole eats the WHOLE city", "spec": { "hook": "Black hole eats the WHOLE city" } }, { "label": "I let a hole eat 1000 cats", "spec": { "hook": "I let a hole eat 1000 cats" } }, { "label": "Can it eat a skyscraper?", "spec": { "hook": "Can it eat a SKYSCRAPER?" } }] }
+      ]
+    },
+    "crowd": {
+      "match": "crowd|runner|gate|multiplier|army|horde|mob|swarm|count",
+      "recipe": "crowd-runner",
+      "refs": ["Count Masters (math gates, rival crowd)", "Mob Control (swarm vs boss)", "Crowd City", "Shorts of 'x2 gates' with giant boss at the end"],
+      "oneUps": ["Wrong-choice gates that visibly hurt (done: red minus gates)", "Boss with a health number and a slow-motion kill (done)", "Rival crowd racing you to the same gate (not built yet)", "Crowd made of funny things (zombies vs a giant cat)", "Final crowd number as the thumbnail"],
+      "searchQueries": ["count masters viral shorts", "crowd runner math gates shorts", "zombie horde vs boss shorts", "mob control satisfying shorts"],
+      "questions": [
+        { "id": "hero", "ask": "Who is the crowd?", "options": [{ "label": "Zombies (default)" }, { "label": "Cats", "spec": { "hero": "cat", "heroColors": ["#ff9a3c", "#f4efe4", "#9aa0aa"] } }] },
+        { "id": "boss", "ask": "Who is the boss?", "options": [{ "label": "Giant cat (default)" }, { "label": "Giant zombie king", "spec": { "foe": "zombie", "foeColors": ["#8fcf7a"], "bossColor": "#6aa85a", "bossText": "ZOMBIE KING", "winText": "KING DOWN" } }] },
+        { "id": "mood", "ask": "Visual mood?", "options": [{ "label": "Bright day (default)" }, { "label": "Sunset", "spec": { "skyTop": "#ff7a5a", "skyBottom": "#ffd9a8", "bg": "#ffb98a" } }] },
+        { "id": "hook", "ask": "Hook line?", "custom": true, "options": [{ "label": "5 zombies vs a GIANT CAT", "spec": { "hook": "5 zombies vs a GIANT CAT" } }, { "label": "The math is mathing", "spec": { "hook": "The math is mathing" } }] }
+      ]
+    },
+    "physics-launch": { "match": "launch|catapult|ragdoll|throw|fling|cannon|avalanche|plinko|drop", "recipe": null,
+      "refs": ["Ragdoll launch compilations", "Plinko/avalanche ball drops", "Happy Wheels style crashes"],
+      "oneUps": ["Slow-motion replay of the biggest crash", "Distance/score number that keeps rising", "Absurd launch objects (cats, zombies) instead of balls", "Reset in one tap for instant retries"],
+      "searchQueries": ["ragdoll launch shorts viral", "plinko avalanche satisfying shorts", "cannon launch game shorts"], "questions": [] },
+    "destruction": { "match": "demoli|destroy|smash|wreck|bulldoz|plow|wedge|crush|explod", "recipe": null,
+      "refs": ["Teardown/wrecking-ball clips", "Voxel destruction satisfying shorts", "Bulldozer/plow sandbox clips"],
+      "oneUps": ["Chain reactions with sound and slow-mo", "Debris that piles up and keeps moving", "A giant target (building, boss) with a visible health bar"], "searchQueries": ["voxel destruction satisfying shorts", "bulldozer destroys city shorts"], "questions": [] },
+    "stack-climb": { "match": "stair|bridge|glass|climb|stack|tower|jump|ramp|obby|parkour", "recipe": null,
+      "refs": ["Squid-Game glass bridge clips", "Stack/jump timing games", "Obby/parkour shorts"],
+      "oneUps": ["A visible fail that is funny (ragdoll fall)", "Second-chance moments that build tension", "Ever-higher camera pull-back at the end"], "searchQueries": ["glass bridge game shorts viral", "stair jump game satisfying shorts"], "questions": [] }
+  }
+}

@@ -1,11 +1,20 @@
-# Recipes: a whole game from a JSON spec (no code written)
+# Research, ask, make: a game from an idea without writing code
+
+0. **Research:** `gamepress ideate "<idea>" [--live]` matches the idea to an archetype (eater, crowd, physics-launch, destruction, stack-climb, or generic) and prints known viral references, one-up twists, 10 recommended assets (`*` = not in the kit yet, build it with `build()` parts), search queries, and 3-5 questions. `--live` adds the top Shorts titles via yt-dlp. Saved to `research/<idea>.json`.
+1. **Ask:** put the questions to the user (options + custom text where `custom: true`). Save answers as `{"theme":1,"mood":2,"seconds":0,"hook":"my own line","title":"My Game"}`.
+2. **Make:** `gamepress make <id> --recipe hole-eater --answers answers.json [--spec extra.json]` (answers become spec patches; an explicit spec wins).
+3. **Ship:** `gamepress all <id> --track demo`.
+
+If nothing matches, the generic 10 assets still apply: cats, dogs, crowds of people, cars+buses, houses+towers, small and big trees, a golden rare item, explosive barrels, a giant boss creature, a surprise cameo. Add the playbook entries for new archetypes in `presets/viral.json`.
+
+## Recipes: a whole game from a JSON spec
 
 `gamepress make <id> --recipe <name> --spec spec.json` writes the game, the hook-video plan and `meta.json`. Then `gamepress all <id> --track demo` tests, films, grades, lints and publishes. A small model only fills in the spec.
 
 | Recipe | Game | Spec keys (all optional, defaults give a working game) |
 |---|---|---|
 | `crowd-runner` | steer a crowd through math gates, topple a boss | `title sub hero(zombie\|cat) heroColors foe foeColors bossColor bossScale bossHP skyTop skyBottom bg ground road start gates bossText winText crowdLabel` |
-| `hole-eater` | growing hole swallows a city, 90 s timer, replay | `title sub seconds ringColor skyTop skyBottom bg ground levels winScore` |
+| `hole-eater` | growing hole swallows a 16-type city (coins, cats, dogs, crowds, small/big trees, cars, buses, houses, towers, mansions, skyscrapers, explosive barrels with chain reactions, golden cats); animals and people run away | `title sub seconds ringColor skyTop skyBottom bg ground winScore countScale roster` (roster = list of prop ids to include) |
 
 Colours are `"#rrggbb"`. Gates are strings: `"+20"`, `"x3"`, `"-15"` (minus gates are red). Meta keys also allowed in the spec: `hook` (first caption), `tagline`, `description`, `tags`, `youtubeTitle`, `category`.
 

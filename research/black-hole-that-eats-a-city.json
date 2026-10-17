@@ -1,0 +1,217 @@
+{
+  "idea": "black hole that eats a city",
+  "archetype": "eater",
+  "recipe": "hole-eater",
+  "references": [
+    "Hole.io (growing hole, size tiers)",
+    "Donut County (physics swallow, comedic escalation)",
+    "Roblox 'Eat the World' style growth sims",
+    "TikTok 'black hole eats a whole map' clips"
+  ],
+  "oneUps": [
+    "Animals and people RUN AWAY and scream (done: cats, dogs, crowds flee)",
+    "Size tiers with named banners, ending on skyscrapers",
+    "A giant cat and giant dog that only fit late",
+    "Rare golden objects worth 10x",
+    "Chain reaction: eating a gas truck pops nearby cars (not built yet)",
+    "Rival hole that eats you if you are smaller (not built yet)",
+    "Add a named escalation ('NOW EATING BUSES') so the viewer waits for the next tier",
+    "Hide one absurdly big final object that only fits at the end",
+    "End on a slow-motion payoff with a counter number that is bigger than the viewer expects",
+    "Make the first 2 seconds already show the weirdest thing in the game",
+    "Give every big hit a number popup and a sound"
+  ],
+  "assets": [
+    {
+      "id": "cat",
+      "have": true,
+      "why": "cats are the channel's proven hook: small and giant versions"
+    },
+    {
+      "id": "dog",
+      "have": true,
+      "why": "pairs with cats; small and giant versions"
+    },
+    {
+      "id": "person-crowd",
+      "have": true,
+      "why": "groups of people read instantly and scream/scatter"
+    },
+    {
+      "id": "car+bus",
+      "have": true,
+      "why": "vehicles give scale steps and satisfying crunches"
+    },
+    {
+      "id": "house+tower",
+      "have": true,
+      "why": "buildings are the big payoff tier"
+    },
+    {
+      "id": "tree-small+big",
+      "have": true,
+      "why": "cheap filler that makes a world look alive"
+    },
+    {
+      "id": "golden-rare-item",
+      "have": false,
+      "why": "one shiny rare object per screen = a chase goal and a thumbnail"
+    },
+    {
+      "id": "explosive-barrel",
+      "have": false,
+      "why": "chain reactions are the most replayed moments"
+    },
+    {
+      "id": "giant-boss-creature",
+      "have": true,
+      "why": "a giant cat/zombie as the final payoff (hero() at scale 10)"
+    },
+    {
+      "id": "ufo-or-dragon-cameo",
+      "have": false,
+      "why": "a surprise flyby gives a rewatch moment and a caption hook"
+    }
+  ],
+  "searchQueries": [
+    "black hole eats city shorts",
+    "hole io viral shorts",
+    "eat everything game satisfying shorts",
+    "hole game cats dogs shorts",
+    "black hole that eats a city game shorts"
+  ],
+  "questions": [
+    {
+      "id": "theme",
+      "ask": "What does the hole eat?",
+      "options": [
+        {
+          "label": "A whole city: pets, people, cars, houses, towers (default)"
+        },
+        {
+          "label": "Pets only: cats and dogs, small to giant",
+          "spec": {
+            "roster": [
+              "coin",
+              "cat",
+              "dog",
+              "cat-big",
+              "dog-big",
+              "bench",
+              "people"
+            ]
+          }
+        },
+        {
+          "label": "Traffic jam: cars, buses, towers",
+          "spec": {
+            "roster": [
+              "coin",
+              "car",
+              "bus",
+              "people",
+              "tower",
+              "skyscraper",
+              "house"
+            ]
+          }
+        },
+        {
+          "label": "Suburb: houses, trees, mansions",
+          "spec": {
+            "roster": [
+              "coin",
+              "cat",
+              "dog",
+              "pine-s",
+              "tree-s",
+              "tree-b",
+              "house",
+              "mansion",
+              "people",
+              "car"
+            ]
+          }
+        }
+      ],
+      "default": 0
+    },
+    {
+      "id": "mood",
+      "ask": "Visual mood?",
+      "options": [
+        {
+          "label": "Bright day (default)"
+        },
+        {
+          "label": "Sunset",
+          "spec": {
+            "skyTop": "#ff7a5a",
+            "skyBottom": "#ffd9a8",
+            "bg": "#ffb98a",
+            "ringColor": "#ff3b6b"
+          }
+        },
+        {
+          "label": "Neon night",
+          "spec": {
+            "skyTop": "#0b1030",
+            "skyBottom": "#3b1f6b",
+            "bg": "#1a1040",
+            "ringColor": "#00e5ff"
+          }
+        }
+      ],
+      "default": 0
+    },
+    {
+      "id": "seconds",
+      "ask": "Round length?",
+      "options": [
+        {
+          "label": "60 s",
+          "spec": {
+            "seconds": 60
+          }
+        },
+        {
+          "label": "90 s (default)"
+        },
+        {
+          "label": "120 s",
+          "spec": {
+            "seconds": 120
+          }
+        }
+      ],
+      "default": 0
+    },
+    {
+      "id": "hook",
+      "ask": "Hook line?",
+      "custom": true,
+      "options": [
+        {
+          "label": "Black hole eats the WHOLE city",
+          "spec": {
+            "hook": "Black hole eats the WHOLE city"
+          }
+        },
+        {
+          "label": "I let a hole eat 1000 cats",
+          "spec": {
+            "hook": "I let a hole eat 1000 cats"
+          }
+        },
+        {
+          "label": "Can it eat a skyscraper?",
+          "spec": {
+            "hook": "Can it eat a SKYSCRAPER?"
+          }
+        }
+      ],
+      "default": 0
+    }
+  ],
+  "next": "ask the user the questions (offer the options, allow custom text for custom:true), save answers as {id: optionIndex | \"text\"}, then: gamepress make <id> --recipe hole-eater --answers answers.json"
+}
