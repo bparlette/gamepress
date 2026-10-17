@@ -13,5 +13,6 @@
 | `gp3d.js` | 3D | `createStage` (three.js r160, 6 styles incl. post-process), input, HUD, `st.shell/st.end/st.rearm`, juice, `st.cine` camera moves. |
 | `gpkit.js` | 3D | toon material, merged low-poly models (cat dog zombie person crowd tree house tower bus car barrel bench coin), instanced `crowd` with walk cycle, `hero`, `particles`, `sky`, `groundTex`. |
 | `gplego.js` | both | composable mechanic blocks for brand-new hybrids (`gamepress lego`). |
+| `gpfeel.js` | both | Nintendo-decomp-derived feel: `characterStep()` (4x sub-stepping, coyote time, jump buffering), `updateCamera()` (Lakitu occlusion), `VirtualAPU` (4-ch voice stealing), `DeterministicRNG` (LFSR). See `docs/NINTENDO-FEEL.md`. |
 
 Rules for kit changes: keep it dependency-free, deterministic, and backward compatible; run `gamepress botcheck` on a few recipes after touching it.

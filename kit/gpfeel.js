@@ -10,7 +10,8 @@
 //   - NES APU hardware documentation (public domain specs)
 //
 // Usage:
-//   import { MARIO_PHYSICS, applyMarioMovement, lakituCamera, makeFSM, nesPulse } from '../kit/gpfeel.js';
+//   import { MARIO_PHYSICS, characterStep, updateCamera, makeFSM, APU } from '../kit/gpfeel.js';
+//   import gpfeel from '../kit/gpfeel.js'; // default export: everything above
 
 // ============================================================================
 // MARIO_PHYSICS — Super Mario 64 movement constants
@@ -420,3 +421,846 @@ export function sfxCoin(audioCtx, volume = 0.25) {
     nesPulse(audioCtx, { freq: 1319, duration: 0.3, volume }); // E6
   }, 80);
 }
+
+// ============================================================================
+// SUB-FRAME STEPPING & FORGIVENESS
+// Source: n64decomp/sm64 src/game/mario_step.c
+//
+// SM64 runs collision in quarter steps (4 sub-steps per frame). This is what
+// prevents tunneling at high speed — each sub-step moves 1/4 the distance,
+// so thin walls are never skipped. Static constants alone can't do this;
+// the feel lives in the execution order.
+//
+// Also: coyote time (jump shortly after leaving a ledge) and input buffering
+// (a jump pressed just before landing fires on touchdown). These forgiveness
+// windows are why Nintendo platformers feel "fair" instead of finicky.
+// ============================================================================
+
+export const FEEL_TIMING = {
+  subSteps: 4,            // sm64 mario_step.c: quarter-step collision
+  coyoteFrames: 4,        // frames you can still jump after walking off a ledge
+  jumpBufferFrames: 5,    // frames a pre-landing jump press is remembered
+  flipDamping: 0.7,       // velocity multiplier/frame when reversing (no snap-turns)
+};
+
+/** doJump — shared jump impulse. sm64 mario.c: vel[1] = 52.0f + forwardVel * 0.25f */
+function doJump(e, P) {
+  const sp = Math.hypot(e.vx, e.vz);
+  e.vy = P.jumpBaseVel + sp * P.jumpSpeedBonus;
+  e.grounded = false;
+  e.coyoteFrames = 0;
+}
+
+/**
+ * integrateStep — one physics sub-step (1/4 frame).
+ *
+ * world (all optional):
+ *   world.groundHeightAt(x, z) -> highest walkable y, or -Infinity
+ *   world.isSolid(x, y, z)     -> true if the point is inside a wall
+ *
+ * Sets e._hardLanding (impact velocity) when landing hard — the caller can
+ * then call squashStretch(e, 'land'). Never throws on missing world fns.
+ */
+function integrateStep(e, input, sf, P, world) {
+  // --- horizontal ---
+  if (e.grounded) {
+    const slope = estimateSlope(e, world);
+    if (slope && slope.angleDeg > 45) {
+      // SLIDE STATE (Sonic Physics Guide): surface steeper than 45° —
+      // input is overridden, gravity pulls along the surface tangent.
+      // Δv = -g·sin θ applied along the downhill direction.
+      // The horizontal surface normal already points downhill, so we
+      // accelerate along (nx, nz) directly.
+      e.sliding = true;
+      const s = Math.sin((slope.angleDeg * Math.PI) / 180);
+      const dl = Math.hypot(slope.nx, slope.nz);
+      if (dl > 1e-6) {
+        const k = (P.gravity * s * 2 * sf) / dl;
+        e.vx += slope.nx * k;
+        e.vz += slope.nz * k;
+      }
+      // sliding keeps momentum: no input accel, no ground friction
+    } else {
+      e.sliding = false;
+      // SM64 ground curve: fast start, diminishing returns near max
+      const tx = (input.moveX || 0) * P.walkMaxSpeed;
+      const tz = (input.moveZ || 0) * P.walkMaxSpeed;
+      const ax = Math.sign(tx - e.vx) * (P.walkAccelBase - Math.abs(e.vx) / P.walkAccelFalloff);
+      const az = Math.sign(tz - e.vz) * (P.walkAccelBase - Math.abs(e.vz) / P.walkAccelFalloff);
+      e.vx += ax * sf;
+      e.vz += az * sf;
+    }
+    const sp = Math.hypot(e.vx, e.vz);
+    if (sp > P.absoluteMaxSpeed) {
+      const k = P.absoluteMaxSpeed / sp;
+      e.vx *= k;
+      e.vz *= k;
+    }
+  } else {
+    // air: weaker steering + drag + gravity (sm64 mario_step.c: apply_gravity)
+    e.vx += (input.moveX || 0) * P.walkAccelBase * P.airControl * sf;
+    e.vz += (input.moveZ || 0) * P.walkAccelBase * P.airControl * sf;
+    const dr = Math.pow(P.airDrag, sf);
+    e.vx *= dr;
+    e.vz *= dr;
+    e.vy -= P.gravity * sf;
+    if (e.vy < P.terminalVelocity) e.vy = P.terminalVelocity;
+    // (variable jump height is applied once per frame in characterStep,
+    // matching sm64's per-frame vy /= 4 — not per sub-step)
+  }
+
+  const r = e.radius || 0;
+
+  // --- X axis (per-substep wall check = no tunneling) ---
+  if (e.vx !== 0) {
+    const ox = e.x;
+    e.x += e.vx * sf;
+    if (world.isSolid && world.isSolid(e.x + Math.sign(e.vx) * r, e.y, e.z)) {
+      e.x = ox;
+      e.vx = 0;
+    }
+  }
+  // --- Z axis ---
+  if (e.vz !== 0) {
+    const oz = e.z;
+    e.z += e.vz * sf;
+    if (world.isSolid && world.isSolid(e.x, e.y, e.z + Math.sign(e.vz) * r)) {
+      e.z = oz;
+      e.vz = 0;
+    }
+  }
+  // --- Y axis ---
+  const oy = e.y;
+  e.y += e.vy * sf;
+  const gy = world.groundHeightAt ? world.groundHeightAt(e.x, e.z) : -Infinity;
+  if (e.vy <= 0 && e.y <= gy) {
+    e.y = gy;
+    if (e.vy < -30) e._hardLanding = e.vy; // caller: squashStretch(e, 'land')
+    e.vy = 0;
+    e.grounded = true;
+  } else if (e.vy > 0 && world.isSolid && world.isSolid(e.x, e.y + r, e.z)) {
+    e.y = oy;
+    e.vy = 0; // bonked ceiling
+  } else if (e.grounded && e.y > gy + 2) {
+    e.grounded = false; // walked off a ledge — coyote time starts now
+  } else if (e.grounded) {
+    e.y = gy; // stick to ground
+  }
+}
+
+/**
+ * characterStep(entity, input, dt, world) — full SM64-style character update.
+ *
+ * entity: { x, y, z, vx, vy, vz, grounded, radius?, scale? }
+ * input:  { moveX, moveZ (-1..1), jumpPressed (edge), jumpHeld (level) }
+ * dt:     seconds (default 1/60)
+ * world:  { groundHeightAt(x,z), isSolid(x,y,z) } — both optional
+ * phys:   physics preset — MARIO_PHYSICS (default) or SONIC_PHYSICS.
+ *         SONIC_PHYSICS uses a gentler jump cut (45% retained on release).
+ *
+ * What it does beyond applyMarioMovement:
+ *  1. Runs physics in 4 sub-steps (FEEL_TIMING.subSteps) — no tunneling.
+ *  2. Coyote time: 4 frames of jump after walking off a ledge.
+ *  3. Jump buffering: a press up to 5 frames before landing fires on touchdown.
+ *  4. Flip deceleration: reversing direction bleeds speed first (no snap-turns).
+ *  5. Slope slide: surfaces steeper than 45° override input (Sonic-style).
+ *
+ * Clean-room implementation. Same constants as MARIO_PHYSICS, original code.
+ */
+export function characterStep(entity, input = {}, dt = 1 / 60, world = {}, phys = MARIO_PHYSICS) {
+  const P = phys;
+  const T = FEEL_TIMING;
+  const f = dt * 60; // velocities are per-(1/60s)-frame units
+
+  const e = entity;
+  e.vx ??= 0;
+  e.vy ??= 0;
+  e.vz ??= 0;
+  e.coyoteFrames ??= 0;
+  e.jumpBufferFrames ??= 0;
+
+  const wasGrounded = !!e.grounded;
+
+  // forgiveness upkeep from last frame (buffer decays; coyote handled at end)
+  if (e.jumpBufferFrames > 0) e.jumpBufferFrames -= 1;
+
+  const canJump = wasGrounded || e.coyoteFrames > 0;
+
+  // jump edge — exactly once per frame, never per sub-step
+  if (input.jumpPressed) {
+    if (canJump) {
+      doJump(e, P);
+    } else {
+      e.jumpBufferFrames = T.jumpBufferFrames; // pressed early — remember it
+    }
+  }
+
+  // directional flip deceleration: stick opposing velocity kills speed first.
+  // sm64 turning never snap-flips; forwardVel bleeds before reversing.
+  const inMag = Math.hypot(input.moveX || 0, input.moveZ || 0);
+  if (inMag > 0.1) {
+    const ix = (input.moveX || 0) / inMag;
+    const iz = (input.moveZ || 0) / inMag;
+    const spd = Math.hypot(e.vx, e.vz);
+    if (spd > 1.0 && (e.vx * ix + e.vz * iz) / spd < -0.2) {
+      const d = Math.pow(T.flipDamping, f);
+      e.vx *= d;
+      e.vz *= d;
+    }
+  }
+
+  // sub-stepped integration
+  const sf = f / T.subSteps;
+  for (let s = 0; s < T.subSteps; s++) {
+    integrateStep(e, input, sf, P, world);
+  }
+
+  // ---- variable jump height: once per frame, not per sub-step ----
+  // sm64 mario_step.c: should_strengthen_gravity_for_jump_ascent()
+  // Early release cuts the ascent velocity by the preset's divisor
+  // (Mario: /4 = 25% retained; Sonic preset: /2.222 = 45% retained).
+  if (!e.grounded && !input.jumpHeld && e.vy > P.jumpCutThreshold) {
+    e.vy /= P.jumpCutDivisor;
+  }
+
+  // buffered jump fires on touchdown
+  if (!wasGrounded && e.grounded && e.jumpBufferFrames > 0) {
+    doJump(e, P);
+    e.jumpBufferFrames = 0;
+  }
+
+  // coyote upkeep (end of frame so the leaving frame still counts)
+  if (wasGrounded) e.coyoteFrames = T.coyoteFrames;
+  else if (e.coyoteFrames > 0) e.coyoteFrames -= 1;
+
+  return e;
+}
+
+// ============================================================================
+// CAMERA OCCLUSION
+// Source: n64decomp/sm64 src/game/camera.c — wall collision + pan behavior
+//
+// SM64's Lakitu camera doesn't just lerp behind Mario — it raycasts from the
+// camera to Mario every frame. When a wall blocks line-of-sight, the camera
+// pulls INWARD along the focus vector (toward Mario), past the blocker,
+// until the view is clear or it reaches minimum distance. It never clips
+// through walls.
+//
+// Also: a pan-lag deadzone. Tiny player fidgets (under ~6 units) don't move
+// the camera at all — this kills the micro-jitter that makes indie cameras
+// feel nervous.
+// ============================================================================
+
+/**
+ * rayAABB — slab-method ray vs axis-aligned box.
+ * (ox,oy,oz) origin, (dx,dy,dz) full segment vector, b = {minX..maxZ}.
+ * Returns entry t in [0,1], or null if no hit.
+ */
+function rayAABB(ox, oy, oz, dx, dy, dz, b) {
+  let tmin = 0;
+  let tmax = 1;
+  const axes = [
+    [ox, dx, b.minX, b.maxX],
+    [oy, dy, b.minY, b.maxY],
+    [oz, dz, b.minZ, b.maxZ],
+  ];
+  for (const [o, d, mn, mx] of axes) {
+    if (Math.abs(d) < 1e-12) {
+      if (o < mn || o > mx) return null;
+    } else {
+      let t1 = (mn - o) / d;
+      let t2 = (mx - o) / d;
+      if (t1 > t2) {
+        const tt = t1;
+        t1 = t2;
+        t2 = tt;
+      }
+      if (t1 > tmin) tmin = t1;
+      if (t2 < tmax) tmax = t2;
+      if (tmin > tmax) return null;
+    }
+  }
+  return tmin;
+}
+
+/** segmentBlocked — true if any collider intersects the a->b segment. */
+function segmentBlocked(ax, ay, az, bx, by, bz, colliders) {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const dz = bz - az;
+  for (const c of colliders) {
+    const t = rayAABB(ax, ay, az, dx, dy, dz, c);
+    if (t !== null && t < 1) return true;
+  }
+  return false;
+}
+
+/**
+ * updateCamera(cam, target, colliders, opts) — follow + occlusion + deadzone.
+ *
+ * cam:       { x, y, z, lookX, lookY, lookZ } (mutated; keeps _ptx/_settled cache)
+ * target:    { x, y, z }
+ * colliders: [{ minX, maxX, minY, maxY, minZ, maxZ }, ...] — may be empty
+ * opts:      { dt, distance, heightOffset, yaw, deadzone=6, minDistance=120 }
+ *            (distance/heightOffset/yaw forwarded to lakituCamera)
+ *
+ * Behavior:
+ *  1. If the target moved less than `deadzone`, the camera holds still
+ *     (look-at still refreshes) — no jitter from fidgets.
+ *  2. Otherwise smooth-follow via lakituCamera().
+ *  3. Raycast camera->target; on a hit, pull the camera inward along the
+ *     focus vector until line-of-sight clears or minimum distance is hit.
+ */
+export function updateCamera(cam, target, colliders = [], opts = {}) {
+  const dt = opts.dt || 1 / 60;
+  const deadzone = opts.deadzone ?? 6;
+  const minDist = opts.minDistance ?? 120;
+
+  // --- pan-lag deadzone: ignore sub-threshold fidgets ---
+  const px = cam._ptx ?? target.x;
+  const py = cam._pty ?? target.y;
+  const pz = cam._ptz ?? target.z;
+  if (Math.hypot(target.x - px, target.y - py, target.z - pz) < deadzone && cam._settled) {
+    cam.lookX = target.x;
+    cam.lookY = target.y;
+    cam.lookZ = target.z;
+    return cam;
+  }
+  cam._ptx = target.x;
+  cam._pty = target.y;
+  cam._ptz = target.z;
+  cam._settled = true;
+
+  // --- base smooth follow ---
+  lakituCamera(cam, target, dt, opts);
+
+  const tx = cam.lookX;
+  const ty = cam.lookY;
+  const tz = cam.lookZ;
+  const dx = tx - cam.x;
+  const dy = ty - cam.y;
+  const dz = tz - cam.z;
+
+  // --- occlusion: nearest blocker along camera->target ---
+  let best = 1;
+  for (const c of colliders) {
+    const t = rayAABB(cam.x, cam.y, cam.z, dx, dy, dz, c);
+    if (t !== null && t < best) best = t;
+  }
+
+  if (best < 0.999) {
+    // pull inward (toward target), past the blocker, until clear
+    let placed = false;
+    for (let t = best + 0.02; t < 1; t += 0.03) {
+      const cx = cam.x + dx * t;
+      const cy = cam.y + dy * t;
+      const cz = cam.z + dz * t;
+      if (Math.hypot(cx - tx, cy - ty, cz - tz) < minDist) break;
+      if (!segmentBlocked(cx, cy, cz, tx, ty, tz, colliders)) {
+        cam.x = cx;
+        cam.y = cy;
+        cam.z = cz;
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      // nowhere clear — hug minimum distance from the target
+      const full = Math.hypot(dx, dy, dz) || 1;
+      const t = Math.max(0, 1 - minDist / full);
+      cam.x += dx * t;
+      cam.y += dy * t;
+      cam.z += dz * t;
+    }
+  }
+
+  return cam;
+}
+
+// ============================================================================
+// ENEMY FSM UPGRADES
+//
+// Two patterns from classic Nintendo enemy design:
+//
+//  1. Deterministic ledge turns. Goombas don't use physics queries or random
+//     wandering — they probe the ground ahead (a downward raycast one step
+//     in front) and turn around when there's no floor. Cheap, predictable,
+//     and it never walks off cliffs by accident.
+//     (Pattern from sm64 goomba.inc.c / classic 2D platformer enemies.)
+//
+//  2. Squash & stretch on state transitions. When Mario lands he squashes;
+//     when he jumps he stretches. The scale tween is tied to the transition
+//     frame, not the physics — it's pure juice, ~8 frames, ease-out-back.
+// ============================================================================
+
+/**
+ * ledgeCheck(entity, world, opts) — probe for ground ahead of movement.
+ *
+ * Returns true if there is NO safe ground ahead (caller should turn).
+ *
+ * entity: { x, z, y, yaw?, radius? }
+ * world:  { groundHeightAt(x, z) }
+ * opts:   { dirX, dirZ } override, probe distance, maxDrop
+ */
+export function ledgeCheck(entity, world, opts = {}) {
+  if (!world.groundHeightAt) return false;
+  const dirX = opts.dirX ?? Math.sin(entity.yaw || 0);
+  const dirZ = opts.dirZ ?? Math.cos(entity.yaw || 0);
+  const probe = opts.probe ?? (entity.radius || 10) + 8;
+  const maxDrop = opts.maxDrop ?? 24;
+  const px = entity.x + dirX * probe;
+  const pz = entity.z + dirZ * probe;
+  const g = world.groundHeightAt(px, pz);
+  return !(g > -Infinity) || g < entity.y - maxDrop;
+}
+
+const SS_PRESETS = {
+  // transition: { squash/stretch pose, tween duration in seconds }
+  land: { sx: 1.35, sy: 0.62, sz: 1.35, dur: 0.14 }, // squash on touchdown
+  jump: { sx: 0.78, sy: 1.32, sz: 0.78, dur: 0.12 }, // stretch on takeoff
+  hit: { sx: 1.25, sy: 1.25, sz: 0.55, dur: 0.1 }, // flatten on damage
+  turn: { sx: 1.15, sy: 0.9, sz: 1.15, dur: 0.08 }, // quick squash on turn
+};
+
+/**
+ * squashStretch(entity, transition) — start a scale tween.
+ * transition: 'land' | 'jump' | 'hit' | 'turn'. Unknown -> no-op.
+ * Call tickSquash(entity, dt) every frame to advance it.
+ * entity.scale = { x, y, z } is created if missing.
+ */
+export function squashStretch(entity, transition) {
+  const p = SS_PRESETS[transition];
+  if (!p) return entity;
+  entity.scale = entity.scale || { x: 1, y: 1, z: 1 };
+  entity._ss = {
+    t: 0,
+    dur: p.dur,
+    from: { x: entity.scale.x, y: entity.scale.y, z: entity.scale.z },
+    to: { x: p.sx, y: p.sy, z: p.sz },
+  };
+  return entity;
+}
+
+function easeOutBack(x) {
+  const c = 1.70158;
+  return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2);
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+/**
+ * tickSquash(entity, dt) — advance an active squash tween.
+ * Snaps to the pose in the first 35%, then ease-out-backs to (1,1,1).
+ */
+export function tickSquash(entity, dt) {
+  const s = entity._ss;
+  if (!s) return entity;
+  entity.scale = entity.scale || { x: 1, y: 1, z: 1 };
+  s.t += dt;
+  const k = Math.min(1, s.t / s.dur);
+  const snap = 0.35;
+  if (k < snap) {
+    const e = k / snap;
+    entity.scale.x = lerp(s.from.x, s.to.x, e);
+    entity.scale.y = lerp(s.from.y, s.to.y, e);
+    entity.scale.z = lerp(s.from.z, s.to.z, e);
+  } else {
+    const e = easeOutBack((k - snap) / (1 - snap));
+    entity.scale.x = lerp(s.to.x, 1, e);
+    entity.scale.y = lerp(s.to.y, 1, e);
+    entity.scale.z = lerp(s.to.z, 1, e);
+  }
+  if (k >= 1) {
+    entity.scale.x = 1;
+    entity.scale.y = 1;
+    entity.scale.z = 1;
+    entity._ss = null;
+  }
+  return entity;
+}
+
+// ============================================================================
+// APU — 4-channel voice manager with priority stealing
+//
+// The NES APU had 5 channels (2 pulse, triangle, noise, DPCM). The critical
+// design detail most reimplementations miss: CHANNEL PRIORITY. When a sound
+// effect fires, it STEALS the Pulse 1 channel from the music — the music
+// voice is parked, the SFX plays, then the music resumes. Without this,
+// overlapping SFX either stack into mud or cut the music permanently.
+//
+// Channels: pulse1, pulse2, triangle, noise.
+// Priority: higher number wins. Music runs at 1, SFX at 10.
+// ============================================================================
+
+const APU_CHANNELS = ['pulse1', 'pulse2', 'triangle', 'noise'];
+
+export class APU {
+  /**
+   * @param {AudioContext} audioCtx — a real or mock Web Audio context
+   */
+  constructor(audioCtx) {
+    if (!audioCtx) throw new Error('APU: needs an AudioContext');
+    this.ctx = audioCtx;
+    this.voices = { pulse1: null, pulse2: null, triangle: null, noise: null };
+    this._resumeTimers = {};
+  }
+
+  _kill(channel) {
+    const v = this.voices[channel];
+    if (!v) return;
+    if (v._timer) clearTimeout(v._timer);
+    try {
+      v.node.stop();
+    } catch {
+      /* already stopped */
+    }
+    try {
+      v.node.disconnect();
+      v.gain.disconnect();
+    } catch {
+      /* already disconnected */
+    }
+    this.voices[channel] = null;
+  }
+
+  _noiseSource(dur) {
+    const ctx = this.ctx;
+    const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    return src;
+  }
+
+  /**
+   * playTone(channel, freq, duration, envelope, priority)
+   *
+   * envelope: { attack, decay, sustain (0..1), release } in seconds,
+   *           plus { volume (0..1), sweep (semitones/sec), lowpass (noise) }
+   * priority: higher steals. Returns the voice, or null if a higher-
+   *           priority voice is already on the channel.
+   */
+  playTone(channel, freq, duration = 0.2, envelope = {}, priority = 5) {
+    if (!APU_CHANNELS.includes(channel)) {
+      throw new Error(`APU: unknown channel "${channel}" (want ${APU_CHANNELS.join(', ')})`);
+    }
+    const cur = this.voices[channel];
+    if (cur && cur.priority > priority) return null; // higher priority holds the channel
+
+    this._kill(channel);
+
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const {
+      attack = 0.005,
+      decay = 0.06,
+      sustain = 0.55,
+      release = 0.09,
+      volume = 0.25,
+      sweep = 0,
+      lowpass = 5000,
+      type,
+    } = envelope;
+
+    const gain = ctx.createGain();
+    let node;
+    if (channel === 'noise') {
+      node = this._noiseSource(duration + attack + decay + release + 0.1);
+      const filt = ctx.createBiquadFilter();
+      filt.type = 'lowpass';
+      filt.frequency.value = lowpass;
+      node.connect(filt);
+      filt.connect(gain);
+    } else {
+      node = ctx.createOscillator();
+      node.type = type || (channel === 'triangle' ? 'triangle' : 'square');
+      node.frequency.setValueAtTime(Math.max(1, freq), t);
+      if (sweep !== 0) {
+        const end = Math.max(1, freq * Math.pow(2, (sweep * duration) / 12));
+        node.frequency.exponentialRampToValueAtTime(end, t + duration);
+      }
+      node.connect(gain);
+    }
+    gain.connect(ctx.destination);
+
+    // proper ADSR
+    const a = Math.max(0.001, attack);
+    const d = Math.max(0.001, decay);
+    const r = Math.max(0.001, release);
+    const peakT = t + a;
+    const susT = peakT + d;
+    const endT = t + Math.max(duration, a + d + 0.01);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.linearRampToValueAtTime(volume, peakT);
+    gain.gain.linearRampToValueAtTime(volume * sustain, susT);
+    gain.gain.setValueAtTime(volume * sustain, endT);
+    gain.gain.linearRampToValueAtTime(0.0001, endT + r);
+
+    node.start(t);
+    const stopT = endT + r + 0.05;
+    try {
+      node.stop(stopT);
+    } catch {
+      /* mock contexts may not implement stop(t) */
+    }
+
+    const voice = { node, gain, priority, channel, music: null, _timer: null, stopT };
+    this.voices[channel] = voice;
+    voice._timer = setTimeout(() => {
+      if (this.voices[channel] === voice) this.voices[channel] = null;
+    }, Math.max(0, (stopT - t) * 1000) + 60);
+    // don't hold the node process open for hour-long music drones
+    if (voice._timer.unref) voice._timer.unref();
+    return voice;
+  }
+
+  /**
+   * music(channel, freq, opts) — start a low-priority drone on a channel.
+   * Saved on the voice so sfx() can resume it after stealing the channel.
+   */
+  music(channel, freq, opts = {}) {
+    const voice = this.playTone(
+      channel,
+      freq,
+      opts.duration || 3600,
+      { attack: 0.02, decay: 0.1, sustain: 0.8, release: 0.2, volume: 0.12, ...(opts.envelope || {}) },
+      1
+    );
+    if (voice) voice.music = { freq, opts };
+    return voice;
+  }
+
+  /**
+   * sfx(freq, duration, opts) — steal pulse1 (or opts.channel), play the
+   * effect at priority 10, then resume whatever music was parked.
+   */
+  sfx(freq, duration = 0.15, opts = {}) {
+    const ch = opts.channel || 'pulse1';
+    const prev = this.voices[ch];
+    const savedMusic = prev && prev.music ? { ...prev.music } : null;
+    const voice = this.playTone(
+      ch,
+      freq,
+      duration,
+      { attack: 0.002, decay: 0.04, sustain: 0.3, release: 0.05, volume: 0.3, ...(opts.envelope || {}) },
+      10
+    );
+    if (savedMusic) {
+      clearTimeout(this._resumeTimers[ch]);
+      // resume only after the sfx voice has fully released the channel
+      const delayMs = voice ? Math.max(0, (voice.stopT - this.ctx.currentTime) * 1000) + 80 : duration * 1000 + 80;
+      this._resumeTimers[ch] = setTimeout(() => {
+        this._kill(ch);
+        this.music(ch, savedMusic.freq, savedMusic.opts);
+      }, delayMs);
+      if (this._resumeTimers[ch].unref) this._resumeTimers[ch].unref();
+    }
+    return voice;
+  }
+}
+
+/**
+ * playTone(apu, channel, freq, duration, envelope) — standalone helper
+ * for one-off tones through an existing APU instance.
+ */
+export function playTone(apu, channel, freq, duration, envelope) {
+  return apu.playTone(channel, freq, duration, envelope);
+}
+
+// (default export moved to end of file — see below)
+
+// ============================================================================
+// DETERMINISTIC RNG — 16-bit Galois LFSR
+//
+// Bot replays and procedural generation need randomness that can be rewound.
+// Math.random() can't do that. This 16-bit Galois LFSR (taps 16,14,13,11 —
+// polynomial x^16 + x^14 + x^13 + x^11 + 1) has period 65535 and full
+// state save/restore, so any replay can be reproduced exactly from its seed.
+//
+// Default seed 0xACE1 (the canonical LFSR example seed).
+// Note: state 0 is degenerate (LFSR locks up), so setState(0) maps to 1.
+// ============================================================================
+
+export class DeterministicRNG {
+  constructor(seed = 0xACE1) {
+    this.setState(seed);
+  }
+
+  /** next() — advance one step, return float in [0, 1). */
+  next() {
+    const lsb = this.state & 1;
+    this.state >>>= 1;
+    if (lsb) this.state ^= 0xb400;
+    return this.state / 0x10000;
+  }
+
+  /** nextInt(n) — integer in [0, n). */
+  nextInt(n) {
+    return Math.floor(this.next() * n);
+  }
+
+  /** nextRange(a, b) — float in [a, b). */
+  nextRange(a, b) {
+    return a + this.next() * (b - a);
+  }
+
+  /** getState() — snapshot for replay save. */
+  getState() {
+    return this.state;
+  }
+
+  /** setState(s) — restore a snapshot; replay continues identically. */
+  setState(s) {
+    this.state = (s & 0xffff) || 1;
+  }
+}
+
+// ============================================================================
+// VIRTUAL APU — fire-and-forget variant for BGM/SFX multiplexing
+//
+// Extends APU with the two call patterns chiptune drivers actually use:
+//
+//   triggerSFX(freq, opts) — hard-steal Pulse1 for exactly 150ms, no questions.
+//     For jump/shot/hit blips that must never be blocked or delayed.
+//
+//   playBGMNote(channel, freq, duration, envelope) — YIELD if the channel is
+//     occupied. Background music never steals, never queues, never glitches:
+//     if a SFX owns the channel, the note is simply skipped this tick.
+//     (This is how NES drivers kept music clean under SFX fire.)
+// ============================================================================
+
+export class VirtualAPU extends APU {
+  /**
+   * triggerSFX(freq, opts) — steal Pulse1 for 150ms, fire-and-forget.
+   * Unlike APU.sfx(), there is no music-resume bookkeeping: BGM voices are
+   * expected to use playBGMNote(), which yields while the SFX owns the channel.
+   */
+  triggerSFX(freq, opts = {}) {
+    const ch = 'pulse1';
+    this._kill(ch); // hard steal regardless of priority
+    return this.playTone(
+      ch,
+      freq,
+      0.15,
+      { attack: 0.002, decay: 0.05, sustain: 0.4, release: 0.04, volume: 0.3, ...(opts.envelope || {}) },
+      10
+    );
+  }
+
+  /**
+   * playBGMNote(channel, freq, duration, envelope) — play only if free.
+   * Returns the voice, or null (yielded) when the channel is occupied.
+   */
+  playBGMNote(channel, freq, duration = 0.25, envelope = {}) {
+    if (this.voices[channel]) return null; // occupied → yield, no queue
+    return this.playTone(
+      channel,
+      freq,
+      duration,
+      { attack: 0.01, decay: 0.08, sustain: 0.7, release: 0.1, volume: 0.14, ...envelope },
+      1
+    );
+  }
+}
+
+// ============================================================================
+// SLOPE SLIDE — Sonic-style steep-surface behavior
+// Source: info.sonicretro.org/Sonic_Physics_Guide (slope physics)
+//
+// Sonic's rule: when the surface angle exceeds ~45°, the character enters a
+// SLIDE state. Player input is overridden — gravity's component along the
+// surface tangent takes over (Δv = -g·sin θ). This is what makes steep
+// hills feel dangerous instead of just "slow".
+//
+// Implemented by sampling groundHeightAt around the entity to estimate the
+// surface normal, then applying tangential gravity when steep.
+// ============================================================================
+
+/**
+ * estimateSlope(e, world) — sample terrain, return { angleDeg, nx, nz } or null.
+ * nx/nz: horizontal components of the surface normal (pointing uphill).
+ */
+function estimateSlope(e, world) {
+  if (!world.groundHeightAt) return null;
+  const px = (e.radius || 10) + 4;
+  const gx1 = world.groundHeightAt(e.x + px, e.z);
+  const gx0 = world.groundHeightAt(e.x - px, e.z);
+  const gz1 = world.groundHeightAt(e.x, e.z + px);
+  const gz0 = world.groundHeightAt(e.x, e.z - px);
+  let nx = 0;
+  let nz = 0;
+  if (isFinite(gx1) && isFinite(gx0)) nx = -(gx1 - gx0) / (2 * px);
+  if (isFinite(gz1) && isFinite(gz0)) nz = -(gz1 - gz0) / (2 * px);
+  const ny = 1;
+  const nl = Math.hypot(nx, ny, nz) || 1;
+  nx /= nl;
+  nz /= nl;
+  const nyN = ny / nl;
+  const angleDeg = (Math.acos(Math.min(1, nyN)) * 180) / Math.PI;
+  return { angleDeg, nx, nz };
+}
+
+// ============================================================================
+// SONIC_PHYSICS — Sonic the Hedgehog feel preset
+// Source: info.sonicretro.org/Sonic_Physics_Guide
+//
+// Same fields as MARIO_PHYSICS (drop-in for characterStep's phys param).
+// Key differences from Mario:
+//   - Jump cut is gentler: release drops velocity to 45% (not 25%).
+//     (divisor = 1/0.45 ≈ 2.222)
+//   - Snappier acceleration, higher top speed, momentum preserved in air.
+//   - Slopes matter: see the slide state above.
+// ============================================================================
+
+export const SONIC_PHYSICS = {
+  ...MARIO_PHYSICS,
+  // clean-room constants in the spirit of the Sonic Physics Guide;
+  // field-compatible with MARIO_PHYSICS
+  jumpCutDivisor: 1 / 0.45, // release -> 45% velocity retained
+  walkAccelBase: 1.4,
+  walkAccelFalloff: 52.0,
+  walkMaxSpeed: 40.0,
+  absoluteMaxSpeed: 60.0,
+  airControl: 0.7, // Sonic keeps more air authority than Mario
+  airDrag: 0.998, // momentum preserved
+};
+
+// ============================================================================
+// CLEAN EXPORT SURFACE
+// ============================================================================
+
+const gpfeel = {
+  // constants (ground truth, with source citations above)
+  MARIO_PHYSICS,
+  SONIC_PHYSICS,
+  LAKITU_CAMERA,
+  NES_AUDIO,
+  FEEL_TIMING,
+  // execution
+  applyMarioMovement,
+  characterStep,
+  lakituCamera,
+  updateCamera,
+  ledgeCheck,
+  squashStretch,
+  tickSquash,
+  makeFSM,
+  DeterministicRNG,
+  // audio
+  APU,
+  VirtualAPU,
+  playTone,
+  nesPulse,
+  nesNoise,
+  sfxJump,
+  sfxStomp,
+  sfxCoin,
+};
+
+export default gpfeel;
