@@ -15,7 +15,7 @@ gamepress catalog games.json ...    # add a game + thumbnail to a demo-page cata
 gamepress research|new|test|bundle|publish-pack|host   # AI pipeline: see AGENTS.md
 ```
 
-> **AI agents: start at [`AGENTS.md`](AGENTS.md).** It drives research, build, test, film, package and the hosting hand-off.
+> **AI agents: start at [`AGENTS.md`](AGENTS.md).** On the owner's Mac this repo is at `~/.gemini/antigravity/scratch/gamepress`; AGENTS.md lists the other local paths (games clone, videos, Roblox files, keychain item names). It drives research, build, test, film, package and the hosting hand-off.
 
 > This repo is intended to be renamed `tools`. Nothing in it depends on the name; all paths are relative.
 

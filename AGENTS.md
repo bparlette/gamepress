@@ -26,3 +26,26 @@ Run everything from this repo's root. Requirements: `docs/TOOLING.md`. Never log
 - Tune with `window.__game` numbers, not by eye. Use `--quick` while iterating; full render once.
 - Commit small; `git pull --rebase` before push; no secrets, no personal paths (public repos).
 - Roblox games: `docs/ROBLOX.md` (`gamepress roblox <place.rbxl> --universe N --place N`, dry run by default). Needs the owner's `ROBLOX_API_KEY`.
+
+## Roblox: proven flow (verified live)
+1. Credentials: `scripts/roblox-key.sh` (paste key in an editor -> macOS Keychain item `gamepress-roblox-api-key`; ids in `~/.config/gamepress/roblox.env`). Key scopes: `universe.place.write` + luau-execution-session read/write, one experience only. Rotate after it has been pasted in chat.
+2. Place id is not in dashboard overview URLs. Find it in Studio's local logs: `grep -h "dstPlaceId\|telemetryLog\] placeid:" ~/Library/Logs/Roblox/*` (look for the line with the experience's universe id), then confirm with `GET https://apis.roblox.com/cloud/v2/universes/<u>/places/<p>` and the key.
+3. Save the open place so the file is current: `osascript -e 'tell application "RobloxStudio" to activate' -e 'delay 1' -e 'tell application "System Events" to keystroke "s" using command down'` (needs Accessibility permission for the terminal), then check the `.rbxl` mtime changed.
+4. `node bin/gamepress.mjs roblox-ship <file.rbxl> --test templates/roblox-smoke.luau` (save draft -> Luau test on that version -> publish). Publish path is `/universes/v1/{universe}/places/{place}/versions` (no second "universes").
+5. Open the live game and spot-check. Details and pitfalls: `docs/ROBLOX.md`.
+Share links (`roblox.com/share?...ExperienceDetails`) only resolve for a signed-in user: do not use them to find ids.
+
+## Where things live on the owner's Mac (no secrets here)
+| What | Where |
+|---|---|
+| This repo (gamepress) | `~/.gemini/antigravity/scratch/gamepress` |
+| Demo-page repo clone used for games (Hawk `main`) | `~/.gemini/antigravity/scratch/hawk-pub` (`brad-demos/g/<id>/`, `brad-demos/games.json`) |
+| HOA Warfare repo | `~/.gemini/antigravity/scratch/hoa-warfare` |
+| Rendered videos / store assets | `gamepress/press/video`, `gamepress/publish/<id>` (gitignored) |
+| Roblox files | `~/RobloxWork/*.rbxl` (Studio logs: `~/Library/Logs/Roblox`) |
+| Credentials | macOS Keychain (`gamepress-roblox-api-key`), `~/.config/gamepress/` |
+| ES-DE frontend settings | `~/ES-DE/settings/es_settings.xml` (quit key F4; menu: Start > Quit) |
+Other agents share some of these checkouts: check `git status` for foreign uncommitted work before committing; never commit credentials or personal paths in public repos.
+
+## Session log pointers (what exists and why)
+Demos: 12 one-screen games (cats/zombies look kit `_vendor/gpkit.js`), plans in `examples/<id>/`, picker scales to hundreds (`docs/HOSTING.md`). Hosting stubs are for another agent: `docs/HOSTING.md`, `lib/hosts/*.mjs`.
