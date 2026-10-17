@@ -10,7 +10,7 @@ const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.
 const T = 45, RW = 12, ROWS = 13, OY = 190, COLS = RW * 3;
 const room = [
  ['............', '............', '............', '............', '............', '............', '............', '............', '............', '............', '............', '#####..#####', '#####..#####'],
- ['............', '............', '............', '............', '............', '............', '............', '........D...', '.......###..', '............', '....^^......', '############', '############'],
+ ['............', '............', '............', '............', '............', '............', '............', '............', '............', '........D...', '...^^..###..', '############', '############'],
  ['............', '............', '............', '............', '............', '............', '........F...', '......######', '......######', '......######', '......######', '############', '############'] ];
 const map = Array.from({ length: ROWS }, (_, y) => room.map(r => r[y]).join('').split(''));
 for (let y = 0; y < ROWS; y++) map[y][0] = map[y][0] === '.' && y < 11 ? '#' : map[y][0];
@@ -23,10 +23,10 @@ function update(dt) {
   if (g.mode !== 'play') return; p.t += dt; flash = (flash || 0) - dt;
   const L = g.btn('l', 20, 830, 120, 100, '◀', { key: 'ArrowLeft' }), Rb = g.btn('r', 150, 830, 120, 100, '▶', { key: 'ArrowRight' }), J = g.btn('j', 380, 830, 140, 100, 'JUMP', { key: 'Space' });
   let mv = (Rb.held || g.keys.KeyD ? 1 : 0) - (L.held || g.keys.KeyA ? 1 : 0), jp = J.pressed || g.pressed.ArrowUp, held = J.held || g.keys.Space;
-  if (g.auto) { mv = 1; g.sim.r = true; botT -= dt; const ax = p.x + p.w + 40, gx = Math.floor(ax / T), fy = Math.floor((p.y + p.h - 2) / T);
-    const hole = !solid(gx, fy + 1) && !solid(Math.floor((p.x + p.w + 10) / T), fy + 1), wall = solid(Math.floor((p.x + p.w + 14) / T), fy), spike = map[10]?.[gx] === '^' || map[10]?.[gx + 1] === '^', tall = wall && solid(Math.floor((p.x + p.w + 14) / T), fy - 2);
-    if (!p.air && (hole || wall || spike) && !(tall && !hasDouble)) { botT = botT < 0 ? .0 : botT; if (g.dumb() && spike) { if (botT === 0) botT = .01; } jp = (!g.dumb() || !spike) ? true : (p.x % 1 < .5 ? false : true); if (g.dumb() && spike && Math.abs(ax - Math.floor(ax / T) * T) < 10) jp = true; }
-    if (p.air && hasDouble && jumps === 1 && tall && p.vy > -120) jp = true; if (p.air && tall && !hasDouble && p.vy > 0) mv = -1; }
+  if (g.auto) { held = true; mv = 1; g.sim.r = true; const fx = p.x + p.w, fy = Math.floor((p.y + p.h - 2) / T), col = o => Math.floor((fx + o) / T);
+    const spike = map[10]?.[col(24)] === '^', lateSpike = map[10]?.[col(4)] === '^', hole = !solid(col(30), fy + 1), wall = solid(col(14), fy), tall = wall && solid(col(14), fy - 2);
+    if (!p.air) { if (g.dumb() ? (hole || wall) : (spike || hole || (wall && !(tall && !hasDouble)))) jp = true; }
+    if (p.air && hasDouble && jumps === 1 && tall && p.vy > -100) jp = true; }
   p.vx = mv * 240; if (mv) p.dir = mv; coy -= dt; buf -= dt; if (jp) buf = .12;
   if (buf > 0 && coy > 0) { p.vy = -640; buf = 0; coy = 0; jumps = 1; sfx('jump'); g.burst(p.x + 15, p.y + 42, 5, { color: '#fff', speed: 80, size: 6, life: .3 }); }
   else if (buf > 0 && hasDouble && jumps === 1 && p.air) { p.vy = -640; buf = 0; jumps = 2; sfx('jump', { pitch: 1.5 }); g.burst(p.x + 15, p.y + 42, 10, { color: ['#7ad7ff', '#fff'], speed: 160, size: 7, life: .4 }); }
@@ -35,7 +35,7 @@ function update(dt) {
   if (t === 'D') { map[cy][cx] = 'x'; hasDouble = true; g.score += 200; sfx('powerup'); g.flash('#7ad7ff', .6); g.showBanner('DOUBLE JUMP!', 1.4); g.slowmo(.4, .6); g.burst(p.x, p.y, 40, { color: ['#7ad7ff', '#fff'], speed: 460 }); }
   if (map[Math.floor((p.y + p.h - 6) / T)]?.[cx] === '^' || p.y > OY + ROWS * T + 80) die();
   if (t === 'F') { g.score += 500; g.burst(p.x, p.y, 40, { color: ['#ffd34d', '#fff', '#ff6b6b'], speed: 420 }); g.end({ win: true, score: g.score, label: 'POINTS' }); }
-  cam += (Math.floor(p.x / (RW * T)) * RW * T - cam) * Math.min(1, dt * 8); g.state = { x: Math.round(p.x), double: hasDouble, room: Math.floor(p.x / (RW * T)) };
+  cam += (Math.floor(p.x / (RW * T)) * RW * T - cam) * Math.min(1, dt * 8); g.state = { x: Math.round(p.x), y: Math.round(p.y), double: hasDouble, room: Math.floor(p.x / (RW * T)) };
 }
 function draw(c) {
   c.save(); c.translate(-cam, OY); c.fillStyle = 'rgba(255,255,255,.04)'; for (let i = 0; i < 20; i++) c.fillRect(i * 90 + 20, -40, 40, ROWS * T + 80);

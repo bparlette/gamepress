@@ -79,19 +79,21 @@ test('healGame applies deterministic repairs even when Local AI is disabled', as
   }
 });
 
-test('all host publishers (itch, youtube, steam, crazygames, github) support dryRun', async () => {
+test('all host publishers (itch, youtube, steam, crazygames, github, cloudflare) support dryRun', async () => {
   const tmp = mkdtempSync(join(tmpdir(), 'gp-hosts-test-'));
   try {
+    const dummyZip = join(tmp, 'demo.zip');
+    writeFileSync(dummyZip, 'PK\x05\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00');
     const manifest = {
       id: 'demo-game',
       meta: { title: 'Demo Game', description: 'A fun demo' },
-      bundle: { zip: join(tmp, 'demo.zip') },
-      itch: { dir: join(tmp, 'itch'), zip: join(tmp, 'demo.zip') },
+      bundle: { zip: dummyZip },
+      itch: { dir: join(tmp, 'itch'), zip: dummyZip },
       youtube: { video: join(tmp, 'short.mp4'), thumbnail: join(tmp, 'thumb.png'), title: 'Demo #shorts', tags: ['shorts'] },
       steam: { dir: join(tmp, 'steam', 'out') },
-      crazygames: { dir: join(tmp, 'cg'), zip: join(tmp, 'demo.zip'), preview: join(tmp, 'preview.mp4') },
+      crazygames: { dir: join(tmp, 'cg'), zip: dummyZip, preview: join(tmp, 'preview.mp4') },
     };
-    for (const name of ['itch', 'youtube', 'steam', 'crazygames', 'github']) {
+    for (const name of ['itch', 'youtube', 'steam', 'crazygames', 'github', 'cloudflare']) {
       const r = await hosts[name].upload(manifest, { dryRun: true });
       assert.equal(r.ok, true, `${name} dryRun should succeed`);
       assert.equal(r.dryRun, true);

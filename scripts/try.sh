@@ -3,5 +3,5 @@
 set -e
 R=$1; ST=${2:-toon}; D=/tmp/gp-try; mkdir -p $D
 echo "{\"style\":\"$ST\"}" > /tmp/gp-try-spec.json
-rm -rf $D/try-$R; GP_GAMES=$D node "$(dirname "$0")/../bin/gamepress.mjs" make try-$R --recipe $R --spec /tmp/gp-try-spec.json --games $D --examples /tmp/gp-try-ex > /dev/null
+rm -rf $D/try-$R; GP_GAMES=$D node "$(dirname "$0")/../bin/gamepress.mjs" make try-$R --recipe $R --spec /tmp/gp-try-spec.json --games $D --examples /tmp/gp-try-ex > /dev/null; rm -rf "$(dirname "$0")/../examples/try-$R"
 node "$(dirname "$0")/../bin/gamepress.mjs" test $D/try-$R --root $D --json | python3 -c "import sys,json;d=json.load(sys.stdin);print('$R', 'OK' if d['ok'] else 'FAIL', d['problems'], d['errors'][:2], d.get('hints'), d.get('screenshot'))"

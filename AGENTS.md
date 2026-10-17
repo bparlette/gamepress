@@ -31,7 +31,7 @@ Run everything from this repo's root. Requirements: `docs/TOOLING.md`. Never log
 | 8 | Package | `node bin/gamepress.mjs publish-pack <id> --games <games dir> [--catalog <games.json>]` (adds the demo-page entry too) | `publish/<id>/` (zip, store images, GIF, trailer, `manifest.json`) |
 | 9 | Check | `node bin/gamepress.mjs check --dir publish/<id>/press` | all good |
 | 10 | **Demo page (required)** | `node bin/gamepress.mjs publish-demo <id> --catalog <Hawk>/brad-demos/games.json --push` (thumbnail + entry from `meta.json` incl. `keys`/`labels`; `replaces` removes a renamed id; commits and pushes the demo-page repo). Then open the live page and confirm the game loads | live card on https://bparlette.github.io/Hawk/brad-demos/ |
-| 11 | Host (other agent) | `node bin/gamepress.mjs host <itch\|crazygames\|steam\|youtube> <id>` (dry run by default) | see `docs/HOSTING.md` |
+| 11 | Host (other agent) | `node bin/gamepress.mjs host <itch|crazygames|steam|youtube|cloudflare|github> <id>` (dry run by default) | see `docs/HOSTING.md` |
 
 ## Rules
 - A game is not done until step 5 passes AND step 7 shows: a readable hook in the first second, characters (not primitives), particles on every impact, screen shake on big events, sfx on every event, on-screen numbers that climb.

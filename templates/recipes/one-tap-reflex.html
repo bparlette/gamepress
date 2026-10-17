@@ -4,22 +4,22 @@
   DON'T BUILD: skins/shop, levels, leaderboards, menus beyond start/restart. Edit the SPEC JSON, not the code (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp, lerp } from '../_vendor/gp2d.js';
 import { drawChar } from '../_vendor/gpsprites.js';
-const S = { title: 'FLAP CAT', sub: 'Tap to flap', hook: 'One tap. One cat. Impossible?', hero: 'cat', heroColor: '#ff9a3c', bg: '#59c9ff', pipe: '#4caf50', gap: 250, speed: 210, winScore: 10, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'FLAP CAT', sub: 'Tap to flap', hook: 'One tap. One cat. Impossible?', hero: 'cat', heroColor: '#ff9a3c', bg: '#59c9ff', pipe: '#4caf50', gap: 260, speed: 210, winScore: 8, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 let cat, pipes, streak, speed, cd, clouds = Array.from({ length: 6 }, (_, i) => ({ x: i * 110, y: rnd(80, 420), s: rnd(.6, 1.4) }));
-const mk = x => ({ x, gy: rnd(230, 560), w: 96, scored: false });
+let lastGy = 400; const mk = x => ({ x, gy: (lastGy = clamp(lastGy + rnd(-130, 130), 230, 560)), w: 96, scored: false });
 function init() { cat = { x: 150, y: 460, vy: 0, t: 0 }; pipes = [0, 1, 2, 3].map(i => mk(640 + i * 270)); streak = 0; speed = S.speed; cd = 0; g.score = 0; }
 g.onReset = init; init();
-function flap() { cat.vy = -450; sfx('jump', { pitch: comboPitch(streak) }); g.burst(cat.x - 30, cat.y + 20, 4, { color: ['#ffd34d', '#ff8a3c'], speed: 90, up: -60, size: 8, life: .35 }); }
+function flap() { cat.vy = -400; sfx('jump', { pitch: comboPitch(streak) }); g.burst(cat.x - 30, cat.y + 20, 4, { color: ['#ffd34d', '#ff8a3c'], speed: 90, up: -60, size: 8, life: .35 }); }
 function die() { sfx('hit'); g.hitstop(.12); g.burst(cat.x, cat.y, 22, { color: [S.heroColor, '#fff', '#ffd34d'], speed: 380 }); g.end({ win: false, score: g.score, label: 'PIPES' }); }
 function update(dt) {
   if (g.mode !== 'play') return; cat.t += dt; cd -= dt;
   const nxt = pipes.find(p => p.x + p.w > cat.x - 34);
   let want = g.pressed.Space || g.pressed.ArrowUp || g.taps.length > 0;
-  if (g.auto) { const tgt = nxt.gy + S.gap / 2 + 4, lazy = g.dumb() && g.score >= 3; if (!lazy && cd <= 0 && cat.y + cat.vy * .06 > tgt + 20) { want = true; cd = .2; } }
+  if (g.auto) { const tgt = nxt.gy + S.gap / 2 + 4, lazy = g.dumb() && g.score >= 3; if (!lazy && cd <= 0 && cat.y + cat.vy * .06 > tgt + 10) { want = true; cd = .14; } }
   if (want) flap();
-  cat.vy += 1500 * dt; cat.y += cat.vy * dt; speed += dt * 4;
-  for (const p of pipes) { p.x -= speed * dt; if (!p.scored && p.x + p.w < cat.x) { p.scored = true; g.score++; streak++; sfx('coin', { pitch: comboPitch(streak) }); g.popup('+1', cat.x + 60, cat.y - 60, '#fff'); if (g.score % 5 === 0) { g.showBanner('x2 SPEED', .9); sfx('powerup'); S.gap = Math.max(190, S.gap - 12); } if (g.score >= S.winScore) { g.end({ win: true, score: g.score, label: 'PIPES' }); } } }
+  cat.vy += 1500 * dt; cat.y += cat.vy * dt; speed += dt * 2.5;
+  for (const p of pipes) { p.x -= speed * dt; if (!p.scored && p.x + p.w < cat.x) { p.scored = true; g.score++; streak++; sfx('coin', { pitch: comboPitch(streak) }); g.popup('+1', cat.x + 60, cat.y - 60, '#fff'); if (g.score % 5 === 0) { g.showBanner('x2 SPEED', .9); sfx('powerup'); S.gap = Math.max(225, S.gap - 8); } if (g.score >= S.winScore) { g.end({ win: true, score: g.score, label: 'PIPES' }); } } }
   while (pipes[0].x < -120) { pipes.shift(); pipes.push(mk(pipes.at(-1).x + 270)); }
   const hit = pipes.some(p => cat.x + 28 > p.x && cat.x - 28 < p.x + p.w && (cat.y - 40 < p.gy || cat.y + 40 > p.gy + S.gap));
   if (hit || cat.y > g.H - 90 || cat.y < -40) die();

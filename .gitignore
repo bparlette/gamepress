@@ -5,3 +5,5 @@ publish/
 .gp/
 gamepress.config.json
 dist/
+examples/try-*/
+

@@ -30,7 +30,7 @@ import { ideate, applyAnswers } from '../lib/ideate.mjs';
 import { make, doctor, lint, vision, contextDigest, RECIPES } from '../lib/extras.mjs';
 import { config, status, grade, runAll } from '../lib/pipeline.mjs';
 import { catalogCommand } from '../lib/catalog.mjs';
-import { research, scaffold, testGame, bundle, publishPack, publishDemo, copyDraft, buildTarget, repoInit } from '../lib/tasks.mjs';
+import { research, scaffold, testGame, botCheck, bundle, publishPack, publishDemo, copyDraft, buildTarget, repoInit } from '../lib/tasks.mjs';
 import { publishRoblox, shipRoblox, runLuau } from '../lib/roblox.mjs';
 import * as hosts from '../lib/hosts/index.mjs';
 import { voices, bumpVersion, makeIcons, compositeCapsuleLogo } from '../lib/studio.mjs';
@@ -354,6 +354,7 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
   copy: () => copyDraft(need('copy'), { examples: CFG().examples, outDir: CFG().publish, localAi: LOCAL_AI }).then(c => out({ copy: c }, o => 'wrote ' + o.copy)).catch(e => die('copy: ' + e.message)),
   build: () => out(buildTarget(need('build --target web|steam|roblox'), flag('target', 'web'), { gamesDir: CFG().games }), o => JSON.stringify(o)),
   deploy: () => hosts[positional[0]]?.upload(JSON.parse(readFileSync(join(flag('dir', 'publish'), positional[1] || die('usage: gamepress deploy <itch|crazygames|steam|youtube|cloudflare|github> <id> [--live]'), 'manifest.json'), 'utf8')), { dryRun: !argv.includes('--live'), user: flag('user') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die(e.message)) || die('unknown host'),
+  botcheck: () => botCheck(positional[0] ? resolve(CFG().games, positional[0]) : die('usage: gamepress botcheck <game-id> [--seconds 40]'), { root: CFG().games, seconds: +flag('seconds', 40) }).then(r => out(r, o => `${o.ok ? 'OK' : 'CHECK'}: ${o.ends.map(e => (e.win ? 'W' : 'L') + e.t).join(' ')}${o.errors.length ? ' errors ' + o.errors : ''}`)).catch(e => die('botcheck: ' + e.message)),
   test: () => testGame(positional[0] || die('usage: gamepress test <game dir or url> [--root dir]'), { root: flag('root') }).then(v => { console.log(JSON.stringify(v, null, 1)); process.exit(v.ok ? 0 : 1); }).catch(e => die('test failed: ' + e.message)),
   bundle: () => console.log(bundle(positional[0] || die('usage: gamepress bundle <game dir> [--out dist]'), flag('out', 'dist'))),
   'publish-demo': () => console.log(JSON.stringify(publishDemo(positional[0] || die('usage: gamepress tracks [name] | publish-demo <id> --catalog <games.json> [--push]'), { catalog: flag('catalog') || die('--catalog required'), videoDir: flag('video', 'press/video'), push: argv.includes('--push') }))),
@@ -368,5 +369,5 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
   voices: () => voices(positional[0] || die('usage: gamepress voices <script.json> [--dir press]'), { dir: flag('dir', 'press') }).then(r => out({ command: 'voices', ...r }, o => `voices: ${o.synthesized} synthesized, ${o.skipped} skipped, ${o.failed} failed → ${o.manifest}`)).catch(e => die('voices: ' + e.message)),
   version: () => { try { const r = bumpVersion(positional[0] || 'patch', { dir: flag('dir', '.') }); out({ command: 'version', ...r }, o => `${o.from} → ${o.to} (${o.file}); changelog template added to ${o.changelog}`); } catch (e) { die('version: ' + e.message); } },
   icons: () => { try { const r = makeIcons(flag('logo') || die('usage: gamepress icons --logo <logo.png> [--name Title]'), { dir: flag('dir', 'press'), name: flag('name', 'Game') }); out({ command: 'icons', ...r }, o => `icons → ${o.dir}/ (${o.files.join(', ')})`); } catch (e) { die('icons: ' + e.message); } } }[cmd] ||
-  (() => die('usage: gamepress auto | lego | context | heal | hooks | stats | local-ai | ideate | make | doctor | lint | status | all | grade | copy | build | deploy | host | repo | research | new | test | bundle | publish-pack | roblox | init | capture | drive | catalog | scenes | pack | check | voices | version | icons   (options: --json, --local-ai, --no-local-ai, --heal, --vo)')))();
+  (() => die('usage: gamepress auto | lego | context | heal | hooks | stats | local-ai | ideate | make | doctor | lint | status | all | grade | copy | build | deploy | host | repo | botcheck | research | new | test | bundle | publish-pack | roblox | init | capture | drive | catalog | scenes | pack | check | voices | version | icons   (options: --json, --local-ai, --no-local-ai, --heal, --vo)')))();
 

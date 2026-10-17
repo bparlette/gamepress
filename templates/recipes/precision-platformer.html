@@ -23,7 +23,7 @@ function update(dt) {
   const L = g.btn('l', 20, 830, 120, 100, '◀', { key: 'ArrowLeft' }), Rb = g.btn('r', 150, 830, 120, 100, '▶', { key: 'ArrowRight' }), J = g.btn('j', 380, 830, 140, 100, 'JUMP', { key: 'Space' });
   let mv = (Rb.held || g.keys.KeyD ? 1 : 0) - (L.held || g.keys.KeyA ? 1 : 0), jp = J.pressed || g.pressed.ArrowUp; jumpHeld = J.held || g.keys.Space || g.keys.ArrowUp;
   if (g.auto) { mv = 1; g.sim.r = true; const ax = p.x + p.w + 44, gx = Math.floor(ax / T), fy = Math.floor((p.y + p.h) / T);
-    const sx = Math.floor((p.x + p.w + 24) / T), spk = map[9]?.[sx] === '^' || map[9]?.[sx + 1] === '^';
+    const sx = Math.floor((p.x + p.w + 24) / T), spk = map[9]?.[sx] === '^';
     const need = spk || !solid(gx, fy) && !solid(gx - 0, fy + 1) && !solid(Math.floor((p.x + p.w + 20) / T), fy) || solid(Math.floor((p.x + p.w + 12) / T), fy - 1);
     if (need && !p.air) { botDelay += dt; if (botDelay >= (g.dumb() ? .26 : 0)) { jp = true; jumpHeld = true; botDelay = 0; } } else botDelay = 0; g.sim.j = p.air && p.vy < 0; }
   p.vx = mv * 250; if (mv) p.dir = mv; coy -= dt; buf -= dt; if (jp) buf = .12;
