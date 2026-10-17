@@ -51,3 +51,8 @@ POSTs the file to `https://apis.roblox.com/universes/v1/{universe}/places/{place
 Has: 4-step skippable tutorial with persistence (TutorialGuide + FirstSession), welcome coins and a free lucky trait roll, near-miss/squash/shake/pet-effect feedback, egg hatching, collection book, daily rewards with streaks, leaderboard.
 Missing: analytics funnel events (AnalyticsService onboarding/progression), performance/error monitoring, an in-game report/community link, a timed check that first reward lands inside ~5 minutes.
 Audit scripts: write a Luau file that walks `game:GetDescendants()` for LuaSourceContainer, greps keywords, `print()`s; run `gamepress roblox-test`. Logs come back in the result.
+
+## Yeet Pets source of truth and the draft-verify loop
+Source: Rojo project in the Roblox repo (`~/RobloxWork/Roblox/prototype`, github.com/bparlette/Roblox). Its AGENTS.md says a Rojo build replaces the whole place and publishing is owner-approved.
+Safe loop for code changes: `sh scripts/check.sh` (tests + build) -> `rojo build -o /tmp/x.rbxl` -> `gamepress roblox /tmp/x.rbxl --type Saved --live` (draft, not live; prints versionNumber) -> `gamepress roblox-test <verify.luau> --version N` (loads real modules in Roblox's engine; this caught a wrong `require` path that Lune tests missed) -> owner approves -> publish.
+Caution: the live version 9 was published from a Studio-saved file, not from the Rojo build. Before publishing a Rojo build, diff what the live place has that the repo lacks (hand edits in Studio are lost).
