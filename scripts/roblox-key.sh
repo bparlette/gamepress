@@ -4,7 +4,7 @@
 set -e
 CONF="$HOME/.config/gamepress"; mkdir -p "$CONF"; chmod 700 "$CONF"
 IDS="$CONF/roblox.env"; [ -f "$IDS" ] && source "$IDS"
-F="$(mktemp -t roblox-key).txt"; chmod 600 "$F"
+T="$(mktemp -t roblox-key)"; F="$T.txt"; mv "$T" "$F"; chmod 600 "$F"
 cat > "$F" <<EOT
 # Paste the values after the = signs, save (Cmd+S), then close this window (Cmd+W). Lines starting with # are ignored.
 # KEY: create at https://create.roblox.com/dashboard/credentials (scopes: universe.place.write, luau-execution-session read+write).
