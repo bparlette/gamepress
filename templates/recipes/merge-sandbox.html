@@ -5,24 +5,24 @@
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp, shade } from '../_vendor/gp2d.js';
 import { face } from '../_vendor/gpsprites.js';
 import { World } from '../_vendor/gpphys.js';
-const S = { title: 'MERGE PETS', sub: 'Drag, release to drop', hook: 'Merge to a MEGA cat', hero: 'cat', bg: '#3b2a5e', winTier: 5, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'MERGE PETS', sub: 'Drag, release to drop', hook: 'Merge to a MEGA cat', hero: 'cat', bg: '#3b2a5e', winTier: 5, drops: 26, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const X0 = 60, X1 = 480, Y1 = 880, TOP = 250, TIERS = [[18, '#ff9a3c'], [26, '#f4efe4'], [34, '#9aa0aa'], [44, '#ffd34d'], [56, '#ff7ab6'], [70, '#7ad7ff'], [86, '#8fcf7a'], [104, '#c06bff']];
-let w, dropX, nextT, cd, over, combo, comboT, botT, maxTier;
-function init() { w = World({ gy: 1900, x0: X0, x1: X1, y1: Y1, bounce: .12, damp: .996, sub: 4, walls: { l: 1, r: 1, b: 1, t: 0 } }); dropX = 270; nextT = ri(0, 2); cd = 0; over = 0; combo = 0; comboT = 0; botT = .5; maxTier = 0; g.score = 0;
+let outT, w, dropX, left, dflip, nextT, cd, over, combo, comboT, botT, maxTier;
+function init() { w = World({ gy: 1900, x0: X0, x1: X1, y1: Y1, bounce: .12, damp: .996, sub: 4, walls: { l: 1, r: 1, b: 1, t: 0 } }); dropX = 270; nextT = ri(0, 2); cd = 0; over = 0; combo = 0; comboT = 0; botT = .5; maxTier = 0; left = S.drops; dflip = 0; outT = 0; g.score = 0;
   w.onHit = (a, b) => { if (a.data.tier === b.data.tier && !a.dead && !b.dead && a.data.tier < TIERS.length - 1) merge(a, b); }; }
 g.onReset = init; init();
 function spawn(x, y, tier) { const r = TIERS[tier][0]; return w.add({ x, y, r, vx: rnd(-20, 20), vy: 0, m: r * r, bounce: .12, data: { tier, born: g.t } }); }
 function merge(a, b) { a.dead = b.dead = true; const t = a.data.tier + 1, x = (a.x + b.x) / 2, y = (a.y + b.y) / 2; w.remove(a); w.remove(b); const n = spawn(x, y, t); n.vy = -120; combo = comboT > 0 ? combo + 1 : 1; comboT = 1.2; g.score += (t + 1) * 10 * combo; maxTier = Math.max(maxTier, t);
   sfx('merge', { pitch: comboPitch((t + combo) ) }); g.burst(x, y, 12, { color: [TIERS[t][1], '#fff'], speed: 260, size: 8 }); g.popup(combo > 1 ? `x${combo} +${(t + 1) * 10 * combo}` : `+${(t + 1) * 10}`, x, y - TIERS[t][0], '#ffd34d', 30); g.shake(2 + t);
   if (t >= S.winTier) { g.end({ win: true, score: g.score, label: 'SCORE' }); g.burst(x, y, 60, { color: ['#ffd34d', '#fff', '#ff7ab6'], speed: 520 }); } }
-function drop() { if (cd > 0 || g.mode !== 'play') return; spawn(clamp(dropX, X0 + TIERS[nextT][0], X1 - TIERS[nextT][0]), TOP - 80, nextT); sfx('pop'); cd = .55; nextT = ri(0, 2); }
+function drop() { if (cd > 0 || g.mode !== 'play' || left <= 0) return; left--; spawn(clamp(dropX, X0 + TIERS[nextT][0], X1 - TIERS[nextT][0]), TOP - 80, nextT); sfx('pop'); cd = .2; nextT = ri(0, 2); }
 function update(dt) {
   if (g.mode !== 'play') return; cd -= dt; comboT -= dt; if (comboT <= 0) combo = 0;
   if (g.ptr.down) dropX = g.ptr.x; if (g.keys.ArrowLeft) dropX -= 300 * dt; if (g.keys.ArrowRight) dropX += 300 * dt; if (g.taps.length) { dropX = g.ptr.x; drop(); } if (g.pressed.Space) drop();
-  if (g.auto) { botT -= dt; if (botT <= 0) { botT = .62; if (g.dumb()) dropX = 110 + rnd(-10, 10); else { const same = w.bodies.filter(b => b.data.tier === nextT).sort((a, b) => a.y - b.y)[0]; dropX = same ? same.x + rnd(-6, 6) : 270 + rnd(-90, 90); } drop(); } }
-  w.step(dt * 1.15); let hot = false; for (const b of w.bodies) if (b.y - b.r < TOP && g.t - b.data.born > 1.2 && Math.abs(b.vy) < 90) hot = true; over = hot ? over + dt : 0; if (over > 2.2) { sfx('hit'); g.end({ win: false, score: g.score, label: 'SCORE' }); }
-  g.hud.l = `${g.score}`; g.hud.r = `TIER ${maxTier + 1}/${S.winTier + 1}`; g.state = { bodies: w.bodies.length, tier: maxTier, score: g.score };
+  if (g.auto) { botT -= dt; if (botT <= 0) { botT = g.dumb() ? .25 : .55; if (g.dumb()) dropX = (dflip++ % 2) ? 450 : 90; else { const same = w.bodies.filter(b => b.data.tier === nextT).sort((a, b) => a.y - b.y)[0]; dropX = same ? same.x + rnd(-6, 6) : 270 + rnd(-90, 90); } drop(); } }
+  w.step(dt * 1.15); let hot = false; for (const b of w.bodies) if (b.y - b.r < TOP && g.t - b.data.born > 1.2 && Math.abs(b.vy) < 90) hot = true; over = hot ? over + dt : 0; if (left <= 0 && g.mode === 'play') { outT += dt; if (outT > 2.2) g.end({ win: false, score: g.score, label: 'SCORE' }); } if (over > 2.2) { sfx('hit'); g.end({ win: false, score: g.score, label: 'SCORE' }); }
+  g.hud.l = `${g.score}`; g.hud.r = `PETS ${left}`; g.state = { bodies: w.bodies.length, tier: maxTier, score: g.score };
 }
 const pet = (c, x, y, tier, rot = 0) => { const [r, col] = TIERS[tier]; c.save(); c.translate(x, y); c.rotate(rot); c.beginPath(); c.arc(0, 0, r, 0, 7); c.fillStyle = col; c.fill(); c.lineWidth = 4; c.strokeStyle = '#000'; c.stroke(); c.restore(); face(c, tier % 2 ? 'dog' : S.hero, x, y + r * .05, r * .85, col); };
 function draw(c) {

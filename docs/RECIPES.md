@@ -9,6 +9,11 @@
 
 If nothing matches, the generic 10 assets still apply: cats, dogs, crowds of people, cars+buses, houses+towers, small and big trees, a golden rare item, explosive barrels, a giant boss creature, a surprise cameo. Add the playbook entries for new archetypes in `presets/viral.json`.
 
+## The 24 one-screen recipes (classic + viral formats)
+`one-tap-reflex`, `daily-deduction`, `precision-platformer`, `cozy-farm`, `bullet-heaven`, `obby-gauntlet`, `rail-runner`, `ballistic-bouncer`, `grid-chaser`, `falling-blocks`, `merge-sandbox`, `arena-brawler`, `scrolling-shmup`, `run-and-gun`, `mini-metroidvania`, `footsies-duel`, `mini-zelda`, `turn-based-3v3`, `micro-tower-defense`, `kart-racer`, `card-roguelite`, `idle-tycoon`, `hide-and-seek`, `trajectory-artillery`, plus the four 3D viral recipes below. Catalog with titles, hooks, the 3-second rule and don't-build lists: `docs/RECIPES-CATALOG.md` (`gamepress recipes`). Rules every recipe follows: `docs/RECIPE-RULES.md`. Shared code: `docs/KIT.md`.
+
+Every one takes `style` (toon, roblox, comic, painted, pixel16, pixel8) and `hook`, and ships a bot that loses first, then wins: verify with `gamepress botcheck <id>` (`L9.2 W18.6`).
+
 ## Recipes: a whole game from a JSON spec
 
 `gamepress make <id> --recipe <name> --spec spec.json` writes the game, the hook-video plan and `meta.json`. Then `gamepress all <id> --track demo` tests, films, grades, lints and publishes. A small model only fills in the spec.

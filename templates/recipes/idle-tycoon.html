@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE idle-tycoon. ONE screen, ONE mechanic: tap the cat for fish, buy machines that make fish for you, hit the quota before the clock ends. 3-SECOND RULE: the big cat button = player, the clock = enemy, goal = reach the fish quota.
+  DON'T BUILD: prestige, more than 3 machines, offline progress, menus. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
+import { face, coin as coinS } from '../_vendor/gpsprites.js';
+const S = { title: 'CAT FACTORY', sub: 'Tap the cat. Buy machines.', hook: 'Make 1,000,000 fish', hero: 'cat', bg: '#1d3b5e', goal: 900, seconds: 24, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const MACH = [{ n: 'FISHING NET', base: 10, rate: 4, c: '#7ad7ff' }, { n: 'BOAT', base: 80, rate: 24, c: '#ffd34d' }, { n: 'FACTORY', base: 450, rate: 120, c: '#ff8a1f' }];
+let fish, total, lv, click, left, tapT, botT, lim, pulse, accum;
+const cost = i => Math.ceil(MACH[i].base * 1.15 ** lv[i]), rate = () => MACH.reduce((a, m, i) => a + m.rate * lv[i], 0), fmt = n => (n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e4 ? (n / 1e3).toFixed(1) + 'K' : Math.floor(n).toLocaleString());
+function init() { fish = 0; total = 0; lv = [0, 0, 0]; click = 2; lim = g.dumb() ? 7 : S.seconds; left = lim; tapT = 0; botT = .3; pulse = 0; accum = 0; g.score = 0; }
+g.onReset = init; init();
+const rect = i => ({ x: 24, y: 560 + i * 98, w: 492, h: 86 });
+function tap(x, y) { const dx = x - 270, dy = y - 330; if (dx * dx + dy * dy < 130 * 130) { fish += click; total += click; pulse = .15; sfx('pop', { pitch: 1 + Math.min(.6, tapT * .05), vol: .4 }); tapT = Math.min(12, tapT + 1); g.popup('+' + click, 270 + rnd(-60, 60), 230, '#fff', 34); g.burst(270 + rnd(-40, 40), 300, 3, { color: ['#7ad7ff', '#fff'], speed: 180, size: 7 }); return; }
+  for (let i = 0; i < 3; i++) { const r = rect(i); if (x > r.x && x < r.x + r.w && y > r.y && y < r.y + r.h) buy(i); } }
+function buy(i) { const c = cost(i); if (fish < c) return false; fish -= c; lv[i]++; sfx('powerup', { pitch: 1 + i * .15 }); g.flash(MACH[i].c, .25); g.burst(270, rect(i).y + 40, 14, { color: [MACH[i].c, '#fff'], speed: 320 }); g.popup(MACH[i].n + ' LV ' + lv[i], 270, rect(i).y, MACH[i].c, 32); if (i === 2 && lv[2] === 1) click += 4; return true; }
+function update(dt) {
+  if (g.mode !== 'play') return; left -= dt; tapT = Math.max(0, tapT - dt * 4); pulse = Math.max(0, pulse - dt); botT -= dt;
+  for (const tp of g.taps) tap(tp.x, tp.y); if (g.pressed.Space) tap(270, 330);
+  accum += rate() * dt; if (accum >= 1) { const n = Math.floor(accum); accum -= n; fish += n; total += n; if (n >= 1 && R() < .5) sfx('tick', { vol: .25, pitch: 1 + R() * .5 }); }
+  if (g.auto) { if (botT <= 0) { botT = g.dumb() ? .5 : .13; tap(270 + rnd(-30, 30), 330); if (!g.dumb()) { let bi = -1, br = 0; for (let i = 0; i < 3; i++) { const r = MACH[i].rate / cost(i); if (fish >= cost(i) && r > br) { br = r; bi = i; } } if (bi >= 0 && (fish >= cost(bi) * 1)) buy(bi); } } }
+  g.score = total; if (total >= S.goal) { g.end({ win: true, score: Math.round(total), label: 'FISH' }); g.burst(270, 330, 50, { color: ['#7ad7ff', '#ffd34d', '#fff'], speed: 480 }); } else if (left <= 0) g.end({ win: false, score: Math.round(total), label: 'FISH' });
+  g.hud.l = ''; g.state = { fish: Math.floor(fish), total: Math.floor(total), rate: rate(), left: Math.ceil(left) };
+}
+function draw(c) {
+  const gr = c.createLinearGradient(0, 0, 0, 960); gr.addColorStop(0, '#244a78'); gr.addColorStop(1, '#14283f'); c.fillStyle = gr; c.fillRect(0, 0, 540, 960);
+  g.text(fmt(fish), 270, 130, { size: 96, align: 'center', color: '#fff' }); g.text('FISH  +' + rate().toFixed(1) + '/s', 270, 175, { size: 30, align: 'center', color: '#7ad7ff', stroke: 4 });
+  g.bar(60, 195, 420, 18, total / S.goal, '#7dff7d'); g.text(`${fmt(total)} / ${fmt(S.goal)}`, 270, 240, { size: 26, align: 'center', stroke: 4 }); g.text(Math.max(0, Math.ceil(left)) + 's', 500, 60, { size: 40, align: 'right', color: left < 6 ? '#ff6b6b' : '#ffd34d' });
+  const s = 1 + pulse * 1.2; c.save(); c.translate(270, 340); c.scale(s, s); c.fillStyle = 'rgba(255,255,255,.12)'; c.beginPath(); c.arc(0, 0, 124, 0, 7); c.fill(); c.fillStyle = '#ff9a3c'; c.beginPath(); c.arc(0, 0, 104, 0, 7); c.fill(); c.lineWidth = 6; c.strokeStyle = '#000'; c.stroke(); c.restore(); face(c, S.hero, 270, 345, 80 * s, '#ff9a3c');
+  for (let i = 0; i < 3; i++) { const r = rect(i), m = MACH[i], can = fish >= cost(i); c.fillStyle = can ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.35)'; c.beginPath(); c.roundRect(r.x, r.y, r.w, r.h, 16); c.fill(); c.strokeStyle = can ? m.c : '#555'; c.lineWidth = 5; c.stroke();
+    c.fillStyle = m.c; c.beginPath(); c.roundRect(r.x + 12, r.y + 12, 60, 62, 10); c.fill(); c.lineWidth = 3; c.strokeStyle = '#000'; c.stroke(); if (lv[i]) { c.fillStyle = '#fff'; for (let k = 0; k < Math.min(lv[i], 5); k++) c.fillRect(r.x + 18 + k * 10, r.y + 20 + ((g.t * 30 + k * 8) % 40), 6, 6); }
+    g.text(m.n, r.x + 86, r.y + 38, { size: 30, color: '#1d2a3a', stroke: 0 }); g.text(`LV ${lv[i]}  +${m.rate}/s each`, r.x + 86, r.y + 70, { size: 22, color: '#4a5a70', stroke: 0 }); g.text(fmt(cost(i)), r.x + r.w - 16, r.y + 54, { size: 38, align: 'right', color: can ? '#1c8f4a' : '#999', stroke: 0 }); }
+}
+g.run(update, draw);
+</script></body></html>

@@ -109,7 +109,7 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
     st.result = { win, score, best }; window.__result = st.result; (window.__ends = window.__ends || []).push({ t: +(performance.now() / 1000).toFixed(1), win, score: Math.round(score), attempt: window.__ends?.length || 0 });
     if (shellOn && !CLEAN) show(`<div style="font-size:12vmin;color:${win ? '#7dff7d' : '#ff6b6b'}">${win ? 'YOU WIN' : 'GAME OVER'}</div><div style="margin-top:2vh">${label} <b style="color:#ffd34d">${score.toLocaleString()}</b></div><div style="font-size:3.6vmin;margin-top:1vh;font-family:system-ui,sans-serif">BEST ${best.toLocaleString()}</div><div style="font-size:3.6vmin;margin-top:4vh;font-family:system-ui,sans-serif;font-weight:800">tap or press any key to play again</div>`);
   };
-  st.isEnded = () => ended; st.endTick = dt => { if (ended) endT += dt; };
+  st.rearm = () => { ended = false; }; st.isEnded = () => ended; st.endTick = dt => { if (ended) endT += dt; };
   /** update(dt) runs at a fixed 1/60 s (scaled by slow-mo); render happens once per animation frame. */
   st.run = (update, pre) => {
     let last = 0, acc = 0, baseFov = camera.fov;

@@ -1,0 +1,45 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE card-roguelite. ONE screen, ONE mechanic: pick up to 5 cards, play a poker hand, chips x mult beats the blind. 3-SECOND RULE: your hand of cards = player, the target score and 3 hands = enemy, goal = beat the blind.
+  DON'T BUILD: a shop, more than a few jokers, a run map, menus. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, ri, shuffle, clamp } from '../_vendor/gp2d.js';
+import { face } from '../_vendor/gpsprites.js';
+const S = { title: 'CARD CATS', sub: 'Tap cards, then PLAY', hook: 'Beat the blind with 5 cards', hero: 'cat', bg: '#0f5a3a', target: 240, hands: 3, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const SUITS = [['♥', '#e63946'], ['♦', '#ff8a1f'], ['♣', '#2a2f3a'], ['♠', '#2a2f3a']], RANK = r => (r === 14 ? 'A' : r === 13 ? 'K' : r === 12 ? 'Q' : r === 11 ? 'J' : String(r)), CH = r => (r === 14 ? 11 : Math.min(10, r));
+const HANDS = [['High Card', 5, 1], ['Pair', 10, 2], ['Two Pair', 20, 2], ['Three of a Kind', 30, 3], ['Straight', 30, 4], ['Flush', 35, 4], ['Full House', 40, 4], ['Four of a Kind', 60, 7], ['Straight Flush', 100, 8]];
+function classify(cs) { const r = cs.map(c => c.r).sort((a, b) => a - b), cnt = {}; r.forEach(x => (cnt[x] = (cnt[x] || 0) + 1)); const v = Object.values(cnt).sort((a, b) => b - a), flush = cs.length === 5 && cs.every(c => c.s === cs[0].s), straight = cs.length === 5 && new Set(r).size === 5 && (r[4] - r[0] === 4 || (r.join() === '2,3,4,5,14'));
+  if (straight && flush) return 8; if (v[0] === 4) return 7; if (v[0] === 3 && v[1] === 2) return 6; if (flush) return 5; if (straight) return 4; if (v[0] === 3) return 3; if (v[0] === 2 && v[1] === 2) return 2; if (v[0] === 2) return 1; return 0; }
+const scoreOf = cs => { const h = classify(cs), [n, ch, m] = HANDS[h]; return { h, name: n, chips: ch + cs.reduce((a, c) => a + CH(c.r), 0), mult: m }; };
+let deck, hand, sel, handsLeft, total, phase, pt, tally, botT, tallyIdx;
+const draw1 = () => deck.pop();
+function init() { deck = shuffle(Array.from({ length: 52 }, (_, i) => ({ r: 2 + (i % 13), s: Math.floor(i / 13), id: i }))); hand = Array.from({ length: 8 }, draw1); sel = new Set(); handsLeft = g.dumb() ? 2 : S.hands; total = 0; phase = 'pick'; pt = 0; tally = null; botT = .8; tallyIdx = 0; g.score = 0; }
+g.onReset = init; init();
+const cardPos = i => ({ x: 28 + (i % 4) * 128, y: 300 + Math.floor(i / 4) * 190 + (sel.has(i) ? -26 : 0), w: 116, h: 160 });
+function bestPlay() { let best = null; const n = hand.length; for (let m = 1; m < 1 << n; m++) { let c = 0; for (let i = 0; i < n; i++) if (m >> i & 1) c++; if (c > 5) continue; const cs = []; for (let i = 0; i < n; i++) if (m >> i & 1) cs.push(hand[i]); const sc = scoreOf(cs), v = sc.chips * sc.mult; if (!best || v > best.v) best = { m, v }; } return best; }
+function play() { if (phase !== 'pick' || !sel.size) return; const idx = [...sel].sort((a, b) => a - b), cs = idx.map(i => hand[i]), sc = scoreOf(cs); tally = { idx, cs, sc, i: 0, chips: sc.chips - cs.reduce((a, c) => a + CH(c.r), 0), shown: 0 }; phase = 'tally'; pt = 0; handsLeft--; sfx('click'); }
+function update(dt) {
+  if (g.mode !== 'play') return; pt += dt; botT -= dt; const PB = g.btn('play', 170, 800, 200, 90, 'PLAY', { key: 'Enter' });
+  if (phase === 'pick') {
+    for (const tp of g.taps) hand.forEach((c, i) => { const p = cardPos(i); if (tp.x > p.x && tp.x < p.x + p.w && tp.y > p.y && tp.y < p.y + p.h) { if (sel.has(i)) sel.delete(i); else if (sel.size < 5) sel.add(i); sfx('click', { pitch: 1 + sel.size * .1 }); } });
+    if (PB.pressed) play();
+    if (g.auto && botT <= 0) { botT = .5; if (!sel.size) { if (g.dumb()) { sel.add(ri(0, 7)); } else { const b = bestPlay(); for (let i = 0; i < hand.length; i++) if (b.m >> i & 1) sel.add(i); sfx('click', { pitch: 1.5 }); } botT = .8; } else play(); }
+  } else if (phase === 'tally') {
+    const T = tally, step = .32; const k = Math.floor(pt / step);
+    if (k > T.shown && T.shown < T.cs.length) { const c = T.cs[T.shown], p = cardPos(T.idx[T.shown]); sfx('coin', { pitch: comboPitch(T.shown * 2), vol: .5 }); g.popup('+' + CH(c.r), p.x + 58, p.y - 10, '#7ad7ff', 34); g.burst(p.x + 58, p.y + 60, 4, { color: '#fff', speed: 150, size: 5 }); T.shown++; }
+    if (T.shown >= T.cs.length && pt > (T.cs.length + 1) * step && !T.done) { T.done = true; const v = T.sc.chips * T.sc.mult; total += v; g.score = total; sfx('powerup'); g.popup(`${T.sc.name}!  ${T.sc.chips} x ${T.sc.mult}`, 270, 250, '#ffd34d', 36); g.popup('+' + v, 270, 200, '#fff', 70); g.shake(Math.min(14, v / 25)); g.flash('#ffd34d', Math.min(.5, v / 400)); if (v > 120) g.hitstop(.08); }
+    if (T.done && pt > (T.cs.length + 1) * step + 1.0) { for (const i of T.idx) hand[i] = draw1(); sel = new Set(); tally = null; phase = 'pick'; pt = 0; botT = .6;
+      if (total >= S.target) { g.end({ win: true, score: total, label: 'SCORE' }); g.burst(270, 400, 50, { color: ['#ffd34d', '#fff', '#e63946'], speed: 480 }); } else if (handsLeft <= 0) g.end({ win: false, score: total, label: 'SCORE' }); }
+  }
+  g.hud.l = `${total}`; g.hud.r = `HANDS ${handsLeft}`; g.state = { total, hands: handsLeft, phase };
+}
+function draw(c) {
+  const gr = c.createRadialGradient(270, 480, 60, 270, 480, 700); gr.addColorStop(0, '#1b8a58'); gr.addColorStop(1, '#0a3a26'); c.fillStyle = gr; c.fillRect(0, 0, 540, 960);
+  g.text(`BLIND  ${S.target}`, 270, 150, { size: 48, align: 'center', color: '#ffd34d' }); g.bar(60, 170, 420, 22, total / S.target, total >= S.target ? '#7dff7d' : '#ffd34d'); face(c, S.hero, 40, 100, 26);
+  hand.forEach((cd, i) => { const p = cardPos(i), s = SUITS[cd.s], hot = tally && tally.idx.includes(i); c.save(); c.translate(p.x + p.w / 2, p.y + p.h / 2); if (hot && tally.idx.indexOf(i) < tally.shown) c.scale(1.08, 1.08); c.shadowColor = 'rgba(0,0,0,.4)'; c.shadowBlur = 14; c.fillStyle = sel.has(i) ? '#fff6c8' : '#fff'; c.beginPath(); c.roundRect(-p.w / 2, -p.h / 2, p.w, p.h, 12); c.fill(); c.shadowBlur = 0; c.lineWidth = sel.has(i) ? 6 : 3; c.strokeStyle = sel.has(i) ? '#ffd34d' : '#222'; c.stroke(); c.restore();
+    g.text(RANK(cd.r), p.x + 14, p.y + 42, { size: 40, color: s[1], stroke: 0 }); g.text(s[0], p.x + 14, p.y + 76, { size: 32, color: s[1], stroke: 0 }); face(c, S.hero, p.x + p.w / 2 + 8, p.y + p.h / 2 + 24, 22, ['#ff6a6a', '#ffb02a', '#9aa0aa', '#4a4f5a'][cd.s]); });
+  if (sel.size && phase === 'pick') { const sc = scoreOf([...sel].map(i => hand[i])); g.text(`${sc.name}   ${sc.chips} x ${sc.mult}`, 270, 270, { size: 36, align: 'center', color: '#fff' }); }
+  if (phase === 'tally' && tally.done) g.text(`${tally.sc.name}`, 270, 270, { size: 40, align: 'center', color: '#ffd34d' });
+}
+g.run(update, draw);
+</script></body></html>

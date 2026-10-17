@@ -5,13 +5,13 @@
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp, shuffle } from '../_vendor/gp2d.js';
 import { face } from '../_vendor/gpsprites.js';
 import { World } from '../_vendor/gpphys.js';
-const S = { title: 'CAT PEGGLE', sub: 'Aim and tap to fire', hook: 'One shot. 50 pegs.', hero: 'cat', bg: '#2a1650', peg: '#4aa8ff', target: '#ff8a1f', balls: 6, orange: 8, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'CAT PEGGLE', sub: 'Aim and tap to fire', hook: 'One shot. 50 pegs.', hero: 'cat', bg: '#2a1650', peg: '#4aa8ff', target: '#ff8a1f', balls: 6, orange: 6, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const CX = 270, CY = 100;
 let w, pegs, ball, aim, ballsLeft, streak, bucket, botT, shotT, trail, orange;
-const mkWorld = () => World({ gy: 1500, walls: { l: 1, r: 1, t: 1, b: 0 }, bounce: .66, damp: 1, y1: 960, sub: 3 });
+const mkWorld = () => World({ gy: 2100, walls: { l: 1, r: 1, t: 1, b: 0 }, bounce: .66, damp: 1, y1: 960, sub: 3 });
 function init() { w = mkWorld(); pegs = []; const pts = []; for (let r = 0; r < 7; r++) for (let c = 0; c < 7 - (r % 2); c++) pts.push({ x: 60 + c * 70 + (r % 2) * 35, y: 290 + r * 72 }); const keep = pts.filter(() => R() > .15), pick = new Set(shuffle(keep.map((_, i) => i)).slice(0, S.orange));
-  keep.forEach((q, i) => { const b = w.add({ x: q.x, y: q.y, r: 15, static: true, bounce: .66, data: { orange: pick.has(i), hit: false, fade: 0 } }); pegs.push(b); }); ball = null; aim = Math.PI / 2; ballsLeft = g.dumb() ? 3 : S.balls; streak = 0; bucket = { x: 270, d: 1 }; botT = .6; shotT = 0; trail = []; orange = S.orange; g.score = 0;
+  keep.forEach((q, i) => { const b = w.add({ x: q.x, y: q.y, r: 15, static: true, bounce: .66, data: { orange: pick.has(i), hit: false, fade: 0 } }); pegs.push(b); }); ball = null; aim = Math.PI / 2; ballsLeft = g.dumb() ? 2 : S.balls; streak = 0; bucket = { x: 270, d: 1 }; botT = .6; shotT = 0; trail = []; orange = S.orange; g.score = 0;
   w.onHit = (a, b2) => { const pg = a.static ? a : b2.static ? b2 : null; if (!pg || pg.data.hit) return; pg.data.hit = true; streak++; g.score += pg.data.orange ? 100 * streak : 10 * streak; sfx(pg.data.orange ? 'ding' : 'pop', { pitch: comboPitch(streak) }); g.burst(pg.x, pg.y, 6, { color: [pg.data.orange ? S.target : S.peg, '#fff'], speed: 160, size: 6 }); if (pg.data.orange) { orange--; g.popup('+' + 100 * streak, pg.x, pg.y - 20, '#ffd34d', 28); g.shake(3); } };
   w.onDrain = b => { if (b === ball) landed(b); }; }
 g.onReset = init; init();
@@ -19,8 +19,8 @@ function landed(b) { w.remove(b); const inB = Math.abs(b.x - bucket.x) < 70; bal
   for (const p of pegs.filter(p => p.data.hit)) { g.burst(p.x, p.y, 5, { color: S.peg, speed: 120, size: 5 }); w.remove(p); } pegs = pegs.filter(p => !p.data.hit); streak = 0; trail = [];
   if (orange <= 0) { g.end({ win: true, score: g.score, label: 'SCORE' }); g.burst(270, 400, 50, { color: ['#ffd34d', '#fff', S.target], speed: 460 }); } else if (ballsLeft <= 0) g.end({ win: false, score: g.score, label: 'SCORE' }); }
 function sim(a) { const sw = mkWorld(); for (const p of pegs) sw.add({ x: p.x, y: p.y, r: 15, static: true, bounce: .66, data: { o: p.data.orange } }); const seen = new Set(); let n = 0; sw.onHit = (x, y) => { const pg = x.static ? x : y.static ? y : null; if (pg && !seen.has(pg)) { seen.add(pg); n += pg.data.o ? 10 : 1; } };
-  const b = sw.add({ x: CX, y: CY, r: 11, vx: Math.cos(a) * 880, vy: Math.sin(a) * 880, bounce: .66, data: {} }); let drained = false; sw.onDrain = () => { drained = true; }; for (let i = 0; i < 200 && !drained; i++) sw.step(1 / 60); return n + (Math.abs(b.x - bucket.x) < 70 && drained ? 4 : 0); }
-function fire() { if (ball || ballsLeft <= 0 || g.mode !== 'play') return; ballsLeft--; streak = 0; ball = w.add({ x: CX + Math.cos(aim) * 44, y: CY + Math.sin(aim) * 44, r: 11, vx: Math.cos(aim) * 880, vy: Math.sin(aim) * 880, bounce: .66, data: {} }); shotT = 0; sfx('shoot'); g.shake(4); g.burst(CX + Math.cos(aim) * 44, CY + Math.sin(aim) * 44, 8, { color: ['#fff', '#ffd34d'], speed: 200, size: 5 }); }
+  const b = sw.add({ x: CX, y: CY, r: 11, vx: Math.cos(a) * 1050, vy: Math.sin(a) * 1050, bounce: .66, data: {} }); let drained = false; sw.onDrain = () => { drained = true; }; for (let i = 0; i < 200 && !drained; i++) sw.step(1 / 60); return n + (Math.abs(b.x - bucket.x) < 70 && drained ? 4 : 0); }
+function fire() { if (ball || ballsLeft <= 0 || g.mode !== 'play') return; ballsLeft--; streak = 0; ball = w.add({ x: CX + Math.cos(aim) * 44, y: CY + Math.sin(aim) * 44, r: 11, vx: Math.cos(aim) * 1050, vy: Math.sin(aim) * 1050, bounce: .66, data: {} }); shotT = 0; sfx('shoot'); g.shake(4); g.burst(CX + Math.cos(aim) * 44, CY + Math.sin(aim) * 44, 8, { color: ['#fff', '#ffd34d'], speed: 200, size: 5 }); }
 function update(dt) {
   if (g.mode !== 'play') return; bucket.x += bucket.d * 120 * dt; if (bucket.x > 450 || bucket.x < 90) bucket.d *= -1;
   if (g.ptr.down || g.taps.length) { if (g.ptr.y > CY + 20) aim = clamp(Math.atan2(g.ptr.y - CY, g.ptr.x - CX), .3, Math.PI - .3); }

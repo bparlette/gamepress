@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE turn-based-3v3. ONE screen, ONE mechanic: pick a move, type matchups decide the damage. 3-SECOND RULE: your 3 cats = player, 3 zombies = enemy, goal = faint all three.
+  DON'T BUILD: catching, items, more than 3 types, menus beyond the 3 move buttons. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, pick, clamp } from '../_vendor/gp2d.js';
+import { drawChar, face } from '../_vendor/gpsprites.js';
+const S = { title: 'PET BATTLE', sub: 'Tap a move. Pick the right type!', hook: '3 cats vs 3 zombies', hero: 'cat', foe: 'zombie', bg: '#7ad0ff', style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const TYPES = { fire: { c: '#ff6a2a', beats: 'grass' }, water: { c: '#3a8bff', beats: 'fire' }, grass: { c: '#4caf50', beats: 'water' } };
+const eff = (a, d) => (TYPES[a].beats === d ? 2 : TYPES[d].beats === a ? .5 : 1);
+let mine, theirs, mi, ti, phase, pt, log, botT, anim, turn;
+const mk = (type, i, side) => ({ type, hp: side ? 20 : 24, max: side ? 20 : 24, i, side });
+function init() { mine = ['fire', 'water', 'grass'].map((t, i) => { const m = mk(t, i, 0); if (g.dumb()) m.hp = m.max = 10; return m; }); theirs = (g.dumb() ? ['water', 'grass', 'fire'] : ['grass', 'fire', 'water']).map((t, i) => mk(t, i, 1)); mi = 0; ti = 0; phase = 'pick'; pt = 0; log = 'What will you do?'; botT = .7; anim = null; turn = 0; g.score = 0; }
+g.onReset = init; init();
+const A = () => mine[mi], B = () => theirs[ti];
+function choose() { const a = A(), b = B(); const out = []; out.push({ n: 'SCRATCH', type: a.type, pow: 10, acc: 1 }, { n: 'POUNCE', type: a.type, pow: 18, acc: .85 }, { n: 'GUARD', type: 'guard', pow: 0, acc: 1 }); return out; }
+function dmg(mv, att, def) { const e = eff(mv.type, def.type); return Math.max(1, Math.round(mv.pow * e * (R() < .1 ? 1.5 : 1))); }
+function doMove(att, def, mv, guarded, who) { anim = { who, t: 0 }; if (mv.type === 'guard') { att.guard = true; log = `${who ? 'Zombie' : 'Cat'} braces!`; sfx('click'); return; } if (R() > mv.acc) { log = 'It missed!'; sfx('whoosh'); return; } const e = eff(mv.type, def.type); let d = dmg(mv, att, def); if (def.guard) d = Math.ceil(d / 2); def.hp = Math.max(0, def.hp - d); def.fl = .3; sfx(e > 1 ? 'merge' : 'hit', { pitch: e > 1 ? 1.3 : e < 1 ? .7 : 1 }); g.hitstop(.06); g.shake(e > 1 ? 10 : 4); const px = who ? 150 : 390; g.burst(px, who ? 640 : 330, 10, { color: [TYPES[mv.type].c, '#fff'], speed: 260 }); g.popup('-' + d, px, who ? 560 : 260, e > 1 ? '#ffd34d' : '#fff', e > 1 ? 52 : 38); if (e > 1) { log = 'Super effective!'; g.flash('#fff', .4); g.score += 50; } else if (e < 1) log = 'Not very effective...'; else log = `${mv.n}!`; if (who === 0) g.score += d * 2; }
+function pickBot() { const a = A(), b = B(); const e = eff(a.type, b.type); if (g.dumb()) return 0 + (e < 1 ? 1 : 0) * 0; return e >= 1 ? 1 : 0; }
+function update(dt) {
+  if (g.mode !== 'play') return; pt += dt; if (anim) anim.t += dt; for (const x of [...mine, ...theirs]) x.fl = Math.max(0, (x.fl || 0) - dt);
+  const bs = choose().map((m, i) => g.btn('m' + i, 20 + i * 172, 800, 164, 110, m.n, { key: 'Digit' + (i + 1) })); let pick1 = bs.findIndex(b => b.pressed);
+  if (phase === 'pick') { if (g.auto) { botT -= dt; if (botT <= 0) pick1 = pickBot(); } if (pick1 >= 0) { turn++; const mvs = choose(), mv = mvs[pick1]; const emv = choose().map(m => ({ ...m, type: m.type === 'guard' ? 'guard' : B().type })); const em = pick(emv.slice(0, 2).concat(R() < .15 ? [emv[2]] : [])); A().guard = false; B().guard = false; phase = 'p'; pt = 0; log = `Cat uses ${mv.n}!`; A().pend = mv; B().pend = em; } }
+  else if (phase === 'p' && pt > .5) { const a = A(), b = B(); doMove(a, b, { ...a.pend, type: a.pend.type === 'guard' ? 'guard' : a.type }, false, 0); phase = 'pr'; pt = 0; }
+  else if (phase === 'pr' && pt > .6) { if (B().hp <= 0) { sfx('lose', { vol: .3, pitch: 1.4 }); log = 'The zombie fainted!'; g.burst(390, 330, 20, { color: ['#8fcf7a', '#fff'], speed: 300 }); ti++; if (ti >= 3) { g.score += 300; g.end({ win: true, score: g.score, label: 'SCORE' }); return; } phase = 'pick'; pt = 0; botT = .6; log = 'Next zombie!'; } else { phase = 'e'; pt = 0; log = 'Zombie attacks!'; } }
+  else if (phase === 'e' && pt > .5) { const a = A(), b = B(); doMove(b, a, { ...b.pend, type: b.pend.type === 'guard' ? 'guard' : b.type }, false, 1); phase = 'er'; pt = 0; }
+  else if (phase === 'er' && pt > .6) { if (A().hp <= 0) { log = 'Your cat fainted!'; g.burst(150, 640, 20, { color: ['#ff9a3c', '#fff'], speed: 300 }); mi++; if (mi >= 3) { g.end({ win: false, score: g.score, label: 'SCORE' }); return; } } phase = 'pick'; pt = 0; botT = .6; }
+  g.hud.l = `${g.score}`; g.state = { mi, ti, myhp: mine.map(x => x.hp), foehp: theirs.map(x => x.hp) };
+}
+function draw(c) {
+  const gr = c.createLinearGradient(0, 0, 0, 760); gr.addColorStop(0, '#7ad0ff'); gr.addColorStop(1, '#bfeaa0'); c.fillStyle = gr; c.fillRect(0, 0, 540, 760); c.fillStyle = '#6bbf59'; c.beginPath(); c.ellipse(390, 340, 150, 36, 0, 0, 7); c.fill(); c.beginPath(); c.ellipse(150, 650, 180, 44, 0, 0, 7); c.fill();
+  const bar = (x, y, f, who) => { c.fillStyle = 'rgba(255,255,255,.9)'; c.beginPath(); c.roundRect(x, y, 230, 54, 10); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 3; c.stroke(); g.text(who.type.toUpperCase(), x + 12, y + 24, { size: 20, color: TYPES[who.type].c, stroke: 0 }); g.bar(x + 12, y + 32, 206, 12, who.hp / who.max, who.hp / who.max > .5 ? '#4cd964' : who.hp / who.max > .25 ? '#ffcc00' : '#ff3b30'); };
+  const b = B(), a = A(); if (b && (b.hp > 0 || phase === 'pr')) { const lunge = anim && anim.who === 1 ? Math.sin(Math.min(1, anim.t / .4) * Math.PI) * -60 : 0; c.save(); if (b.fl > 0) c.globalAlpha = Math.floor(g.t * 30) % 2 ? .3 : 1; drawChar(S.foe, c, 390 + lunge, 350, 150, { dir: -1, t: g.t, anim: 'idle', color: b.type === 'grass' ? '#8fcf7a' : b.type === 'fire' ? '#e8946a' : '#7aa8e8', hurt: b.fl > 0 }); c.restore(); }
+  if (a && (a.hp > 0 || phase === 'er')) { const lunge = anim && anim.who === 0 ? Math.sin(Math.min(1, anim.t / .4) * Math.PI) * 70 : 0; c.save(); if (a.fl > 0) c.globalAlpha = Math.floor(g.t * 30) % 2 ? .3 : 1; drawChar('cat', c, 150 + lunge, 680, 190, { dir: 1, t: g.t, anim: 'idle', color: a.type === 'fire' ? '#ff9a3c' : a.type === 'water' ? '#7ab0ff' : '#9bd77a', hurt: a.fl > 0 }); c.restore(); }
+  if (b) bar(40, 90, 1, b); if (a) bar(270, 470, 1, a);
+  for (let i = 0; i < 3; i++) { c.globalAlpha = i < mi ? .25 : 1; face(c, S.hero, 40 + i * 46, 560, 16, ['#ff9a3c', '#7ab0ff', '#9bd77a'][i]); c.globalAlpha = i < ti ? .25 : 1; face(c, S.foe, 310 + i * 46, 190, 16); } c.globalAlpha = 1;
+  c.fillStyle = 'rgba(0,0,0,.65)'; c.beginPath(); c.roundRect(20, 730, 500, 56, 14); c.fill(); g.text(log, 270, 770, { size: 30, align: 'center', stroke: 0 });
+  if (a && B()) { const e = eff(a.type, B().type); if (phase === 'pick') g.text(e > 1 ? 'TYPE ADVANTAGE' : e < 1 ? 'TYPE DISADVANTAGE' : 'EVEN MATCH', 270, 960 - 24, { size: 24, align: 'center', color: e > 1 ? '#7dff7d' : e < 1 ? '#ff7a7a' : '#fff', stroke: 4 }); }
+}
+g.run(update, draw);
+</script></body></html>

@@ -1,0 +1,17 @@
+# The kit (`kit/` -> `<games>/_vendor/`)
+
+`gamepress make` copies the kit next to your games (`syncKit`), so every game imports `../_vendor/<file>.js`.
+
+| File | For | What it gives you |
+|---|---|---|
+| `gp2d.js` | 2D games | `createGame({id,title,sub,hook,bg,style})`: 540x960 canvas, fixed 1/60 step, touch + keys, `g.btn` on-screen buttons, juice (`hitstop slowmo shake flash popup burst tween showBanner`), title/pause/results/replay/best, 6 art styles, `?auto` bot hook (`g.dumb()`), `g.end({win,score})` (banner always visible), `window.__game`, `window.__ends`. Re-exports `gpmath` and `sfx`. |
+| `gpmath.js` | all | seeded `R rnd ri pick shuffle chance`, `clamp lerp dist ang smooth ease.*`, `aabb circ inRect`, `shade`, `tweens`. |
+| `gpaudio.js` | all | layered `sfx(type,{pitch,vol})` (jump coin hit boom shoot laser pop ding click merge powerup thud step whoosh meow bark groan win lose tick), `comboPitch(n)`. |
+| `gpsprites.js` | 2D | `cat dog zombie person` side-view characters (`drawChar(kind,...)`), `face`, `heart star coin ship`; style-aware outlines. |
+| `gpphys.js` | 2D | `World` (circles, gravity, walls, impulses: merge, peggle), `Terrain` (destructible heightfield: artillery), `moveBox` (tile platformer movement). |
+| `gpgrid.js` | 2D | `tileMap` (ASCII), `bfs`, `DIRS`, `manhattan`. |
+| `gp3d.js` | 3D | `createStage` (three.js r160, 6 styles incl. post-process), input, HUD, `st.shell/st.end/st.rearm`, juice, `st.cine` camera moves. |
+| `gpkit.js` | 3D | toon material, merged low-poly models (cat dog zombie person crowd tree house tower bus car barrel bench coin), instanced `crowd` with walk cycle, `hero`, `particles`, `sky`, `groundTex`. |
+| `gplego.js` | both | composable mechanic blocks for brand-new hybrids (`gamepress lego`). |
+
+Rules for kit changes: keep it dependency-free, deterministic, and backward compatible; run `gamepress botcheck` on a few recipes after touching it.

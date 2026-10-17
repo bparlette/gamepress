@@ -1,0 +1,39 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE trajectory-artillery. ONE screen, ONE mechanic: drag back to aim, release to fire a fish bomb across the wind; craters change the ground. 3-SECOND RULE: left cat = player, right zombie = enemy, goal = land a bomb on the zombie.
+  DON'T BUILD: a weapon menu, more than one weapon, teams, menus. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, clamp, dist } from '../_vendor/gp2d.js';
+import { drawChar, heart } from '../_vendor/gpsprites.js';
+import { Terrain } from '../_vendor/gpphys.js';
+const S = { title: 'CAT ARTILLERY', sub: 'Drag back to aim, release to fire', hook: 'Aim. Fire. Dig a crater.', hero: 'cat', foe: 'zombie', bg: '#8fd8ff', heroColor: '#ff9a3c', hp: 4, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const G = 900;
+let lastD, ter, a, b, shot, turn, wind, drag, botT, phaseT, foeErr, flights;
+const height = x => 650 + Math.sin(x * .012) * 40 + Math.sin(x * .031 + 1) * 24;
+function init() { ter = Terrain({ w: 540, h: 960, height }); a = { x: 90, hp: g.dumb() ? 1 : S.hp, t: 0 }; b = { x: 450, hp: 2, t: 0 }; shot = null; turn = 0; wind = rnd(-60, 60); drag = null; botT = .8; phaseT = 0; foeErr = g.dumb() ? 6 : 140; flights = 0; g.score = 0; }
+g.onReset = init; init();
+const gy = x => ter.y(x);
+function fire(who, vx, vy) {  shot = { x: (who ? b.x : a.x), y: gy(who ? b.x : a.x) - 60, vx, vy, who, t: 0, trail: [] }; sfx('shoot', { pitch: .6 }); g.shake(4); g.burst(shot.x, shot.y, 8, { color: ['#fff', '#ffd34d'], speed: 180 }); flights++; }
+function sim(vx, vy, from, target) { let x = from.x, y = gy(from.x) - 60; for (let t = 0; t < 5; t += 1 / 60) { vx += wind / 60; vy += G / 60; x += vx / 60; y += vy / 60; if (x < 0 || x > 540) return 9e8; if (y > 0 && ter.solid(x, y)) { return Math.hypot(x - target.x, y - (gy(target.x) - 30)); } } return 9e8; }
+function aimBot(from, target, err) { let best = null; for (let ang = 20; ang <= 78; ang += 1) for (let pw = 360; pw <= 900; pw += 6) { const dir = target.x > from.x ? 1 : -1, r = ang * Math.PI / 180, vx = Math.cos(r) * pw * dir, vy = -Math.sin(r) * pw, d = sim(vx, vy, from, target); if (!best || d < best.d) best = { d, vx, vy }; }  return { vx: best.vx + rnd(-err, err), vy: best.vy + rnd(-err, err) }; }
+function boom(x, y, who) { ter.carve(x, y, 46); sfx('boom'); g.shake(10); g.hitstop(.07); g.burst(x, y, 24, { color: ['#7a5a3a', '#ffd34d', '#fff'], speed: 380 }); const tgt = who ? a : b; const d = Math.hypot(x - tgt.x, y - (gy(tgt.x) - 30)); lastD = Math.round(d) + '@' + Math.round(x) + ',' + Math.round(y) + (who ? 'Z' : 'C'); if (d < 64) { tgt.hp--; tgt.fl = .4; sfx('hit'); g.flash('#fff', .4); g.popup('HIT!', tgt.x, gy(tgt.x) - 100, '#ffd34d', 56); g.burst(tgt.x, gy(tgt.x) - 30, 20, { color: [who ? S.heroColor : '#8fcf7a', '#fff'], speed: 360 }); g.score += who ? 0 : 200; if (tgt.hp <= 0) { if (who) { g.end({ win: false, score: g.score, label: 'SCORE' }); } else { g.slowmo(.35, 1); g.end({ win: true, score: g.score + 300, label: 'SCORE' }); } } } shot = null; turn = who ? 0 : 1; phaseT = 0; wind = clamp(wind + rnd(-30, 30), -80, 80); botT = .5; foeErr = Math.max(g.dumb() ? 6 : 45, foeErr - 20); }
+function update(dt) {
+  if (g.mode !== 'play') return; a.t += dt; b.t += dt; phaseT += dt; botT -= dt; if (a.fl) a.fl -= dt; if (b.fl) b.fl -= dt;
+  if (!shot && turn === 0) { for (const tp of g.taps) if (!drag) drag = { x: a.x, y: gy(a.x) - 40, px: tp.x, py: tp.y }; if (drag && !drag.bot && g.ptr.down) { drag.px = g.ptr.x; drag.py = g.ptr.y; } else if (drag && !drag.bot && !g.ptr.down) { const dx = drag.x - drag.px, dy = drag.y - drag.py, pw = Math.min(900, Math.hypot(dx, dy) * 3.2); if (pw > 120) fire(0, dx / Math.hypot(dx, dy) * pw, dy / Math.hypot(dx, dy) * pw); drag = null; }
+    if (g.auto && botT <= 0 && !shot) { botT = 9; const v = g.dumb() ? { vx: rnd(300, 500), vy: -rnd(100, 250) } : aimBot(a, b, 3); drag = { x: a.x, y: gy(a.x) - 40, px: a.x - v.vx / 3.2 * .6, py: gy(a.x) - 40 - v.vy / 3.2 * .6, bot: v }; g.sim.aim = true; setTimeout(() => {}, 0); phaseT = 0; drag.fireAt = .7; } if (drag && drag.bot && phaseT > drag.fireAt) { fire(0, drag.bot.vx, drag.bot.vy); drag = null; } }
+  if (!shot && turn === 1 && phaseT > 1.0 && !shot) { const v = aimBot(b, a, foeErr); fire(1, v.vx, v.vy); }
+  if (shot) { shot.t += dt; shot.vx += wind * dt; shot.vy += G * dt; shot.x += shot.vx * dt; shot.y += shot.vy * dt; shot.trail.push({ x: shot.x, y: shot.y }); if (shot.trail.length > 18) shot.trail.shift(); if (shot.x < -20 || shot.x > 560 || shot.y > 980) { shot = null; turn = turn ? 0 : 1; phaseT = 0; botT = .5; } else if (shot.y > 0 && ter.solid(shot.x, shot.y)) boom(shot.x, shot.y, shot.who); }
+  g.hud.l = `${g.score}`; g.state = { lastD, turn, wind: Math.round(wind), ahp: a.hp, bhp: b.hp, shots: flights };
+}
+function draw(c) {
+  const gr = c.createLinearGradient(0, 0, 0, 700); gr.addColorStop(0, '#6ec6ff'); gr.addColorStop(1, '#d8f1ff'); c.fillStyle = gr; c.fillRect(0, 0, 540, 960); c.fillStyle = '#fff'; for (let i = 0; i < 4; i++) { c.beginPath(); c.arc(80 + i * 140 + (g.t * 8) % 60, 150 + (i % 2) * 60, 36, 0, 7); c.arc(120 + i * 140 + (g.t * 8) % 60, 140 + (i % 2) * 60, 44, 0, 7); c.fill(); }
+  ter.draw(c); drawChar('cat', c, a.x, gy(a.x) + 4, 90, { color: S.heroColor, dir: 1, t: a.t, anim: 'idle', hurt: a.fl > 0 }); drawChar(S.foe, c, b.x, gy(b.x) + 4, 92, { dir: -1, t: b.t, anim: 'idle', hurt: b.fl > 0 });
+  c.save(); c.translate(a.x + 26, gy(a.x) - 40); c.rotate(drag ? Math.atan2(drag.y - drag.py, drag.x - drag.px) : -.8); c.fillStyle = '#555'; c.fillRect(0, -9, 44, 18); c.strokeStyle = '#000'; c.lineWidth = 3; c.strokeRect(0, -9, 44, 18); c.restore();
+  if (drag) { c.setLineDash([8, 10]); c.strokeStyle = 'rgba(255,255,255,.8)'; c.lineWidth = 4; c.beginPath(); c.moveTo(drag.px, drag.py); c.lineTo(drag.x, drag.y); c.stroke(); c.setLineDash([]); const dx = drag.x - drag.px, dy = drag.y - drag.py, pw = Math.min(900, Math.hypot(dx, dy) * 3.2), l = Math.hypot(dx, dy) || 1; let x = drag.x, y = drag.y, vx = dx / l * pw, vy = dy / l * pw; c.fillStyle = 'rgba(255,255,255,.7)'; for (let i = 0; i < 24; i++) { vx += wind / 60 * 3; vy += G / 60 * 3; x += vx / 60 * 3; y += vy / 60 * 3; c.beginPath(); c.arc(x, y, 4, 0, 7); c.fill(); } }
+  if (drag?.bot) { const v = drag.bot; let x = a.x, y = gy(a.x) - 60, vx = v.vx, vy = v.vy; c.fillStyle = 'rgba(255,255,255,.7)'; for (let i = 0; i < 20; i++) { vx += wind / 60 * 3; vy += G / 60 * 3; x += vx / 60 * 3; y += vy / 60 * 3; c.beginPath(); c.arc(x, y, 4, 0, 7); c.fill(); } }
+  if (shot) { for (let i = 0; i < shot.trail.length; i++) { c.globalAlpha = i / shot.trail.length * .6; c.fillStyle = '#fff'; c.beginPath(); c.arc(shot.trail[i].x, shot.trail[i].y, 7, 0, 7); c.fill(); } c.globalAlpha = 1; c.fillStyle = '#7ad7ff'; c.beginPath(); c.ellipse(shot.x, shot.y, 14, 8, Math.atan2(shot.vy, shot.vx), 0, 7); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 3; c.stroke(); }
+  for (let i = 0; i < a.hp; i++) heart(c, 40 + i * 40, 110, 30); for (let i = 0; i < b.hp; i++) heart(c, 500 - i * 40, 110, 30, '#8fcf7a');
+  g.text(`WIND ${wind < 0 ? '◀' : '▶'} ${Math.abs(Math.round(wind))}`, 270, 60, { size: 34, align: 'center', color: '#fff' }); g.text(turn === 0 ? (shot ? '' : 'YOUR TURN') : 'ZOMBIE TURN', 270, 110, { size: 28, align: 'center', color: turn ? '#ff7a7a' : '#7dff7d', stroke: 4 });
+}
+g.run(update, draw);
+</script></body></html>

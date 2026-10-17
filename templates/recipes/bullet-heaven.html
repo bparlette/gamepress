@@ -4,10 +4,10 @@
   DON'T BUILD: an upgrade menu (auto-pick), meta progression, maps. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, pick, clamp, dist } from '../_vendor/gp2d.js';
 import { drawChar, heart } from '../_vendor/gpsprites.js';
-const S = { title: 'ZOMBIE SURVIVORS', sub: 'Drag to move. Survive.', hook: '10,000 zombies vs one cat', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#5aa84a', seconds: 26, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'ZOMBIE SURVIVORS', sub: 'Drag to move. Survive.', hook: '10,000 zombies vs one cat', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#5aa84a', seconds: 16, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 let p, en, bl, gems, t0, fireT, kills, lvl, xp, joy, novaT, cam;
-function init() { p = { x: 0, y: 0, hp: 5, inv: 0, d: 1, t: 0, rate: .55, dmg: 1, multi: 1, mag: 90 }; en = []; bl = []; gems = []; t0 = 0; fireT = 0; kills = 0; lvl = 1; xp = 0; joy = null; novaT = 5; g.score = 0; cam = { x: 0, y: 0 }; }
+function init() { p = { x: 0, y: 0, hp: g.dumb() ? 1 : 5, inv: 0, d: 1, t: 0, rate: .55, dmg: 1, multi: 1, mag: 90 }; en = []; bl = []; gems = []; t0 = 0; fireT = 0; kills = 0; lvl = 1; xp = 0; joy = null; novaT = 5; g.score = 0; cam = { x: 0, y: 0 }; }
 g.onReset = init; init();
 const nearest = () => en.reduce((b, e) => (!b || dist(e, p) < dist(b, p) ? e : b), null);
 function hurt() { if (p.inv > 0) return; p.hp--; p.inv = 1; sfx('hit'); g.shake(10); g.hitstop(.05); g.flash('#ff3b3b', .3); if (p.hp <= 0) { g.burst(p.x, p.y, 26, { color: [S.heroColor, '#fff'], speed: 360 }); g.end({ win: false, score: kills, label: 'KILLS' }); } }
@@ -18,7 +18,7 @@ function update(dt) {
   if (g.auto && !g.dumb()) { let fx = 0, fy = 0; for (const e of en) { const d = dist(e, p); if (d < 260) { fx += (p.x - e.x) / (d * d) * 900; fy += (p.y - e.y) / (d * d) * 900; } } let tg = gems.filter(q => dist(q, p) < 220).sort((a, b) => dist(a, p) - dist(b, p))[0]; if (tg) { fx += (tg.x - p.x) / 300; fy += (tg.y - p.y) / 300; } const l = Math.hypot(fx, fy) || 1; if (l > .02) { mx = fx / l; my = fy / l; } else { mx = Math.cos(t0 * .7); my = Math.sin(t0 * .7); } }
   const l = Math.hypot(mx, my) || 1; if (mx || my) { p.x += mx / l * 210 * dt; p.y += my / l * 210 * dt; if (mx) p.d = mx > 0 ? 1 : -1; }
   const rate = Math.min(2.4, .5 + t0 * .09); const spawn = rate * (1 + t0 / 8) * dt * 4;
-  if (en.length < 160 && R() < spawn) { const a = rnd(0, 6.283), r = 560; en.push({ x: p.x + Math.cos(a) * r, y: p.y + Math.sin(a) * r, hp: t0 > 14 && R() < .15 ? 4 : 1 + (t0 > 8 && R() < .3 ? 1 : 0), sp: rnd(50, 80) + t0 * 1.2, t: rnd(0, 6) }); }
+  if (en.length < 160 && R() < spawn) { const a = rnd(0, 6.283), r = g.dumb() ? 300 : 440; en.push({ x: p.x + Math.cos(a) * r, y: p.y + Math.sin(a) * r, hp: t0 > 14 && R() < .15 ? 4 : 1 + (t0 > 8 && R() < .3 ? 1 : 0), sp: rnd(50, 80) + t0 * 1.2, t: rnd(0, 6) }); }
   if (fireT <= 0) { const n = nearest(); if (n) { fireT = p.rate; const a = Math.atan2(n.y - p.y, n.x - p.x); for (let i = 0; i < p.multi; i++) { const aa = a + (i - (p.multi - 1) / 2) * .22; bl.push({ x: p.x, y: p.y - 30, vx: Math.cos(aa) * 560, vy: Math.sin(aa) * 560, life: .9 }); } sfx('shoot', { vol: .5 }); } }
   for (const b of bl) { b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt; for (const e of en) if (e.hp > 0 && (e.x - b.x) ** 2 + (e.y - 30 - b.y) ** 2 < 900) { e.hp -= p.dmg; b.life = 0; e.fl = .1; sfx('pop', { vol: .4, pitch: 1 + R() * .3 }); if (e.hp <= 0) { kills++; g.score = kills; gems.push({ x: e.x, y: e.y }); g.burst(e.x, e.y - 30, 6, { color: ['#8fcf7a', '#4a8a3a', '#fff'], speed: 200, size: 7, life: .4 }); } break; } }
   bl = bl.filter(b => b.life > 0); en = en.filter(e => e.hp > 0);

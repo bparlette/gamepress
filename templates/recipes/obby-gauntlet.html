@@ -1,0 +1,40 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE obby-gauntlet. ONE course, ONE button: the cat auto-runs, tap to jump, drag to steer; gaps, a spinner and narrow beams stand between you and the flag. 3-SECOND RULE: cat = player, lava and spinning bar = enemy, goal = the golden flag.
+  DON'T BUILD: checkpoint menus, shops, more than 8 platforms, menus. Edit the SPEC JSON (gamepress make).*/
+import { createStage, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
+import { toon, catGeo, hero, particles, sky, groundTex } from '../_vendor/gpkit.js';
+const S = { title: 'CAT OBBY', sub: 'Tap to jump. Drag to steer.', hook: 'Beat the obby or rage quit', bg: 0x8fd3ff, skyTop: 0x3f8cff, skyBottom: 0xffe7b8, lava: 0xff4a1a, pad: 0x4aa8ff, catColor: 0xff9a3c, speed: 8, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const P = new URLSearchParams(location.search), AUTO = P.has('auto'), FAILFIRST = P.get('failfirst') !== '0';
+const st = createStage({ style: S.style, bg: S.bg, fitWidth: 9, fov: 55, fog: [60, 160] }); st.light(); sky(st.scene, S.skyTop, S.skyBottom, [90, 240]); const fx = particles(st.scene, 300);
+const lava = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshBasicMaterial({ color: S.lava })); lava.rotation.x = -Math.PI / 2; lava.position.set(0, -9, 60); st.scene.add(lava);
+// course: [z start, length, width, kind]
+const COURSE = [[0, 10, 6, 'pad'], [13, 8, 6, 'pad'], [25, 6, 4.5, 'pad'], [34, 14, 6.5, 'spin'], [51, 7, 2.2, 'beam'], [62, 6, 6, 'pad'], [72, 12, 6, 'goal']];
+const END = 80, cols = [S.pad, 0xffd34d, 0xff6b9a, 0x7dff7d];
+for (const [i, [z, len, w, k]] of COURSE.entries()) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, .6, len), toon(k === 'goal' ? 0xffd34d : cols[i % cols.length])); m.position.set(0, -.3, z + len / 2); st.scene.add(m); const e = new THREE.Mesh(new THREE.BoxGeometry(w + .1, .1, len + .1), new THREE.MeshBasicMaterial({ color: 0x111111 })); e.position.set(0, -.62, z + len / 2); st.scene.add(e); }
+const spinPivot = { x: -3.2, z: 38 }, BL = 7, bar = new THREE.Mesh(new THREE.BoxGeometry(BL, .5, .35), toon(0xe63946)); bar.position.set(spinPivot.x, .35, spinPivot.z); st.scene.add(bar); const post = new THREE.Mesh(new THREE.CylinderGeometry(.35, .35, .8, 10), toon(0x333)); post.position.set(spinPivot.x, .4, spinPivot.z); st.scene.add(post);
+const flag = new THREE.Group(); const pole = new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, 4, 6), toon(0xdddddd)); pole.position.y = 2; const cloth = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1), new THREE.MeshBasicMaterial({ color: 0xe63946, side: THREE.DoubleSide })); cloth.position.set(.8, 3.4, 0); flag.add(pole, cloth); flag.position.set(0, 0, END - 2); st.scene.add(flag);
+const cat = hero(catGeo(), S.catColor, .03); cat.scale.setScalar(1.25); st.scene.add(cat);
+let p, over, overT, attempt = 0, jumpBuf, botCd, spin, spinAng, dumb;
+const barHit = (x, z, ang) => { const bx = Math.cos(ang), bz = -Math.sin(ang), rx = x - spinPivot.x, rz = z - spinPivot.z, t = clamp(rx * bx + rz * bz, 0, BL); return Math.hypot(rx - bx * t, rz - bz * t) < .75; };
+const platAt = (x, z) => COURSE.find(([z0, len, w]) => z >= z0 && z <= z0 + len && Math.abs(x) <= w / 2 + .15);
+function init() { st.rearm(); p = { x: 0, y: 0, z: .5, vy: 0, vx: 0, air: false, t: 0 }; over = false; overT = 0; jumpBuf = 0; botCd = 0; spinAng = 0; dumb = AUTO && attempt === 0 && FAILFIRST; st.score = 0; }
+st.shell({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, onReset: () => { attempt++; init(); st.hud.banner('GO!', .7); } }); init();
+function lose(why) { if (over) return; over = true; overT = 0; sfx('lose'); st.shake(10); st.hitstop(.08); st.flash('#ff3b3b', .35); st.hud.banner(why, 2); st.end({ win: false, score: Math.round(p.z), label: 'METERS' }); fx.burst(14, { x: p.x, y: p.y + .5, z: p.z, size: .3, life: .7, color: S.catColor, g: 8 }, 5); }
+function update(dt) {
+  fx.update(dt); if (over) { overT += dt; if (AUTO && overT > 2.4 && !(window.__ends?.at(-1)?.win)) { attempt++; init(); st.hud.banner('GO!', .7); } return; } p.t += dt;
+  const k = st.keys; let steer = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0); if (st.ptr.down) steer = clamp(st.ptr.x * 2.2 - p.x * .5, -1, 1); if (k[' '] || k.arrowup || st.ptr.down && !p.held) jumpBuf = .12; p.held = st.ptr.down;
+  if (AUTO) { botCd -= dt; const ax = p.z + 2.0, plat = platAt(0, p.z + .6), nextGap = !platAt(0, p.z + 1.5) , cur = COURSE.find(c => p.z >= c[0] && p.z <= c[0] + c[1]); steer = clamp(-p.x * 1.5, -1, 1);
+    if (dumb) { steer = 0; } else { if (!p.air && nextGap && botCd <= 0) { jumpBuf = .1; botCd = .5; }
+      if (!p.air && botCd <= 0) for (let tt = .05; tt <= .5; tt += .05) { if (barHit(p.x, p.z + S.speed * tt, spinAng + 2.0 * tt)) { if (tt >= .1) { jumpBuf = .1; botCd = .9; } break; } } } }
+  jumpBuf -= dt; if (jumpBuf > 0 && !p.air) { p.vy = 11.5; p.air = true; jumpBuf = 0; sfx('jump'); fx.burst(5, { x: p.x, y: .1, z: p.z, size: .22, life: .4, color: 0xffffff, g: 3 }, 2); }
+  p.vx += (steer * 6 - p.vx) * Math.min(1, dt * 10); p.x += p.vx * dt; p.z += S.speed * dt; p.vy -= 30 * dt; p.y += p.vy * dt;
+  const plat = platAt(p.x, p.z); if (p.vy <= 0 && plat && p.y <= .05 && p.y >= -.9) { if (p.air) { sfx('step', { vol: .6 }); fx.burst(4, { x: p.x, y: .1, z: p.z, size: .2, life: .3, color: 0xffffff, g: 3 }, 2); } p.y = 0; p.vy = 0; p.air = false; } else if (!plat) p.air = true;
+  spinAng += dt * 2.0; bar.rotation.y = spinAng; bar.position.set(spinPivot.x + Math.cos(spinAng) * BL / 2, .35, spinPivot.z - Math.sin(spinAng) * BL / 2);
+  if (barHit(p.x, p.z, spinAng) && p.y < .75) lose('BONK!'); if (p.y < -7) lose('SPLASH!');
+  if (p.z >= END - 2) { over = true; overT = 0; st.score = 500; sfx('win'); st.hud.banner('FLAG!', 2); st.slowmo(.35, 1); st.flash('#fff', .5); fx.burst(40, { x: p.x, y: 2, z: p.z, size: .35, life: 1.2, color: 0xffd34d, g: 4 }, 9); st.end({ win: true, score: Math.round(p.z), label: 'METERS' }); }
+  st.hud.left(`<span style="color:#ffd34d">${Math.round(p.z)}m</span>`); st.hud.right(`${Math.max(0, END - Math.round(p.z))}m to go`); st.hud.hint('Tap: jump · drag: steer'); window.__game = { z: +p.z.toFixed(1), y: +p.y.toFixed(1), attempt, over };
+}
+function pre() { cat.position.set(p.x, p.y, p.z); cat.rotation.y = p.vx * .08; cat.rotation.x = p.air ? -p.vy * .02 : Math.sin(p.t * 16) * .05; cat.position.y += p.air ? 0 : Math.abs(Math.sin(p.t * 14)) * .08; st.camera.position.set(p.x * .5, 4.2, p.z - 7); st.camera.lookAt(p.x * .6, 1.2, p.z + 6); }
+st.run(update, pre);
+</script></body></html>

@@ -4,7 +4,7 @@
   DON'T BUILD: weapon shop, multiple ships, story, more than one boss. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp, dist } from '../_vendor/gp2d.js';
 import { ship, face, heart } from '../_vendor/gpsprites.js';
-const S = { title: 'CAT FIGHTER', sub: 'Drag to fly. It shoots for you.', hook: 'Dodge the bullet hell', pilot: 'cat', hull: '#4aa8ff', foe: 'zombie', bg: '#0b1030', bossAt: 11, bossHp: 34, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'CAT FIGHTER', sub: 'Drag to fly. It shoots for you.', hook: 'Dodge the bullet hell', pilot: 'cat', hull: '#4aa8ff', foe: 'zombie', bg: '#0b1030', bossAt: 8, bossHp: 22, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 let p, pb, en, eb, t0, fireT, wave, boss, stars, chain, chainT, bombs, botT;
 stars = Array.from({ length: 60 }, () => ({ x: rnd(0, 540), y: rnd(0, 960), s: rnd(.4, 1.6) }));
