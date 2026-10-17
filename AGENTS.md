@@ -8,7 +8,7 @@
 | demo | free web game on the GitHub Pages demo page only | `docs/tracks/demo.md` |
 | web-store | release on itch.io / CrazyGames / Steam / YouTube | `docs/tracks/web-store.md` |
 | roblox | the game is a Roblox experience | `docs/tracks/roblox.md` |
-**Least-AI path:** `gamepress doctor`, `gamepress ideate "<idea>"` (research + questions for the user), then `gamepress make <id> --recipe crowd-runner|hole-eater --spec spec.json` (docs/RECIPES.md), then `gamepress all <id> --track demo`. Only write game code when no recipe fits.
+**Zero-AI path:** `gamepress auto "<idea>" --track demo` (research is live by default). **Least-AI path:** `gamepress doctor`, `gamepress ideate "<idea>"` (research + questions for the user), then `gamepress make <id> --recipe crowd-runner|hole-eater --spec spec.json` (docs/RECIPES.md), then `gamepress all <id> --track demo`. Only write game code when no recipe fits.
 
 **Token-saving entry points:** `gamepress status <id> --json` (what is done/stale, what is next), `gamepress all <id> --track hook|demo|web-store` (runs only what is missing), `gamepress grade <id>` (quality score + exact fixes + 3 stills to look at). Paths: `--games`/`--catalog` or env `GP_GAMES`/`GP_CATALOG` or `gamepress.config.json`. Add `--json` to any command for machine output; errors are one line.
 

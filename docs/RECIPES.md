@@ -1,6 +1,8 @@
 # Research, ask, make: a game from an idea without writing code
 
-0. **Research:** `gamepress ideate "<idea>" [--live]` matches the idea to an archetype (eater, crowd, physics-launch, destruction, stack-climb, or generic) and prints known viral references, one-up twists, 10 recommended assets (`*` = not in the kit yet, build it with `build()` parts), search queries, and 3-5 questions. `--live` adds the top Shorts titles via yt-dlp. Saved to `research/<idea>.json`.
+**Zero-AI path:** `gamepress auto "<idea>" [--style comic] [--track hook|demo|web-store]` runs research, picks defaults, builds, tests, films and grades in one command (about 3 min). Add `--hook "text"`, `--title`, `--id` to override.
+
+0. **Research (live by default; `--offline` skips):** `gamepress ideate "<idea>"` matches the idea to an archetype (eater, crowd, physics-launch, destruction, stack-climb, or generic) and prints known viral references, one-up twists, 10 recommended assets (`*` = not in the kit yet, build it with `build()` parts), search queries, and 3-5 questions. Live mode pulls the top Shorts via yt-dlp and computes common words, number/vs/caps-title rates and inspiration titles (do not copy). Saved to `research/<idea>.json`.
 1. **Ask:** put the questions to the user (options + custom text where `custom: true`). Save answers as `{"theme":1,"mood":2,"seconds":0,"hook":"my own line","title":"My Game"}`.
 2. **Make:** `gamepress make <id> --recipe hole-eater --answers answers.json [--spec extra.json]` (answers become spec patches; an explicit spec wins).
 3. **Ship:** `gamepress all <id> --track demo`.

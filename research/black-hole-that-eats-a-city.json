@@ -12,8 +12,8 @@
     "Animals and people RUN AWAY and scream (done: cats, dogs, crowds flee)",
     "Size tiers with named banners, ending on skyscrapers",
     "A giant cat and giant dog that only fit late",
-    "Rare golden objects worth 10x",
-    "Chain reaction: eating a gas truck pops nearby cars (not built yet)",
+    "Golden cats worth 14x that run faster (done)",
+    "Explosive barrels: eating one blasts everything nearby into the hole (done)",
     "Rival hole that eats you if you are smaller (not built yet)",
     "Add a named escalation ('NOW EATING BUSES') so the viewer waits for the next tier",
     "Hide one absurdly big final object that only fits at the end",
@@ -54,12 +54,12 @@
     },
     {
       "id": "golden-rare-item",
-      "have": false,
+      "have": true,
       "why": "one shiny rare object per screen = a chase goal and a thumbnail"
     },
     {
       "id": "explosive-barrel",
-      "have": false,
+      "have": true,
       "why": "chain reactions are the most replayed moments"
     },
     {
@@ -131,6 +131,46 @@
               "people",
               "car"
             ]
+          }
+        }
+      ],
+      "default": 0
+    },
+    {
+      "id": "style",
+      "ask": "Art style?",
+      "options": [
+        {
+          "label": "Cartoon toon (default)"
+        },
+        {
+          "label": "Roblox: blocky plastic",
+          "spec": {
+            "style": "roblox"
+          }
+        },
+        {
+          "label": "Comic book: ink lines + halftone",
+          "spec": {
+            "style": "comic"
+          }
+        },
+        {
+          "label": "Painted: brush-stroke look",
+          "spec": {
+            "style": "painted"
+          }
+        },
+        {
+          "label": "16-bit retro",
+          "spec": {
+            "style": "pixel16"
+          }
+        },
+        {
+          "label": "8-bit retro",
+          "spec": {
+            "style": "pixel8"
           }
         }
       ],
@@ -213,5 +253,71 @@
       "default": 0
     }
   ],
-  "next": "ask the user the questions (offer the options, allow custom text for custom:true), save answers as {id: optionIndex | \"text\"}, then: gamepress make <id> --recipe hole-eater --answers answers.json"
+  "next": "ask the user the questions (offer the options, allow custom text for custom:true), save answers as {id: optionIndex | \"text\"}, then: gamepress make <id> --recipe hole-eater --answers answers.json",
+  "live": {
+    "top": [
+      {
+        "views": 41345,
+        "title": "HOLEIN. Black hole eat city and eat farm"
+      },
+      {
+        "views": 943,
+        "title": "Hole.io with Crazy Impossible Shots! 😱#shorts #gamingshorts #viralshorts #trending #fyp"
+      },
+      {
+        "views": 822,
+        "title": "Hole.io | swallowed whole city | black hole | eat earth #shorts #gaming #gameplay"
+      },
+      {
+        "views": 349,
+        "title": "Teardown - Black Hole Eats Mini Cyberpunk City (QHD 60fps)"
+      },
+      {
+        "views": 289,
+        "title": "Hole.io | Hole io game play | Android game play | ATE THE WHOLE CITY 😱🔥 #shorts"
+      },
+      {
+        "views": 288,
+        "title": "Black Hole eats city Animation"
+      },
+      {
+        "views": 270,
+        "title": "Hole.io | Hole io game play | Android game play | ATE THE WHOLE CITY 😱🔥 #shorts"
+      },
+      {
+        "views": 161,
+        "title": "Can I Eat the ENTIRE City? 🏙️🕳️ Hole.io #shorts"
+      },
+      {
+        "views": 158,
+        "title": "Black Hole eats my world"
+      },
+      {
+        "views": 125,
+        "title": "Hole.io | I ATE THE WHOLE CITY | EAT BIG TOWER | BLACK HOLE😱🔥 #shorts"
+      }
+    ],
+    "todo": "the insights below were computed from these titles; override only if you disagree",
+    "insights": {
+      "commonWords": [
+        "hole",
+        "city",
+        "black",
+        "eat",
+        "whole",
+        "eats",
+        "ate",
+        "game"
+      ],
+      "titlesWithNumber": "1/10",
+      "titlesWithVs": "0/10",
+      "titlesWithCapsWord": "5/10",
+      "avgViewsTop": 4475
+    },
+    "suggestedHooks": [
+      "HOLEIN. Black hole eat city and eat farm",
+      "Hole.io with Crazy Impossible Shots! 😱",
+      "Hole.io | swallowed whole city | black hole | eat earth"
+    ]
+  }
 }
