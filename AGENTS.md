@@ -25,3 +25,4 @@ Run everything from this repo's root. Requirements: `docs/TOOLING.md`. Never log
 - Videos 12 to 25 s, 1080x1920, caption hook at t=0, CTA only in the last 5 s. Titles state a payoff; never "trailer" (`docs/VIRAL-PLAYBOOK.md`).
 - Tune with `window.__game` numbers, not by eye. Use `--quick` while iterating; full render once.
 - Commit small; `git pull --rebase` before push; no secrets, no personal paths (public repos).
+- Roblox games: `docs/ROBLOX.md` (`gamepress roblox <place.rbxl> --universe N --place N`, dry run by default). Needs the owner's `ROBLOX_API_KEY`.

@@ -6,6 +6,8 @@
 //   gamepress drive <plan.json> [--out dir] frame-locked scripted playthrough of a web game -> captioned MP4 with audio
 //   gamepress catalog <games.json> --id x --title "X" --category "Y" --path g/x/index.html [--still shot.jpg] [--orientation portrait]
 //                                           add/update a game on a demo page catalog and build its thumbnail
+//   gamepress roblox <file.rbxl> --universe N --place N [--type Published|Saved] [--rojo project.json] [--live]
+//                                           publish a Roblox place via Open Cloud (dry run unless --live)
 //   gamepress scenes <video> [--count 12]   any game: pull the best stills and clips out of a screen recording
 //   gamepress pack [--platforms steam,itch,crazygames,social] [--focus 0.5,0.4]
 //                                           crop/scale/encode everything each store needs -> press/out/<platform>
@@ -26,6 +28,7 @@ import { fileURLToPath } from 'node:url';
 import { drive } from '../lib/drive.mjs';
 import { catalogCommand } from '../lib/catalog.mjs';
 import { research, scaffold, testGame, bundle, publishPack } from '../lib/tasks.mjs';
+import { publishRoblox } from '../lib/roblox.mjs';
 import * as hosts from '../lib/hosts/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -292,5 +295,6 @@ function die(msg) { console.error(msg); process.exit(1); }
   bundle: () => console.log(bundle(positional[0] || die('usage: gamepress bundle <game dir> [--out dist]'), flag('out', 'dist'))),
   'publish-pack': () => console.log(JSON.stringify(publishPack(positional[0] || die('usage: gamepress publish-pack <id> --games <dir>'), { gamesDir: flag('games'), videoDir: flag('video', 'press/video') }), null, 1)),
   host: () => hosts[positional[0]]?.upload(JSON.parse(readFileSync(join(flag('dir', 'publish'), positional[1] || die('usage: gamepress host <itch|crazygames|steam|youtube> <id>'), 'manifest.json'), 'utf8')), { dryRun: !argv.includes('--live') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die(e.message)) || die('unknown host'),
+  roblox: () => publishRoblox({ file: positional[0], universeId: flag('universe'), placeId: flag('place'), versionType: flag('type', 'Published'), rojoProject: flag('rojo'), live: argv.includes('--live') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die('roblox: ' + e.message)),
   drive: () => drive(positional[0] || die('usage: gamepress drive <plan.json>'), { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false }).catch(e => die('drive failed: ' + e.message)), scenes: () => scenes(positional[0]), pack, check }[cmd] ||
-  (() => die('usage: gamepress research | new | test | bundle | publish-pack | host | init | capture <plan.json> | drive <plan.json> | catalog <games.json> | scenes <video> | pack | check   (options: --dir press, --platforms steam,itch, --focus 0.5,0.4)')))();
+  (() => die('usage: gamepress roblox <place.rbxl> --universe N --place N [--live] | research | new | test | bundle | publish-pack | host | init | capture <plan.json> | drive <plan.json> | catalog <games.json> | scenes <video> | pack | check   (options: --dir press, --platforms steam,itch, --focus 0.5,0.4)')))();
