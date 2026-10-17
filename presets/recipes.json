@@ -42,6 +42,12 @@
         "escalation": "Speed +5% per pipe, gap shrinks, pitch rises",
         "climax": "Freeze on near miss, mega chime on high score",
         "personality": "Cocky speedrunner who trash-talks the pipes, then threads them perfectly"
+      },
+      "feel": {
+        "use": [
+          "characterStep"
+        ],
+        "why": "Single-input games live or die on zero-latency forgiveness: input buffering is the whole game."
       }
     },
     {
@@ -85,6 +91,12 @@
         "escalation": "Timer ticks, tiles flip with mechanical clack",
         "climax": "Green ripple wave, synth bloom",
         "personality": "Smug word nerd who types a joke answer first, backspaces dramatically, then nails it"
+      },
+      "feel": {
+        "use": [
+          "VirtualAPU"
+        ],
+        "why": "Letter-tile clacks and win chimes define the tactile feel of a word game."
       }
     },
     {
@@ -128,6 +140,13 @@
         "escalation": "Hazards pulse red, parallax speeds up",
         "climax": "Micro-pause on landing, bass thud + dust",
         "personality": "Showoff who does unnecessary flips before every jump and lands them all"
+      },
+      "feel": {
+        "use": [
+          "characterStep",
+          "MARIO_PHYSICS"
+        ],
+        "why": "Platforming lives or dies on jump feel: coyote time, jump buffering, and 4x sub-stepping make every jump fair."
       }
     },
     {
@@ -171,6 +190,12 @@
         "escalation": "+10/+20/+50 coin cascades, pentatonic pop sounds",
         "climax": "Golden border glow, cash register ding",
         "personality": "Chaotic harvest goblin \u2014 grabs everything, spins in circles, pure joy"
+      },
+      "feel": {
+        "use": [
+          "VirtualAPU"
+        ],
+        "why": "Harvest pops and coin chimes need authentic retro envelopes to feel deeply satisfying."
       }
     },
     {
@@ -214,6 +239,13 @@
         "escalation": "XP gems vacuum in, level-up banner flashes",
         "climax": "Screen-wide shockwave, chromatic glitch",
         "personality": "Calm under pressure, stands still way too long, then unleashes hell"
+      },
+      "feel": {
+        "use": [
+          "DeterministicRNG",
+          "makeFSM"
+        ],
+        "why": "Thousands of enemies from simple deterministic rules; seeded so runs are replayable."
       }
     },
     {
@@ -257,6 +289,13 @@
         "escalation": "Tiles turn red and drop, speed lines warp",
         "climax": "Confetti blast, horn + slow-mo",
         "personality": "Rage-prone but stubborn \u2014 eats dirt on attempt 0, then speedruns like nothing happened"
+      },
+      "feel": {
+        "use": [
+          "characterStep",
+          "MARIO_PHYSICS"
+        ],
+        "why": "Precision jumps demand forgiving input: coyote time and buffering turn rage-quits into near-miss replays."
       }
     },
     {
@@ -300,6 +339,13 @@
         "escalation": "Multiplier 2x to 32x, track tightens",
         "climax": "Magnet vacuums 200 coins, ascending arpeggios",
         "personality": "Reckless daredevil who grinds rails they had no business grinding"
+      },
+      "feel": {
+        "use": [
+          "characterStep",
+          "MARIO_PHYSICS"
+        ],
+        "why": "Lane changes at speed need sub-frame collision and snappy direction flips without tunneling."
       }
     },
     {
@@ -343,6 +389,13 @@
         "escalation": "Hit pitch ascends, camera tracks ball",
         "climax": "Ode to Joy brass, rainbow explosion",
         "personality": "Pool shark energy \u2014 calls the shot, banks it off three bumpers, sinks it"
+      },
+      "feel": {
+        "use": [
+          "DeterministicRNG",
+          "characterStep"
+        ],
+        "why": "High-velocity balls need sub-frame collision to prevent tunneling through pegs."
       }
     },
     {
@@ -386,6 +439,12 @@
         "escalation": "Ghost blue flash, siren doubles, multipliers stack",
         "climax": "Crunch chomp, eyes zip to cage",
         "personality": "Greedy little ghost-eater who baits chases just to turn the tables"
+      },
+      "feel": {
+        "use": [
+          "makeFSM"
+        ],
+        "why": "Ghost AI is pure state machines: scatter, chase, frightened, eaten \u2014 Pac-Man Dossier patterns."
       }
     },
     {
@@ -429,6 +488,12 @@
         "escalation": "Garbage rises, laser ghost trail",
         "climax": "Heavy shake on Tetris, synth chord",
         "personality": "Speed demon, hard-drops everything, no hesitation, no regrets"
+      },
+      "feel": {
+        "use": [
+          "DeterministicRNG"
+        ],
+        "why": "The bag-of-7 piece shuffle must be seeded so every run is fair and replayable."
       }
     },
     {
@@ -472,6 +537,12 @@
         "escalation": "Siren pulses red, items wobble",
         "climax": "Mega fusion, rainbow burst",
         "personality": "Mad scientist, drops things in weird spots just to watch the chaos unfold"
+      },
+      "feel": {
+        "use": [
+          "VirtualAPU"
+        ],
+        "why": "Merge pops should climb in pitch with authentic pulse-wave envelopes."
       }
     },
     {
@@ -515,6 +586,12 @@
         "escalation": "Hit-stop scales 2-6 frames, damage digits spray",
         "climax": "Inverted flash, KO gong",
         "personality": "Street brawler with main-character energy \u2014 parries with a smirk, juggles for style points"
+      },
+      "feel": {
+        "use": [
+          "DeterministicRNG"
+        ],
+        "why": "Enemy wave spawns and hit timings must be seeded for deterministic bot runs."
       }
     },
     {
@@ -558,6 +635,12 @@
         "escalation": "Boss HP chunks, graze counter ticks",
         "climax": "Boss split explosion, deep rumble",
         "personality": "Bullet-grazer who lives for the 2-pixel dodge and shows off doing it"
+      },
+      "feel": {
+        "use": [
+          "DeterministicRNG"
+        ],
+        "why": "Bullet patterns and enemy spawns must be reproducible for bot replays and botcheck."
       }
     },
     {
@@ -601,6 +684,13 @@
         "escalation": "Scroll speeds up, fire rate ramps",
         "climax": "Plating shatters, cascading fireballs",
         "personality": "Action hero who somersaults over missiles they could have just walked around"
+      },
+      "feel": {
+        "use": [
+          "characterStep",
+          "updateCamera"
+        ],
+        "why": "Run-and-gun needs responsive movement and a camera that keeps threats on screen."
       }
     },
     {
@@ -644,6 +734,13 @@
         "escalation": "Upgrade banner slides, bars expand",
         "climax": "Fanfare, aura color change",
         "personality": "Curious explorer who gasps at every upgrade like it is Christmas morning"
+      },
+      "feel": {
+        "use": [
+          "characterStep",
+          "updateCamera"
+        ],
+        "why": "Exploration needs tight movement plus a camera that never loses the player behind walls."
       }
     },
     {
@@ -687,6 +784,12 @@
         "escalation": "10-frame freeze on connect, zoom crop",
         "climax": "K.O. slam, bass boom + silence",
         "personality": "Ice-cold duelist who baits whiffs with a taunt, then punishes in one frame"
+      },
+      "feel": {
+        "use": [
+          "characterStep"
+        ],
+        "why": "Frame-perfect punishes need buffered inputs so near-misses feel fair, not dropped."
       }
     },
     {
@@ -730,6 +833,12 @@
         "escalation": "Walls drop, heart beeps",
         "climax": "Discovery chime, chest beam",
         "personality": "Heroic doofus who dodge-rolls into walls before finding the actual solution"
+      },
+      "feel": {
+        "use": [
+          "makeFSM"
+        ],
+        "why": "Enemy and boss behaviors are clean deterministic state machines; transitions drive squash-and-stretch juice."
       }
     },
     {
@@ -773,6 +882,12 @@
         "escalation": "Turn timeline highlights, damage cascades",
         "climax": "Dynamic camera, elemental burst",
         "personality": "Dramatic tactician who saves the ultimate for the most cinematic possible moment"
+      },
+      "feel": {
+        "use": [
+          "makeFSM"
+        ],
+        "why": "Turn logic, status effects, and ability triggers map naturally to explicit states."
       }
     },
     {
@@ -816,6 +931,13 @@
         "escalation": "Pop counter 60/sec, pitch climbs",
         "climax": "Screen clears, gem burst",
         "personality": "Tower baron who places the perfect tower at the last possible second, every time"
+      },
+      "feel": {
+        "use": [
+          "DeterministicRNG",
+          "makeFSM"
+        ],
+        "why": "Wave composition seeded for fairness; creep behaviors as simple state machines."
       }
     },
     {
@@ -859,6 +981,13 @@
         "escalation": "Drift sparks blue\u2192purple, wind FX",
         "climax": "Checkered flag, crowd roar",
         "personality": "Dirty racer \u2014 bumps, drafts, cuts corners, wins by a pixel with a smirk"
+      },
+      "feel": {
+        "use": [
+          "characterStep",
+          "updateCamera"
+        ],
+        "why": "Kart feel is all about drift: directional flip deceleration tuned for vehicles, plus a chase cam."
       }
     },
     {
@@ -902,6 +1031,12 @@
         "escalation": "Mult x2\u2192x64, chip flames brighten",
         "climax": "Fire from score counter, goal shatters",
         "personality": "High-roller who slow-plays the winning hand just to watch the mult counter explode"
+      },
+      "feel": {
+        "use": [
+          "VirtualAPU"
+        ],
+        "why": "Card flips and mult explosions need crisp retro blips with proper ADSR."
       }
     },
     {
@@ -945,6 +1080,12 @@
         "escalation": "Digits 1e12\u21921e18, counter blur",
         "climax": "Cash rain, ascending chimes",
         "personality": "Unhinged capitalist who slams the 10x button and cackles as numbers go vertical"
+      },
+      "feel": {
+        "use": [
+          "VirtualAPU"
+        ],
+        "why": "Number-go-up needs layered cash-register chimes with voice-stealing SFX priority."
       }
     },
     {
@@ -988,6 +1129,13 @@
         "escalation": "Heartbeat quickens, red vignette",
         "climax": "ESCAPED stamp, slide-whistle",
         "personality": "Mischievous shapeshifter who waves at the seeker right before vanishing"
+      },
+      "feel": {
+        "use": [
+          "DeterministicRNG",
+          "makeFSM"
+        ],
+        "why": "Seeker patrol and suspicion states are FSMs; seeded spawns keep rounds fair."
       }
     },
     {
@@ -1031,6 +1179,13 @@
         "escalation": "Trajectory dots calculate, camera tracks",
         "climax": "Terrain craters, enemy flies off",
         "personality": "Physics gremlin who celebrates a lucky bounce like it was all skill"
+      },
+      "feel": {
+        "use": [
+          "DeterministicRNG",
+          "characterStep"
+        ],
+        "why": "Fast projectiles need 4x sub-stepping; seeded wind keeps replays consistent."
       }
     }
   ]
