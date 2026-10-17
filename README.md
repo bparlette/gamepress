@@ -17,6 +17,8 @@ gamepress research|new|test|bundle|publish-pack|host   # AI pipeline: see AGENTS
 
 > **AI agents: start at [`AGENTS.md`](AGENTS.md).** On the owner's Mac this repo is at `~/.gemini/antigravity/scratch/gamepress`; AGENTS.md lists the other local paths (games clone, videos, Roblox files, keychain item names). It drives research, build, test, film, package and the hosting hand-off.
 
+> **Tracks:** shared tools, `demo` (browser demo page only), `web-store` (itch.io / CrazyGames / Steam / YouTube), `roblox`. Run `node bin/gamepress.mjs tracks` or see `tracks.json`.
+
 > This repo is intended to be renamed `tools`. Nothing in it depends on the name; all paths are relative.
 
 Run from your game's folder; everything lives in `./press` (`--dir` changes it).

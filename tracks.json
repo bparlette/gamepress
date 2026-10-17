@@ -1,0 +1,26 @@
+{
+  "_note": "Machine-readable map of gamepress. An AI picks a track, reads its doc, runs its steps. Shared tools serve every track.",
+  "shared": {
+    "doc": "docs/tracks/shared.md",
+    "tools": ["research", "new", "test", "drive", "scenes", "pack", "check", "bundle", "catalog"],
+    "purpose": "Research, build/scaffold, headless test, scripted gameplay video, store images."
+  },
+  "demo": {
+    "doc": "docs/tracks/demo.md",
+    "tools": ["publish-demo"],
+    "needs": "git push access to the demo-page repo; no accounts or keys",
+    "purpose": "Local/browser-only demo page (GitHub Pages): free playable web games with thumbnails, search, no store."
+  },
+  "web-store": {
+    "doc": "docs/tracks/web-store.md",
+    "tools": ["publish-pack", "host itch|crazygames|steam|youtube"],
+    "needs": "itch butler key, CrazyGames portal login, Steamworks app ($100), YouTube OAuth: owner-provided, other agent implements uploads",
+    "purpose": "Web build (HTML5) for itch.io and CrazyGames, desktop wrap + store page for Steam, Shorts on YouTube."
+  },
+  "roblox": {
+    "doc": "docs/tracks/roblox.md",
+    "tools": ["roblox", "roblox-test", "roblox-ship", "scripts/roblox-key.sh"],
+    "needs": "Open Cloud API key in macOS Keychain (scopes: universe.place.write, luau-execution-session), universe + place ids",
+    "purpose": "Roblox experiences: build in Studio, headless Luau tests, safe publish, retention audit."
+  }
+}

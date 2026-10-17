@@ -1,5 +1,14 @@
 # AGENTS.md: point an AI here to ship a viral game demo
 
+## Pick a track first (`node bin/gamepress.mjs tracks` or read `tracks.json`)
+| Track | Use when | Read |
+|---|---|---|
+| shared | always: research, build, test, film, images | `docs/tracks/shared.md` |
+| demo | free web game on the GitHub Pages demo page only | `docs/tracks/demo.md` |
+| web-store | release on itch.io / CrazyGames / Steam / YouTube | `docs/tracks/web-store.md` |
+| roblox | the game is a Roblox experience | `docs/tracks/roblox.md` |
+The 11-step pipeline below is the web path (shared + demo + web-store). Roblox follows its own track doc.
+
 Goal: research a concept, build a one-screen web game that looks as good as the Hawk showpieces (Roadkill Rig, Cinema City, Shell Shock 3D),
 test it, drive it into a viral vertical video + store images, and package everything for hosting on itch.io, CrazyGames, Steam and YouTube.
 Run everything from this repo's root. Requirements: `docs/TOOLING.md`. Never log in to accounts or commit secrets; hosting is a separate step.

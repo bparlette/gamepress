@@ -46,3 +46,8 @@ POSTs the file to `https://apis.roblox.com/universes/v1/{universe}/places/{place
 - Studio's own Publish dialog failing on a stale place conflict is avoided entirely: this uploads a file you choose. Make sure it is the newest save (check the modified time).
 - A stale `.rbxl` is the usual mistake: save from Studio immediately before publishing. Keep only one "latest" file.
 - Never paste the key into chat, commits or logs.
+
+## Retention audit of Yeet Pets (Oct 2026, read via `roblox-test`)
+Has: 4-step skippable tutorial with persistence (TutorialGuide + FirstSession), welcome coins and a free lucky trait roll, near-miss/squash/shake/pet-effect feedback, egg hatching, collection book, daily rewards with streaks, leaderboard.
+Missing: analytics funnel events (AnalyticsService onboarding/progression), performance/error monitoring, an in-game report/community link, a timed check that first reward lands inside ~5 minutes.
+Audit scripts: write a Luau file that walks `game:GetDescendants()` for LuaSourceContainer, greps keywords, `print()`s; run `gamepress roblox-test`. Logs come back in the result.
