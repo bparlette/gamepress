@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE slice-swipe. ONE screen, ONE mechanic: swipe across flying fish and melons, never touch a zombie bomb. 3-SECOND RULE: your finger's slash = player, zombie bombs and missed fish = enemy, goal = slice them all.
+  DON'T BUILD: blades or skins, more than 3 fruit kinds, modes, menus. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, pick, clamp } from '../_vendor/gp2d.js';
+import { face, heart } from '../_vendor/gpsprites.js';
+const S = { title: 'CAT NINJA', sub: 'Swipe to slice. Avoid bombs.', hook: 'Slice everything. Do not touch the bomb.', hero: 'cat', bg: '#2a6e5a', goal: 14, lives: 3, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+let objs, halves, trail, lives, sliced, combo, comboT, spawnT, wave, last, botQ;
+function init() { objs = []; halves = []; trail = []; lives = S.lives; sliced = 0; combo = 0; comboT = 0; spawnT = .6; wave = 0; last = null; botQ = []; g.score = 0; }
+g.onReset = init; init();
+function spawn() { wave++; const n = 2 + (wave > 3 ? 1 : 0); for (let i = 0; i < n; i++) { const bomb = g.dumb() ? (wave === 2 && i === 0) : (wave > 2 && R() < .22 && i === 1), x = rnd(120, 420); objs.push({ x, y: 1020, vx: (270 - x) * rnd(.3, .7) + rnd(-40, 40), vy: -rnd(1250, 1340), k: bomb ? 'bomb' : (R() < .5 ? 'fish' : 'melon'), r: 38, rot: rnd(0, 6), vr: rnd(-5, 5), t: rnd(0, 5) }); } sfx('whoosh', { vol: .4 }); }
+function slash(x0, y0, x1, y1) { trail.push({ x0, y0, x1, y1, t: 0 }); for (const o of objs) { if (o.dead) continue; const dx = x1 - x0, dy = y1 - y0, l2 = dx * dx + dy * dy || 1, t = clamp(((o.x - x0) * dx + (o.y - y0) * dy) / l2, 0, 1), px = x0 + dx * t, py = y0 + dy * t; if (Math.hypot(o.x - px, o.y - py) < o.r + 6) cut(o, Math.atan2(dy, dx)); } }
+function cut(o, a) { o.dead = true; if (o.k === 'bomb') { sfx('boom'); g.shake(16); g.hitstop(.1); g.flash('#ff3b3b', .5); g.burst(o.x, o.y, 30, { color: ['#ffd34d', '#ff6b3b', '#555'], speed: 520 }); g.showBanner('BOOM!', 1); g.end({ win: false, score: g.score, label: 'SLICES' }); return; }
+  sliced++; combo = comboT > 0 ? combo + 1 : 1; comboT = .6; g.score = sliced * 10 + combo * 5; sfx('pop', { pitch: comboPitch(combo * 2) }); sfx('hit', { vol: .25, pitch: 1.4 }); g.shake(3 + combo); g.burst(o.x, o.y, 10, { color: o.k === 'fish' ? ['#ff9a3c', '#fff'] : ['#e63946', '#4caf50'], speed: 300 }); g.popup(combo > 1 ? `x${combo}` : '+10', o.x, o.y - 40, '#ffd34d', 30 + combo * 4);
+  for (const s of [-1, 1]) halves.push({ x: o.x, y: o.y, vx: o.vx + Math.cos(a + 1.57) * 200 * s, vy: o.vy * .3 - 100, rot: o.rot, vr: s * 6, k: o.k, s, life: 1 }); if (sliced >= S.goal) { g.slowmo(.35, .9); g.flash('#fff', .4); g.end({ win: true, score: g.score, label: 'SCORE' }); } }
+function update(dt) {
+  if (g.mode !== 'play') return; spawnT -= dt; comboT -= dt; if (comboT <= 0) combo = 0; if (spawnT <= 0) { spawn(); spawnT = 1.15; }
+  if (g.ptr.down) { if (last) slash(last.x, last.y, g.ptr.x, g.ptr.y); last = { x: g.ptr.x, y: g.ptr.y }; } else last = null;
+  if (g.auto) for (const o of objs) if (!o.dead && !o.seen && o.vy > -160 && o.y < 600) { const bomb = o.k === 'bomb'; if (g.dumb() ? bomb : !bomb) { o.seen = true; botQ.push({ o, t: .02 }); } }
+  for (const q of botQ) { q.t -= dt; if (q.t <= 0 && !q.done) { q.done = true; const o = q.o; slash(o.x - 70, o.y + 40, o.x + 70, o.y - 40); } } botQ = botQ.filter(q => !q.done);
+  for (const o of objs) { o.vy += 1500 * dt; o.x += o.vx * dt; o.y += o.vy * dt; o.rot += o.vr * dt; o.t += dt; if (o.y > 1040 && o.vy > 0 && !o.dead) { o.dead = true; if (o.k !== 'bomb') { lives--; sfx('hit', { vol: .5 }); g.shake(6); g.flash('#ff3b3b', .2); combo = 0; if (lives <= 0) g.end({ win: false, score: g.score, label: 'SCORE' }); } } }
+  objs = objs.filter(o => !o.dead || false); for (const h of halves) { h.vy += 1500 * dt; h.x += h.vx * dt; h.y += h.vy * dt; h.rot += h.vr * dt; h.life -= dt; } halves = halves.filter(h => h.life > 0 && h.y < 1100); for (const t of trail) t.t += dt; trail = trail.filter(t => t.t < .18);
+  g.hud.l = `${sliced}/${S.goal}`; g.state = { sliced, lives, objs: objs.length };
+}
+const draw1 = (c, o, half) => { c.save(); c.translate(o.x, o.y); c.rotate(o.rot); if (half) { c.beginPath(); c.rect(half < 0 ? -50 : 0, -50, 50, 100); c.clip(); } c.lineWidth = 5; c.strokeStyle = '#000';
+  if (o.k === 'fish') { c.fillStyle = '#ff9a3c'; c.beginPath(); c.ellipse(0, 0, 40, 24, 0, 0, 7); c.fill(); c.stroke(); c.beginPath(); c.moveTo(34, 0); c.lineTo(58, -18); c.lineTo(58, 18); c.closePath(); c.fill(); c.stroke(); c.fillStyle = '#fff'; c.beginPath(); c.arc(-18, -6, 6, 0, 7); c.fill(); c.fillStyle = '#000'; c.beginPath(); c.arc(-17, -6, 3, 0, 7); c.fill(); }
+  else if (o.k === 'melon') { c.fillStyle = '#4caf50'; c.beginPath(); c.arc(0, 0, 38, 0, 7); c.fill(); c.stroke(); c.strokeStyle = '#2f8f3a'; c.lineWidth = 4; for (let i = -2; i <= 2; i++) { c.beginPath(); c.moveTo(i * 12, -34); c.quadraticCurveTo(i * 20, 0, i * 12, 34); c.stroke(); } if (half) { c.fillStyle = '#ff5a6a'; c.beginPath(); c.arc(0, 0, 30, 0, 7); c.fill(); } }
+  else { c.fillStyle = '#2a2f3a'; c.beginPath(); c.arc(0, 0, 38, 0, 7); c.fill(); c.stroke(); c.fillStyle = '#8fcf7a'; c.beginPath(); c.arc(0, 4, 24, 0, 7); c.fill(); c.fillStyle = '#e22'; c.fillRect(-12, -4, 7, 7); c.fillRect(5, -4, 7, 7); c.fillStyle = '#ffd34d'; c.fillRect(-2, -52, 5, 16); c.beginPath(); c.arc(0, -56 + Math.sin(g.t * 20) * 2, 7, 0, 7); c.fill(); } c.restore(); };
+function draw(c) {
+  for (let i = 0; i < 6; i++) { c.fillStyle = i % 2 ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.06)'; c.fillRect(0, i * 160, 540, 160); }
+  for (const o of objs) draw1(c, o); for (const h of halves) { c.globalAlpha = h.life; draw1(c, { ...h }, h.s); c.globalAlpha = 1; }
+  for (const t of trail) { c.globalAlpha = 1 - t.t / .18; c.strokeStyle = '#fff'; c.lineWidth = 10; c.lineCap = 'round'; c.beginPath(); c.moveTo(t.x0, t.y0); c.lineTo(t.x1, t.y1); c.stroke(); } c.globalAlpha = 1;
+  for (let i = 0; i < lives; i++) heart(c, 40 + i * 44, 110, 34); face(c, S.hero, 500, 110, 26);
+}
+g.run(update, draw);
+</script></body></html>

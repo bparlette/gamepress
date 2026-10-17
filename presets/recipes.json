@@ -35,7 +35,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=orange jetpack cat, enemy=green pipes, goal=fly through the gaps",
-   "touch": "tap anywhere"
+   "touch": "tap anywhere",
+   "category": "Viral Demos"
   },
   {
    "id": "daily-deduction",
@@ -71,7 +72,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=the on-screen keyboard, enemy=6 tries, goal=turn all 5 tiles green",
-   "touch": "tap letters"
+   "touch": "tap letters",
+   "category": "Viral Demos"
   },
   {
    "id": "precision-platformer",
@@ -107,7 +109,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=orange cat, enemy=red spikes and pits, goal=the flag",
-   "touch": "left/right + jump buttons"
+   "touch": "left/right + jump buttons",
+   "category": "Classic Homebrew"
   },
   {
    "id": "cozy-farm",
@@ -143,7 +146,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=you tapping tiles, enemy=sunset timer, goal=harvest the quota",
-   "touch": "tap tiles"
+   "touch": "tap tiles",
+   "category": "Viral Demos"
   },
   {
    "id": "bullet-heaven",
@@ -179,7 +183,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=cat in the middle, enemy=green zombie swarm, goal=survive",
-   "touch": "drag to move"
+   "touch": "drag to move",
+   "category": "Viral Demos"
   },
   {
    "id": "obby-gauntlet",
@@ -215,7 +220,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=cat, enemy=lava and spinners, goal=the golden flag",
-   "touch": "tap to jump, drag to steer"
+   "touch": "tap to jump, drag to steer",
+   "category": "Viral Demos"
   },
   {
    "id": "rail-runner",
@@ -251,7 +257,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=cat, enemy=trains and barriers, goal=run as far as possible",
-   "touch": "swipe left/right/up"
+   "touch": "swipe left/right/up",
+   "category": "Viral Demos"
   },
   {
    "id": "ballistic-bouncer",
@@ -287,7 +294,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=the ball and cannon, enemy=gravity, goal=clear the orange pegs",
-   "touch": "drag to aim, tap to fire"
+   "touch": "drag to aim, tap to fire",
+   "category": "Classic Homebrew"
   },
   {
    "id": "grid-chaser",
@@ -323,7 +331,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=orange cat, enemy=green zombies, goal=eat all the fish dots",
-   "touch": "swipe to turn"
+   "touch": "swipe to turn",
+   "category": "Classic Homebrew"
   },
   {
    "id": "falling-blocks",
@@ -359,7 +368,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=falling piece, enemy=the top of the board, goal=clear lines",
-   "touch": "tap rotate, drag move"
+   "touch": "tap rotate, drag move",
+   "category": "Classic Homebrew"
   },
   {
    "id": "merge-sandbox",
@@ -395,7 +405,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=your dropper, enemy=the overflow line, goal=merge up to the biggest pet",
-   "touch": "drag and tap to drop"
+   "touch": "drag and tap to drop",
+   "category": "Viral Demos"
   },
   {
    "id": "arena-brawler",
@@ -431,7 +442,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=orange cat, enemy=green zombies, goal=knock them all out",
-   "touch": "drag + punch button"
+   "touch": "drag + punch button",
+   "category": "Classic Homebrew"
   },
   {
    "id": "scrolling-shmup",
@@ -467,7 +479,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=cat in a ship, enemy=zombie ufos, goal=survive and shoot the boss",
-   "touch": "drag to move, auto-fire"
+   "touch": "drag to move, auto-fire",
+   "category": "Classic Homebrew"
   },
   {
    "id": "run-and-gun",
@@ -503,7 +516,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=orange cat with a gun, enemy=zombies, goal=run to the right and survive",
-   "touch": "buttons: jump, shoot"
+   "touch": "buttons: jump, shoot",
+   "category": "Classic Homebrew"
   },
   {
    "id": "mini-metroidvania",
@@ -539,7 +553,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=cat, enemy=spikes, goal=get the orb then reach the exit",
-   "touch": "left/right + jump buttons"
+   "touch": "left/right + jump buttons",
+   "category": "Classic Homebrew"
   },
   {
    "id": "footsies-duel",
@@ -575,7 +590,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=orange cat, enemy=green zombie, goal=push the zombie off the edge",
-   "touch": "3 buttons: strike, parry, step"
+   "touch": "3 buttons: strike, parry, step",
+   "category": "Classic Homebrew"
   },
   {
    "id": "mini-zelda",
@@ -611,7 +627,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=cat with a sword, enemy=zombies, goal=find the key and open the door",
-   "touch": "drag + sword button"
+   "touch": "drag + sword button",
+   "category": "Classic Homebrew"
   },
   {
    "id": "turn-based-3v3",
@@ -647,7 +664,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=your cat team, enemy=zombie team, goal=faint all three",
-   "touch": "tap move buttons"
+   "touch": "tap move buttons",
+   "category": "Classic Homebrew"
   },
   {
    "id": "micro-tower-defense",
@@ -683,7 +701,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=you placing cat towers, enemy=zombie wave, goal=stop them reaching the base",
-   "touch": "tap tiles"
+   "touch": "tap tiles",
+   "category": "Classic Homebrew"
   },
   {
    "id": "kart-racer",
@@ -719,7 +738,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=cat kart, enemy=rival karts, goal=finish first",
-   "touch": "left/right halves"
+   "touch": "left/right halves",
+   "category": "Classic Homebrew"
   },
   {
    "id": "card-roguelite",
@@ -755,7 +775,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=your hand of cards, enemy=the target score, goal=beat the score before hands run out",
-   "touch": "tap cards, tap Play"
+   "touch": "tap cards, tap Play",
+   "category": "Viral Demos"
   },
   {
    "id": "idle-tycoon",
@@ -791,7 +812,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=you tapping upgrades, enemy=the clock, goal=hit the fish quota",
-   "touch": "tap buttons"
+   "touch": "tap buttons",
+   "category": "Viral Demos"
   },
   {
    "id": "hide-and-seek",
@@ -827,7 +849,8 @@
     "no second mechanic"
    ],
    "threeSecond": "player=cat disguised as a barrel, enemy=zombie hunter, goal=reach the exit unseen",
-   "touch": "hold to move, release to freeze"
+   "touch": "hold to move, release to freeze",
+   "category": "Viral Demos"
   },
   {
    "id": "trajectory-artillery",
@@ -863,7 +886,230 @@
     "no second mechanic"
    ],
    "threeSecond": "player=left cat, enemy=right zombie, goal=hit the zombie",
-   "touch": "drag back to aim, release to fire"
+   "touch": "drag back to aim, release to fire",
+   "category": "Classic Homebrew"
+  },
+  {
+   "id": "slice-swipe",
+   "title": "CAT NINJA",
+   "hook": "Slice everything. Do not touch the bomb.",
+   "hooks": [
+    "Slice everything. Do not touch the bomb.",
+    "1 bomb ends the run",
+    "Fruit Ninja but cats"
+   ],
+   "seconds": 16,
+   "engine": "2d",
+   "colors": "css",
+   "match": "fruit ninja|slice|swipe|cut fruit|ninja|slash",
+   "refs": [
+    "Fruit Ninja",
+    "Fruit Ninja style slicing clips",
+    "Cut the cat food shorts"
+   ],
+   "oneUps": [
+    "Combo pitch ladder with multiplier popups",
+    "Slow-mo on the final slice",
+    "Halves fly apart with juice"
+   ],
+   "dontBuild": [
+    "no blade shop",
+    "no more than 3 item kinds",
+    "no modes",
+    "no inventory",
+    "no save system",
+    "no menus beyond start and restart",
+    "no settings screen",
+    "no second mechanic"
+   ],
+   "threeSecond": "player=your finger slash, enemy=zombie bombs and missed fish, goal=slice them all",
+   "touch": "swipe",
+   "category": "Viral Demos"
+  },
+  {
+   "id": "stack-timing",
+   "title": "CAT STACK",
+   "hook": "One mistimed tap and it shrinks",
+   "hooks": [
+    "One mistimed tap and it shrinks",
+    "How high can you stack?",
+    "The tower never lies"
+   ],
+   "seconds": 17,
+   "engine": "2d",
+   "colors": "css",
+   "match": "stack|tower|timing|tap to drop|block stacking|balance",
+   "refs": [
+    "Stack (Ketchapp)",
+    "Tower Bloxx",
+    "Stack tower shorts"
+   ],
+   "oneUps": [
+    "Perfect-drop chime ladder",
+    "Camera pull-up as the tower grows",
+    "The cat waves from the top"
+   ],
+   "dontBuild": [
+    "no themes shop",
+    "no power-ups",
+    "no modes",
+    "no inventory",
+    "no save system",
+    "no menus beyond start and restart",
+    "no settings screen",
+    "no second mechanic"
+   ],
+   "threeSecond": "player=the sliding block, enemy=the shrinking width, goal=stack 12 blocks",
+   "touch": "tap",
+   "category": "Viral Demos"
+  },
+  {
+   "id": "plinko-drop",
+   "title": "CAT PLINKO",
+   "hook": "Drop it. Win big.",
+   "hooks": [
+    "Drop it. Win big.",
+    "Where would you drop it?",
+    "The luckiest drop ever"
+   ],
+   "seconds": 26,
+   "engine": "2d",
+   "colors": "css",
+   "match": "plinko|pachinko|ball drop|galton|pegs|slots",
+   "refs": [
+    "Plinko (Price is Right)",
+    "Plinko shorts",
+    "Pachinko clips"
+   ],
+   "oneUps": [
+    "Payout slots with x10 jackpots",
+    "Drop-point preview",
+    "Peg-hit pitch ladder"
+   ],
+   "dontBuild": [
+    "no board shop",
+    "no bet menu",
+    "no more than 1 board",
+    "no inventory",
+    "no save system",
+    "no menus beyond start and restart",
+    "no settings screen",
+    "no second mechanic"
+   ],
+   "threeSecond": "player=the falling cat, enemy=the low-pay slots, goal=reach the coin target",
+   "touch": "tap where to drop",
+   "category": "Viral Demos"
+  },
+  {
+   "id": "ragdoll-launch",
+   "title": "CAT CANNON",
+   "hook": "How far can a cat fly?",
+   "hooks": [
+    "How far can a cat fly?",
+    "Cannon vs gravity",
+    "Full power or nothing"
+   ],
+   "seconds": 21,
+   "engine": "2d",
+   "colors": "css",
+   "match": "launch|cannon|ragdoll|fling|catapult|how far",
+   "refs": [
+    "Learn to Fly",
+    "Ragdoll launch compilations",
+    "Happy Wheels"
+   ],
+   "oneUps": [
+    "Boost trampolines along the ground",
+    "Distance markers every 100 m",
+    "Slow-mo at the peak"
+   ],
+   "dontBuild": [
+    "no upgrades",
+    "no more than 3 launches",
+    "no shop",
+    "no inventory",
+    "no save system",
+    "no menus beyond start and restart",
+    "no settings screen",
+    "no second mechanic"
+   ],
+   "threeSecond": "player=the flying cat, enemy=the ground, goal=reach the target distance",
+   "touch": "tap at full power",
+   "category": "Viral Demos"
+  },
+  {
+   "id": "sort-puzzle",
+   "title": "CAT SORT",
+   "hook": "Satisfying? Try the last tube.",
+   "hooks": [
+    "Satisfying? Try the last tube.",
+    "Sort the cats",
+    "The calm puzzle that fools you"
+   ],
+   "seconds": 20,
+   "engine": "2d",
+   "colors": "css",
+   "match": "sort|ball sort|water sort|tubes|sorting puzzle|color sort",
+   "refs": [
+    "Ball Sort Puzzle",
+    "Water Sort",
+    "Satisfying sorting shorts"
+   ],
+   "oneUps": [
+    "Solver-checked puzzles that always work",
+    "Pour pop with pitch by group size",
+    "Perfect-solve bonus"
+   ],
+   "dontBuild": [
+    "no level list",
+    "no hint shop",
+    "no undo packs",
+    "no inventory",
+    "no save system",
+    "no menus beyond start and restart",
+    "no settings screen",
+    "no second mechanic"
+   ],
+   "threeSecond": "player=the tubes of cats, enemy=the move counter, goal=one colour per tube",
+   "touch": "tap tube then tube",
+   "category": "Viral Demos"
+  },
+  {
+   "id": "rope-cut",
+   "title": "CAT ROPE",
+   "hook": "Feed the cat. Cut at the right time.",
+   "hooks": [
+    "Feed the cat. Cut at the right time.",
+    "One swipe, one chance",
+    "Cut the rope but cats"
+   ],
+   "seconds": 12,
+   "engine": "2d",
+   "colors": "css",
+   "match": "cut the rope|rope|swing|feed|pendulum|physics puzzle",
+   "refs": [
+    "Cut the Rope",
+    "Rope physics shorts",
+    "Feed the monster clips"
+   ],
+   "oneUps": [
+    "Slow-mo on the cut",
+    "Mouth opens as the fish nears",
+    "Tries counter with retry"
+   ],
+   "dontBuild": [
+    "no more than 3 gadgets",
+    "no stars shop",
+    "no level packs",
+    "no inventory",
+    "no save system",
+    "no menus beyond start and restart",
+    "no settings screen",
+    "no second mechanic"
+   ],
+   "threeSecond": "player=the swinging fish, enemy=a missed drop, goal=drop it in the cat's mouth",
+   "touch": "swipe the rope",
+   "category": "Viral Demos"
   }
  ]
 }

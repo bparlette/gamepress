@@ -1,0 +1,19 @@
+{
+  "id": "kart-racer",
+  "title": "CAT KART",
+  "tagline": "Win by a whisker",
+  "description": "Win by a whisker",
+  "tags": [
+    "cat kart",
+    "mario kart like",
+    "kart racer",
+    "browser game",
+    "html5"
+  ],
+  "youtubeTitle": "Win by a whisker",
+  "category": "Classic Homebrew",
+  "price": 0,
+  "keys": {},
+  "labels": {},
+  "orientation": "any"
+}

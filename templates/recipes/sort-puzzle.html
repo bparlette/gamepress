@@ -1,0 +1,34 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE sort-puzzle. ONE screen, ONE mechanic: tap a tube, tap another to pour the top cats onto the same colour; sort every tube before the moves run out. 3-SECOND RULE: the tubes of cats = player, the move counter = enemy, goal = one colour per tube.
+  DON'T BUILD: levels list, hints shop, undo packs, menus. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, pick, shuffle, clamp } from '../_vendor/gp2d.js';
+import { face } from '../_vendor/gpsprites.js';
+const S = { title: 'CAT SORT', sub: 'Tap a tube, then another', hook: 'Satisfying? Try the last tube.', hero: 'cat', bg: '#3a2a5e', slack: 4, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const COL = ['#ff9a3c', '#f4efe4', '#7ab0ff', '#ff7ab6', '#7dd87d'], CAP = 4, NT = 7, TW = 92, TH = 290;
+const tx = i => 70 + (i % 4) * 133, ty = i => 220 + Math.floor(i / 4) * 360;
+let tubes, sel, moves, sol, botT, anim, solved;
+const top = t => t.length ? t[t.length - 1] : -1;
+function run(t) { let n = 0; for (let i = t.length - 1; i >= 0 && t[i] === t.at(-1); i--) n++; return n; }
+const canPour = (T, a, b) => T[a].length && T[b].length < CAP && (T[b].length === 0 ? !(T[a].every(x => x === T[a][0])) : top(T[b]) === top(T[a]));
+const pour = (T, a, b) => { const n = Math.min(run(T[a]), CAP - T[b].length), c = T[a].at(-1); for (let i = 0; i < n; i++) { T[a].pop(); T[b].push(c); } return n; };
+const done = T => T.every(t => t.length === 0 || (t.length === CAP && t.every(x => x === t[0])));
+function solve(T0) { const key = T => T.map(t => t.join('')).sort().join('|'), seen = new Map([[key(T0), null]]), q = [{ T: T0, path: [] }]; for (let i = 0; i < q.length && i < 250000; i++) { const { T, path } = q[i]; if (done(T)) return path; for (let a = 0; a < NT; a++) for (let b = 0; b < NT; b++) if (a !== b && canPour(T, a, b)) { const N = T.map(t => t.slice()); pour(N, a, b); const k = key(N); if (!seen.has(k)) { seen.set(k, 1); q.push({ T: N, path: [...path, [a, b]] }); } } } return null; }
+function init() { let T, p; do { const pool = shuffle(COL.flatMap((_, c) => Array(CAP).fill(c))); T = Array.from({ length: NT }, (_, i) => (i < 5 ? pool.slice(i * 4, i * 4 + 4) : [])); p = solve(T); } while (!p); tubes = T; sol = p; moves = sol.length + S.slack; sel = -1; botT = .8; anim = []; solved = false; g.score = 0; }
+g.onReset = init; init();
+function tryMove(a, b) { if (a === b || !canPour(tubes, a, b)) { sfx('hit', { vol: .3 }); sel = -1; return false; } const c = tubes[a].at(-1), n = pour(tubes, a, b); moves--; sel = -1; sfx('pop', { pitch: 1 + n * .15 }); g.burst(tx(b), ty(b) + 20, 8, { color: [COL[c], '#fff'], speed: 220, size: 7 }); g.score += n * 10;
+  if (done(tubes)) { solved = true; g.score += moves * 20; sfx('win'); g.flash('#fff', .4); g.burst(270, 300, 50, { color: COL, speed: 460 }); g.end({ win: true, score: g.score, label: 'SCORE' }); } else if (moves <= 0) g.end({ win: false, score: g.score, label: 'SCORE' }); return true; }
+const hitT = (x, y) => { for (let i = 0; i < NT; i++) if (Math.abs(x - tx(i)) < TW / 2 + 12 && y > ty(i) - 20 && y < ty(i) + TH + 10) return i; return -1; };
+function update(dt) {
+  if (g.mode !== 'play') return; botT -= dt; for (const tp of g.taps) { const i = hitT(tp.x, tp.y); if (i < 0) continue; if (sel < 0) { if (tubes[i].length) { sel = i; sfx('click'); } } else tryMove(sel, i); }
+  if (g.auto && botT <= 0) { botT = .5; if (g.dumb()) { const opts = []; for (let a = 0; a < NT; a++) for (let b = 0; b < NT; b++) if (a !== b && canPour(tubes, a, b)) opts.push([a, b]); if (opts.length) { const [a, b] = pick(opts); tryMove(a, b); } botT = .3; } else if (sol.length) { sel = sol[0][0]; sfx('click'); const m = sol.shift(); setTimeout(() => {}, 0); tryMove(m[0], m[1]); } }
+  g.hud.l = `MOVES ${moves}`; g.state = { moves, solved, sol: sol.length };
+}
+function draw(c) {
+  for (let i = 0; i < NT; i++) { const x = tx(i), y = ty(i), up = sel === i ? -26 : 0; c.fillStyle = 'rgba(255,255,255,.12)'; c.beginPath(); c.roundRect(x - TW / 2, y, TW, TH, 28); c.fill(); c.lineWidth = 6; c.strokeStyle = sel === i ? '#ffd34d' : '#fff'; c.stroke();
+    tubes[i].forEach((col, k) => { const lift = sel === i && k >= tubes[i].length - run(tubes[i]) ? up : 0, cy = y + TH - 42 - k * 66 + lift; c.beginPath(); c.arc(x, cy, 30, 0, 7); c.fillStyle = COL[col]; c.fill(); c.lineWidth = 4; c.strokeStyle = '#000'; c.stroke(); face(c, S.hero, x, cy + 2, 24, COL[col]); }); }
+  if (g.mode === 'play' && moves > 0) g.text(sel < 0 ? 'PICK A TUBE' : 'POUR WHERE?', 270, 880, { size: 34, align: 'center' });
+}
+g.run(update, draw);
+</script></body></html>

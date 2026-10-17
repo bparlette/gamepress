@@ -31,6 +31,8 @@ gamepress pack [--title "Game"]      # raw -> out/steam, out/itch, out/crazygame
 gamepress check                      # verify sizes, counts, GIF size, video length per store
 gamepress drive plan.json [--vo ".."]# scripted, frame-locked playthrough -> captioned MP4 + SFX + TTS voiceover
 gamepress catalog games.json ...     # add a game + thumbnail to a demo-page catalog
+gamepress approve <id> [--levels N]  # approve vertical-slice demo & define full-game expansion goals
+gamepress expand <id> [--blueprint]  # token-saving AI blueprint or scaffold multi-level world (gplevels.js)
 gamepress deploy <host> <id> [--run] # github, itch, crazygames, steam, youtube (dry-run by default)
 ```
 

@@ -1,0 +1,47 @@
+{
+  "name": "bullet-heaven-hook",
+  "root": "${GP_GAMES:-../../../hawk-pub/brad-demos/g}",
+  "path": "bullet-heaven/index.html?auto=1&seed=7",
+  "viewport": [
+    540,
+    960
+  ],
+  "scale": 2,
+  "fps": 30,
+  "seed": 5,
+  "duration": 31,
+  "report": "window.__game",
+  "input": [],
+  "captions": [
+    {
+      "t": 0,
+      "until": 4,
+      "text": "10,000 zombies vs one cat",
+      "pos": "tiptop",
+      "style": "hook"
+    },
+    {
+      "t": 25,
+      "until": 31,
+      "text": "Play free. Link in bio",
+      "pos": "bottom",
+      "style": "cta"
+    }
+  ],
+  "slowmo": [],
+  "blur": 2,
+  "fade": {
+    "in": 0.2,
+    "out": 0.4
+  },
+  "thumb": 17.05,
+  "audio": {
+    "source": "window.__events",
+    "music": "bed",
+    "musicGain": 0.3,
+    "bed": {
+      "bpm": 136,
+      "root": 62
+    }
+  }
+}

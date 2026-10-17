@@ -1,0 +1,19 @@
+{
+  "id": "turn-based-3v3",
+  "title": "PET BATTLE",
+  "tagline": "3 cats vs 3 zombies",
+  "description": "3 cats vs 3 zombies",
+  "tags": [
+    "pet battle",
+    "pokemon like",
+    "turn based-3v3",
+    "browser game",
+    "html5"
+  ],
+  "youtubeTitle": "3 cats vs 3 zombies",
+  "category": "Classic Homebrew",
+  "price": 0,
+  "keys": {},
+  "labels": {},
+  "orientation": "any"
+}

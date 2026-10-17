@@ -32,7 +32,9 @@
       "heal",
       "hooks",
       "stats",
-      "local-ai"
+      "local-ai",
+      "approve",
+      "expand"
     ],
     "purpose": "Research, build/scaffold, headless test, scripted gameplay video, store images."
   },
@@ -54,6 +56,19 @@
     ],
     "needs": "itch butler key, CrazyGames portal login, Steamworks app ($100), YouTube OAuth, Cloudflare API token (free), GitHub: owner-provided, other agent implements uploads",
     "purpose": "Web build (HTML5) for itch.io and CrazyGames, desktop wrap + store page for Steam, Shorts on YouTube."
+  },
+  "full-game": {
+    "doc": "docs/tracks/full-game.md",
+    "tools": [
+      "approve",
+      "expand",
+      "test",
+      "grade",
+      "pack",
+      "deploy"
+    ],
+    "needs": "approval of demo vertical slice",
+    "purpose": "Scale an approved vertical-slice demo into a full multi-level production game with save persistence, level select, and expanded worlds."
   },
   "roblox": {
     "doc": "docs/tracks/roblox.md",

@@ -1,0 +1,35 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+/*RECIPE ragdoll-launch. ONE screen, ONE mechanic: tap when the power bar peaks to fire the cat from the cannon; trampolines boost the bounce. 3-SECOND RULE: the flying cat = player, the ground and short distance = enemy, goal = reach the target distance.
+  DON'T BUILD: upgrades, more than 3 launches, shops, menus. Edit the SPEC JSON (gamepress make).*/
+import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
+import { drawChar } from '../_vendor/gpsprites.js';
+const S = { title: 'CAT CANNON', sub: 'Tap at full power', hook: 'How far can a cat fly?', hero: 'cat', heroColor: '#ff9a3c', bg: '#8fd8ff', target: 450, launches: 3, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const GY = 760, U = 4, PADS = [[1500], [2300]];
+let c0, phase, power, tleft, best, ball, cam, botT, bounces, pm;
+function init() { phase = 'aim'; pm = 0; tleft = g.dumb() ? 2 : S.launches; best = 0; ball = null; cam = 0; botT = 1; bounces = 0; g.score = 0; }
+g.onReset = init; init();
+function fire() { if (phase !== 'aim' || g.mode !== 'play') return; const p = .15 + .85 * power; ball = { x: 120, y: GY - 80, vx: Math.cos(.78) * (500 + 780 * p), vy: -Math.sin(.78) * (500 + 780 * p), rot: 0, vr: 6, t: 0, hits: 0 }; phase = 'fly'; tleft--; bounces = 0; sfx('boom', { vol: .6 }); g.shake(10); g.flash('#fff', .3); g.burst(160, GY - 80, 16, { color: ['#ffd34d', '#fff', '#888'], speed: 380 }); g.showBanner(Math.round(p * 100) + '%', .6); }
+function update(dt) {
+  if (g.mode !== 'play') return; botT -= dt; pm += dt * 1.7; power = (Math.sin(pm - 1.2) + 1) / 2;
+  if (phase === 'aim') { if (g.taps.length || g.pressed.Space) fire(); if (g.auto && botT <= 0 && (g.dumb() ? power < .22 : power > .965)) fire(); }
+  if (phase === 'fly') { const b = ball; b.t += dt; b.vy += 1500 * dt; b.x += b.vx * dt; b.y += b.vy * dt; b.rot += b.vr * dt * (b.vx / 600); cam += ((b.x - 200) - cam) * Math.min(1, dt * 6);
+    for (const [px] of PADS) if (Math.abs(b.x - px) < 70 && b.y >= GY - 40 && b.vy > 0 && !b['p' + px]) { b['p' + px] = 1; b.vy = -Math.max(700, Math.abs(b.vy) * 1.1); b.vx *= 1.25; sfx('powerup'); g.flash('#7dff7d', .3); g.showBanner('BOOST!', .6); g.burst(b.x, GY, 14, { color: ['#7dff7d', '#fff'], speed: 340 }); }
+    if (b.y >= GY - 36) { b.y = GY - 36; if (Math.abs(b.vy) > 160) { b.vy = -b.vy * .42; b.vx *= .8; bounces++; sfx('thud', { pitch: 1 - bounces * .06 }); g.shake(5); g.burst(b.x, GY, 8, { color: ['#7a5a3a', '#6bbf59'], speed: 220 }); } else { b.vy = 0; b.vx *= Math.pow(.15, dt); } }
+    const m = Math.round(b.x / U); if (m > best) { best = m; g.score = best; } if (Math.abs(b.vx) < 25 && b.y >= GY - 40) { phase = 'rest'; botT = 1.2; if (best >= S.target) { g.slowmo(.4, .8); g.flash('#fff', .4); g.end({ win: true, score: best, label: 'METERS' }); } else if (tleft <= 0) g.end({ win: false, score: best, label: 'METERS' }); else { g.showBanner(m + ' m', 1); sfx('lose', { vol: .3, pitch: 1.5 }); } } }
+  if (phase === 'rest' && g.mode === 'play') { botT -= dt; if (botT <= -.2 || (!g.auto && (g.taps.length))) { phase = 'aim'; ball = null; cam = 0; botT = .6; } }
+  g.hud.l = `${best} m`; g.hud.r = `CATS ${tleft}`; g.state = { best, left: tleft, phase };
+}
+function draw(c) {
+  const gr = c.createLinearGradient(0, 0, 0, 760); gr.addColorStop(0, '#6ec6ff'); gr.addColorStop(1, '#d8f1ff'); c.fillStyle = gr; c.fillRect(0, 0, 540, 960); c.save(); c.translate(-cam, 0);
+  for (let i = 0; i < 12; i++) { const x = i * 330 + 60; c.fillStyle = 'rgba(255,255,255,.8)'; c.beginPath(); c.arc(x, 150 + (i % 3) * 70, 36, 0, 7); c.arc(x + 40, 140 + (i % 3) * 70, 46, 0, 7); c.fill(); }
+  c.fillStyle = '#6b4a2e'; c.fillRect(cam - 20, GY, 700, 220); c.fillStyle = '#6bbf59'; c.fillRect(cam - 20, GY, 700, 18); for (let m = 0; m <= 1200; m += 100) { const x = m * U; if (x > cam - 60 && x < cam + 600) { c.fillStyle = '#fff'; c.fillRect(x, GY + 30, 6, 40); g.text(m + 'm', x + 12, GY + 66, { size: 24, stroke: 3 }); } }
+  for (const [px] of PADS) { c.fillStyle = '#7dff7d'; c.fillRect(px - 60, GY - 14, 120, 14); c.strokeStyle = '#000'; c.lineWidth = 4; c.strokeRect(px - 60, GY - 14, 120, 14); g.text('BOOST', px, GY - 24, { size: 22, align: 'center', stroke: 3 }); }
+  c.fillStyle = '#555'; c.save(); c.translate(120, GY - 40); c.rotate(-.78); c.fillRect(0, -22, 90, 44); c.strokeStyle = '#000'; c.lineWidth = 5; c.strokeRect(0, -22, 90, 44); c.restore(); c.fillStyle = '#3a3a44'; c.beginPath(); c.arc(120, GY - 18, 34, 0, 7); c.fill(); c.stroke();
+  if (ball) { c.save(); c.translate(ball.x, ball.y); c.rotate(ball.rot); drawChar('cat', c, 0, 40, 90, { color: S.heroColor, dir: 1, t: g.t, anim: 'idle', hurt: ball.y >= GY - 40 && Math.abs(ball.vx) < 200 }); c.restore(); } else if (phase === 'aim') drawChar('cat', c, 120, GY - 66, 70, { color: S.heroColor, dir: 1, t: g.t, anim: 'idle' });
+  c.restore(); if (phase === 'aim') { c.fillStyle = 'rgba(0,0,0,.5)'; c.fillRect(60, 880, 420, 36); c.fillStyle = power > .93 ? '#7dff7d' : power > .6 ? '#ffd34d' : '#ff9a3c'; c.fillRect(64, 884, 412 * power, 28); c.strokeStyle = '#fff'; c.lineWidth = 3; c.strokeRect(60, 880, 420, 36); g.text('TAP AT FULL POWER', 270, 870, { size: 26, align: 'center', stroke: 4 }); }
+  g.text(`TARGET ${S.target} m`, 270, 130, { size: 30, align: 'center', stroke: 4 });
+}
+g.run(update, draw);
+</script></body></html>

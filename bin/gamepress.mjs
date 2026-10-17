@@ -38,6 +38,7 @@ import { probeLocalAi, healGame, isLocalAiEnabled } from '../lib/local_ai.mjs';
 import { buildLegoGame } from '../lib/lego.mjs';
 import { gatherStats } from '../lib/stats.mjs';
 import { listPresets, loadPreset, savePreset, deletePreset, sanitizeAnswers, readAnswersFile, recordLastAnswers, readLastAnswers, promptAnswers } from '../lib/presets.mjs';
+import { approveDemo, getApproval, listApprovals, generateBlueprint, scaffoldExpansion } from '../lib/expand.mjs';
 
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -388,6 +389,57 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
   drive: () => argv.includes('--dry-run') ? out(dryRun(positional[0] || die('usage: gamepress drive <plan.json> [--dry-run]'))) : drive(positional[0] || die('usage: gamepress drive <plan.json>'), { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false, vo: flag('vo') || argv.includes('--vo') }).catch(e => die('drive failed: ' + e.message)), scenes: () => scenes(positional[0]), pack, check,
   voices: () => voices(positional[0] || die('usage: gamepress voices <script.json> [--dir press]'), { dir: flag('dir', 'press') }).then(r => out({ command: 'voices', ...r }, o => `voices: ${o.synthesized} synthesized, ${o.skipped} skipped, ${o.failed} failed → ${o.manifest}`)).catch(e => die('voices: ' + e.message)),
   version: () => { try { const r = bumpVersion(positional[0] || 'patch', { dir: flag('dir', '.') }); out({ command: 'version', ...r }, o => `${o.from} → ${o.to} (${o.file}); changelog template added to ${o.changelog}`); } catch (e) { die('version: ' + e.message); } },
-  icons: () => { try { const r = makeIcons(flag('logo') || die('usage: gamepress icons --logo <logo.png> [--name Title]'), { dir: flag('dir', 'press'), name: flag('name', 'Game') }); out({ command: 'icons', ...r }, o => `icons → ${o.dir}/ (${o.files.join(', ')})`); } catch (e) { die('icons: ' + e.message); } } }[cmd] ||
-  (() => die('usage: gamepress auto | lego | context | heal | hooks | stats | local-ai | recipes | preset | ideate | make | doctor | lint | status | all | grade | copy | build | deploy | host | repo | botcheck | research | new | test | bundle | publish-pack | roblox | init | capture | drive | catalog | scenes | pack | check | voices | version | icons   (options: --json, --local-ai, --no-local-ai, --heal, --vo, --answers, --preset, --prompt)')))();
+  icons: () => { try { const r = makeIcons(flag('logo') || die('usage: gamepress icons --logo <logo.png> [--name Title]'), { dir: flag('dir', 'press'), name: flag('name', 'Game') }); out({ command: 'icons', ...r }, o => `icons → ${o.dir}/ (${o.files.join(', ')})`); } catch (e) { die('icons: ' + e.message); } },
+  approve: () => {
+    const sub = positional[0];
+    if (sub === 'list') {
+      const list = listApprovals(CFG().state);
+      return out(list, arr => arr.length ? arr.map(a => `${a.id.padEnd(20)} approved=${a.approvedAt.slice(0, 10)} levels=${a.levels || 5} notes="${a.notes}"`).join('\n') : 'no approved games found (run: gamepress approve <id>)');
+    }
+    if (sub === 'show') {
+      const id = positional[1] || flag('id') || die('usage: gamepress approve show <id>');
+      const app = getApproval(id, CFG().state);
+      if (!app) die(`no approval record for "${id}"`);
+      return out(app);
+    }
+    const id = need('approve <id> [--notes "..."] [--levels N] [--worlds "W1,W2..."]');
+    const worlds = flag('worlds') ? flag('worlds').split(',').map(s => s.trim()) : [];
+    try {
+      const res = approveDemo(id, {
+        notes: flag('notes') || positional.slice(1).join(' '),
+        levels: flag('levels', 5),
+        worlds,
+        stars: !argv.includes('--no-stars'),
+        shop: argv.includes('--shop'),
+        save: !argv.includes('--no-save'),
+        gamesDir: CFG().games,
+        stateDir: CFG().state,
+        videoDir: CFG().videoDir
+      });
+      out(res, o => `✓ approved "${o.id}" for full production (${o.approval.expansion.levels} levels across ${o.approval.expansion.worlds.length} worlds) → ${o.file}\nNext: gamepress expand ${o.id} --blueprint (or --scaffold)`);
+    } catch (e) { die('approve: ' + e.message); }
+  },
+  expand: () => {
+    const id = need('expand <id> [--blueprint] [--scaffold] [--levels N] [--worlds "W1,W2..."]');
+    const worlds = flag('worlds') ? flag('worlds').split(',').map(s => s.trim()) : [];
+    try {
+      if (argv.includes('--blueprint')) {
+        const bp = generateBlueprint(id, { gamesDir: CFG().games, stateDir: CFG().state, levels: flag('levels'), worlds });
+        return out(bp, b => `# AI EXPANSION BLUEPRINT: ${b.title} (${b.id})
+Status: ${b.approvalStatus} | Target Levels: ${b.totalLevels} | Worlds: ${b.worlds.join(', ')}
+Save Key: ${b.saveSystem.storageKey}
+
+${b.levels.map(l => `## Level ${l.level}: ${l.name} ${l.isBoss ? '👑 [BOSS WAVE]' : ''}
+- World: ${l.world} | Bounds: ${l.worldBounds.w}x${l.worldBounds.h} | Difficulty: ${l.difficultyMultiplier}x
+- Objectives: ${l.objectives.join('; ')}
+- Stars: ⭐ ${l.starThresholds.star1} | ⭐⭐ ${l.starThresholds.star2} | ⭐⭐⭐ ${l.starThresholds.star3}`).join('\n\n')}
+
+### AI Guidance:
+${b.aiGuidance.map(g => '- ' + g).join('\n')}`);
+      }
+      const sc = scaffoldExpansion(id, { gamesDir: CFG().games, stateDir: CFG().state, levels: flag('levels', 5), worlds });
+      out(sc, o => `✓ expanded "${o.id}" into multi-level architecture (${o.levels} levels)\n  Game: ${o.gameFile}\n  Demo Backup: ${o.backup}\n  Kit: ../_vendor/gplevels.js synced\nNext: test with \`gamepress test ${CFG().games}/${o.id}\``);
+    } catch (e) { die('expand: ' + e.message); }
+  } }[cmd] ||
+  (() => die('usage: gamepress auto | lego | context | heal | hooks | stats | local-ai | recipes | preset | ideate | make | doctor | lint | status | all | grade | copy | build | deploy | host | repo | botcheck | research | new | test | bundle | publish-pack | roblox | init | capture | drive | catalog | scenes | pack | check | voices | version | icons | approve | expand   (options: --json, --local-ai, --no-local-ai, --heal, --vo, --answers, --preset, --prompt)')))();
 

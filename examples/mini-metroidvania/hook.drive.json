@@ -1,0 +1,47 @@
+{
+  "name": "mini-metroidvania-hook",
+  "root": "${GP_GAMES:-../../../hawk-pub/brad-demos/g}",
+  "path": "mini-metroidvania/index.html?auto=1&seed=7",
+  "viewport": [
+    540,
+    960
+  ],
+  "scale": 2,
+  "fps": 30,
+  "seed": 5,
+  "duration": 15,
+  "report": "window.__game",
+  "input": [],
+  "captions": [
+    {
+      "t": 0,
+      "until": 4,
+      "text": "Find the double jump",
+      "pos": "tiptop",
+      "style": "hook"
+    },
+    {
+      "t": 9,
+      "until": 15,
+      "text": "Play free. Link in bio",
+      "pos": "bottom",
+      "style": "cta"
+    }
+  ],
+  "slowmo": [],
+  "blur": 2,
+  "fade": {
+    "in": 0.2,
+    "out": 0.4
+  },
+  "thumb": 8.25,
+  "audio": {
+    "source": "window.__events",
+    "music": "bed",
+    "musicGain": 0.3,
+    "bed": {
+      "bpm": 136,
+      "root": 62
+    }
+  }
+}

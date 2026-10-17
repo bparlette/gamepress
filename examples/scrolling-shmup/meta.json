@@ -1,0 +1,19 @@
+{
+  "id": "scrolling-shmup",
+  "title": "CAT FIGHTER",
+  "tagline": "Dodge the bullet hell",
+  "description": "Dodge the bullet hell",
+  "tags": [
+    "cat fighter",
+    "gradius like",
+    "scrolling shmup",
+    "browser game",
+    "html5"
+  ],
+  "youtubeTitle": "Dodge the bullet hell",
+  "category": "Classic Homebrew",
+  "price": 0,
+  "keys": {},
+  "labels": {},
+  "orientation": "any"
+}
