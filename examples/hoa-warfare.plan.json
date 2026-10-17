@@ -1,0 +1,16 @@
+{
+  "_help": "Call of Karen: HOA Warfare. Start the game first: node tools/serve.mjs in the game repo. Each seed gives a different match; add ?map=pickleball or ?map=stripmall for other maps.",
+  "url": "http://127.0.0.1:8642/web/?spectate=1&seed=11&mode=clash",
+  "viewport": [1920, 1080],
+  "loadWaitMs": 6000,
+  "steps": [
+    { "wait": 4000 }, { "shot": "hero" },
+    { "record": { "name": "cul_de_sac", "seconds": 10, "steps": [{ "wait": 10000 }] } },
+    { "shot": "gameplay_01" },
+    { "wait": 5000 }, { "shot": "gameplay_02" },
+    { "wait": 5000 }, { "shot": "gameplay_03" },
+    { "wait": 5000 }, { "shot": "gameplay_04" },
+    { "wait": 5000 }, { "shot": "gameplay_05" },
+    { "record": { "name": "firefight", "seconds": 10, "steps": [{ "wait": 10000 }] } }
+  ]
+}

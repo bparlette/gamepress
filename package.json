@@ -1,0 +1,10 @@
+{
+  "name": "gamepress",
+  "version": "0.1.0",
+  "description": "Capture scenes from any game and build every Steam, itch.io and CrazyGames store asset: capsules, covers, screenshots, GIFs, trailers.",
+  "type": "module",
+  "bin": { "gamepress": "bin/gamepress.mjs" },
+  "engines": { "node": ">=22" },
+  "license": "MIT",
+  "scripts": { "test": "node --test test/*.test.mjs" }
+}

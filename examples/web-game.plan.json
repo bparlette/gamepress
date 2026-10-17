@@ -1,0 +1,17 @@
+{
+  "_help": "url: where the game runs (start it first, e.g. a local static server). steps run in order: wait (ms) | key + hold (ms) | click [x,y] | move [x,y] | eval (JS in the page, e.g. start a match or set a camera) | shot ('hero' or a name) | record {name, seconds, steps} (frames are grabbed while the nested steps run).",
+  "url": "http://127.0.0.1:8642/web/?spectate=1&seed=7",
+  "viewport": [1920, 1080],
+  "loadWaitMs": 5000,
+  "steps": [
+    { "wait": 1500 },
+    { "shot": "hero" },
+    { "shot": "gameplay_01" },
+    { "wait": 4000 },
+    { "shot": "gameplay_02" },
+    { "record": { "name": "clip_01", "seconds": 8, "steps": [{ "wait": 8000 }] } },
+    { "wait": 3000 },
+    { "shot": "gameplay_03" },
+    { "record": { "name": "clip_02", "seconds": 8, "steps": [{ "wait": 8000 }] } }
+  ]
+}

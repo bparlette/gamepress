@@ -1,0 +1,43 @@
+{
+  "_note": "Store asset specs as of late 2025. Stores change them: verify against the store's current docs before uploading, and edit this file (not the code) when they do. fit: cover = scale and crop to fill (focus x,y picks what stays); blurpad = whole frame centred over a blurred copy of itself (for portrait art from landscape shots); contain = letterbox.",
+  "steam": {
+    "label": "Steam (Steamworks store page)",
+    "assets": [
+      { "id": "header_capsule",   "file": "header_capsule.png",   "w": 460,  "h": 215,  "from": "hero", "fit": "cover", "note": "Store page header and the main discovery capsule. Put the logo in it." },
+      { "id": "small_capsule",    "file": "small_capsule.png",    "w": 231,  "h": 87,   "from": "hero", "fit": "cover" },
+      { "id": "main_capsule",     "file": "main_capsule.png",     "w": 616,  "h": 353,  "from": "hero", "fit": "cover", "note": "Top of the store front page when featured." },
+      { "id": "vertical_capsule", "file": "vertical_capsule.png", "w": 374,  "h": 448,  "from": "hero", "fit": "blurpad" },
+      { "id": "page_background",  "file": "page_background.jpg",  "w": 1438, "h": 810,  "from": "hero", "fit": "cover", "note": "Steam darkens it; keep the subject toward the edges." },
+      { "id": "library_capsule",  "file": "library_capsule.png",  "w": 600,  "h": 900,  "from": "hero", "fit": "blurpad" },
+      { "id": "library_hero",     "file": "library_hero.png",     "w": 3840, "h": 1240, "from": "hero", "fit": "cover", "note": "No logo or text on it; the logo is a separate transparent PNG you supply." },
+      { "id": "community_icon",   "file": "community_icon.jpg",   "w": 184,  "h": 184,  "from": "hero", "fit": "cover" },
+      { "id": "screenshot",       "file": "screenshot_{n}.png",   "w": 1920, "h": 1080, "from": "shots", "fit": "cover", "min": 5, "max": 20, "note": "Steam needs at least 5 at 1920x1080; show real gameplay, no UI mockups." }
+    ],
+    "video": { "id": "trailer", "file": "trailer.mp4", "w": 1920, "h": 1080, "fps": 30, "maxSeconds": 120, "from": "trailer", "note": "H.264 MP4. Steam wants gameplay in the first seconds." }
+  },
+  "itch": {
+    "label": "itch.io",
+    "assets": [
+      { "id": "cover",       "file": "cover.png",         "w": 630,  "h": 500,  "from": "hero", "fit": "cover", "note": "Recommended 630x500 (minimum 315x250). Can be a GIF (max 3 MB): see cover.gif." },
+      { "id": "banner",      "file": "banner.png",        "w": 1920, "h": 540,  "from": "hero", "fit": "cover", "optional": true, "note": "Page header image (profile/page theme)." },
+      { "id": "screenshot",  "file": "screenshot_{n}.png","w": 1280, "h": 720,  "from": "shots", "fit": "cover", "min": 3, "max": 10, "note": "itch shows 3 to 5 prominently." }
+    ],
+    "gif": { "id": "cover_gif", "file": "cover.gif", "w": 630, "h": 500, "fps": 15, "maxMB": 3, "maxSeconds": 6, "from": "gif", "note": "Animated cover, max 3 MB." },
+    "video": { "id": "trailer", "file": "trailer.mp4", "w": 1920, "h": 1080, "fps": 30, "maxSeconds": 90, "from": "trailer", "note": "Upload to YouTube/Vimeo and paste the link on the page; itch embeds it." }
+  },
+  "crazygames": {
+    "label": "CrazyGames",
+    "assets": [
+      { "id": "cover_landscape", "file": "cover_landscape_1920x1080.png", "w": 1920, "h": 1080, "from": "hero", "fit": "cover", "note": "16:9 cover." },
+      { "id": "cover_portrait",  "file": "cover_portrait_800x1200.png",   "w": 800,  "h": 1200, "from": "hero", "fit": "blurpad", "note": "2:3 cover." },
+      { "id": "cover_square",    "file": "cover_square_800x800.png",      "w": 800,  "h": 800,  "from": "hero", "fit": "cover", "note": "1:1 cover." }
+    ],
+    "video": { "id": "preview", "file": "preview.mp4", "w": 1920, "h": 1080, "fps": 30, "maxSeconds": 30, "from": "trailer", "note": "Short gameplay preview, 16:9." },
+    "rules": ["No store/Steam logos or prices in cover art (CrazyGames cross-promo rule).", "No text-heavy covers: they are shown small."]
+  },
+  "social": {
+    "label": "Short-form social (TikTok / Reels / Shorts)",
+    "assets": [],
+    "video": { "id": "vertical", "file": "vertical.mp4", "w": 1080, "h": 1920, "fps": 30, "maxSeconds": 60, "from": "trailer", "fit": "blurpad", "note": "9:16. Landscape gameplay is centred over a blurred copy." }
+  }
+}
