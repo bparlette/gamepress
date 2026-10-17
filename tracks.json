@@ -23,7 +23,8 @@
       "ideate",
       "voices",
       "version",
-      "icons"
+      "icons",
+      "repo"
     ],
     "purpose": "Research, build/scaffold, headless test, scripted gameplay video, store images."
   },
@@ -41,9 +42,9 @@
       "build --target web|steam",
       "copy",
       "publish-pack",
-      "deploy itch|crazygames|steam|youtube"
+      "deploy itch|crazygames|steam|youtube|cloudflare"
     ],
-    "needs": "itch butler key, CrazyGames portal login, Steamworks app ($100), YouTube OAuth: owner-provided, other agent implements uploads",
+    "needs": "itch butler key, CrazyGames portal login, Steamworks app ($100), YouTube OAuth, Cloudflare API token (free): owner-provided, other agent implements uploads",
     "purpose": "Web build (HTML5) for itch.io and CrazyGames, desktop wrap + store page for Steam, Shorts on YouTube."
   },
   "roblox": {
