@@ -20,7 +20,10 @@
       "make",
       "doctor",
       "lint",
-      "ideate"
+      "ideate",
+      "voices",
+      "version",
+      "icons"
     ],
     "purpose": "Research, build/scaffold, headless test, scripted gameplay video, store images."
   },

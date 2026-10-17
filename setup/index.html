@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gamepress — Setup & Pipeline</title>
+<style>
+  :root { --bg:#0f1117; --card:#1a1d27; --border:#2a2e3f; --text:#e8eaf0; --dim:#9aa0b4;
+          --green:#3ddc84; --yellow:#ffbf3f; --red:#ff5c5c; --accent:#7c6cff; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,system-ui,"Segoe UI",sans-serif;
+         line-height:1.5; padding:24px; max-width:1100px; margin:0 auto; }
+  h1 { font-size:28px; margin-bottom:4px; }
+  h1 span { color:var(--accent); }
+  .sub { color:var(--dim); margin-bottom:28px; font-size:15px; }
+  h2 { font-size:20px; margin:32px 0 16px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; }
+  .card h3 { font-size:17px; margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+  .card .purpose { color:var(--dim); font-size:13px; margin-bottom:12px; }
+  .status { width:10px; height:10px; border-radius:50%; display:inline-block; flex-shrink:0; }
+  .status.ok { background:var(--green); box-shadow:0 0 8px var(--green); }
+  .status.partial { background:var(--yellow); box-shadow:0 0 8px var(--yellow); }
+  .status.missing { background:var(--red); box-shadow:0 0 8px var(--red); }
+  .steps { font-size:13px; color:var(--dim); margin:0 0 12px 18px; }
+  .steps li { margin-bottom:4px; }
+  .steps a { color:var(--accent); }
+  .field { margin-bottom:10px; }
+  .field label { display:block; font-size:12px; color:var(--dim); margin-bottom:4px; }
+  .field input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px;
+                 color:var(--text); padding:9px 12px; font-size:14px; font-family:monospace; }
+  .field input:focus { outline:none; border-color:var(--accent); }
+  .field .hint { font-size:11px; color:var(--dim); margin-top:3px; }
+  details.howto { margin-bottom:12px; }
+  details.howto summary { cursor:pointer; font-size:13px; color:var(--accent); }
+  details.howto ol { font-size:13px; color:var(--dim); margin:8px 0 0 20px; }
+  details.howto ol li { margin-bottom:5px; }
+  details.howto a { color:var(--accent); }
+  .pipe { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 20px;
+          margin-bottom:10px; display:flex; align-items:center; gap:14px; }
+  .pipe .cmd { font-family:monospace; font-size:14px; background:var(--bg); padding:6px 12px;
+               border-radius:6px; white-space:nowrap; }
+  .pipe .desc { font-size:13px; color:var(--dim); flex:1; }
+  .pipe .needs { font-size:12px; }
+  .pipe .needs.ok { color:var(--green); }
+  .pipe .needs.no { color:var(--red); }
+  .badge { font-size:11px; padding:3px 10px; border-radius:20px; font-weight:600; white-space:nowrap; }
+  .badge.ok { background:rgba(61,220,132,.15); color:var(--green); }
+  .badge.partial { background:rgba(255,191,63,.15); color:var(--yellow); }
+  .badge.missing { background:rgba(255,92,92,.15); color:var(--red); }
+  .note { background:rgba(124,108,255,.08); border:1px solid rgba(124,108,255,.3); border-radius:10px;
+          padding:14px 18px; font-size:13px; color:var(--dim); margin-top:24px; }
+  .note strong { color:var(--text); }
+  .track-label { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--dim); margin:20px 0 8px; }
+  .actions { margin-top:20px; display:flex; gap:10px; }
+  button { background:var(--accent); color:#fff; border:none; border-radius:8px; padding:10px 20px;
+           font-size:14px; cursor:pointer; font-weight:600; }
+  button.ghost { background:transparent; border:1px solid var(--border); color:var(--dim); }
+  button:hover { opacity:.9; }
+</style>
+</head>
+<body>
+
+<h1>gamepress <span>setup</span></h1>
+<p class="sub">Fill in your accounts and credentials once. The pipeline view below lights up green for
+everything you're ready to run. Nothing leaves this page — credentials stay in your browser's local storage.</p>
+
+<h2>1 &nbsp;Accounts &amp; credentials</h2>
+<div class="grid" id="platforms"></div>
+
+<div class="actions">
+  <button class="ghost" id="exportBtn">Export config JSON</button>
+  <button class="ghost" id="clearBtn">Clear all</button>
+</div>
+
+<h2>2 &nbsp;What you can run</h2>
+<p class="sub">Based on what's filled in above. Green = ready, yellow = partially configured, red = blocked.</p>
+<div id="pipeline"></div>
+
+<div class="note">
+  <strong>For AI agents:</strong> this page mirrors <code>tracks.json</code> — the machine-readable map of
+  gamepress. Each pipeline step lists the exact credential keys it needs (the <code>data-key</code> attributes
+  on the inputs above). Read <code>docs/tracks/&lt;track&gt;.md</code> for the full per-track instructions.
+  Credentials are never transmitted anywhere by this page.
+</div>
+
+<script>
+const PLATFORMS = [
+  {
+    id: "github", name: "GitHub", purpose: "Demo page hosting (GitHub Pages), repo for every game",
+    fields: [
+      { key: "github_user", label: "Username", hint: "e.g. bparlette" },
+    ],
+    howto: [
+      'Create an account at <a href="https://github.com/signup" target="_blank">github.com/signup</a>',
+      'Create a repo for your demo page (e.g. <code>mygame-demo</code>)',
+      'Enable Pages: repo Settings → Pages → Deploy from branch → <code>main</code> / <code>/docs</code>',
+      'No API key needed for gamepress — it pushes via git',
+    ],
+  },
+  {
+    id: "itch", name: "itch.io", purpose: "Web game store page — fastest path to a playable public link",
+    fields: [
+      { key: "itch_user", label: "Username", hint: "Your itch.io username" },
+      { key: "itch_api_key", label: "API key", hint: "itch.io → Settings → API keys → generate", secret: true },
+    ],
+    howto: [
+      'Create an account at <a href="https://itch.io/register" target="_blank">itch.io/register</a>',
+      'Generate an API key: itch.io → <a href="https://itch.io/user/settings/api-keys" target="_blank">Settings → API keys</a>',
+      'Install butler (itch\'s CLI): <a href="https://itch.io/docs/butler/" target="_blank">itch.io/docs/butler</a>',
+      'Authenticate once: <code>butler login</code> — paste the API key',
+    ],
+  },
+  {
+    id: "crazygames", name: "CrazyGames", purpose: "Browser game portal — large built-in audience",
+    fields: [
+      { key: "crazygames_user", label: "Developer account email", hint: "Login for the developer portal" },
+    ],
+    howto: [
+      'Apply at <a href="https://developer.crazygames.com/" target="_blank">developer.crazygames.com</a>',
+      'Accept the T&amp;Cs and complete the PEGI age-rating questionnaire per game',
+      'Uploads are manual through the portal — no API key; gamepress prepares the files',
+      'Covers must not show Steam logos or prices (cross-promo rule)',
+    ],
+  },
+  {
+    id: "steam", name: "Steam", purpose: "Full store page — the biggest PC games market",
+    fields: [
+      { key: "steam_app_id", label: "App ID", hint: "From Steamworks after paying the $100 fee" },
+      { key: "steamworks_user", label: "Steamworks account", hint: "Username with app access" },
+    ],
+    howto: [
+      'Sign up at <a href="https://partner.steamgames.com/" target="_blank">partner.steamgames.com</a>',
+      'Pay the $100 app fee per game, complete tax + identity verification (10–15 business days)',
+      'Your App ID appears in Steamworks once approved — paste it above',
+      'Upload builds with <code>steamcmd</code> or the Steamworks web UI; gamepress prepares all assets',
+    ],
+  },
+  {
+    id: "roblox", name: "Roblox", purpose: "Roblox experiences — publish places via Open Cloud",
+    fields: [
+      { key: "roblox_api_key", label: "Open Cloud API key", hint: "Needs universe.place.write + luau-execution-session", secret: true },
+      { key: "roblox_universe_id", label: "Universe ID", hint: "Numeric ID from Creator Dashboard" },
+      { key: "roblox_place_id", label: "Place ID", hint: "Numeric ID of the place to publish" },
+    ],
+    howto: [
+      'Open <a href="https://create.roblox.com/dashboard/credentials" target="_blank">create.roblox.com → Credentials</a>',
+      'Create an API key with scopes: <code>universe.place.write</code>, <code>luau-execution-session</code>',
+      'Restrict the key to your universe\'s IP allowlist for safety',
+      'Find Universe + Place IDs in the <a href="https://create.roblox.com/dashboard" target="_blank">Creator Dashboard</a>',
+      'gamepress reads the key from macOS Keychain (see <code>scripts/roblox-key.sh</code>) or the field above',
+    ],
+  },
+  {
+    id: "youtube", name: "YouTube", purpose: "Shorts / trailers — viral distribution for every game",
+    fields: [
+      { key: "youtube_channel", label: "Channel name", hint: "e.g. @HomebrewGameTrailers" },
+    ],
+    howto: [
+      'Uploads go through OAuth in the browser — no API key to paste here',
+      'gamepress <code>drive</code> renders the vertical MP4; you upload it to Shorts',
+      'Keep a consistent channel per game series for the algorithm',
+    ],
+  },
+];
+
+// Pipeline steps mapped to required credential keys + tracks
+const PIPELINE = [
+  { track: "shared", cmd: "gamepress research <url>", desc: "Pull trend intel for a game idea",
+    needs: [] },
+  { track: "shared", cmd: "gamepress new --target web|roblox", desc: "Scaffold a new game from a template",
+    needs: [] },
+  { track: "shared", cmd: "gamepress test", desc: "Headless test: does it load, play, stay green?",
+    needs: [] },
+  { track: "shared", cmd: "gamepress capture / drive / scenes", desc: "Capture footage: scripted screenshots, gameplay video, viral clips",
+    needs: [] },
+  { track: "shared", cmd: "gamepress pack", desc: "Build every store's image + video assets",
+    needs: [] },
+  { track: "shared", cmd: "gamepress check", desc: "Verify assets against each store's specs",
+    needs: [] },
+  { track: "shared", cmd: "gamepress voices", desc: "Batch TTS → format → integrate dialogue audio",
+    needs: [] },
+  { track: "demo", cmd: "gamepress publish-demo", desc: "Push playable demo to GitHub Pages",
+    needs: ["github_user"], needsLabel: "GitHub username" },
+  { track: "web-store", cmd: "gamepress deploy --target itch", desc: "Upload web build to itch.io via butler",
+    needs: ["itch_user", "itch_api_key"], needsLabel: "itch.io account + API key" },
+  { track: "web-store", cmd: "gamepress deploy --target crazygames", desc: "Prepare + upload to CrazyGames portal",
+    needs: ["crazygames_user"], needsLabel: "CrazyGames developer account" },
+  { track: "web-store", cmd: "gamepress deploy --target steam", desc: "Upload depot + set store page assets",
+    needs: ["steam_app_id", "steamworks_user"], needsLabel: "Steam App ID + Steamworks access" },
+  { track: "roblox", cmd: "gamepress roblox-ship", desc: "Safe publish place via Open Cloud",
+    needs: ["roblox_api_key", "roblox_universe_id", "roblox_place_id"], needsLabel: "Roblox API key + universe + place IDs" },
+];
+
+const store = {
+  get(k) { return localStorage.getItem("gp_" + k) || ""; },
+  set(k, v) { v ? localStorage.setItem("gp_" + k, v) : localStorage.removeItem("gp_" + k); },
+  clear() { Object.keys(localStorage).filter(k => k.startsWith("gp_")).forEach(k => localStorage.removeItem(k)); },
+};
+
+function platformStatus(p) {
+  const filled = p.fields.filter(f => store.get(f.key).trim()).length;
+  if (filled === 0) return "missing";
+  if (filled < p.fields.length) return "partial";
+  return "ok";
+}
+
+function renderPlatforms() {
+  const el = document.getElementById("platforms");
+  el.innerHTML = "";
+  PLATFORMS.forEach(p => {
+    const st = platformStatus(p);
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <h3><span class="status ${st}"></span>${p.name}</h3>
+      <div class="purpose">${p.purpose}</div>
+      <details class="howto">
+        <summary>How to set this up</summary>
+        <ol>${p.howto.map(s => `<li>${s}</li>`).join("")}</ol>
+      </details>
+      ${p.fields.map(f => `
+        <div class="field">
+          <label>${f.label}</label>
+          <input type="${f.secret ? "password" : "text"}" data-key="${f.key}"
+                 value="${store.get(f.key).replace(/"/g, "&quot;")}" placeholder="${f.hint || ""}"
+                 autocomplete="off" spellcheck="false">
+          ${f.hint ? `<div class="hint">${f.hint}</div>` : ""}
+        </div>`).join("")}
+    `;
+    el.appendChild(card);
+  });
+  el.querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("input", () => {
+      store.set(inp.dataset.key, inp.value.trim());
+      renderPlatforms();
+      renderPipeline();
+    });
+  });
+}
+
+function renderPipeline() {
+  const el = document.getElementById("pipeline");
+  el.innerHTML = "";
+  let lastTrack = null;
+  PIPELINE.forEach(step => {
+    if (step.track !== lastTrack) {
+      lastTrack = step.track;
+      const lbl = document.createElement("div");
+      lbl.className = "track-label";
+      lbl.textContent = "track: " + step.track;
+      el.appendChild(lbl);
+    }
+    const filled = step.needs.filter(k => store.get(k).trim()).length;
+    const st = step.needs.length === 0 ? "ok" : filled === 0 ? "missing" : filled < step.needs.length ? "partial" : "ok";
+    const row = document.createElement("div");
+    row.className = "pipe";
+    row.innerHTML = `
+      <span class="badge ${st}">${st === "ok" ? "ready" : st === "partial" ? "partial" : "blocked"}</span>
+      <span class="cmd">${step.cmd}</span>
+      <span class="desc">${step.desc}</span>
+      <span class="needs ${st === "ok" ? "ok" : "no"}">${step.needs.length === 0 ? "no credentials needed" : st === "ok" ? "✓ " + step.needsLabel : "needs: " + step.needsLabel}</span>
+    `;
+    el.appendChild(row);
+  });
+}
+
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const cfg = {};
+  PLATFORMS.forEach(p => p.fields.forEach(f => { const v = store.get(f.key); if (v) cfg[f.key] = v; }));
+  const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "gamepress-config.json";
+  a.click();
+});
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+  if (confirm("Clear all saved credentials?")) { store.clear(); renderPlatforms(); renderPipeline(); }
+});
+
+renderPlatforms();
+renderPipeline();
+</script>
+</body>
+</html>

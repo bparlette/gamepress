@@ -1,10 +1,21 @@
 # gamepress
 
-**The goal:** script as much as possible of the path from game idea to hosted game — and make every
-step usable on its own. Three deployment targets: **local demo**, **Steam** (plus itch.io and CrazyGames),
-and **Roblox**. Any AI should be able to pick up gamepress, run the parts it needs, and spend as few
-tokens as possible doing it: one command per step, machine-readable output, idempotent re-runs,
-one-line actionable errors. No npm dependencies (Node 22+, ffmpeg, and Chrome for web captures).
+**The goal:** point an AI at this repo and a game idea, and everything is taken care of — from idea to
+hosted game trailer on YouTube, playable demo website, or published game on itch.io / CrazyGames / Steam.
+Three tiers, each building on the last:
+
+| Tier | What you get | Setup needed |
+|---|---|---|
+| **Local** | Playable game, screenshots, videos, store assets — all on your machine | None. Just Node, ffmpeg, Chrome. |
+| **GitHub Pages** | Hosted playable demo at `username.github.io` | GitHub account. That's it. |
+| **Published** | YouTube trailer, itch.io / CrazyGames / Steam store pages | API keys per platform (YouTube OAuth, itch.io key, Steamworks app, etc.) — the [setup wizard](setup/index.html) walks through each one |
+
+The local tier must always work with zero setup. If you just want a playable game with images and videos
+on your own machine, you should never need an account or API key for anything.
+
+Any AI should be able to pick up gamepress, run the parts it needs, and spend as few tokens as possible
+doing it: one command per step, machine-readable output, idempotent re-runs, one-line actionable errors.
+No npm dependencies (Node 22+, ffmpeg, and Chrome for web captures).
 
 ```
 gamepress init                      # press/ folder + starter capture plan
