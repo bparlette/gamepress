@@ -62,7 +62,7 @@ export function createGame({ id = 'game', title = 'GAME', sub = 'Tap to start', 
       while (acc >= 1 / 60) { acc -= 1 / 60; const dt0 = 1 / 60;
         if (g.mode !== 'pause') { for (let i = tw.length - 1; i >= 0; i--) { const q = tw[i]; q.t += dt0; const u = Math.min(1, q.t / q.d); q.o[q.k] = q.a + (q.to - q.a) * q.ez(u); if (u >= 1) { tw.splice(i, 1); q.then?.(); } }
           for (const p of g.fxl) { p.t += dt0; p.vy += p.g * dt0; p.x += p.vx * dt0; p.y += p.vy * dt0; } g.fxl = g.fxl.filter(p => p.t < p.life); for (const p of g.pops) p.t += dt0; g.pops = g.pops.filter(p => p.t < .9);
-          g.shakeA = Math.max(0, g.shakeA - dt0 * 40); g.flashA *= .88; if (g.bannerT > 0) g.bannerT -= dt0; if (g.mode === 'over') { g.overT += dt0; if (AUTO && g.overT > 2.4 && !g.result?.win) g.reset();   // bots restart after a loss and hold the win screen } }
+          g.shakeA = Math.max(0, g.shakeA - dt0 * 40); g.flashA *= .88; if (g.bannerT > 0) g.bannerT -= dt0; if (g.mode === 'over') { g.overT += dt0; if (AUTO && g.overT > 2.4 && !g.result?.win) g.reset(); } }
         if (g.mode === 'play' || (g.mode === 'title' && AUTO)) { if (g.freeze > 0) g.freeze -= dt0; else { if (g.slowT > 0 && (g.slowT -= dt0) <= 0) g.timeScale = 1; const dt = dt0 * g.timeScale; g.t += dt; g.btns.length = 0; update(dt); } }
         else if (g.mode === 'over') { g.btns.length = 0; update(0); }
         g.taps.length = 0; g.pressed = {}; g.simP = {}; }
