@@ -11,6 +11,24 @@ node bin/gamepress.mjs roblox --rojo default.project.json --universe ... --place
 Ids can come from env instead of flags: `ROBLOX_UNIVERSE_ID`, `ROBLOX_PLACE_ID` (keep them in your shell profile, not the repo).
 The place id is NOT in the experience overview URL (that URL holds the universe id). Get it from Creator Dashboard > the experience > **Places** (or open the place in Studio: Game Explorer shows it; `game.PlaceId` in the command bar prints it). A private/unpublished experience hides its place id from public APIs.
 
+## API key permissions (exactly these, nothing else)
+Dashboard > Credentials > Create API Key > **Access Permissions** > "Select API System", then add the scopes below and pick **this experience only** (never "all experiences").
+| API system (search box) | Scope / operation | Lets gamepress |
+|---|---|---|
+| `universe-places` (shown as `universe.place`) | **write** (`universe.place.write`) | `roblox` / `roblox-ship`: upload a place file as Saved or Published |
+| `luau-execution-session` | **read** and **write** (`universe.place.luau-execution-session:read` / `:write`) | `roblox-test`: run Luau test scripts headlessly on a saved version |
+That is the whole set for test + publish. Do not add assets, datastores, game-passes, developer-products, thumbnails, ad, creator-store or universe settings: not needed, and each widens what a leaked key can do.
+Set an expiry (90 days), and an IP allowlist if your address is stable. If a scope name differs in the dropdown, search for "place" and "luau": pick the place-publish and luau-execution entries.
+
+## Control flow: test, then publish
+```
+node bin/gamepress.mjs roblox-ship ~/RobloxWork/YeetPets_latest.rbxl --universe 10770585988 --place <place id> --test templates/roblox-smoke.luau
+# 1) uploads as Saved  2) runs the Luau test against that exact version  3) publishes only if the test passed
+node bin/gamepress.mjs roblox-test my-test.luau [--version N]      # run a test alone
+```
+Copy `templates/roblox-smoke.luau` and add checks for the pets game (spawns, remotes, pet tables). Tests run server-side in an Open Cloud session: they can inspect the DataModel and run code but not play with a client.
+The Luau Execution API endpoints and scope names follow Roblox's open-beta docs; verify against https://create.roblox.com/docs/cloud/open-cloud/luau-execution if a call returns 403/404.
+
 ## One-time setup (owner, 5 minutes)
 1. **Ids**: Creator Dashboard > Creations > your experience. The universe id is in the experience URL (`/experiences/<universeId>/...`); open the place and take the place id from its URL or Game Settings > Basic Info.
 2. **API key**: Creator Dashboard > Credentials > Create API Key. Access Permissions: API System **Place Publishing** (`universe-places`), operation **write**, select the experience. Restrict by IP if you can. Copy the key once into `ROBLOX_API_KEY` (shell profile or keychain, not the repo).
