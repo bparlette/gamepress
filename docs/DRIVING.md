@@ -101,3 +101,15 @@ Conventions that keep games capture-friendly (the demos in `brad-demos/g` follow
 - **Engines with a headless mode** (Unity WebGL, Godot HTML5, Phaser, three.js): these are web games; use `drive` directly.
 - **Games with their own deterministic sim and replay system** (like the HOA Warfare director in its repo): export the
   frames from the sim and use `gamepress pack`/`social` for the encoding side.
+
+## Viral capture: film the game, not the menu
+
+A drive plan that just moves and clicks is a **failed video**. Before writing any plan for an existing game:
+
+1. **Identify the 3-5 viral features.** Play the game (or read its README/docs). What makes someone stop scrolling? For a shooter: kill shots, killcams, voice lines, weapon variety, ragdoll physics. For a builder: the satisfying snap, the before/after. Write them down.
+2. **Every viral feature gets screen time.** If the game has 900 voice lines, the video MUST have voice audio. If it has kill confirmations, the plan MUST get kills on camera. A plan without the game's signature moments is a reshoot.
+3. **Capture real game audio.** If the game has sound (music, SFX, voice), the video needs it. `drive` synthesizes from `window.__events` — for existing games, prefer capturing the actual Web Audio output. Silent gameplay footage with a synth bed is a placeholder, not a deliverable.
+4. **Play to win.** The input script should actually play well: aim at enemies, use abilities, trigger the cool stuff. Random WASD + clicks produces menu footage and walking-into-walls. If you can't script skilled play, use the game's bot/debug API or `eval` to stage the moments.
+5. **Checklist before render:** [ ] hook in first second [ ] each viral feature visible [ ] real game audio [ ] kills/action on camera (not menus) [ ] CTA only in last 5s
+
+A video that shows menus + walking + synth music failed the brief. Reshoot it.

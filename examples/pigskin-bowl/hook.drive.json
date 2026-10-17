@@ -1,0 +1,52 @@
+{
+  "name": "pigskin-bowl-hook",
+  "root": "${GAMES_DIR:-/home/hatch/workspace/gamepress/games}",
+  "path": "pigskin-bowl/index.html?dpr=1&clean=1",
+  "viewport": [
+    540,
+    960
+  ],
+  "scale": 2,
+  "fps": 30,
+  "seed": 1,
+  "duration": 18,
+  "report": "window.__game",
+  "thumb": 8,
+  "input": [
+    {
+      "t": 1,
+      "down": " "
+    },
+    {
+      "t": 4,
+      "up": " "
+    }
+  ],
+  "captions": [
+    {
+      "t": 0,
+      "until": 3,
+      "text": "WRITE THE HOOK HERE",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 12,
+      "until": 18,
+      "text": "Play free. Link in bio",
+      "pos": "bottom",
+      "style": "cta"
+    }
+  ],
+  "slowmo": [],
+  "blur": 2,
+  "fade": {
+    "in": 0.2,
+    "out": 0.4
+  },
+  "audio": {
+    "source": "window.__events",
+    "music": "bed",
+    "musicGain": 0.3
+  }
+}

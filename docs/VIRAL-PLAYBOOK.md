@@ -20,6 +20,49 @@ Rules that follow:
 4. **Invite a guess or a vote** ("which pane holds?", "pick your marble"): comments feed the algorithm.
 5. Loop-friendly endings; 12 to 25 seconds; a one-line CTA only in the last 5 s.
 
+## Retention Timeline
+The 5-beat structure every viral game video follows:
+- **0.0–1.5s VISUAL HOOK**: Pattern interrupt. Action already in progress, no logos/menus. Text overlay top-center.
+- **1.5–8.0s ESCALATION**: Micro-stakes. Speed/pitch/difficulty climbing. Viewer thinks "ok this is getting intense."
+- **8.0–18.0s TENSION**: "Can he win?" Near-misses, close calls. The itch.
+- **18.0–24.0s PAYOFF**: Screen shake, confetti, SFX climax. The scratch.
+- **24.0s SEAMLESS LOOP**: Cut back to a frame that flows into 0.0s. Loop = rewatch = algorithm boost.
+
+## Fail-Then-Win
+A core pattern: **Attempt 0 FAILS at 3–5s** (creates cognitive itch — "I could do better"). **Attempt 1 escalates to victory.** This doubles as a retention hook AND a comment driver ("bro just jump earlier"). Script the bot to deliberately flub the first run, then play it clean.
+
+## Platform Drivers
+- **YouTube Shorts**: Optimize for APV >110% and swipe-away <25%. Use the fail-then-win loop. Captions top-center, NEVER bottom 30% (blocked by title/channel UI).
+- **TikTok**: Optimize for comment velocity and shares. Use rage bait / perceived incompetence — bot makes near-misses that make viewers comment corrections. POV/challenge framing: "Why is stage 4 actually impossible?"
+- **Twitter/X**: Optimize for silent autoplay pattern interrupt. Frame 1 must be high-density spectacle (explosions, massive combos, screen shake). Caption: short technical/dev punchline.
+
+## Juice Hierarchy
+When stacking effects, priority order:
+1. Frame hit-stop (3–6 frames) — the single most impactful juice
+2. Chromatic aberration pulse
+3. Semitone pitch escalation on SFX
+4. Screen shake (proportional to event)
+5. Particles/confetti
+
+## Unmute Bait
+Short-form ranking rewards audio hooks that work even on mute — or create the urge to unmute. Techniques:
+- Sudden silence → massive hit (drop all audio for 0.5s before the climax, then slam back)
+- Signature sound that only resolves on payoff (a rising tone that doesn't complete until the win)
+- Visual rhythm that implies sound (pulsing on beat even when muted, so unmuting feels like unlocking)
+
+## Loop Quality
+A seamless loop needs more than cutting end-to-start. Match across the cut:
+- Camera angle and position (end frame ≈ start frame composition)
+- Energy level (don't cut from explosion to calm menu)
+- Color grade (no sudden palette shifts)
+Test: watch the loop 3x. If the cut is jarring on the 2nd loop, it's not seamless.
+
+## Bot Personality
+Pure technical perfection feels sterile. Give the bot a light character:
+- Slightly overconfident (rushes in, almost fails, then god-mode saves it)
+- Slightly clumsy in a funny way (trips, recovers with style)
+- Never pure random, never pure perfect — the gap between "almost failed" and "nailed it" drives comments and shares
+
 ## The twelve demos and their videos
 Each plan is in `examples/<id>/hook.drive.json`. Suggested titles (edit freely):
 
@@ -50,3 +93,13 @@ Haunted Roomba, Pizza Delivery From Hell, Reverse Dodgeball, plus the dropped Ti
 1. Build the game (`docs/MAKING-GAMES.md`). 2. `gamepress drive --quick` to prove the script. 3. Full render.
 4. `gamepress catalog` to publish it on the demo page. 5. Upload by hand; track views; keep what works (kaiju and
    physics gags, glitch framings), cut what does not.
+
+## Output contract: always show the links
+
+Every gamepress run must end with the AI showing the user links to the main products — no exceptions, no "it's in the folder." The outputs:
+
+1. **Game link** — wherever the game is playable: local file path, GitHub Pages URL, Cloudflare URL, itch.io page, Steam store page, Roblox experience link. Whatever the user's output host was.
+2. **Video link** — the viral clip / trailer. Google Drive preview link, YouTube Shorts URL, or local file path. Must be playable on the user's phone.
+3. **Images** — thumbnail + at least one screenshot. Linked, not just "saved to disk."
+
+If the game isn't hosted anywhere yet, say so explicitly and offer the next step ("want me to put this on itch.io?"). Never end with "done" and no links.
