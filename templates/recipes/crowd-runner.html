@@ -1,0 +1,56 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<script type="module">
+// Zombie Horde: steer a growing zombie mob (A/D or drag) through math gates, then overwhelm the GIANT CAT boss. One instanced zombie mesh;
+// only the first 700 are drawn, the counter shows the real number. Gate side is chosen by where the crowd centre is when it crosses.
+/*RECIPE crowd-runner: steer a growing crowd through math gates, topple a boss. Edit the SPEC JSON, not the code (gamepress make).*/
+import { createStage, instances, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
+import { toon, zombieGeo, catGeo, crowd, hero, particles, sky, groundTex, walkClock } from '../_vendor/gpkit.js';
+const S = { title: 'CROWD RUNNER', sub: 'Steer through the gates. Topple the boss.', hero: 'zombie', heroColors: [0x7fbf6a, 0x8fcf7a, 0x6aa85a], foe: 'cat', foeColors: [0xff9a3c, 0x9aa0aa, 0xf4efe4], bossColor: 0xff9a3c, bossScale: 10, bossHP: 900, bg: 0x8fd3ff, skyTop: 0x3f8cff, skyBottom: 0xffe7b8, ground: 'grass', road: 'asphalt', start: 5, winText: 'BOSS DOWN!', bossText: 'BOSS!', crowdLabel: 'CROWD',
+  gates: ['+20', 'x2', '-15', 'x3', '+50', 'x2', '-30', 'x4'], /*SPEC*/ ...{} /*END*/ };
+const GEO = { zombie: zombieGeo, cat: catGeo };
+const st = createStage({ bg: S.bg, fitWidth: 9.5, fov: 55, fog: [40, 110] }); st.light(); sky(st.scene, S.skyTop, S.skyBottom, [50, 150]);
+const TRACK = 190, MAXDRAW = 700;
+const road = new THREE.Mesh(new THREE.PlaneGeometry(10, TRACK + 60), toon(0xffffff, { map: groundTex(S.road, 10) })); road.rotation.x = -Math.PI / 2; road.position.z = TRACK / 2; st.scene.add(road);
+const grass = new THREE.Mesh(new THREE.PlaneGeometry(200, TRACK + 200), toon(0xffffff, { map: groundTex(S.ground, 60) })); grass.rotation.x = -Math.PI / 2; grass.position.set(0, -.02, TRACK / 2); st.scene.add(grass);
+const OPS = S.gates.map(g => { const m = /^([+\-x×])(\d+)$/.exec(g), k = +m[2]; return m[1] === '+' ? [g, n => n + k, 1] : m[1] === '-' ? [g, n => Math.max(1, n - k), 0] : [g.replace('x', '×'), n => n * k, 1]; });
+const lab = (t, good) => { const cv = document.createElement('canvas'); cv.width = 256; cv.height = 192; const g = cv.getContext('2d'); g.fillStyle = good ? 'rgba(46,160,255,.7)' : 'rgba(255,70,70,.7)'; g.fillRect(0, 0, 256, 192); g.font = '900 120px Impact,Arial Black'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 10; g.strokeText(t, 128, 140); g.fillText(t, 128, 140); return new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, side: THREE.DoubleSide }); };
+const gates = [], gm = {}; for (let i = 0; i < 6; i++) { const z = 22 + i * 24, a = OPS[(i * 2) % OPS.length], b = OPS[(i * 2 + 1) % OPS.length], pair = [a, b]; if (i % 2) pair.reverse();
+  pair.forEach((op, s) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 3.4), lab(op[0], op[2])); m.position.set(s ? 2.5 : -2.5, 1.9, z); m.rotation.y = Math.PI; st.scene.add(m); (gm[z] = gm[z] || []).push(m); }); gates.push({ z, ops: pair, used: false, meshes: gm[z] }); }
+const castle = hero(GEO[S.foe](), S.bossColor, .025); castle.scale.setScalar(S.bossScale); castle.rotation.y = Math.PI; castle.position.set(0, 0, TRACK + 2); st.scene.add(castle);
+const men = crowd(st.scene, GEO[S.hero](), MAXDRAW, true, S.hero === 'zombie' ? .75 : .35), foes = crowd(st.scene, GEO[S.foe](), 120, true, S.foe === 'zombie' ? .75 : .35), fx = particles(st.scene, 300);
+for (let i = 0; i < MAXDRAW; i++) men.color(i, S.heroColors[i % S.heroColors.length]); for (let i = 0; i < 120; i++) foes.color(i, S.foeColors[i % S.foeColors.length]);
+const AUTO = new URLSearchParams(location.search).has('auto');
+let n = S.start, cx = 0, cz = 0, bossHP = S.bossHP, bossMax = S.bossHP, fight = false, won = false, lost = false, parts = [], foeN = 0, fallT = 0;
+let endT = 0;
+// gate frames: two posts and a glowing bar make each gate read as a real obstacle
+for (const g of gates) { const c = g.ops[0][2] && g.ops[1][2] ? 0x2ea0ff : 0xffb020; for (const x of [-5, 0, 5]) { const m = new THREE.Mesh(new THREE.BoxGeometry(.35, 3.8, .35), toon(0xdddddd)); m.position.set(x, 1.9, g.z); st.scene.add(m); } const b = new THREE.Mesh(new THREE.BoxGeometry(10.2, .35, .35), new THREE.MeshBasicMaterial({ color: c })); b.position.set(0, 3.8, g.z); st.scene.add(b); }
+function reset() { n = S.start; cx = 0; cz = 0; bossHP = bossMax; fight = won = lost = false; fallT = 0; foeN = 0; parts = []; endT = 0; gates.forEach(g => { g.used = false; g.meshes.forEach(m => { m.visible = true; }); }); castle.rotation.z = 0; castle.position.y = 0; st.hud.banner('GO!', .8); }
+st.shell({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, onReset: reset });
+st.cine([{ t: 0, p: [0, 0, 0] }, { t: 3, p: [0, 3, -4] }, { t: 8, p: [0, 0, 0] }]);
+function update(dt) {
+  if (!fight && !won && !lost) {
+    const k = st.keys, mv = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0); if (AUTO) { const g = gates.find(g => !g.used && g.z - cz < 14), want = g ? (g.ops[1][1](n) > g.ops[0][1](n) ? 2.4 : -2.4) : 0; cx += clamp(want - cx, -7 * dt, 7 * dt); } else if (mv) cx += mv * 7 * dt; else if (st.ptr.down) cx += (st.ptr.x * 3.8 - cx) * Math.min(1, dt * 9); cx = clamp(cx, -3.6, 3.6); cz += (9 + Math.min(4, n / 80)) * dt;
+    for (const g of gates) if (!g.used && cz >= g.z) { g.used = true; g.meshes.forEach(m => { m.visible = false; }); const op = g.ops[cx < 0 ? 0 : 1], before = n; n = Math.round(op[1](n)); sfx(op[2] ? 'ding' : 'crash'); st.hud.banner(op[0], .7); st.shake(op[2] ? 2 : 4); st.popup((n >= before ? '+' : '') + (n - before), { x: cx, y: 2.5, z: cz + 2 }, op[2] ? '#7dd3ff' : '#ff6b6b'); st.flash(op[2] ? '#3aa0ff' : '#ff3b3b', .25); st.kick(op[2] ? 5 : 2); if (n - before > 100) st.hitstop(.08); }
+    if (cz >= TRACK - 16) { fight = true; foeN = 120; st.hud.banner(S.bossText, 1.2); sfx('boom'); }
+  } else if (fight) {
+    cz += (TRACK - 9 - cz) * Math.min(1, dt * 2); cx += (0 - cx) * Math.min(1, dt * 3); const dmg = n * .9 * dt, back = (bossMax * .5 + 80) * dt * (bossHP / bossMax + .2);
+    bossHP -= dmg; n -= back; foeN = Math.ceil(120 * Math.max(0, bossHP) / bossMax); if (Math.random() < .3) sfx('tick', .3); st.shake(2);
+    if (bossHP <= 0) { fight = false; won = true; st.hud.banner(S.winText, 3); sfx('boom'); st.shake(14); st.hitstop(.15); st.slowmo(.25, 1.2); st.flash('#fff', .7); sfx('win'); for (let i = 0; i < 60; i++) parts.push({ x: rand(-4, 4), y: rand(1, 12), z: TRACK + rand(-2, 2), vx: rand(-4, 4), vy: rand(2, 9), vz: rand(-3, 6) }); }
+    else if (n <= 0) { n = 0; fight = false; lost = true; st.hud.banner('CRUSHED', 3); }
+  }
+  if (won) { fallT += dt; castle.rotation.z = Math.min(1.45, fallT * 1.1); castle.position.y = -fallT * .5; if (fallT < 1.5 && Math.random() < .5) fx.burst(3, { x: rand(-4, 4), y: 1, z: TRACK, size: .5, life: .8, color: 0xe8dcc0, g: 2 }, 4); }
+  if ((won || lost) && !endT) { endT = 1; st.end({ win: won, score: Math.round(n), label: S.crowdLabel }); }
+  walkClock.value = st.t;
+  fx.update(dt); for (const p of parts) { p.vy -= 14 * dt; p.x += p.vx * dt; p.y = Math.max(.1, p.y + p.vy * dt); p.z += p.vz * dt; }
+  st.hud.left(`${S.crowdLabel}<br><span style="color:#ffd34d;font-size:8vmin">${Math.max(0, Math.round(n)).toLocaleString()}</span>`); st.hud.right(fight || won ? `BOSS<br>${Math.max(0, Math.round(bossHP))}` : `GATES ${gates.filter(g => g.used).length}/${gates.length}`); st.hud.hint('A/D or drag: steer');
+  window.__game = { crowd: Math.round(n), boss: Math.round(bossHP), z: Math.round(cz), won, lost };
+}
+function pre() {
+  const cnt = Math.min(MAXDRAW, Math.max(0, Math.round(n))); const sp = 0.3, t = st.t;
+  for (let i = 0; i < cnt; i++) { const r = sp * 1.5 * Math.sqrt(i + .5), a = i * 2.39996, bob = Math.abs(Math.sin(t * 9 + i * 1.7)) * .14 * (won || lost ? 0 : 1); men.set(i, cx + Math.cos(a) * r, bob, cz + Math.sin(a) * r, .5, Math.sin(t * 3 + i) * .15, .12); }
+  men.done(cnt);
+  for (let i = 0; i < foeN; i++) { const a = i * 2.39996, r = .45 * Math.sqrt(i + .5); foes.set(i, Math.cos(a) * r * 1.6, Math.abs(Math.sin(t * 8 + i)) * .2, TRACK - 4 + Math.sin(a) * r, .55, Math.PI); } foes.done(foeN);
+  const R = Math.max(5, Math.sqrt(cnt) * .26); st.camera.position.set(cx * .3, 6.5 + R * .6, cz - 9.5 - R * .8); st.camera.lookAt(cx * .3, 1.4, cz + 7);
+}
+st.run(update, pre);
+</script></body></html>

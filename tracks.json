@@ -16,7 +16,10 @@
       "all",
       "grade",
       "copy",
-      "build"
+      "build",
+      "make",
+      "doctor",
+      "lint"
     ],
     "purpose": "Research, build/scaffold, headless test, scripted gameplay video, store images."
   },
