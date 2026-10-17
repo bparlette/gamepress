@@ -1,0 +1,59 @@
+{
+  "name": "glass-stairs-hook",
+  "root": "../../../hawk-pub/brad-demos/g",
+  "path": "glass-stairs/index.html?dpr=1&clean=1",
+  "viewport": [
+    540,
+    960
+  ],
+  "scale": 2,
+  "fps": 30,
+  "seed": 5,
+  "duration": 22,
+  "report": "window.__game",
+  "input": [],
+  "captions": [
+    {
+      "t": 0,
+      "until": 4,
+      "text": "Which pane holds?",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 4,
+      "until": 8,
+      "text": "bet in the comments",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 17,
+      "until": 23,
+      "text": "Play free. Link in bio",
+      "pos": "bottom",
+      "style": "cta"
+    }
+  ],
+  "slowmo": [],
+  "thumb": 6,
+  "audio": {
+    "source": "window.__events",
+    "music": "bed",
+    "musicGain": 0.3,
+    "bed": {
+      "bpm": 96,
+      "root": 49,
+      "pattern": [
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        5,
+        3
+      ]
+    }
+  }
+}

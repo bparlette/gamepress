@@ -1,0 +1,68 @@
+{
+  "name": "speed-ramp-hook",
+  "root": "../../../hawk-pub/brad-demos/g",
+  "path": "speed-ramp/index.html?dpr=1&clean=1",
+  "viewport": [
+    540,
+    960
+  ],
+  "scale": 2,
+  "fps": 30,
+  "seed": 5,
+  "duration": 18,
+  "report": "window.__game",
+  "input": [
+    {
+      "t": 0.2,
+      "down": " "
+    },
+    {
+      "t": 3.8,
+      "up": " "
+    }
+  ],
+  "captions": [
+    {
+      "t": 0,
+      "until": 3,
+      "text": "This ramp is too steep",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 3,
+      "until": 6,
+      "text": "land it on the barge",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 12,
+      "until": 18,
+      "text": "Play free. Link in bio",
+      "pos": "bottom",
+      "style": "cta"
+    }
+  ],
+  "slowmo": [],
+  "thumb": 7,
+  "audio": {
+    "source": "window.__events",
+    "music": "bed",
+    "musicGain": 0.3,
+    "bed": {
+      "bpm": 150,
+      "root": 65,
+      "pattern": [
+        0,
+        0,
+        7,
+        5,
+        0,
+        0,
+        10,
+        7
+      ]
+    }
+  }
+}

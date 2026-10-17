@@ -10,7 +10,11 @@ gamepress capture press/plan.json   # web game -> raw stills + clips (headless C
 gamepress scenes recording.mp4      # ANY game: pick the best stills and clips out of a screen recording
 gamepress pack                      # raw -> out/steam, out/itch, out/crazygames, out/social
 gamepress check                     # verify sizes, counts, GIF size, video length per store
+gamepress drive plan.json           # scripted, frame-locked playthrough of ANY web game -> captioned MP4 with audio
+gamepress catalog games.json ...    # add a game + thumbnail to a demo-page catalog
 ```
+
+> This repo is intended to be renamed `tools`. Nothing in it depends on the name; all paths are relative.
 
 Run from your game's folder; everything lives in `./press` (`--dir` changes it).
 
@@ -58,6 +62,15 @@ before uploading and edit that file, not the code. Add a platform by adding a bl
 - **CrazyGames:** no Steam or price on covers; their covers are shown small, so keep text minimal.
 - **Capture speed:** web captures are as smooth as the game renders in headless Chrome (a heavy 3D game may
   manage 10 to 15 fps). For smooth trailers, screen-record at 60 fps and use `scenes`.
+
+## Scripted viral videos (`gamepress drive`)
+
+`drive` plays a web game under a virtual clock (so every run is identical), presses keys and clicks at exact
+times, overlays captions, applies slow-motion, mixes sound effects from the game's event log plus a music bed,
+and writes a 1080x1920 MP4. Worked plans for ten games are in `examples/`; the full reference is
+[`docs/DRIVING.md`](docs/DRIVING.md). How those games were built: [`docs/MAKING-GAMES.md`](docs/MAKING-GAMES.md).
+Everything the pipeline needs installed: [`docs/TOOLING.md`](docs/TOOLING.md). What to make and why it works:
+[`docs/VIRAL-PLAYBOOK.md`](docs/VIRAL-PLAYBOOK.md). Render every example: `scripts/render-all.sh`.
 
 ## Programmatic Game Director & Viral Videos
 

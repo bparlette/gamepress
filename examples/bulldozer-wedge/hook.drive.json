@@ -1,0 +1,49 @@
+{
+  "name": "bulldozer-wedge-hook",
+  "root": "../../../hawk-pub/brad-demos/g",
+  "path": "bulldozer-wedge/index.html?speed=1.5&dpr=1&clean=1",
+  "viewport": [
+    540,
+    960
+  ],
+  "scale": 2,
+  "fps": 30,
+  "seed": 5,
+  "duration": 20,
+  "report": "window.__game",
+  "input": [],
+  "captions": [
+    {
+      "t": 0,
+      "until": 4,
+      "text": "10,000 pegs. One wedge.",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 4,
+      "until": 8,
+      "text": "it does not stop",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 14,
+      "until": 20,
+      "text": "Play free. Link in bio",
+      "pos": "bottom",
+      "style": "cta"
+    }
+  ],
+  "slowmo": [],
+  "thumb": 8,
+  "audio": {
+    "source": "window.__events",
+    "music": "bed",
+    "musicGain": 0.3,
+    "bed": {
+      "bpm": 90,
+      "root": 46
+    }
+  }
+}

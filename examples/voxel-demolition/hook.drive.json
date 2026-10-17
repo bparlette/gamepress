@@ -1,0 +1,19 @@
+{
+  "name": "voxel-demolition-hook",
+  "root": "../../../hawk-pub/brad-demos/g", "path": "voxel-demolition/index.html?dpr=1&clean=1",
+  "viewport": [540, 960], "scale": 2, "fps": 30, "seed": 9, "duration": 20,
+  "report": "window.__game", "thumb": 8,
+  "input": [
+    { "t": 1.0, "key": " " }, { "t": 2.2, "down": "arrowup" }, { "t": 2.5, "up": "arrowup" }, { "t": 3.0, "key": " " },
+    { "t": 4.5, "down": "arrowleft" }, { "t": 5.0, "up": "arrowleft" }, { "t": 5.2, "key": " " },
+    { "t": 6.6, "down": "arrowright" }, { "t": 7.6, "up": "arrowright" }, { "t": 7.8, "key": " " },
+    { "t": 9.4, "down": "arrowdown" }, { "t": 9.9, "up": "arrowdown" }, { "t": 10.1, "key": " " },
+    { "t": 11.8, "key": " " }, { "t": 13.3, "key": " " }, { "t": 14.8, "key": " " }
+  ],
+  "captions": [
+    { "t": 0, "until": 3.5, "text": "9,000 voxels. 12 shells.", "pos": "top", "style": "hook" },
+    { "t": 15.5, "until": 20, "text": "Play free. Link in bio", "pos": "bottom", "style": "cta" }
+  ],
+  "slowmo": [ { "t": 3.0, "until": 4.0, "factor": 0.35 } ],
+  "audio": { "source": "window.__events", "music": "bed", "musicGain": 0.3, "bed": { "bpm": 100, "root": 49 }, "map": { "boom": "boom", "whoosh": "whoosh" } }
+}

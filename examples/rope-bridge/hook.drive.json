@@ -1,0 +1,74 @@
+{
+  "name": "rope-bridge-hook",
+  "root": "../../../hawk-pub/brad-demos/g",
+  "path": "rope-bridge/index.html?dpr=1&clean=1",
+  "viewport": [
+    540,
+    960
+  ],
+  "scale": 2,
+  "fps": 30,
+  "seed": 5,
+  "duration": 20,
+  "report": "window.__game",
+  "input": [
+    {
+      "t": 0.5,
+      "key": " "
+    },
+    {
+      "t": 2.6,
+      "key": " "
+    },
+    {
+      "t": 4.6,
+      "key": " "
+    },
+    {
+      "t": 6.4,
+      "key": " "
+    },
+    {
+      "t": 8.2,
+      "key": " "
+    },
+    {
+      "t": 10,
+      "key": " "
+    }
+  ],
+  "captions": [
+    {
+      "t": 0,
+      "until": 4,
+      "text": "How much can this bridge hold?",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 8,
+      "until": 12,
+      "text": "it should not hold a tank",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 14,
+      "until": 20,
+      "text": "Play free. Link in bio",
+      "pos": "bottom",
+      "style": "cta"
+    }
+  ],
+  "slowmo": [],
+  "thumb": 11,
+  "audio": {
+    "source": "window.__events",
+    "music": "bed",
+    "musicGain": 0.3,
+    "bed": {
+      "bpm": 104,
+      "root": 49
+    }
+  }
+}

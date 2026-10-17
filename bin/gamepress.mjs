@@ -4,6 +4,8 @@
 //   gamepress init [dir]                    create press/ with a starter capture plan
 //   gamepress capture <plan.json>           drive a web game in headless Chrome: stills + clips -> press/raw
 //   gamepress drive <plan.json> [--out dir] frame-locked scripted playthrough of a web game -> captioned MP4 with audio
+//   gamepress catalog <games.json> --id x --title "X" --category "Y" --path g/x/index.html [--still shot.jpg] [--orientation portrait]
+//                                           add/update a game on a demo page catalog and build its thumbnail
 //   gamepress scenes <video> [--count 12]   any game: pull the best stills and clips out of a screen recording
 //   gamepress pack [--platforms steam,itch,crazygames,social] [--focus 0.5,0.4]
 //                                           crop/scale/encode everything each store needs -> press/out/<platform>
@@ -22,6 +24,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve, basename, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { drive } from '../lib/drive.mjs';
+import { catalogCommand } from '../lib/catalog.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PRESETS = JSON.parse(readFileSync(join(HERE, '..', 'presets', 'platforms.json'), 'utf8'));
@@ -279,5 +282,7 @@ function init() {
 function die(msg) { console.error(msg); process.exit(1); }
 
 ({ init, capture: () => capture(positional[0] || die('usage: gamepress capture <plan.json>')),
-  drive: () => drive(positional[0] || die('usage: gamepress drive <plan.json>'), { outDir: flag('out', join(DIR, 'video')) }).catch(e => die('drive failed: ' + e.message)), scenes: () => scenes(positional[0]), pack, check }[cmd] ||
-  (() => die('usage: gamepress init | capture <plan.json> | drive <plan.json> | scenes <video> | pack | check   (options: --dir press, --platforms steam,itch, --focus 0.5,0.4)')))();
+  catalog: () => { const g = k => flag(k); catalogCommand({ catalogPath: positional[0] || die('usage: gamepress catalog <games.json> --id ...'), still: g('still'), thumbDir: g('thumbdir') || 'thumbs',
+    entry: { id: g('id') || die('--id required'), title: g('title') || g('id'), category: g('category') || 'Other', keys: JSON.parse(g('keys') || '{}'), labels: JSON.parse(g('labels') || '{}'), autostart: [], orientation: g('orientation') || 'any', path: g('path') || die('--path required'), ...(g('note') ? { note: g('note') } : {}) } }); console.log('catalog updated'); },
+  drive: () => drive(positional[0] || die('usage: gamepress drive <plan.json>'), { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false }).catch(e => die('drive failed: ' + e.message)), scenes: () => scenes(positional[0]), pack, check }[cmd] ||
+  (() => die('usage: gamepress init | capture <plan.json> | drive <plan.json> | catalog <games.json> | scenes <video> | pack | check   (options: --dir press, --platforms steam,itch, --focus 0.5,0.4)')))();

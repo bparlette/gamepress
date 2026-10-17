@@ -1,0 +1,105 @@
+{
+  "name": "black-hole-hook",
+  "root": "../../../hawk-pub/brad-demos/g",
+  "path": "black-hole/index.html?grow=5&dpr=1&clean=1",
+  "viewport": [
+    540,
+    960
+  ],
+  "scale": 2,
+  "fps": 30,
+  "seed": 5,
+  "duration": 24,
+  "report": "window.__game",
+  "input": [
+    {
+      "t": 0.2,
+      "down": "d"
+    },
+    {
+      "t": 2.5,
+      "up": "d"
+    },
+    {
+      "t": 2.5,
+      "down": "s"
+    },
+    {
+      "t": 5,
+      "up": "s"
+    },
+    {
+      "t": 5,
+      "down": "a"
+    },
+    {
+      "t": 8,
+      "up": "a"
+    },
+    {
+      "t": 8,
+      "down": "w"
+    },
+    {
+      "t": 11,
+      "up": "w"
+    },
+    {
+      "t": 11,
+      "down": "d"
+    },
+    {
+      "t": 14,
+      "up": "d"
+    },
+    {
+      "t": 14,
+      "down": "s"
+    },
+    {
+      "t": 17,
+      "up": "s"
+    }
+  ],
+  "captions": [
+    {
+      "t": 0,
+      "until": 4,
+      "text": "Starts by eating coins",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 10,
+      "until": 14,
+      "text": "now it is eating houses",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 17,
+      "until": 20,
+      "text": "the whole city",
+      "pos": "upper",
+      "style": "pop"
+    },
+    {
+      "t": 19,
+      "until": 25,
+      "text": "Play free. Link in bio",
+      "pos": "bottom",
+      "style": "cta"
+    }
+  ],
+  "slowmo": [],
+  "thumb": 14,
+  "audio": {
+    "source": "window.__events",
+    "music": "bed",
+    "musicGain": 0.3,
+    "bed": {
+      "bpm": 110,
+      "root": 55
+    }
+  }
+}
