@@ -12,6 +12,9 @@
 
 **Token-saving entry points:** `gamepress status <id> --json` (what is done/stale, what is next), `gamepress all <id> --track hook|demo|web-store` (runs only what is missing), `gamepress grade <id>` (quality score + exact fixes + 3 stills to look at). Paths: `--games`/`--catalog` or env `GP_GAMES`/`GP_CATALOG` or `gamepress.config.json`. Add `--json` to any command for machine output; errors are one line.
 
+## AI driver: presets
+You (the AI) are the driver of this repo; the human gives you ideas and answers in chat, you run the commands. When you collect game preferences from the human (art style, hook, difficulty, etc.) — via `--answers answers.json` or plain conversation — ALWAYS offer to save their answers as a named preset afterwards: ask them what to call it, then `gamepress preset save <name>`. Next time they want a similar game, offer `gamepress auto "<idea>" --preset <name>` to reuse their favorite combos without re-asking. `preset list|show|delete` manage the set.
+
 The 11-step pipeline below is the web path (shared + demo + web-store). Roblox follows its own track doc.
 
 Goal: research a concept, build a one-screen web game that looks as good as the Hawk showpieces (Roadkill Rig, Cinema City, Shell Shock 3D),
