@@ -8,6 +8,9 @@ node bin/gamepress.mjs roblox MyPets.rbxl ... --type Saved --live               
 node bin/gamepress.mjs roblox --rojo default.project.json --universe ... --place ... --live # build with Rojo first, then publish
 ```
 
+Ids can come from env instead of flags: `ROBLOX_UNIVERSE_ID`, `ROBLOX_PLACE_ID` (keep them in your shell profile, not the repo).
+The place id is NOT in the experience overview URL (that URL holds the universe id). Get it from Creator Dashboard > the experience > **Places** (or open the place in Studio: Game Explorer shows it; `game.PlaceId` in the command bar prints it). A private/unpublished experience hides its place id from public APIs.
+
 ## One-time setup (owner, 5 minutes)
 1. **Ids**: Creator Dashboard > Creations > your experience. The universe id is in the experience URL (`/experiences/<universeId>/...`); open the place and take the place id from its URL or Game Settings > Basic Info.
 2. **API key**: Creator Dashboard > Credentials > Create API Key. Access Permissions: API System **Place Publishing** (`universe-places`), operation **write**, select the experience. Restrict by IP if you can. Copy the key once into `ROBLOX_API_KEY` (shell profile or keychain, not the repo).
