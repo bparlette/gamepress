@@ -1,0 +1,31 @@
+{
+  "name": "tiny-kaiju-hook",
+  "root": "../../../hawk-pub/brad-demos/g/tiny-kaiju", "path": "index.html",
+  "viewport": [540, 960], "scale": 2, "fps": 30, "seed": 7, "duration": 18,
+  "report": "window.__kaiju",
+  "thumb": 9.2,
+  "input": [
+    { "t": 0.3, "down": "d" }, { "t": 0.9, "up": "d" },
+    { "t": 1.5, "key": " " },
+    { "t": 2.4, "key": " " },
+    { "t": 3.4, "key": "z" },
+    { "t": 4.3, "key": " " },
+    { "t": 5.3, "down": "x" }, { "t": 6.9, "up": "x" },
+    { "t": 7.6, "key": " " },
+    { "t": 8.5, "key": " " },
+    { "t": 9.4, "key": "z" },
+    { "t": 10.4, "key": " " },
+    { "t": 11.3, "key": " " },
+    { "t": 12.2, "key": "z" },
+    { "t": 13.1, "key": " " }
+  ],
+  "captions": [
+    { "t": 0.0, "until": 2.6, "text": "He is 2 inches tall", "pos": "top", "style": "hook" },
+    { "t": 1.5, "until": 3.2, "text": "and he hates this dollhouse", "pos": "upper", "style": "hook" },
+    { "t": 5.3, "until": 7.0, "text": "FIRE", "pos": "center", "style": "pop" },
+    { "t": 9.0, "until": 11.0, "text": "the dolls are screaming", "pos": "lower", "style": "sub" },
+    { "t": 14.5, "until": 18, "text": "Play free. Link in bio", "pos": "bottom", "style": "cta" }
+  ],
+  "slowmo": [ { "t": 4.3, "until": 5.0, "factor": 0.3 }, { "t": 13.1, "until": 14.2, "factor": 0.25 } ],
+  "audio": { "source": "window.__events", "map": { "crunch": "crunch" }, "music": "bed", "musicGain": 0.35 }
+}
