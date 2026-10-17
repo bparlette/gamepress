@@ -9,7 +9,7 @@
   "scale": 2,
   "fps": 30,
   "seed": 5,
-  "duration": 20,
+  "duration": 16,
   "report": "window.__game",
   "input": [],
   "captions": [

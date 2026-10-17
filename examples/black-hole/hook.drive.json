@@ -1,7 +1,7 @@
 {
   "name": "black-hole-hook",
   "root": "../../../hawk-pub/brad-demos/g",
-  "path": "black-hole/index.html?grow=5&dpr=1&clean=1",
+  "path": "black-hole/index.html?grow=2&dpr=1&clean=1",
   "viewport": [
     540,
     960
