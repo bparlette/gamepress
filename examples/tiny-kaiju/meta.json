@@ -13,5 +13,18 @@
   ],
   "youtubeTitle": "He is 2 inches tall and he hates this dollhouse",
   "category": "Viral Demos",
-  "price": 0
+  "price": 0,
+  "keys": {
+    "left": "KeyA",
+    "right": "KeyD",
+    "attack": "Space",
+    "jump": "KeyZ",
+    "special": "KeyX"
+  },
+  "labels": {
+    "attack": "STOMP",
+    "jump": "TAIL",
+    "special": "FIRE"
+  },
+  "orientation": "any"
 }

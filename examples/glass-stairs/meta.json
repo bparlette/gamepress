@@ -12,5 +12,12 @@
   ],
   "youtubeTitle": "Will the cat survive the glass stairs?",
   "category": "Viral Demos",
-  "price": 0
+  "price": 0,
+  "keys": {
+    "attack": "Space"
+  },
+  "labels": {
+    "attack": "DROP"
+  },
+  "orientation": "any"
 }

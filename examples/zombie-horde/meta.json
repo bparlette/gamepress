@@ -12,5 +12,12 @@
   ],
   "youtubeTitle": "5 zombies vs a giant cat",
   "category": "Viral Demos",
-  "price": 0
+  "price": 0,
+  "keys": {
+    "left": "KeyA",
+    "right": "KeyD"
+  },
+  "labels": {},
+  "orientation": "any",
+  "replaces": "crowd-multiplier"
 }

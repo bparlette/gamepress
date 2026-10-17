@@ -13,5 +13,14 @@
   ],
   "youtubeTitle": "I made a janitor game where gravity flips every 5 seconds",
   "category": "Viral Demos",
-  "price": 0
+  "price": 0,
+  "keys": {
+    "left": "KeyA",
+    "right": "KeyD",
+    "attack": "Space"
+  },
+  "labels": {
+    "attack": "MOP"
+  },
+  "orientation": "any"
 }

@@ -14,9 +14,9 @@ Run everything from this repo's root. Requirements: `docs/TOOLING.md`. Never log
 | 5 | Test | `node bin/gamepress.mjs test <games dir>/<id>` (must print `"ok": true`) | verdict JSON |
 | 6 | Control + film | write `examples/<id>/hook.drive.json` (`docs/DRIVING.md`), `gamepress drive ... --quick 8`, then full | `press/video/<id>-hook.mp4` + `.thumb.jpg` |
 | 7 | Watch it | extract frames (`ffmpeg -ss T -i v.mp4 -frames:v 1 f.png`) at 1s, mid, end; check against the QUALITY checklist; iterate 4-6 | approved video |
-| 8 | Package | `node bin/gamepress.mjs publish-pack <id> --games <games dir>` | `publish/<id>/` (zip, store images, GIF, trailer, `manifest.json`) |
+| 8 | Package | `node bin/gamepress.mjs publish-pack <id> --games <games dir> [--catalog <games.json>]` (adds the demo-page entry too) | `publish/<id>/` (zip, store images, GIF, trailer, `manifest.json`) |
 | 9 | Check | `node bin/gamepress.mjs check --dir publish/<id>/press` | all good |
-| 10 | Register | `node bin/gamepress.mjs catalog <games.json> --id <id> ... --still press/video/<id>-hook.thumb.jpg` | demo-page entry |
+| 10 | **Demo page (required)** | `node bin/gamepress.mjs publish-demo <id> --catalog <Hawk>/brad-demos/games.json --push` (thumbnail + entry from `meta.json` incl. `keys`/`labels`; `replaces` removes a renamed id; commits and pushes the demo-page repo). Then open the live page and confirm the game loads | live card on https://bparlette.github.io/Hawk/brad-demos/ |
 | 11 | Host (other agent) | `node bin/gamepress.mjs host <itch\|crazygames\|steam\|youtube> <id>` (dry run by default) | see `docs/HOSTING.md` |
 
 ## Rules

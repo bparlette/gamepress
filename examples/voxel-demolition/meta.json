@@ -13,5 +13,20 @@
   ],
   "youtubeTitle": "9,000 voxels vs 12 shells",
   "category": "Viral Demos",
-  "price": 0
+  "price": 0,
+  "keys": {
+    "up": "ArrowUp",
+    "down": "ArrowDown",
+    "left": "ArrowLeft",
+    "right": "ArrowRight",
+    "attack": "Space",
+    "jump": "KeyA",
+    "special": "KeyD"
+  },
+  "labels": {
+    "attack": "FIRE",
+    "jump": "ORBIT L",
+    "special": "ORBIT R"
+  },
+  "orientation": "any"
 }

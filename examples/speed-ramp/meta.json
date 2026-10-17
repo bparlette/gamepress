@@ -13,5 +13,16 @@
   ],
   "youtubeTitle": "This ramp is too steep",
   "category": "Viral Demos",
-  "price": 0
+  "price": 0,
+  "keys": {
+    "attack": "Space",
+    "up": "KeyW",
+    "down": "KeyS",
+    "left": "KeyA",
+    "right": "KeyD"
+  },
+  "labels": {
+    "attack": "NITRO"
+  },
+  "orientation": "any"
 }

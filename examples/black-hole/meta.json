@@ -13,5 +13,13 @@
   ],
   "youtubeTitle": "It starts by eating coins",
   "category": "Viral Demos",
-  "price": 0
+  "price": 0,
+  "keys": {
+    "up": "KeyW",
+    "down": "KeyS",
+    "left": "KeyA",
+    "right": "KeyD"
+  },
+  "labels": {},
+  "orientation": "any"
 }

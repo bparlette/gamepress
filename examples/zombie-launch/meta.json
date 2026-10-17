@@ -13,5 +13,15 @@
   ],
   "youtubeTitle": "Cannon. Zombie. Zero brain cells.",
   "category": "Viral Demos",
-  "price": 0
+  "price": 0,
+  "keys": {
+    "up": "KeyW",
+    "down": "KeyS",
+    "attack": "Space"
+  },
+  "labels": {
+    "attack": "CHARGE / FIRE"
+  },
+  "orientation": "any",
+  "replaces": "ragdoll-launch"
 }

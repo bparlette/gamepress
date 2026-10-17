@@ -77,11 +77,9 @@ Rules every demo follows (they are what make the videos reproducible; see `docs/
 # 2. film it: write examples/<id>/hook.drive.json, then
 gamepress drive examples/<id>/hook.drive.json --quick 8        # smoke test
 gamepress drive examples/<id>/hook.drive.json                  # final video + <id>-hook.thumb.jpg
-# 3. register it with a thumbnail
-gamepress catalog brad-demos/games.json --id <id> --title "Title" --category "Viral Demos" \
-  --path g/<id>/index.html --orientation portrait --still press/video/<id>-hook.thumb.jpg \
-  --keys '{"left":"KeyA","right":"KeyD","attack":"Space"}' --labels '{"attack":"FIRE"}'
-# 4. commit + push; GitHub Pages republishes
+# 3. register it on the demo page (thumbnail + entry from examples/<id>/meta.json, incl. keys/labels; `replaces` drops a renamed id)
+gamepress publish-demo <id> --catalog brad-demos/games.json --push
+# 4. GitHub Pages republishes; open the live page and confirm the card and game load
 ```
 
 ## Process notes (what actually went wrong, so you can skip it)

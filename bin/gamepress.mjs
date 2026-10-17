@@ -27,7 +27,7 @@ import { join, resolve, basename, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { drive } from '../lib/drive.mjs';
 import { catalogCommand } from '../lib/catalog.mjs';
-import { research, scaffold, testGame, bundle, publishPack } from '../lib/tasks.mjs';
+import { research, scaffold, testGame, bundle, publishPack, publishDemo } from '../lib/tasks.mjs';
 import { publishRoblox } from '../lib/roblox.mjs';
 import * as hosts from '../lib/hosts/index.mjs';
 
@@ -293,7 +293,8 @@ function die(msg) { console.error(msg); process.exit(1); }
   new: () => console.log('created', scaffold(positional[0] || die('usage: gamepress new <id> [--games dir] [--title T]'), { games: flag('games', 'games'), title: flag('title') })),
   test: () => testGame(positional[0] || die('usage: gamepress test <game dir or url> [--root dir]'), { root: flag('root') }).then(v => { console.log(JSON.stringify(v, null, 1)); process.exit(v.ok ? 0 : 1); }).catch(e => die('test failed: ' + e.message)),
   bundle: () => console.log(bundle(positional[0] || die('usage: gamepress bundle <game dir> [--out dist]'), flag('out', 'dist'))),
-  'publish-pack': () => console.log(JSON.stringify(publishPack(positional[0] || die('usage: gamepress publish-pack <id> --games <dir>'), { gamesDir: flag('games'), videoDir: flag('video', 'press/video') }), null, 1)),
+  'publish-demo': () => console.log(JSON.stringify(publishDemo(positional[0] || die('usage: gamepress publish-demo <id> --catalog <games.json> [--push]'), { catalog: flag('catalog') || die('--catalog required'), videoDir: flag('video', 'press/video'), push: argv.includes('--push') }))),
+  'publish-pack': () => console.log(JSON.stringify(publishPack(positional[0] || die('usage: gamepress publish-pack <id> --games <dir>'), { gamesDir: flag('games'), catalog: flag('catalog'), videoDir: flag('video', 'press/video') }), null, 1)),
   host: () => hosts[positional[0]]?.upload(JSON.parse(readFileSync(join(flag('dir', 'publish'), positional[1] || die('usage: gamepress host <itch|crazygames|steam|youtube> <id>'), 'manifest.json'), 'utf8')), { dryRun: !argv.includes('--live') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die(e.message)) || die('unknown host'),
   roblox: () => publishRoblox({ file: positional[0], universeId: flag('universe'), placeId: flag('place'), versionType: flag('type', 'Published'), rojoProject: flag('rojo'), live: argv.includes('--live') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die('roblox: ' + e.message)),
   drive: () => drive(positional[0] || die('usage: gamepress drive <plan.json>'), { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false }).catch(e => die('drive failed: ' + e.message)), scenes: () => scenes(positional[0]), pack, check }[cmd] ||

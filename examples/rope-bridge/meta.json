@@ -12,5 +12,12 @@
   ],
   "youtubeTitle": "How much can this bridge hold?",
   "category": "Viral Demos",
-  "price": 0
+  "price": 0,
+  "keys": {
+    "attack": "Space"
+  },
+  "labels": {
+    "attack": "SEND"
+  },
+  "orientation": "any"
 }
