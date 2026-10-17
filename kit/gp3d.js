@@ -75,26 +75,28 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
   const q = id => hud.querySelector(id); let bannerT = 0;
   st.hud = { left: s => (q('#h-l').innerHTML = s), right: s => (q('#h-r').innerHTML = s), hint: s => (q('#h-b').textContent = new URLSearchParams(location.search).has('clean') ? '' : s),
     banner(s, secs = 1.2) { q('#h-c').textContent = s; bannerT = secs; }, _tick(dt) { if (bannerT > 0 && (bannerT -= dt) <= 0) q('#h-c').textContent = ''; } };
-  st.shake = a => { st.shakeAmt = Math.max(st.shakeAmt, a); };
+  const stats = (window.__gpStats = window.__gpStats || { shell: false, hitstops: 0, shakes: 0, popups: 0, flashes: 0, particles: 0, audioEvents: 0, cameraMoved: false, customGeo: false, walkAnimated: false, ends: 0 });
+  let initCamPos = null;
+  st.shake = a => { stats.shakes++; st.shakeAmt = Math.max(st.shakeAmt, a); };
   // ---- game feel: hit-stop, slow-mo, FOV kick, screen flash, floating text, scripted camera moves
   st.freeze = 0; st.timeScale = 1; st.slowT = 0; st.paused = false; st.kickFov = 0; st.cineKeys = null; let flashA = 0, flashC = '#fff';
   const flashEl = document.createElement('div'); flashEl.style.cssText = 'position:fixed;inset:0;pointer-events:none;opacity:0'; document.body.appendChild(flashEl);
   const pops = []; const popLayer = document.createElement('div'); popLayer.style.cssText = 'position:fixed;inset:0;pointer-events:none;overflow:hidden'; document.body.appendChild(popLayer);
-  st.hitstop = (sec = .06) => { st.freeze = Math.max(st.freeze, sec); };
-  st.slowmo = (factor = .3, secs = 1) => { st.timeScale = factor; st.slowT = secs; };
-  st.flash = (color = '#fff', a = .5) => { flashA = a; flashC = color; };
-  st.kick = (deg = 6) => { st.kickFov = Math.max(st.kickFov, deg); };
+  st.hitstop = (sec = .06) => { stats.hitstops++; st.freeze = Math.max(st.freeze, sec); };
+  st.slowmo = (factor = .3, secs = 1) => { stats.hitstops++; st.timeScale = factor; st.slowT = secs; };
+  st.flash = (color = '#fff', a = .5) => { stats.flashes++; flashA = a; flashC = color; };
+  st.kick = (deg = 6) => { stats.hitstops++; st.kickFov = Math.max(st.kickFov, deg); };
   /** Floating text at a world position (pos {x,y,z}); rises and fades over ~0.9 s of game time. */
-  st.popup = (text, pos, color = '#ffd34d', size = 6) => { const el = document.createElement('div'); el.textContent = text; el.style.cssText = `position:absolute;font-size:${size}vmin;color:${color};font-weight:900;text-shadow:0 .5vmin 0 #000,0 0 1vmin #000;transform:translate(-50%,-50%);white-space:nowrap`; popLayer.appendChild(el); pops.push({ el, p: { x: pos.x, y: pos.y, z: pos.z }, t: 0 }); if (pops.length > 24) pops.shift().el.remove(); };
+  st.popup = (text, pos, color = '#ffd34d', size = 6) => { stats.popups++; const el = document.createElement('div'); el.textContent = text; el.style.cssText = `position:absolute;font-size:${size}vmin;color:${color};font-weight:900;text-shadow:0 .5vmin 0 #000,0 0 1vmin #000;transform:translate(-50%,-50%);white-space:nowrap`; popLayer.appendChild(el); pops.push({ el, p: { x: pos.x, y: pos.y, z: pos.z }, t: 0 }); if (pops.length > 24) pops.shift().el.remove(); };
   /** Scripted camera move: keys [{t, p:[dx,dy,dz], fov}] in game seconds; offsets are added to the camera after the game positions it. */
-  st.cine = keys => { st.cineKeys = keys; };
+  st.cine = keys => { stats.cameraMoved = true; st.cineKeys = keys; };
   // ---- shell: title card, pause, results with best score, replay, mute. Skipped under ?auto / ?clean so capture stays clean.
   const qs = new URLSearchParams(location.search), CLEAN = qs.has('clean') || qs.has('auto');
   const ov = document.createElement('div'); ov.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;color:#fff;background:rgba(8,10,20,.72);font-size:5vmin;text-shadow:0 .6vmin 0 #000;z-index:9'; document.body.appendChild(ov);
   let shellOn = false, ended = false, endT = 0, shellId = 'game';
   const show = html => { ov.innerHTML = html; ov.style.display = 'flex'; }, hide = () => { ov.style.display = 'none'; };
   st.shell = ({ id, title, sub = 'Tap or press any key to start', onReset } = {}) => {
-    shellId = id || 'game'; st.onReset = onReset; shellOn = true;
+    stats.shell = true; shellId = id || 'game'; st.onReset = onReset; shellOn = true;
     if (!CLEAN) { st.paused = true; show(`<div style="font-size:12vmin;color:#ffd34d;line-height:1">${title}</div><div style="font-size:4vmin;margin-top:3vh;font-family:system-ui,sans-serif;font-weight:800">${sub}</div>`); }
     const go = () => { if (st.paused && !ended) { st.paused = false; hide(); st.onStart?.(); } else if (ended && endT > .8) { ended = false; hide(); st.onReset?.(); } };
     addEventListener('pointerdown', go); addEventListener('keydown', e => {
@@ -103,7 +105,7 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
   };
   /** Show the results panel. Best score is kept per game id in localStorage. */
   st.end = ({ win = false, score = 0, label = 'SCORE' } = {}) => {
-    if (ended) return; ended = true; endT = 0; let best = 0; try { best = +localStorage.getItem('gp-best-' + shellId) || 0; if (score > best) { best = score; localStorage.setItem('gp-best-' + shellId, best); } } catch {}
+    if (ended) return; stats.ends++; ended = true; endT = 0; let best = 0; try { best = +localStorage.getItem('gp-best-' + shellId) || 0; if (score > best) { best = score; localStorage.setItem('gp-best-' + shellId, best); } } catch {}
     st.result = { win, score, best }; window.__result = st.result; (window.__ends = window.__ends || []).push({ t: +(performance.now() / 1000).toFixed(1), win, score: Math.round(score), attempt: window.__ends?.length || 0 });
     if (shellOn && !CLEAN) show(`<div style="font-size:12vmin;color:${win ? '#7dff7d' : '#ff6b6b'}">${win ? 'YOU WIN' : 'GAME OVER'}</div><div style="margin-top:2vh">${label} <b style="color:#ffd34d">${score.toLocaleString()}</b></div><div style="font-size:3.6vmin;margin-top:1vh;font-family:system-ui,sans-serif">BEST ${best.toLocaleString()}</div><div style="font-size:3.6vmin;margin-top:4vh;font-family:system-ui,sans-serif;font-weight:800">tap or press any key to play again</div>`);
   };
@@ -122,6 +124,8 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
         st.kickFov *= .9; flashA *= .88;
       }
       pre?.();
+      if (!initCamPos && st.t > 0.1) initCamPos = camera.position.clone();
+      else if (initCamPos && camera.position.distanceTo(initCamPos) > 0.35) stats.cameraMoved = true;
       if (st.cineKeys) { const k = st.cineKeys; let i = k.findIndex(x => x.t > st.t); if (i < 0) i = k.length; const a = k[Math.max(0, i - 1)], b = k[Math.min(k.length - 1, i)], u = b.t > a.t ? clamp((st.t - a.t) / (b.t - a.t), 0, 1) : 1, e = u * u * (3 - 2 * u);
         camera.position.x += a.p[0] + (b.p[0] - a.p[0]) * e; camera.position.y += a.p[1] + (b.p[1] - a.p[1]) * e; camera.position.z += a.p[2] + (b.p[2] - a.p[2]) * e; }
       const fv = baseFov + st.kickFov + (st.cineKeys ? 0 : 0); if (camera.fov !== fv) { camera.fov = fv; camera.updateProjectionMatrix(); }

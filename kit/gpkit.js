@@ -12,6 +12,7 @@ export const toon = (color = 0xffffff, o = {}) => (style() === 'roblox' ? new T.
 const SHAPES = { box: () => new T.BoxGeometry(1, 1, 1), sphere: () => (boxy() ? new T.BoxGeometry(.9, .9, .9) : new T.SphereGeometry(.5, 9, 7)), cone: () => new T.ConeGeometry(.5, 1, boxy() ? 4 : 7), cyl: () => (boxy() ? new T.BoxGeometry(.85, 1, .85) : new T.CylinderGeometry(.5, .5, 1, 8)) };
 /** Merge [{g,s,p,r,c}] (shape, scale, position, euler rotation, hex colour) into one vertex-coloured geometry. White parts take the instance colour. */
 export function build(parts) {
+  if (typeof window !== 'undefined') (window.__gpStats = window.__gpStats || {}).customGeo = true;
   const pos = [], nor = [], col = [], m = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler(), c = new T.Color();
   for (const d of parts) {
     const g = SHAPES[d.g]().toNonIndexed(); e.set(...(d.r || [0, 0, 0])); q.setFromEuler(e); m.compose(new T.Vector3(...(d.p || [0, 0, 0])), q, new T.Vector3(...d.s)); g.applyMatrix4(m);
@@ -75,6 +76,7 @@ export const carGeo = () => build([
 export const walkClock = { value: 0 };
 /** Vertex-shader walk cycle: vertices below `legH` swing front/back (opposite per side), arms bob. Phase is per instance so a crowd never marches in step. */
 function walkMat(mat, legH, speed) {
+  if (typeof window !== 'undefined') (window.__gpStats = window.__gpStats || {}).walkAnimated = true;
   mat.onBeforeCompile = sh => { sh.uniforms.uWalk = walkClock; sh.vertexShader = 'uniform float uWalk;\n' + sh.vertexShader.replace('#include <begin_vertex>',
     `#include <begin_vertex>
      float lg = clamp(1.0 - position.y / ${legH.toFixed(2)}, 0.0, 1.0); float ph = uWalk * ${speed.toFixed(1)} + instanceMatrix[3].x * 3.1 + instanceMatrix[3].z * 2.3;
@@ -96,7 +98,7 @@ export function hero(geo, color = 0xffffff, outline = .05) {
 export function particles(scene, max = 500, geo = new T.SphereGeometry(.5, 5, 4)) {
   const im = new T.InstancedMesh(geo, new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .9 }), max); im.frustumCulled = false; im.count = 0; scene.add(im);
   const P = [], o = new T.Object3D(), c = new T.Color();
-  return { emit(p) { if (P.length < max) P.push({ g: 9, grow: 0, size: .2, life: 1, color: 0xffffff, vx: 0, vy: 0, vz: 0, ...p, t: 0 }); },
+  return { emit(p) { if (typeof window !== 'undefined') { const s = (window.__gpStats = window.__gpStats || {}); s.particles = (s.particles || 0) + 1; } if (P.length < max) P.push({ g: 9, grow: 0, size: .2, life: 1, color: 0xffffff, vx: 0, vy: 0, vz: 0, ...p, t: 0 }); },
     burst(n, p, spread = 3) { for (let i = 0; i < n; i++) this.emit({ ...p, vx: (p.vx || 0) + rand(-spread, spread), vy: (p.vy || 0) + rand(0, spread), vz: (p.vz || 0) + rand(-spread, spread), size: (p.size || .2) * rand(.6, 1.4) }); },
     update(dt) { for (const p of P) { p.t += dt; p.vy -= p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; } for (let i = P.length - 1; i >= 0; i--) if (P[i].t >= P[i].life) P.splice(i, 1);
       P.forEach((p, i) => { const k = 1 - p.t / p.life; o.position.set(p.x, p.y, p.z); o.scale.setScalar(Math.max(.001, (p.size + p.grow * p.t) * (p.fade === false ? 1 : k))); o.updateMatrix(); im.setMatrixAt(i, o.matrix); c.setHex(p.color); im.setColorAt(i, c); });

@@ -18,17 +18,25 @@ doing it: one command per step, machine-readable output, idempotent re-runs, one
 No npm dependencies (Node 22+, ffmpeg, and Chrome for web captures).
 
 ```
-gamepress init                      # press/ folder + starter capture plan
-gamepress capture press/plan.json   # web game -> raw stills + clips (headless Chrome)
-gamepress scenes recording.mp4      # ANY game: pick the best stills and clips out of a screen recording
-gamepress pack                      # raw -> out/steam, out/itch, out/crazygames, out/social
-gamepress check                     # verify sizes, counts, GIF size, video length per store
-gamepress drive plan.json           # scripted, frame-locked playthrough of ANY web game -> captioned MP4 with audio
-gamepress catalog games.json ...    # add a game + thumbnail to a demo-page catalog
-gamepress research|new|test|bundle|publish-pack|host   # AI pipeline: see AGENTS.md
+gamepress context [--2d|--3d|--lego] # ~400-token JSON cheat sheet for AI agents
+gamepress auto "<idea>" [--local-ai] # idea -> playable game + hook video + demo/store pack
+gamepress lego <id> --idea "<idea>"  # composable mechanic engine (controller + spawner + hook + progression)
+gamepress heal <id> [--local-ai]     # deterministic + optional local-AI auto-repair for lint/test failures
+gamepress hooks <id>                 # render 3 opening A/B hook variants (fail / satisfying / question)
+gamepress stats [id]                 # aggregate grade + YouTube/itch stats into a promotion verdict
+gamepress init                       # press/ folder + starter capture plan
+gamepress capture press/plan.json    # web game -> raw stills + clips (headless Chrome)
+gamepress scenes recording.mp4       # ANY game: pick the best stills and clips out of a screen recording
+gamepress pack [--title "Game"]      # raw -> out/steam, out/itch, out/crazygames, out/social (auto-composited capsule logos)
+gamepress check                      # verify sizes, counts, GIF size, video length per store
+gamepress drive plan.json [--vo ".."]# scripted, frame-locked playthrough -> captioned MP4 + SFX + TTS voiceover
+gamepress catalog games.json ...     # add a game + thumbnail to a demo-page catalog
+gamepress deploy <host> <id> [--run] # github, itch, crazygames, steam, youtube (dry-run by default)
 ```
 
-> **AI agents: start at [`AGENTS.md`](AGENTS.md).** On the owner's Mac this repo is at `~/.gemini/antigravity/scratch/gamepress`; AGENTS.md lists the other local paths (games clone, videos, Roblox files, keychain item names). It drives research, build, test, film, package and the hosting hand-off.
+> **AI agents: start at [`AGENTS.md`](AGENTS.md) or run `node bin/gamepress.mjs context`.** On the owner's Mac this repo is at `~/.gemini/antigravity/scratch/gamepress`; AGENTS.md lists the other local paths (games clone, videos, Roblox files, keychain item names). It drives research, build, test, film, package and the hosting hand-off.
+
+> **Optional Local AI (`--local-ai`):** Everything in `gamepress` works out-of-the-box with **zero local AI** using deterministic templates and heuristics. If you have a local Ollama instance (`qwen2.5-coder:14b`, `qwen3-vl`, etc.), pass `--local-ai` (or set `GAMEPRESS_LOCAL_AI=1` / `.gamepress.json` `{"localAi": true}`) to offload spec enrichment, viral hook copywriting, vision grading (`grade --vision`), and code self-healing (`heal`) for 0 cloud tokens. Check availability anytime with `gamepress local-ai`.
 
 > **Tracks:** shared tools, `demo` (browser demo page only), `web-store` (itch.io / CrazyGames / Steam / YouTube), `roblox`. Run `node bin/gamepress.mjs tracks` or see `tracks.json`.
 
@@ -41,12 +49,13 @@ Script everything from game idea to hosted game, each step usable alone, for fou
 
 | Piece | State |
 |---|---|
-| `status` / `all` / `grade` / `--json` | built: the token-saving layer |
+| `context` / `status` / `all` / `grade` / `heal` / `--json` | built: the token-saving layer (runtime telemetry + static rubric + auto-repair) |
+| `lego` (`kit/gplego.js`) + `make` recipes | built: 12 fixed recipes + composable Lego engine (5 controllers × 4 spawners × 5 hooks × 4 progressions) |
+| `drive --vo` / `hooks` / `pack --title` | built: TTS hook voiceover (Edge TTS + macOS `say` fallback), 3-variant A/B hooks, auto-composited capsule logos |
 | `new --target web\|roblox`, `copy`, `build --target web\|steam\|roblox` | built (Steam needs a Steamworks app to go live) |
-| `deploy itch\|crazygames\|steam\|youtube` | stubs: the hosting AI implements uploads |
-| Game kit (shell, feel, walk cycle, camera moves) | built; 2 of 12 demos migrated, the rest are mechanical (see QUALITY.md) |
-| `make` recipes (crowd-runner, hole-eater, glass-drop, demolition) and 6 art styles, `doctor`, `lint`, `grade --vision`, test hints | built: docs/RECIPES.md |
-| Not done | itch butler upload, YouTube upload, Steamworks features, Roblox trailer capture, rebuild of the other 10 demos on the kit |
+| `deploy github\|itch\|crazygames\|steam\|youtube` + `stats` | built: GitHub Pages branch deploy, itch `butler push`, YouTube Shorts Data API v3 upload, Steam `steamcmd` VDF builder, CrazyGames bundle validator, analytics feedback loop |
+| Game kit (`gp2d.js`, `gp3d.js`, `gpkit.js`, `gplego.js`) | built with runtime `__gpStats` telemetry |
+| Optional Local AI (`--local-ai` / `lib/local_ai.mjs`) | built: 100% optional Ollama coprocessor with deterministic fallbacks when disabled or offline |
 
 ## The workflow
 
