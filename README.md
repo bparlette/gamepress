@@ -58,6 +58,12 @@ before uploading and edit that file, not the code. Add a platform by adding a bl
 - **CrazyGames:** no Steam or price on covers; their covers are shown small, so keep text minimal.
 - **Capture speed:** web captures are as smooth as the game renders in headless Chrome (a heavy 3D game may
   manage 10 to 15 fps). For smooth trailers, screen-record at 60 fps and use `scenes`.
+
+## Programmatic Game Director & Viral Videos
+
+For advanced automation and viral shorts (9:16 vertical for TikTok, Reels, YouTube Shorts), see:
+- [`docs/game-director-scripting.md`](docs/game-director-scripting.md): Complete blueprint on deterministic frame stepping (`__capStep`), seeded PRNG, headless Playwright puppeteering, camera choreography, and scripted character combat directors.
+
 - **GIFs:** `pack` shrinks size, fps and palette until the GIF fits the itch limit. Keep the source clip short.
 - **Real footage only:** stores reject or hurt trust with fake or heavily staged shots; capture the real game.
 
