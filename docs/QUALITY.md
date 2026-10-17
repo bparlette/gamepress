@@ -17,3 +17,7 @@ Performance budget: instanced draw calls, <= ~1.5M triangles on screen, 60 fps d
 
 Review checklist for step 7 (look at frames at 1 s, middle, end): hook readable? characters recognisable? colour varied (not one hue)? motion on every
 part of the screen? impact feedback visible? text not overlapping the HUD? Fix and re-render until all yes.
+
+
+## The kit (use it, do not hand-roll)
+`g/_vendor/gp3d.js`: `st.shell` (title/pause/results/replay/best/mute), `st.end`, game feel (`hitstop`, `slowmo`, `popup`, `flash`, `kick`), `st.cine` camera moves. `gpkit.js`: toon, `catGeo/zombieGeo/carGeo`, `crowd(...legs)` with walk cycle (`walkClock`), `hero`, `particles`, `sky`, `groundTex`, `blobs`. Check yourself with `gamepress grade <id>`: it scores the source and the video and prints fixes. It is a floor; always look at the stills it writes.

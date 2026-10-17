@@ -3,15 +3,17 @@
 // __TITLE__: one-screen demo. Contract (see docs/QUALITY.md): portrait-first, fixed 1/60 step, Math.random only, window.__game state,
 // sfx() calls (logged to window.__events), ?clean=1 ?dpr=1 ?auto=1 switches, keys primary + pointer secondary.
 import { createStage, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
-import { toon, catGeo, zombieGeo, carGeo, crowd, hero, particles, sky, groundTex, blobs } from '../_vendor/gpkit.js';
+import { toon, catGeo, zombieGeo, carGeo, crowd, hero, particles, sky, groundTex, blobs, walkClock } from '../_vendor/gpkit.js';
 const st = createStage({ bg: 0x2a1238, fitWidth: 12 }); st.light(); sky(st.scene, 0x4a8cff, 0xffd9a8, [50, 160]);
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), toon(0xffffff, { map: groundTex('grass', 40) })); ground.rotation.x = -Math.PI / 2; st.scene.add(ground);
-const fx = particles(st.scene, 400), cats = crowd(st.scene, catGeo(), 50);
+const fx = particles(st.scene, 400), cats = crowd(st.scene, catGeo(), 50, true, .35);   // 5th arg = leg height: enables the walk cycle
 let score = 0;
+st.shell({ id: '__TITLE__'.toLowerCase().replace(/\W+/g, '-'), title: '__TITLE__', sub: 'Tap or press any key to start', onReset: () => { score = 0; } });   // title, pause, results, replay, best score, mute
+st.cine([{ t: 0, p: [0, 0, 0] }, { t: 2, p: [0, 2, -3] }, { t: 6, p: [0, 0, 0] }]);       // opening push-in; remove if you steer the camera yourself
 for (let i = 0; i < 50; i++) cats.color(i, [0xff9a3c, 0xf4efe4, 0x9aa0aa][i % 3]);
 function update(dt) {                       // fixed 1/60 s: input -> sim -> HUD -> window.__game
-  fx.update(dt);
-  if (st.keys[' ']) { score++; sfx('meow', .4); fx.burst(4, { x: 0, y: 1, z: 0, size: .2, life: .6, color: 0xffd34d }, 3); }
+  fx.update(dt); walkClock.value = st.t;
+  if (st.keys[' ']) { score++; sfx('meow', .4); st.popup('+1', { x: 0, y: 2, z: 0 }); if (score % 25 === 0) { st.hitstop(.06); st.flash('#fff', .3); st.kick(4); } fx.burst(4, { x: 0, y: 1, z: 0, size: .2, life: .6, color: 0xffd34d }, 3); }
   st.hud.left(`SCORE<br>${score}`); st.hud.hint('SPACE');
   window.__game = { score };
 }

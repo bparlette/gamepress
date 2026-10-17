@@ -83,5 +83,10 @@
       "pop": "pop",
       "boom": "boom"
     }
+  },
+  "blur": 2,
+  "fade": {
+    "in": 0.2,
+    "out": 0.4
   }
 }

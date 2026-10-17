@@ -1,0 +1,1 @@
+"appbuild" { "appid" "__APPID__" "desc" "__ID__ build" "buildoutput" "../out" "contentroot" "../content" "setlive" "" "depots" { "__DEPOTID__" { "FileMapping" { "LocalPath" "*" "DepotPath" "." "recursive" "1" } } } }

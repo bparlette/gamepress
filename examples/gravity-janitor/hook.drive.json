@@ -1,26 +1,154 @@
 {
   "name": "gravity-janitor-hook",
-  "root": "../../../hawk-pub/brad-demos/g/gravity-janitor", "path": "index.html",
-  "viewport": [540, 960], "scale": 2, "fps": 30, "seed": 3, "duration": 16,
+  "root": "../../../hawk-pub/brad-demos/g/gravity-janitor",
+  "path": "index.html",
+  "viewport": [
+    540,
+    960
+  ],
+  "scale": 2,
+  "fps": 30,
+  "seed": 3,
+  "duration": 16,
   "report": "window.__gj",
   "thumb": 5.4,
   "input": [
-    { "t": 0.4, "down": "d" }, { "t": 1.2, "up": "d" },
-    { "t": 1.2, "down": " " }, { "t": 2.6, "up": " " },
-    { "t": 2.7, "down": "a" }, { "t": 3.6, "up": "a" },
-    { "t": 3.6, "down": " " }, { "t": 4.8, "up": " " },
-    { "t": 5.6, "down": "d" }, { "t": 6.8, "up": "d" },
-    { "t": 6.8, "down": " " }, { "t": 8.6, "up": " " },
-    { "t": 9.0, "down": "a" }, { "t": 10.4, "up": "a" },
-    { "t": 10.4, "down": " " }, { "t": 12.0, "up": " " }
+    {
+      "t": 0.4,
+      "down": "d"
+    },
+    {
+      "t": 1.2,
+      "up": "d"
+    },
+    {
+      "t": 1.2,
+      "down": " "
+    },
+    {
+      "t": 2.6,
+      "up": " "
+    },
+    {
+      "t": 2.7,
+      "down": "a"
+    },
+    {
+      "t": 3.6,
+      "up": "a"
+    },
+    {
+      "t": 3.6,
+      "down": " "
+    },
+    {
+      "t": 4.8,
+      "up": " "
+    },
+    {
+      "t": 5.6,
+      "down": "d"
+    },
+    {
+      "t": 6.8,
+      "up": "d"
+    },
+    {
+      "t": 6.8,
+      "down": " "
+    },
+    {
+      "t": 8.6,
+      "up": " "
+    },
+    {
+      "t": 9.0,
+      "down": "a"
+    },
+    {
+      "t": 10.4,
+      "up": "a"
+    },
+    {
+      "t": 10.4,
+      "down": " "
+    },
+    {
+      "t": 12.0,
+      "up": " "
+    }
   ],
   "captions": [
-    { "t": 0.0, "until": 3.0, "text": "Night shift on a space station", "pos": "top", "style": "hook" },
-    { "t": 3.0, "until": 4.9, "text": "gravity flips every 5 seconds", "pos": "top", "style": "hook" },
-    { "t": 5.0, "until": 6.4, "text": "WAIT", "pos": "upper", "style": "pop" },
-    { "t": 9.9, "until": 11.6, "text": "this is a janitor simulator", "pos": "lower", "style": "sub" },
-    { "t": 13.0, "until": 16, "text": "Play free. Link in bio", "pos": "bottom", "style": "cta" }
+    {
+      "t": 0.0,
+      "until": 3.0,
+      "text": "Night shift on a space station",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 3.0,
+      "until": 4.9,
+      "text": "gravity flips every 5 seconds",
+      "pos": "top",
+      "style": "hook"
+    },
+    {
+      "t": 5.0,
+      "until": 6.4,
+      "text": "WAIT",
+      "pos": "upper",
+      "style": "pop"
+    },
+    {
+      "t": 9.9,
+      "until": 11.6,
+      "text": "this is a janitor simulator",
+      "pos": "lower",
+      "style": "sub"
+    },
+    {
+      "t": 13.0,
+      "until": 16,
+      "text": "Play free. Link in bio",
+      "pos": "bottom",
+      "style": "cta"
+    }
   ],
-  "slowmo": [ { "t": 5.0, "until": 5.7, "factor": 0.3 } ],
-  "audio": { "source": "window.__events", "music": "bed", "musicGain": 0.3, "bed": { "bpm": 116, "root": 49, "pattern": [0, 0, 3, 5, 0, 0, 7, 3] }, "map": { "splat": "splat", "flip": "flip", "alarm": "alarm" } }
+  "slowmo": [
+    {
+      "t": 5.0,
+      "until": 5.7,
+      "factor": 0.3
+    }
+  ],
+  "audio": {
+    "source": "window.__events",
+    "music": "bed",
+    "musicGain": 0.3,
+    "bed": {
+      "bpm": 116,
+      "root": 49,
+      "pattern": [
+        0,
+        0,
+        3,
+        5,
+        0,
+        0,
+        7,
+        3
+      ]
+    },
+    "map": {
+      "splat": "splat",
+      "flip": "flip",
+      "alarm": "alarm"
+    }
+  },
+  "blur": 2,
+  "fade": {
+    "in": 0.2,
+    "out": 0.4
+  }
 }

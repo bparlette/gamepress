@@ -25,6 +25,17 @@ gamepress research|new|test|bundle|publish-pack|host   # AI pipeline: see AGENTS
 
 Run from your game's folder; everything lives in `./press` (`--dir` changes it).
 
+## Goal and status
+Script everything from game idea to hosted game, each step usable alone, for four tracks (hook video, local demo, store release, Roblox), so any AI can run it cheaply.
+
+| Piece | State |
+|---|---|
+| `status` / `all` / `grade` / `--json` | built: the token-saving layer |
+| `new --target web\|roblox`, `copy`, `build --target web\|steam\|roblox` | built (Steam needs a Steamworks app to go live) |
+| `deploy itch\|crazygames\|steam\|youtube` | stubs: the hosting AI implements uploads |
+| Game kit (shell, feel, walk cycle, camera moves) | built; 2 of 12 demos migrated, the rest are mechanical (see QUALITY.md) |
+| Not done | itch butler upload, YouTube upload, Steamworks features, Roblox trailer capture, rebuild of the other 10 demos on the kit |
+
 ## The workflow
 
 1. **Get footage.**

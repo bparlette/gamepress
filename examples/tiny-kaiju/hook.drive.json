@@ -130,5 +130,10 @@
     },
     "music": "bed",
     "musicGain": 0.35
+  },
+  "blur": 2,
+  "fade": {
+    "in": 0.2,
+    "out": 0.4
   }
 }

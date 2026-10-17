@@ -59,6 +59,9 @@ Caption `style`: `hook` (big outlined white), `pop` (huge yellow), `sub` (small 
 `pos`: `top`, `upper`, `center`, `lower`, `bottom`. Captions pop in with a 0.16 s scale animation.
 Keys: names like `"d"`, `" "`, `"ArrowLeft"`, `"Enter"`. Input is real `Input.dispatchKeyEvent`, so games need no changes.
 
+### Polish options
+`"blur": 2` (motion blur via frame blend), `"fade": {"in": .2, "out": .4}` (video and audio), `audio.bed.lead` (arpeggio level, default .35). Audio is two-pass loudnorm to -14 LUFS. `gamepress drive <plan> --dry-run --json` validates a plan without Chrome. Chrome is auto-found (`CHROME=` overrides).
+
 ## Making any web game "driveable"
 
 Nothing is required for plain play: keys, mouse, captions and slow-mo work on any page. To get **sound** and **state
