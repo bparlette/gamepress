@@ -7,6 +7,8 @@ while *you* control time, input, captions and sound from a JSON plan. Same plan 
 gamepress drive examples/tiny-kaiju/hook.drive.json            # full quality -> press/video/tiny-kaiju-hook.mp4
 gamepress drive plan.json --quick 6                            # smoke test: 6 s, 540x960, 15 fps (about 10x faster)
 gamepress drive plan.json --out some/dir
+gamepress drive --batch seg1.json,seg2.json,seg3.json --out press/video/v3   # N plans, ONE Chrome session
+gamepress drive --batch-dir press/plans/                       # all *.json in dir, sorted
 ```
 
 ## How it works
@@ -58,6 +60,9 @@ gamepress drive plan.json --out some/dir
 Caption `style`: `hook` (big outlined white), `pop` (huge yellow), `sub` (small on a bar), `cta` (yellow button).
 `pos`: `top`, `upper`, `center`, `lower`, `bottom`. Captions pop in with a 0.16 s scale animation.
 Keys: names like `"d"`, `" "`, `"ArrowLeft"`, `"Enter"`. Input is real `Input.dispatchKeyEvent`, so games need no changes.
+
+### Batch mode
+`--batch` / `--batch-dir` renders N plans in **one Chrome session** — one browser launch instead of N, one command instead of N. Each plan gets its own `<name>.mp4` + `.thumb.jpg` + `.stats.json` from its `name` field. The viewport resizes per plan; the seeded clock script is swapped per plan. Use it for multi-segment videos (one segment per faction/map/moment), then concat or cut together.
 
 ### Polish options
 `"blur": 2` (motion blur via frame blend), `"fade": {"in": .2, "out": .4}` (video and audio), `audio.bed.lead` (arpeggio level, default .35). Audio is two-pass loudnorm to -14 LUFS. `gamepress drive <plan> --dry-run --json` validates a plan without Chrome. Chrome is auto-found (`CHROME=` overrides).

@@ -35,7 +35,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, resolve, basename, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { drive, dryRun, generateHooks } from '../lib/drive.mjs';
+import { drive, driveBatch, dryRun, generateHooks } from '../lib/drive.mjs';
 import { ideate, applyAnswers } from '../lib/ideate.mjs';
 import { viralCommand } from '../lib/viral.mjs';
 import { make, doctor, lint, vision, contextDigest, RECIPES, REGISTRY } from '../lib/extras.mjs';
@@ -381,7 +381,7 @@ function die(msg) { JSON_OUT ? console.log(JSON.stringify({ ok: false, error: St
 const HELP = {
   init: ['create press/ with a starter capture plan', 'gamepress init [dir]', ['--dir press']],
   capture: ['drive a web game in headless Chrome: stills + clips -> press/raw', 'gamepress capture <plan.json>', ['--dir press']],
-  drive: ['frame-locked scripted playthrough of a web game -> captioned MP4 with audio', 'gamepress drive <plan.json> [--out dir] [--quick N] [--vo "text"] [--dry-run]', ['--out press/video', '--quick 4 (smoke test: low-res, short)', '--vo "line" (voiceover)', '--dry-run (validate only)']],
+  drive: ['frame-locked scripted playthrough of a web game -> captioned MP4 with audio', 'gamepress drive <plan.json> [--out dir] [--quick N] [--vo "text"] [--dry-run] [--batch a.json,b.json] [--batch-dir plans/]', ['--out press/video', '--quick 4 (smoke test: low-res, short)', '--vo "line" (voiceover)', '--dry-run (validate only)', '--batch (one Chrome session, N videos)', '--batch-dir (all *.json in dir)']],
   catalog: ['add/update a game on a demo page catalog and build its thumbnail', 'gamepress catalog <games.json> --id x --title "X" --path g/x/index.html', ['--id', '--title', '--category', '--path', '--still shot.jpg', '--orientation portrait', '--keys {}', '--labels {}']],
   scenes: ['pull the best stills and clips out of a screen recording', 'gamepress scenes <video> [--count 12]', ['--count 12', '--threshold 0.25']],
   pack: ['crop/scale/encode everything each store needs -> press/out/<platform>', 'gamepress pack [--platforms steam,itch] [--focus 0.5,0.4] [--title "Game"]', ['--platforms', '--focus x,y', '--title', '--no-logo']],
@@ -428,7 +428,7 @@ const HELP = {
   expand: ['token-saving AI blueprint (--blueprint) or scaffold multi-level world', 'gamepress expand <id> [--blueprint] [--levels N] [--worlds "a,b,c"]', ['--blueprint', '--levels', '--worlds']],
   context: ['~400-token AI cheat sheet (the token-saving entry point)', 'gamepress context [--2d|--3d|--lego|--recipe <name>]', ['--2d', '--3d', '--lego', '--recipe']],
   cloud: ['run a slow job on free GitHub runners, falling back to local automatically', 'gamepress cloud drive <plan.json> | voice <script.txt> | test', ['--out dir', '--quick N', '--voice narrator', '--speed 1.0', '--local (skip cloud)']],
-  run: ['conversational orchestrator: the tool drives, the AI just relays (see ORCHESTRATOR.md)', 'gamepress run [--answer \'{...}\' --job <id>] [--status <id>]', ['--answer', '--job', '--status']],
+  run: ['conversational orchestrator: the tool drives, the AI just relays (see ORCHESTRATOR.md). Cloud-first: slow steps try free GitHub runners, --local forces local.', 'gamepress run [--answer \'{...}\' --job <id>] [--status <id>] [--local]', ['--answer', '--job', '--status', '--local (skip cloud, run locally)']],
   help: ['this help (or per-command: gamepress <cmd> --help)', 'gamepress --help | gamepress <cmd> --help', []],
 };
 function printHelp() {
@@ -460,7 +460,7 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
   new: () => console.log('created', scaffold(positional[0] || die('usage: gamepress new <id> [--target web|roblox] [--games dir] [--title T]'), { games: CFG().games, title: flag('title'), target: flag('target', 'web') })),
   status: () => out(status(need('status'), CFG()), o => `${o.id}: ${Object.entries(o.steps).map(([k, v]) => `${k}=${v}`).join(' ')}${o.grade ? ` grade=${o.grade.score}` : ''} -> next: ${o.next || 'nothing, all done'}`),
   grade: async () => { const r = grade(need('grade'), CFG(), { threshold: +flag('threshold', 80) }); if (argv.includes('--vision') && r.stills) { r.vision = await vision(r.stills); if (r.vision.available && r.vision.score < 75) { r.pass = false; r.fixes.push(...r.vision.failed.map(q => 'vision: ' + q)); } } out(r, o => `${o.id}: ${o.score}/100 ${o.pass ? 'PASS' : 'FAIL'}${o.fixes.length ? '\n  fix: ' + o.fixes.join('\n  fix: ') : ''}`); process.exit(r.pass ? 0 : 1); },
-  all: () => runAll(need('all --track hook|demo|web-store'), flag('track', 'demo'), CFG(), { force: argv.includes('--force'), heal: argv.includes('--heal'), localAi: LOCAL_AI, vo: flag('vo') || argv.includes('--vo'), log: m => !JSON_OUT && console.log(m) }).then(r => out(r, o => `${o.id}: ran [${o.ran}] skipped [${o.skipped}] -> next: ${o.status.next || 'done'}`)).catch(e => die(e.message)),
+  all: () => runAll(need('all --track hook|demo|web-store'), flag('track', 'demo'), CFG(), { force: argv.includes('--force'), heal: argv.includes('--heal'), localAi: LOCAL_AI, vo: flag('vo') || argv.includes('--vo'), cloud: !argv.includes('--local'), log: m => !JSON_OUT && console.log(m) }).then(r => out(r, o => `${o.id}: ran [${o.ran}] skipped [${o.skipped}] -> next: ${o.status.next || 'done'}`)).catch(e => die(e.message)),
   auto: async () => {
     const idea = positional.join(' ') || die('usage: gamepress auto "<game idea>" [--id x] [--track demo|web-store|hook] [--style comic] [--answers answers.json] [--preset name] [--prompt] [--from-image [--image-mode upload|describe|game|prompt-me] [--image-desc "..."]] [--lego] [--local-ai] [--heal] [--vo]');
     const br = ideate(idea, { live: !argv.includes('--offline') });
@@ -494,7 +494,7 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
       recipeName = 'lego:' + lg.spec.controller + '+' + lg.spec.hook;
       recordLastAnswers(CFG().state, { idea, id, recipe: recipeName, archetype: br.archetype, answers: ans, spec: lg.spec });
     }
-    await runAll(id, flag('track', 'demo'), CFG(), { force: true, heal: argv.includes('--heal'), localAi: LOCAL_AI, vo: flag('vo') || argv.includes('--vo'), log: m => !JSON_OUT && console.log(m) })
+    await runAll(id, flag('track', 'demo'), CFG(), { force: true, heal: argv.includes('--heal'), localAi: LOCAL_AI, vo: flag('vo') || argv.includes('--vo'), cloud: !argv.includes('--local'), log: m => !JSON_OUT && console.log(m) })
       .then(r => out({ idea, id, recipe: recipeName, hook: hookLine, ...r }, o => `${id}: ${o.ran} done; hook "${hookLine}"`)).catch(e => die(e.message));
   },
   lego: async () => {
@@ -544,7 +544,18 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
   'roblox-test': () => runLuau({ script: readFileSync(positional[0] || die('usage: gamepress roblox-test <script.luau> [--version N]'), 'utf8'), version: flag('version') }).then(r => { console.log(JSON.stringify(r, null, 1)); process.exit(r.ok ? 0 : 1); }).catch(e => die('roblox-test: ' + e.message)),
   roblox: () => publishRoblox({ file: positional[0], universeId: flag('universe'), placeId: flag('place'), versionType: flag('type', 'Published'), rojoProject: flag('rojo'), live: argv.includes('--live') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die('roblox: ' + e.message)),
   tracks: () => { const t = JSON.parse(readFileSync(join(HERE, '..', 'tracks.json'), 'utf8')); const k = positional[0]; console.log(JSON.stringify(k ? t[k] || die('tracks: shared | demo | web-store | roblox') : t, null, 1)); },
-  drive: () => argv.includes('--dry-run') ? out(dryRun(positional[0] || die('usage: gamepress drive <plan.json> [--dry-run]'))) : drive(positional[0] || die('usage: gamepress drive <plan.json>'), { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false, vo: flag('vo') || argv.includes('--vo') }).catch(e => die('drive failed: ' + e.message)), scenes: () => scenes(positional[0]), pack, check,
+  drive: () => {
+    const opts = { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false, vo: flag('vo') || argv.includes('--vo') };
+    if (argv.includes('--dry-run')) return out(dryRun(positional[0] || die('usage: gamepress drive <plan.json> [--dry-run]')));
+    const batch = flag('batch'), batchDir = flag('batch-dir');
+    if (batch || batchDir) {
+      const files = batch ? batch.split(',').map(s => s.trim()).filter(Boolean)
+        : readdirSync(batchDir || die('usage: gamepress drive --batch-dir <dir>')).filter(f => f.endsWith('.json')).map(f => join(batchDir, f)).sort();
+      if (!files.length) die('drive --batch: no plan files found');
+      return driveBatch(files, opts).then(r => out(r.map(x => x.out))).catch(e => die('drive --batch failed: ' + e.message));
+    }
+    return drive(positional[0] || die('usage: gamepress drive <plan.json>'), opts).catch(e => die('drive failed: ' + e.message));
+  }, scenes: () => scenes(positional[0]), pack, check,
   voices: () => voices(positional[0] || die('usage: gamepress voices <script.json> [--dir press] [--engine edge|kokoro]'), { dir: flag('dir', 'press'), engine: flag('engine', 'kokoro') }).then(r => out({ command: 'voices', ...r }, o => `voices: ${o.synthesized} synthesized, ${o.skipped} skipped, ${o.failed} failed → ${o.manifest}`)).catch(e => die('voices: ' + e.message)),
   voice: () => { try { const r = speak(positional.join(' ') || die(`usage: gamepress voice "Your script here" [--voice ${Object.keys(VOICE_PRESETS).join('|')}|VOICE_ID] [--speed 1.0] [--out file.wav]`), { voice: flag('voice', 'narrator'), speed: flag('speed') ? Number(flag('speed')) : undefined, output: flag('out') }); out(r, o => `voice → ${o.file} (${o.seconds}s, voice=${o.voice}, speed=${o.speed})`); } catch (e) { die('voice: ' + e.message); } },
   setup: () => {
@@ -642,7 +653,7 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
       let answers;
       try { answers = JSON.parse(answerRaw); } catch { die('--answer must be a JSON object'); }
       if (!jobId) die('usage: gamepress run --job <id> --answer \'{...}\'');
-      const r = await answerRun(jobId, answers);
+      const r = await answerRun(jobId, answers, { local: argv.includes('--local') });
       return out(r);
     }
     return out(await startRun());
