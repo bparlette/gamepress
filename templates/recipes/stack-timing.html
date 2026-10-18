@@ -30,7 +30,7 @@ function draw(c) {
   const blk = (x, y, w, n, a = 1) => { c.globalAlpha = a; c.fillStyle = hue(n); c.fillRect(x - w / 2, y, w, BH - 3); c.fillStyle = 'rgba(255,255,255,.3)'; c.fillRect(x - w / 2, y, w, 8); c.lineWidth = 4; c.strokeStyle = '#000'; c.strokeRect(x - w / 2, y, w, BH - 3); c.globalAlpha = 1; };
   c.save(); c.translate(0, camY); for (const [i, b] of tower.entries()) blk(b.x, BASE_Y - (i + 1) * BH + BH, b.w, b.n); if (mv) { blk(mv.x, BASE_Y - tower.length * BH - BH + BH, mv.w, mv.n); } for (const f of fall) blk(f.x, f.y, f.w, f.n, .8);
   { const t0 = tower.at(-1); c.fillStyle = 'rgba(255,255,255,.14)'; c.fillRect(t0.x - t0.w / 2, -2000, t0.w, BASE_Y - tower.length * BH + 2000 + BH); }
-  const top = tower.at(-1); drawChar('cat', c, top.x, BASE_Y - tower.length * BH + BH - BH * 0 - 0, 80, { color: S.heroColor, dir: 1, t: g.t, anim: 'idle', hurt: g.mode === 'over' && !g.result?.win }); c.restore();
+  const top = tower.at(-1); drawChar(S.hero || 'cat', c, top.x, BASE_Y - tower.length * BH + BH - BH * 0 - 0, 80, { color: S.heroColor, dir: 1, t: g.t, anim: 'idle', hurt: g.mode === 'over' && !g.result?.win }); c.restore();
   if (g.mode === 'play' && tower.length < 3) g.text('TAP!', 270, 560, { size: 60, align: 'center' });
 }
 g.run(update, draw);

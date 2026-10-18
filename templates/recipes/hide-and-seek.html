@@ -33,7 +33,7 @@ function draw(c) {
   for (const q of props) barrel(c, q.x, q.y, .95, ['#8a5a2e', '#8a5a2e', '#7a4e28'][q.r]);
   const cone = (x, y, a, r, w) => { const gr = c.createRadialGradient(x, y - 40, 10, x, y - 40, r); gr.addColorStop(0, 'rgba(255,240,140,.5)'); gr.addColorStop(1, 'rgba(255,240,140,0)'); c.fillStyle = gr; c.beginPath(); c.moveTo(x, y - 40); c.arc(x, y - 40, r, a - w, a + w); c.closePath(); c.fill(); }; cone(h.x, h.y, h.a, 340, .55);
   drawChar(S.foe, c, h.x, h.y, 100, { dir: h.d, t: h.t, anim: 'walk', color: undefined });
-  if (p.mv) drawChar('cat', c, p.x, p.y, 74, { color: '#ff9a3c', dir: 1, t: t0, anim: 'walk' }); else barrel(c, p.x, p.y, .95, '#8a5a2e', spot > .3);
+  if (p.mv) drawChar(S.hero || 'cat', c, p.x, p.y, 74, { color: '#ff9a3c', dir: 1, t: t0, anim: 'walk' }); else barrel(c, p.x, p.y, .95, '#8a5a2e', spot > .3);
   if (spot > 0) { g.bar(150, 170, 240, 18, spot, spot > .7 ? '#ff5a5a' : '#ffd34d'); g.text('!', p.x, p.y - 80, { size: 60 + spot * 40, align: 'center', color: '#ff5a5a' }); }
 }
 g.run(update, draw);
