@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gamepress setup</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  h1 { font-size: 1.8rem; }
+  .tool { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+  .tool h2 { margin: 0 0 .5rem; font-size: 1.2rem; }
+  .badge { display: inline-block; font-size: .75rem; padding: .15rem .5rem; border-radius: 4px; margin-left: .5rem; }
+  .required { background: #fee; color: #900; }
+  .optional { background: #efe; color: #060; }
+  code { background: #f4f4f4; padding: .1rem .3rem; border-radius: 3px; }
+  pre { background: #f4f4f4; padding: .75rem; border-radius: 6px; overflow-x: auto; }
+  .skip { color: #666; font-style: italic; }
+</style>
+</head>
+<body>
+<h1>gamepress setup</h1>
+<p>Everything gamepress needs, what's optional, and what each tool unlocks. You can skip anything marked optional — the core pipeline (make → test → images) works without it.</p>
+
+<!-- MACHINE-READABLE: AI agents parse this block. Do not remove. -->
+<script type="application/json" id="gamepress-setup">
+{
+  "tools": [
+    {
+      "id": "node",
+      "name": "Node.js 22+",
+      "required": true,
+      "enables": "everything — gamepress is a Node CLI",
+      "install": { "mac": "brew install node", "linux": "sudo apt install nodejs  # or use nvm", "windows": "winget install OpenJS.NodeJS" },
+      "check": "node --version"
+    },
+    {
+      "id": "ffmpeg",
+      "name": "ffmpeg + ffprobe",
+      "required": true,
+      "enables": "video rendering (drive), GIF encoding, trailer assembly",
+      "install": { "mac": "brew install ffmpeg", "linux": "sudo apt install ffmpeg", "windows": "winget install Gyan.FFmpeg" },
+      "check": "ffmpeg -version"
+    },
+    {
+      "id": "chrome",
+      "name": "Google Chrome",
+      "required": true,
+      "enables": "game capture, scripted playthroughs (drive), screenshots",
+      "install": { "mac": "brew install --cask google-chrome", "linux": "download from google.com/chrome", "windows": "winget install Google.Chrome" },
+      "check": "google-chrome --version || /Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --version",
+      "env": "CHROME=/path/to/chrome to override"
+    },
+    {
+      "id": "zip",
+      "name": "zip",
+      "required": true,
+      "enables": "packaging games for upload (itch.io, CrazyGames)",
+      "install": { "mac": "brew install zip", "linux": "sudo apt install zip", "windows": "included with most systems" },
+      "check": "zip -v"
+    },
+    {
+      "id": "gh",
+      "name": "GitHub CLI",
+      "required": false,
+      "enables": "gamepress cloud (free GitHub runner video/TTS/test offload), repo creation",
+      "skip": "Without gh, gamepress cloud falls back to local automatically. No error.",
+      "install": { "mac": "brew install gh", "linux": "sudo apt install gh  # or: sudo dnf install gh", "windows": "winget install GitHub.cli" },
+      "check": "gh --version",
+      "after": "gh auth login"
+    },
+    {
+      "id": "kokoro-tts",
+      "name": "Kokoro TTS",
+      "required": false,
+      "enables": "gamepress voice (local, free voiceover for trailers and in-game voice lines)",
+      "skip": "Voiceover steps are skipped without it. gamepress voices --engine edge works instead (needs network).",
+      "install": { "all": "gamepress setup --tts  (downloads ~136MB model once)" },
+      "check": "gamepress tools | grep kokoro"
+    },
+    {
+      "id": "edge-tts",
+      "name": "Edge TTS",
+      "required": false,
+      "enables": "gamepress voices batch synthesis (network, MP3 output)",
+      "skip": "Only needed if you want batch voice-line synthesis without Kokoro.",
+      "install": { "all": "pip install edge-tts" },
+      "check": "edge-tts --version"
+    },
+    {
+      "id": "ollama",
+      "name": "Ollama (local AI)",
+      "required": false,
+      "enables": "--local-ai: spec enrichment, viral hook copywriting, vision grading, code self-healing — 0 cloud tokens",
+      "skip": "Everything works with deterministic templates. Local AI is a quality boost, not a requirement.",
+      "install": { "mac": "brew install ollama", "linux": "curl -fsSL https://ollama.com/install.sh | sh", "windows": "winget install Ollama.Ollama" },
+      "check": "ollama --version",
+      "after": "ollama pull qwen2.5-coder:14b"
+    },
+    {
+      "id": "butler",
+      "name": "butler (itch.io)",
+      "required": false,
+      "enables": "gamepress host itch --live (upload to itch.io)",
+      "skip": "Only needed when publishing to itch.io.",
+      "install": { "mac": "brew install --cask itch", "linux": "download from itch.io/docs/butler", "windows": "download from itch.io/docs/butler" },
+      "check": "butler -V"
+    },
+    {
+      "id": "cwebp",
+      "name": "cwebp",
+      "required": false,
+      "enables": "smaller thumbnails (WebP)",
+      "skip": "PNG thumbnails work fine without it.",
+      "install": { "mac": "brew install webp", "linux": "sudo apt install webp", "windows": "winget install Google.WebP" },
+      "check": "cwebp -version"
+    },
+    {
+      "id": "rojo",
+      "name": "rojo",
+      "required": false,
+      "enables": "Roblox track builds",
+      "skip": "Only needed for Roblox games.",
+      "install": { "mac": "brew install rojo", "linux": "download from github.com/rojo-rbx/rojo", "windows": "winget install Rojo.Rojo" },
+      "check": "rojo --version"
+    }
+  ]
+}
+</script>
+
+<div id="tools"></div>
+
+<script>
+const data = JSON.parse(document.getElementById('gamepress-setup').textContent);
+const os = /Mac/.test(navigator.platform) ? 'mac' : /Win/.test(navigator.platform) ? 'windows' : 'linux';
+const container = document.getElementById('tools');
+for (const t of data.tools) {
+  const el = document.createElement('div');
+  el.className = 'tool';
+  el.id = 'tool-' + t.id;
+  const install = t.install[os] || t.install.all;
+  el.innerHTML = `<h2>${t.name}<span class="badge ${t.required ? 'required' : 'optional'}">${t.required ? 'required' : 'optional'}</span></h2>
+    <p><strong>Enables:</strong> ${t.enables}</p>
+    ${t.skip ? `<p class="skip">Skip it: ${t.skip}</p>` : ''}
+    <pre>${install}${t.after ? '\n' + t.after : ''}</pre>
+    <p><code>${t.check}</code> to verify</p>`;
+  container.appendChild(el);
+}
+</script>
+</body>
+</html>

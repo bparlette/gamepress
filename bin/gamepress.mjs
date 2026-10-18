@@ -54,6 +54,7 @@ import { speak, setupTts, VOICE_PRESETS } from '../lib/tts.mjs';
 import { listTools, checkUpdates, downloadTool, loadManifest } from '../lib/tools.mjs';
 import { approveDemo, getApproval, listApprovals, generateBlueprint, scaffoldExpansion } from '../lib/expand.mjs';
 import { cloudAvailable, cloudOrLocal } from '../lib/cloud.mjs';
+import { startRun, answerRun, statusRun } from '../lib/run.mjs';
 import { createInterface as _rl } from 'node:readline';
 
 /** One-off free-text prompt (only called when --prompt already verified a TTY). */
@@ -427,6 +428,7 @@ const HELP = {
   expand: ['token-saving AI blueprint (--blueprint) or scaffold multi-level world', 'gamepress expand <id> [--blueprint] [--levels N] [--worlds "a,b,c"]', ['--blueprint', '--levels', '--worlds']],
   context: ['~400-token AI cheat sheet (the token-saving entry point)', 'gamepress context [--2d|--3d|--lego|--recipe <name>]', ['--2d', '--3d', '--lego', '--recipe']],
   cloud: ['run a slow job on free GitHub runners, falling back to local automatically', 'gamepress cloud drive <plan.json> | voice <script.txt> | test', ['--out dir', '--quick N', '--voice narrator', '--speed 1.0', '--local (skip cloud)']],
+  run: ['conversational orchestrator: the tool drives, the AI just relays (see ORCHESTRATOR.md)', 'gamepress run [--answer \'{...}\' --job <id>] [--status <id>]', ['--answer', '--job', '--status']],
   help: ['this help (or per-command: gamepress <cmd> --help)', 'gamepress --help | gamepress <cmd> --help', []],
 };
 function printHelp() {
@@ -556,6 +558,13 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
       try { const r = downloadTool(name); console.log(`${name}: ${r.files.map(f => f.file + ' ' + (f.verified || f.action)).join(', ')}`); }
       catch (e) { console.log(`${name}: FAILED — ${e.message.split('\n')[0]}`); }
     }
+    // gh CLI: needed for `gamepress cloud` (cloud runners) and repo ops.
+    try { execFileSync('gh', ['--version'], { stdio: 'ignore' }); console.log('gh: already installed'); }
+    catch {
+      const platform = process.platform;
+      const install = platform === 'darwin' ? 'brew install gh' : platform === 'linux' ? 'sudo apt install gh  (or: sudo dnf install gh)' : 'winget install GitHub.cli';
+      console.log(`gh: NOT INSTALLED — needed for gamepress cloud.\n  install: ${install}\n  then: gh auth login`);
+    }
     console.log('\nnext: gamepress auto "<idea>" --track demo   (or: gamepress context for the 400-token cheat sheet)');
   },
   tools: () => { try {
@@ -619,6 +628,24 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
         .then(r => { if (!r.cloud) return; console.log(`cloud test passed (run #${r.runId})`); });
     }
     die('usage: gamepress cloud drive <plan.json> | voice <script.txt> | test [--local]');
+  },
+  run: async () => {
+    // Conversational orchestrator (ORCHESTRATOR.md): the tool drives, the AI relays.
+    const statusId = flag('status') || (positional[0] === '--status' ? positional[1] : null);
+    if (flag('status') || positional.includes('--status')) {
+      const id = flag('status') || positional[positional.indexOf('--status') + 1] || die('usage: gamepress run --status <job-id>');
+      return out(statusRun(id));
+    }
+    const answerRaw = flag('answer');
+    const jobId = flag('job');
+    if (answerRaw) {
+      let answers;
+      try { answers = JSON.parse(answerRaw); } catch { die('--answer must be a JSON object'); }
+      if (!jobId) die('usage: gamepress run --job <id> --answer \'{...}\'');
+      const r = await answerRun(jobId, answers);
+      return out(r);
+    }
+    return out(await startRun());
   } };
 const _handler = _dispatch[cmd];
 if (!_handler) die('usage: gamepress --help  (lists all commands; per-command: gamepress <cmd> --help)');
