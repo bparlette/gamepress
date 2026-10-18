@@ -42,6 +42,7 @@ import { make, doctor, lint, vision, contextDigest, RECIPES, REGISTRY } from '..
 import { config, status, grade, runAll } from '../lib/pipeline.mjs';
 import { catalogCommand } from '../lib/catalog.mjs';
 import { research, scaffold, testGame, botCheck, bundle, publishPack, publishDemo, copyDraft, buildTarget, repoInit } from '../lib/tasks.mjs';
+import { visualSmokeTest } from '../lib/visual.mjs';
 import { publishRoblox, shipRoblox, runLuau } from '../lib/roblox.mjs';
 import * as hosts from '../lib/hosts/index.mjs';
 import { voices, bumpVersion, makeIcons, compositeCapsuleLogo } from '../lib/studio.mjs';
@@ -56,13 +57,6 @@ import { approveDemo, getApproval, listApprovals, generateBlueprint, scaffoldExp
 import { cloudAvailable, cloudOrLocal } from '../lib/cloud.mjs';
 import { startRun, answerRun, statusRun } from '../lib/run.mjs';
 import { createInterface as _rl } from 'node:readline';
-
-// Auto-enable WebSocket on Node < 22 (e.g. Node 20 runners) so CDP and Edge TTS work without manual flags
-if (typeof WebSocket === 'undefined' && !process.execArgv.includes('--experimental-websocket')) {
-  const { spawnSync } = await import('node:child_process');
-  const r = spawnSync(process.execPath, ['--experimental-websocket', ...process.execArgv, ...process.argv.slice(1)], { stdio: 'inherit' });
-  process.exit(r.status ?? (r.error ? 1 : 0));
-}
 
 /** One-off free-text prompt (only called when --prompt already verified a TTY). */
 async function _askText(q) {
@@ -398,7 +392,8 @@ const HELP = {
   make: ['build a whole game from a recipe + small JSON spec', 'gamepress make <id> --recipe <name> --spec spec.json', ['--recipe', '--spec', '--answers a.json', '--force']],
   recipes: ['list the 24 game recipes (or regenerate docs/RECIPES-CATALOG.md)', 'gamepress recipes [--md]', ['--md (write docs)', '--json']],
   new: ['scaffold a new game shell', 'gamepress new <id> [--games dir] [--title T] [--target web|roblox]', ['--games', '--title', '--target']],
-  test: ['headless playtest: must print "ok": true', 'gamepress test <game dir or url> [--root dir]', ['--root']],
+  test: ['headless playtest + visual smoke test: must print "ok": true', 'gamepress test <game dir or url> [--root dir]', ['--root']],
+  visual: ['visual smoke test: screenshot + pixel-variance render check', 'gamepress visual <game dir or url> [--seconds 10]', ['--seconds 10']],
   botcheck: ['prove the demo loses then wins (bot playtest)', 'gamepress botcheck <game-id> [--seconds 40]', ['--seconds 40']],
   status: ['what is done/stale, what is next (token-saving)', 'gamepress status <game-id> [--json]', ['--json', '--games', '--catalog']],
   all: ['run every missing/stale step of a track in order', 'gamepress all <id> --track hook|demo|web-store [--heal] [--vo] [--horizontal-only] [--vertical-only]', ['--track', '--force', '--heal', '--vo', '--local (skip cloud)', '--local-ai', '--horizontal-only / --vertical-only (default: both orientations)']],
@@ -543,6 +538,7 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
   host: function () { return this._doHost(); },
   botcheck: () => botCheck(positional[0] ? resolve(CFG().games, positional[0]) : die('usage: gamepress botcheck <game-id> [--seconds 40]'), { root: CFG().games, seconds: +flag('seconds', 40) }).then(r => out(r, o => `${o.ok ? 'OK' : 'CHECK'}: ${o.ends.map(e => (e.win ? 'W' : 'L') + e.t).join(' ')}${o.errors.length ? ' errors ' + o.errors : ''}`)).catch(e => die('botcheck: ' + e.message)),
   test: () => testGame(positional[0] || die('usage: gamepress test <game dir or url> [--root dir]'), { root: flag('root') }).then(v => { console.log(JSON.stringify(v, null, 1)); process.exit(v.ok ? 0 : 1); }).catch(e => die('test failed: ' + e.message)),
+  visual: () => visualSmokeTest(positional[0] || die('usage: gamepress visual <game dir or url> [--seconds 10]'), { seconds: +flag('seconds', 10) }).then(v => { console.log(JSON.stringify(v, null, 1)); process.exit(v.ok ? 0 : 1); }).catch(e => die('visual failed: ' + e.message)),
   bundle: () => console.log(bundle(positional[0] || die('usage: gamepress bundle <game dir> [--out dist]'), flag('out', 'dist'))),
   'publish-demo': () => console.log(JSON.stringify(publishDemo(positional[0] || die('usage: gamepress tracks [name] | publish-demo <id> --catalog <games.json> [--push]'), { catalog: flag('catalog') || die('--catalog required'), videoDir: flag('video', 'press/video'), push: argv.includes('--push') }))),
   repo: () => out(repoInit(need('repo'), { games: CFG().games, examples: flag('examples', 'examples'), github: argv.includes('--github'), isPrivate: argv.includes('--private') }), o => `${o.id}: ${o.done.join('; ') || 'nothing new'}${o.skipped.length ? '\n  skipped: ' + o.skipped.join('; ') : ''}`),
