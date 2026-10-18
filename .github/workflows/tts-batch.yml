@@ -1,0 +1,37 @@
+name: TTS Batch
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: 'Script text file path'
+        required: true
+      voice:
+        description: 'Voice preset (trailer/character/narrator)'
+        default: 'narrator'
+      speed:
+        description: 'Speed multiplier'
+        default: '1.0'
+      out:
+        description: 'Output directory'
+        default: 'press/audio'
+jobs:
+  synthesize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Kokoro
+        run: |
+          pip install kokoro-onnx soundfile
+          node bin/gamepress.mjs setup --tts
+      - name: Synthesize
+        run: node bin/gamepress.mjs cloud voice "${{ inputs.script }}" --voice "${{ inputs.voice }}" --speed "${{ inputs.speed }}" --out "${{ inputs.out }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audio
+          path: ${{ inputs.out }}/*.wav
