@@ -5,7 +5,7 @@ import { R, SEED, clamp } from './gpmath.js';
 import { sfx, setMuted, comboPitch } from './gpaudio.js';
 import { STY } from './gpsprites.js';
 // ?hold=1 (hub): run a few frames so the game shows, then freeze until the hub posts {gp:'start'}.
-if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { const raf = window.requestAnimationFrame.bind(window); let q = [], go = false, n = 0; window.requestAnimationFrame = f => (go || n++ < 8) ? raf(f) : (q.push(f), 0); addEventListener('message', e => { if (e.data && e.data.gp === 'start' && !go) { go = true; q.splice(0).forEach(raf); } }); }
+if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { const raf = window.requestAnimationFrame.bind(window); let q = [], go = false, n = 0; window.requestAnimationFrame = f => (go || n++ < 1) ? raf(f) : (q.push(f), 0); addEventListener('message', e => { if (e.data && e.data.gp === 'start' && !go) { go = true; q.splice(0).forEach(raf); } }); }
 export { sfx, comboPitch };
 export * from './gpmath.js';
 export const STYLES = ['toon', 'roblox', 'comic', 'painted', 'pixel16', 'pixel8'];
