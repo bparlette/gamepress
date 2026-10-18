@@ -1545,7 +1545,7 @@
         "1 bomb ends the run",
         "Fruit Ninja but cats"
       ],
-      "seconds": 16,
+      "seconds": 15,
       "engine": "2d",
       "colors": "css",
       "match": "fruit ninja|slice|swipe|cut fruit|ninja|slash",
@@ -1599,7 +1599,7 @@
         "How high can you stack?",
         "The tower never lies"
       ],
-      "seconds": 17,
+      "seconds": 16,
       "engine": "2d",
       "colors": "css",
       "match": "stack|tower|timing|tap to drop|block stacking|balance",
@@ -1654,7 +1654,7 @@
         "Where would you drop it?",
         "The luckiest drop ever"
       ],
-      "seconds": 26,
+      "seconds": 18,
       "engine": "2d",
       "colors": "css",
       "match": "plinko|pachinko|ball drop|galton|pegs|slots",
@@ -1759,7 +1759,7 @@
         "Sort the cats",
         "The calm puzzle that fools you"
       ],
-      "seconds": 20,
+      "seconds": 19,
       "engine": "2d",
       "colors": "css",
       "match": "sort|ball sort|water sort|tubes|sorting puzzle|color sort",
@@ -1814,7 +1814,7 @@
         "One swipe, one chance",
         "Cut the rope but cats"
       ],
-      "seconds": 12,
+      "seconds": 10,
       "engine": "2d",
       "colors": "css",
       "match": "cut the rope|rope|swing|feed|pendulum|physics puzzle",
