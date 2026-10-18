@@ -125,6 +125,27 @@ This same rule applies everywhere gamepress touches the network for
 convenience: if the API, the browser, or the artifact can't be reached, do
 the work locally instead of failing.
 
+## `gamepress run` is cloud-first by default
+
+The orchestrator (`gamepress run`, see ORCHESTRATOR.md) runs its slow
+pipeline steps — `test` and `video` — on cloud runners first, with the same
+silent local fallback. The human never has to think about it:
+
+```bash
+gamepress run --job <id> --answer '{"idea": "..."}'   # cloud-first
+gamepress run --job <id> --answer '{"idea": "..."}' --local  # force local
+```
+
+`gamepress all <id>` and `gamepress auto` behave the same way (both accept
+`--local`). `runAll()` takes a `cloud` option (default `true`).
+
+One extra guard applies to pipeline cloud runs: **cloud runners check out
+origin, so they can only see committed files.** If the game's files or the
+drive plan have uncommitted changes (the normal case for a fresh
+`gamepress run` build), the pipeline skips cloud with one stderr line and
+runs locally — no wasted polling against a run that could never see the
+files. Commit + push first if you want the cloud to do the work.
+
 ## Workflow files
 
 The workflows live in `.github/workflows/`:

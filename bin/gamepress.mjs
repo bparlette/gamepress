@@ -394,7 +394,7 @@ const HELP = {
   test: ['headless playtest: must print "ok": true', 'gamepress test <game dir or url> [--root dir]', ['--root']],
   botcheck: ['prove the demo loses then wins (bot playtest)', 'gamepress botcheck <game-id> [--seconds 40]', ['--seconds 40']],
   status: ['what is done/stale, what is next (token-saving)', 'gamepress status <game-id> [--json]', ['--json', '--games', '--catalog']],
-  all: ['run every missing/stale step of a track in order', 'gamepress all <id> --track hook|demo|web-store [--heal] [--vo]', ['--track', '--force', '--heal', '--vo', '--local-ai']],
+  all: ['run every missing/stale step of a track in order', 'gamepress all <id> --track hook|demo|web-store [--heal] [--vo]', ['--track', '--force', '--heal', '--vo', '--local (skip cloud)', '--local-ai']],
   grade: ['score game + hook video against the quality bar', 'gamepress grade <id> [--vision] [--threshold 80]', ['--vision (Ollama)', '--threshold 80']],
   heal: ['auto-repair lint/test bugs (optionally with local AI)', 'gamepress heal <id> [--no-local-ai]', ['--no-local-ai']],
   hooks: ['render 3 opening A/B hook variants', 'gamepress hooks <id>', []],

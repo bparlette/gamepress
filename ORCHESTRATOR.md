@@ -20,6 +20,8 @@ Setup details: https://bparlette.github.io/gamepress/setup/ (machine-readable JS
 ```
 gamepress run --answer '{"idea": "<what they said>"}' --job <id>
 ```
+Add `--local` only if the human explicitly asked to skip the cloud. Otherwise the tool
+picks the fastest path itself (cloud runners when available, local fallback silent).
 The tool replies with either:
 - `{"ask": "...", "questions": [...]}` — ask the human, relay back with `--answer`
 - `{"status": "building", ...}` — the tool is building; go to step 3
@@ -36,6 +38,11 @@ If building, wait and poll again. If done, show the links. If error, show the er
 
 - Always pass `--json` (or parse the JSON from stdout).
 - Answers go in `--answer` as a JSON object. Option questions use numbers: `{"art": 0}`.
+- Builds are cloud-first: `gamepress run` tries free GitHub runners for the slow steps
+  (test, video render) and falls back to local automatically — one stderr line, then
+  local output. Never fails because cloud is unavailable. You don't need to do anything.
+- `--local` forces local execution: `gamepress run --job <id> --answer '{...}' --local`.
+  Use it only if the human explicitly asks to skip the cloud.
 - Never run `make`, `drive`, `test`, `all`, or any other gamepress command directly.
 - Never read docs/, lib/, or any other file. This file is the whole interface.
 - If the tool says `{"error": ...}`, show it to the human and stop.
