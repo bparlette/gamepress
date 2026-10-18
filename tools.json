@@ -1,24 +1,26 @@
 {
   "kokoro-tts": {
     "description": "Local TTS for trailers and in-game voice lines (zero API cost, CPU-friendly)",
-    "version": "v1.0",
+    "version": "v1.1",
     "license": "MIT",
     "install_dir": "~/.gamepress/tts",
     "env_override": "GAMEPRESS_TTS_DIR",
     "check_latest": "https://api.github.com/repos/thewh1teagle/kokoro-onnx/releases/latest",
+    "tag_prefix": "model-files-",
     "python_deps": ["kokoro-onnx", "soundfile"],
     "used_by": ["gamepress voice", "gamepress voices", "gamepress drive --vo"],
+    "release_note": "The 'v1.1' upstream release repackages the v1.0 English model (kokoro-v1.0.onnx) plus v1.1 Chinese models. English voices file (voices-v1.0.bin) is unchanged from v1.0. Skipped: fp16/int8 quantized variants (need bridge changes) and kokoro-v1.1-zh (Chinese).",
     "files": [
       {
         "name": "kokoro-v1.0.onnx",
-        "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx",
-        "size_mb": 311,
-        "sha256": "7d5df8ecf7d4b1878015a32686053fd0eebe2bc377234608764cc0ef3636a6c5"
+        "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.onnx",
+        "size_mb": 326,
+        "sha256": "beb0d1848dee9a49da392cc3df26958d46cfa35d321edf434f52949153f0df3a"
       },
       {
         "name": "voices-v1.0.bin",
-        "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin",
-        "size_mb": 27,
+        "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin",
+        "size_mb": 28,
         "sha256": "bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d"
       }
     ]
