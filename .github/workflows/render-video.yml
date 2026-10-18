@@ -1,0 +1,32 @@
+name: Render Video
+on:
+  workflow_dispatch:
+    inputs:
+      plan:
+        description: 'Drive plan JSON path'
+        required: true
+      out:
+        description: 'Output directory'
+        default: 'press/video'
+      quick:
+        description: 'Quick render seconds (0 for full)'
+        default: '0'
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Chrome
+        run: |
+          wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt install -y ./google-chrome-stable_current_amd64.deb
+          sudo apt install -y ffmpeg
+      - name: Render
+        run: node bin/gamepress.mjs drive "${{ inputs.plan }}" --out "${{ inputs.out }}" --quick "${{ inputs.quick }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: video
+          path: ${{ inputs.out }}/*.mp4
