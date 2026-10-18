@@ -25,11 +25,71 @@ Convert each asset into its own discrete `.ts`/`.js` mesh factory, then
 assemble the final level inside your gamepress scene. Terrain, hazards,
 and background are built separately in code.
 
+## Image intake — 4 ways in
+
+You don't need to know what images to provide. The AI handles sourcing
+flexibly — pick whichever entry point matches what you have:
+
+### 1. Upload images
+You provide one or more images. The AI validates each against the
+isolation checklist (below) before extraction. Anything failing a check
+gets regenerated in Gemini with the isolation constraints.
+
+### 2. Describe the asset
+You describe the character/vehicle in one sentence ("chunky red
+hover-kart with neon-blue exhaust thrusters"). The AI breaks the
+description into **4 view prompts** (see "The 4 canonical views") and
+generates each — or hands you the prompts to run in Gemini yourself.
+
+### 3. Name a game
+You say "I want the kart from *F-Zero*" (or any game). The AI searches
+for reference art (sprites, concept art), asks 4 quick questions to lock
+the look, then generates clean isolated versions — never extracts from
+the game's copyrighted assets directly.
+
+### 4. "Prompt me"
+You don't know what to describe. The AI asks 4 short questions, then
+writes the 4 view prompts for you:
+1. What is it? (character, vehicle, creature, prop)
+2. What's the one visual detail that makes it recognizable?
+3. What colors? (2-3 max for low-poly)
+4. What game/recipe is it for?
+
+**Media skill note:** when the user just describes what they want, the AI
+can generate the 4 views directly with its own image capability — no
+manual Gemini trip needed. The prompts in `lib/img2threejs.mjs`
+(`generateViewPrompts`) are written for exactly this: same subject,
+same style, same isolation constraints, only the camera angle varies.
+
+### The 4 canonical views img2threejs needs
+
+| # | View | Camera | Pose |
+|---|---|---|---|
+| 1 | **Front** | straight-on | T-pose / A-pose, arms slightly out |
+| 2 | **Side** | profile | same pose |
+| 3 | **Back** | rear | same pose (catches details front misses) |
+| 4 | **3/4 Hero** | isometric front-quarter | slight dynamic action pose — the money shot |
+
+Every view on pure white `#FFFFFF`, no shadows, no ground, no UI.
+
+### Isolation checklist (for uploaded images)
+
+- [ ] Pure white `#FFFFFF` background (no gradients, no studio backdrops)
+- [ ] Zero floor shadows, ground planes, or contact shadows
+- [ ] No UI elements, text overlays, or watermarks
+- [ ] Single subject per image, cleanly separated from the background
+
+**CLI:** `gamepress auto "<idea>" --from-image` asks "Do you have images,
+or should I generate them?" first, then branches. Scripted runs:
+`--image-mode upload|describe|game|prompt-me --image-desc "..."`.
+Programmatic: `lib/img2threejs.mjs` exports `generateViewPrompts()`,
+`intakeQuestions()`, `answersToDescription()`, `printImageIntake()`.
+
 ## The 4-step pipeline
 
 | Step | Tool | Input | Action | Output |
 |---|---|---|---|---|
-| 1. Hero concepting | Gemini image gen | Text prompt (see templates) | Generate isolated asset on pure white #FFFFFF, no shadows/ground/UI | Clean 2D PNG |
+| 1. Hero concepting | Gemini image gen / AI image capability | Text prompt or 4-view prompts (see "Image intake — 4 ways in") | Generate isolated asset on pure white #FFFFFF, no shadows/ground/UI | Clean 2D PNG(s) |
 | 2. Mesh extraction | img2threejs | Step 1 PNG | Run with low-poly budget + pivot spec (see agent prompt) | `createModelInstance()` ES module |
 | 3. Physics rigging | `kit/gpfeel.js` | Procedural mesh | Attach bounding box to `RetroController` / `characterStep()` (coyote time, jump buffer, squash-stretch) | Playable controller |
 | 4. Viral capture | bot engine | Assembled scene | `?auto=1` bot script: attempt 0 fails in 3s, attempt 1 threads near-misses | Deterministic 1080×1920 MP4 |

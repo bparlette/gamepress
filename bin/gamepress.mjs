@@ -39,14 +39,66 @@ import { probeLocalAi, healGame, isLocalAiEnabled } from '../lib/local_ai.mjs';
 import { buildLegoGame } from '../lib/lego.mjs';
 import { gatherStats } from '../lib/stats.mjs';
 import { listPresets, loadPreset, savePreset, deletePreset, sanitizeAnswers, readAnswersFile, recordLastAnswers, readLastAnswers, promptAnswers } from '../lib/presets.mjs';
-import { printImageWorkflow } from '../lib/img2threejs.mjs';
+import { printImageWorkflow, printImageIntake, intakeQuestions, generateViewPrompts, answersToDescription } from '../lib/img2threejs.mjs';
 import { createInterface as _rl } from 'node:readline';
 
-/** One-off yes/no prompt (only called when --prompt already verified a TTY). */
-async function _askYesNo(q) {
+/** One-off free-text prompt (only called when --prompt already verified a TTY). */
+async function _askText(q) {
   const rl = _rl({ input: process.stdin, output: process.stdout });
-  try { const a = (await new Promise(r => rl.question(q + ' [y/N]: ', r))).trim().toLowerCase(); return a === 'y' || a === 'yes'; }
+  try { return (await new Promise(r => rl.question(q + ' ', r))).trim(); }
   finally { rl.close(); }
+}
+
+/** One-off choice prompt: returns the chosen option id. */
+async function _askChoice(q, options) {
+  const rl = _rl({ input: process.stdin, output: process.stdout });
+  try {
+    const menu = options.map((o, i) => `  ${i + 1}. ${o.label}`).join('\n');
+    const a = (await new Promise(r => rl.question(`${q}\n${menu}\nchoice [1-${options.length}]: `, r))).trim();
+    const n = parseInt(a, 10);
+    return options[(isNaN(n) ? 1 : Math.min(Math.max(n, 1), options.length)) - 1].id;
+  } finally { rl.close(); }
+}
+
+/**
+ * Start-from-image intake: 4 ways in (docs/IMG2THREEJS-WORKFLOW.md).
+ * --image-mode upload|describe|game|prompt-me (+ --image-desc) for scripted runs;
+ * interactive choice + follow-ups in --prompt mode.
+ */
+async function _imageIntake(recipeName) {
+  let mode = flag('image-mode');
+  const desc = flag('image-desc', '');
+  if (!mode && argv.includes('--prompt') && !JSON_OUT) {
+    mode = await _askChoice('\nDo you have images, or should I generate them?', [
+      { id: 'upload', label: 'I have images — validate them' },
+      { id: 'describe', label: 'I will describe the asset — generate the 4 view prompts' },
+      { id: 'game', label: 'Name a game — find reference art and generate clean versions' },
+      { id: 'prompt-me', label: 'Prompt me — ask 4 quick questions, then write the prompts' },
+    ]);
+  }
+  mode = mode || 'prompt-me';
+  const opts = { recipe: recipeName, description: desc };
+
+  if (mode === 'describe' && !desc && argv.includes('--prompt') && !JSON_OUT) {
+    opts.description = await _askText('Describe the hero asset in one sentence:');
+  }
+  if (mode === 'game' && argv.includes('--prompt') && !JSON_OUT) {
+    opts.game = await _askText('Which game? (I will find reference art, then generate clean isolated versions)');
+    // Ask the 4 questions against the reference so the prompts match the game's look.
+    console.log('\nQuick questions to lock the look:');
+    const answers = {};
+    for (const q of intakeQuestions()) answers[q.id] = await _askText(`  ${q.question}`);
+    opts.answers = answers;
+  }
+  if (mode === 'prompt-me' && argv.includes('--prompt') && !JSON_OUT) {
+    const answers = {};
+    for (const q of intakeQuestions()) answers[q.id] = await _askText(`  ${q.question}`);
+    const description = answersToDescription(answers);
+    console.log(`\nLocked in: "${description}" — generating the 4 view prompts...`);
+    printImageIntake('describe', { ...opts, description });
+    return;
+  }
+  printImageIntake(mode, opts);
 }
 
 
@@ -324,7 +376,7 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
   grade: async () => { const r = grade(need('grade'), CFG(), { threshold: +flag('threshold', 80) }); if (argv.includes('--vision') && r.stills) { r.vision = await vision(r.stills); if (r.vision.available && r.vision.score < 75) { r.pass = false; r.fixes.push(...r.vision.failed.map(q => 'vision: ' + q)); } } out(r, o => `${o.id}: ${o.score}/100 ${o.pass ? 'PASS' : 'FAIL'}${o.fixes.length ? '\n  fix: ' + o.fixes.join('\n  fix: ') : ''}`); process.exit(r.pass ? 0 : 1); },
   all: () => runAll(need('all --track hook|demo|web-store'), flag('track', 'demo'), CFG(), { force: argv.includes('--force'), heal: argv.includes('--heal'), localAi: LOCAL_AI, vo: flag('vo') || argv.includes('--vo'), log: m => !JSON_OUT && console.log(m) }).then(r => out(r, o => `${o.id}: ran [${o.ran}] skipped [${o.skipped}] -> next: ${o.status.next || 'done'}`)).catch(e => die(e.message)),
   auto: async () => {
-    const idea = positional.join(' ') || die('usage: gamepress auto "<game idea>" [--id x] [--track demo|web-store|hook] [--style comic] [--answers answers.json] [--preset name] [--prompt] [--from-image] [--lego] [--local-ai] [--heal] [--vo]');
+    const idea = positional.join(' ') || die('usage: gamepress auto "<game idea>" [--id x] [--track demo|web-store|hook] [--style comic] [--answers answers.json] [--preset name] [--prompt] [--from-image [--image-mode upload|describe|game|prompt-me] [--image-desc "..."]] [--lego] [--local-ai] [--heal] [--vo]');
     const br = ideate(idea, { live: !argv.includes('--offline') });
     const id = flag('id') || br.file.split('/').pop().replace('.json', '');
     let hookLine = flag('hook') || '';
@@ -336,7 +388,7 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
     if (argv.includes('--prompt')) { if (JSON_OUT) die('--prompt cannot be combined with --json'); try { Object.assign(ans, await promptAnswers(br.questions || [], ans)); } catch (e) { die(e.message); } }
 
     // Start-from-image: img2threejs workflow (docs/IMG2THREEJS-WORKFLOW.md).
-    // Asked first in --prompt mode; for scripted runs use --from-image.
+    // Asked first in --prompt mode; for scripted runs use --from-image (+ --image-mode, --image-desc).
     let fromImage = argv.includes('--from-image');
     if (argv.includes('--prompt') && !JSON_OUT && !fromImage) {
       fromImage = await _askYesNo('\nDo you want to start from an image? (generates the hero asset via the img2threejs workflow)');
@@ -349,7 +401,7 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
       hookLine = spec.hook;
       recordLastAnswers(CFG().state, { idea, id, recipe: recipeName, archetype: br.archetype, answers: ans, spec });
       make(id, { recipe: recipeName, spec, games: CFG().games, examples: CFG().examples, force: argv.includes('--force') });
-      if (fromImage) printImageWorkflow(recipeName);
+      if (fromImage) await _imageIntake(recipeName);
     } else {
       const lg = await buildLegoGame(id, { idea, gamesDir: CFG().games, examples: CFG().examples, localAi: LOCAL_AI });
       hookLine = lg.spec.hookText;
