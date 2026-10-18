@@ -1,0 +1,23 @@
+{
+  "_note": "Pack = N recipe games rotating one level at a time, looping. demo:true packs are free taster packs that upsell the full pack named in `full`. Edit buyUrl/price when the store page exists.",
+  "action12": {
+    "title": "CAT ARCADE: ACTION 12", "tagline": "12 fast cat games, one level each, nonstop.", "accent": "#ffd34d",
+    "games": ["one-tap-reflex", "precision-platformer", "bullet-heaven", "obby-gauntlet", "rail-runner", "grid-chaser", "arena-brawler", "scrolling-shmup", "run-and-gun", "mini-metroidvania", "footsies-duel", "kart-racer"],
+    "demo": false, "price": "$4.99", "buyUrl": ""
+  },
+  "brains12": {
+    "title": "CAT ARCADE: BRAINS 12", "tagline": "12 clever cat games, one level each, nonstop.", "accent": "#7dd3ff",
+    "games": ["daily-deduction", "cozy-farm", "ballistic-bouncer", "falling-blocks", "merge-sandbox", "mini-zelda", "turn-based-3v3", "micro-tower-defense", "card-roguelite", "idle-tycoon", "hide-and-seek", "trajectory-artillery"],
+    "demo": false, "price": "$4.99", "buyUrl": ""
+  },
+  "action-demo": {
+    "title": "CAT ARCADE: ACTION (FREE 5)", "tagline": "5 free tasters from Cat Arcade: Action 12.", "accent": "#ffd34d",
+    "games": ["one-tap-reflex", "rail-runner", "bullet-heaven", "kart-racer", "run-and-gun"],
+    "demo": true, "full": "action12"
+  },
+  "brains-demo": {
+    "title": "CAT ARCADE: BRAINS (FREE 5)", "tagline": "5 free tasters from Cat Arcade: Brains 12.", "accent": "#7dd3ff",
+    "games": ["ballistic-bouncer", "falling-blocks", "merge-sandbox", "trajectory-artillery", "hide-and-seek"],
+    "demo": true, "full": "brains12"
+  }
+}

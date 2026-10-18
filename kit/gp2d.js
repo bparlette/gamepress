@@ -26,7 +26,7 @@ export function createGame({ id = 'game', title = 'GAME', sub = 'Tap to start', 
     cv.style.width = w * k + 'px'; cv.style.height = h * k + 'px'; cv.width = Math.round(w * px); cv.height = Math.round(h * px); g.k = cv.width / w; };
   addEventListener('resize', resize); resize();
   const toL = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * w, y: (e.clientY - r.top) / r.height * h }; };
-  addEventListener('pointerdown', e => { const p = toL(e); g.pointers.set(e.pointerId, { ...p, down: true }); Object.assign(g.ptr, p, { down: true }); g.taps.push(p); if (g.mode === 'title') g.start(); else if (g.mode === 'over' && g.overT > .8 && !AUTO) g.reset(); });
+  addEventListener('pointerdown', e => { const p = toL(e); g.pointers.set(e.pointerId, { ...p, down: true }); Object.assign(g.ptr, p, { down: true }); g.taps.push(p); if (g.mode === 'title') g.start(); else if (g.mode === 'over' && g.overT > .8 && !AUTO && !PACK) g.reset(); });
   addEventListener('pointermove', e => { const p = toL(e), q = g.pointers.get(e.pointerId); if (q) Object.assign(q, p); if (!g.pointers.size || q) Object.assign(g.ptr, p); });
   const up = e => { g.pointers.delete(e.pointerId); g.ptr.down = g.pointers.size > 0; }; addEventListener('pointerup', up); addEventListener('pointercancel', up);
   addEventListener('keydown', e => { g.keys[e.code] = true; if (!e.repeat) g.pressed[e.code] = true; if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();

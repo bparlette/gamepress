@@ -103,7 +103,7 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
   st.shell = ({ id, title, sub = 'Tap or press any key to start', onReset } = {}) => {
     stats.shell = true; shellId = id || 'game'; st.onReset = onReset; shellOn = true;
     if (!CLEAN && !PACK) { st.paused = true; show(`<div style="font-size:12vmin;color:#ffd34d;line-height:1">${title}</div><div style="font-size:4vmin;margin-top:3vh;font-family:system-ui,sans-serif;font-weight:800">${sub}</div>`); }
-    const go = () => { if (st.paused && !ended) { st.paused = false; hide(); st.onStart?.(); } else if (ended && endT > .8) { ended = false; hide(); st.onReset?.(); } };
+    const go = () => { if (st.paused && !ended) { st.paused = false; hide(); st.onStart?.(); } else if (ended && endT > .8 && !PACK) { ended = false; hide(); st.onReset?.(); } };
     addEventListener('pointerdown', go); addEventListener('keydown', e => {
       if (e.key === 'm' || e.key === 'M') { muted = !muted; } else if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && !ended && !st.paused) { st.paused = true; show('<div style="font-size:12vmin">PAUSED</div><div style="font-size:4vmin;font-family:system-ui,sans-serif">tap to resume · M mutes</div>'); }
       else if (!e.repeat) go(); });

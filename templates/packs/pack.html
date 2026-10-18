@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>__TITLE__</title>
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;font-family:Impact,"Arial Black",system-ui,sans-serif;color:#fff}
+iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#000}
+iframe.off{display:none}
+#bar{position:fixed;left:0;right:0;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:max(6px,env(safe-area-inset-top)) 10px 6px;pointer-events:none;background:linear-gradient(#000a,#0000);font-size:3.4vmin;text-shadow:0 2px 0 #000}
+#dots{display:flex;gap:4px;flex:1}#dots i{width:2.2vmin;height:2.2vmin;max-width:14px;max-height:14px;border-radius:50%;background:#fff3;border:1px solid #fff6}#dots i.on{background:var(--a);border-color:#fff}#dots i.win{background:#7dff7d}#dots i.lose{background:#ff6b6b}
+#name{opacity:.9;white-space:nowrap}
+#buy{pointer-events:auto;background:var(--a);color:#111;text-decoration:none;padding:1.2vmin 2.4vmin;border-radius:99px;font-size:3vmin;text-shadow:none;display:none}
+.demo #buy{display:block}
+#toast{position:fixed;left:0;right:0;top:42%;z-index:6;text-align:center;font-size:13vmin;pointer-events:none;opacity:0;transform:scale(.6);transition:opacity .12s,transform .12s;text-shadow:0 .8vmin 0 #000}
+#toast.show{opacity:1;transform:scale(1)}
+.ov{position:fixed;inset:0;z-index:9;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:radial-gradient(circle at 50% 40%,#1d2b4af2,#05070dfa);gap:2.2vh;padding:5vmin}
+.ov.show{display:flex}
+.ov h1{font-size:10vmin;margin:0;color:var(--a);line-height:1}.ov p{font-family:system-ui,sans-serif;font-weight:800;font-size:3.8vmin;margin:0;opacity:.9}
+.ov button,.ov a{font:inherit;font-size:6vmin;border:0;border-radius:99px;padding:1.6vmin 7vmin;background:var(--a);color:#111;text-decoration:none;cursor:pointer;box-shadow:0 1vmin 0 #0008}
+.ov .alt{background:#fff2;color:#fff;font-size:4vmin;box-shadow:none}
+</style></head>
+<body class="__DEMOCLASS__" style="--a:__ACCENT__">
+<div id="bar"><span id="name"></span><div id="dots"></div><a id="buy" href="#" target="_blank" rel="noopener">GET THE 12-PACK</a></div>
+<div id="toast"></div>
+<div class="ov show" id="start"><h1>__TITLE__</h1><p>__TAGLINE__</p><button id="go">TAP TO PLAY</button></div>
+<div class="ov" id="upsell"><h1>LOVED IT?</h1><p>That was 5 of 12. Get the full pack to play them all.</p><a id="buy2" href="#" target="_blank" rel="noopener">GET THE 12-PACK __PRICE__</a><button class="alt" id="again">PLAY THE FREE 5 AGAIN</button></div>
+<script>
+const CFG = __CONFIG__;
+const $ = id => document.getElementById(id);
+const games = CFG.games, N = games.length, CAP = 45000, GAP = 1300;
+const a = Math.floor(Math.random() * 1e6);
+let idx = -1, loop = 0, frames = [document.createElement('iframe'), document.createElement('iframe')], cur = 0, timer = 0, locked = true, results = [];
+frames.forEach(f => { f.className = 'off'; f.allow = 'autoplay; fullscreen; gamepad'; document.body.prepend(f); });
+const url = (id, n) => `${CFG.base}${id}/index.html?pack=1&seed=${(a + n * 7) % 1e6}`;
+const dots = $('dots'); games.forEach(() => dots.appendChild(document.createElement('i')));
+const buyHref = CFG.buyUrl || '#'; $('buy').href = buyHref; $('buy2').href = buyHref;
+function paint() { [...dots.children].forEach((d, i) => { d.className = i === idx ? 'on' : results[i] === true ? 'win' : results[i] === false ? 'lose' : ''; }); $('name').textContent = idx >= 0 ? `${idx + 1}/${N} ${CFG.names[games[idx]] || games[idx]}` : ''; }
+function preload(i) { const f = frames[1 - cur]; f.className = 'off'; f.src = url(games[i % N], i + loop * N); }
+function show(i) {
+  clearTimeout(timer); const f = frames[1 - cur]; frames[cur].className = 'off'; cur = 1 - cur;
+  if (!f.src || !f.src.includes('/' + games[i] + '/')) f.src = url(games[i], i + loop * N);
+  f.className = ''; idx = i; locked = false; paint(); try { f.contentWindow.focus(); } catch {}
+  frames[1 - cur].removeAttribute('src'); setTimeout(() => preload((i + 1) % N), 600);
+  timer = setTimeout(() => next(null), CAP);
+}
+function next(win) {
+  if (locked) return; locked = true; clearTimeout(timer);
+  if (win !== null) { results[idx] = win; const t = $('toast'); t.textContent = win ? 'NICE!' : 'TRY NEXT!'; t.style.color = win ? '#7dff7d' : '#ff6b6b'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), GAP - 200); }
+  paint();
+  setTimeout(() => {
+    const n = idx + 1;
+    if (n >= N) { loop++; results = []; if (CFG.demo) { $('upsell').classList.add('show'); idx = -1; locked = true; paint(); frames[cur].className = 'off'; return; } show(0); } else show(n);
+  }, GAP);
+}
+addEventListener('message', e => { if (e.source !== frames[cur].contentWindow || !e.data || e.data.gp !== 'end') return; next(!!e.data.win); });
+$('go').onclick = () => { $('start').classList.remove('show'); try { const ac = new (window.AudioContext || window.webkitAudioContext)(); ac.resume(); } catch {} show(0); };
+$('again').onclick = () => { $('upsell').classList.remove('show'); show(0); };
+addEventListener('keydown', e => { if (e.key === 'n' || e.key === 'N') next(null); });
+frames.forEach(f => f.addEventListener('load', () => { try { if (f === frames[cur]) f.contentWindow.focus(); } catch {} }));
+window.__pack = { get idx() { return idx; }, get loop() { return loop; }, next: w => next(w), games };
+</script></body></html>
