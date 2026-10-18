@@ -25,3 +25,7 @@ gamepress theme dogs --world dungeon --publish                   # commit + push
 - Nobody can promise sales. Sprites and backgrounds help the hook video read; price, hook and discovery decide the rest. Measure, don't assume.
 - Cloud rendering needs a Node 22 runner and the games committed to the gamepress repo; this set renders locally.
 - A human still has to look at the QC sheet and play a few games on a phone before publishing.
+
+## Ship it as one app: the hub
+Sell one listing, not 30 (one $100 Steam fee, one pool of reviews and wishlists). `gamepress hub <name> [--demo]` builds the Arcade Hub from the built games (`docs/HUB.md`): hero select up front (`presets/characters.json`: 5 free, 10 earned with coins, 5 premium), a coin wallet, and the rotating games. Each game receives the chosen hero through `?hero=&heroColor=`. `--demo` is the free 5-game taster that upsells the hub. Purchases are a marked stub until Steamworks / StoreKit is wired.
+Enemies come from each game, not the hero roster: `kit/gpenemies.js` (`docs/ENEMIES.md`) holds 10 high-contrast bad guys with uniform collider sizes; set `enemies: 'viral'` in a recipe spec to use them.
