@@ -136,20 +136,22 @@ A drive plan that just moves and clicks is a **failed video**. Before writing an
 
 A video that shows menus + walking + synth music failed the brief. Reshoot it.
 
-## Dual orientation: every render produces both 16:9 and 9:16
+## Dual orientation: every render captures both 16:9 and 9:16 natively
 
-Cherie's rule: **every video-producing run outputs both orientations.** The plan's
-`viewport` decides the primary (e.g. `[540, 960]` → 1080×1920 vertical at scale 2,
-`[1280, 720]` → 1280×720 horizontal). After the primary encodes, `drive` derives the
-alternate with a center-cropped re-encode (action stays centered; audio copied untouched):
+Cherie's rule: **every video-producing run captures the game twice — once in
+landscape, once in portrait.** No cropping, no letterboxing, no re-encode tricks.
+The game is actually played (spectate or scripted input) at each orientation with
+a native viewport, so both videos are real gameplay: the vertical one is for
+YouTube Shorts, the horizontal one for YouTube videos.
 
-- `<name>.mp4` (primary) + `<name>-horizontal.mp4` (1280×720) or `<name>-vertical.mp4` (1080×1920)
+- `<name>.mp4` (primary = plan's `viewport`) + `<name>-horizontal.mp4` (1920×1080) or `<name>-vertical.mp4` (1080×1920)
 - Flags: `--horizontal-only` / `--vertical-only` when you explicitly want just one
 - `gamepress all <id> --track hook|demo|web-store` passes the flags through to the video step
+- Two captures = two playthroughs (deterministic under the same seed), so expect roughly 2× the render time
 
-Lay out for **portrait first** — a center crop from vertical to horizontal keeps the action;
-a center crop from horizontal to vertical can cut the sides. Design the plan's viewport for
-the platform that matters most, knowing the other comes free.
+**This only works if the game is playable in both orientations** — see rule 9 in
+docs/RECIPE-RULES.md. A game that breaks in portrait produces a portrait video
+of a broken game. Build responsive first, film second.
 
 ## Advanced: in-engine director scripts
 

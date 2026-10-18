@@ -7,7 +7,7 @@ gamepress status <id> --json          # what exists, what is stale
 gamepress all <id> --track hook       # test -> render video -> grade (skips what is done; --force redoes)
 gamepress grade <id>                  # score, exact fixes, 3 stills: LOOK at them
 ```
-Needs: nothing (no accounts). Output: `press/video/<id>-hook.mp4` (+ `.thumb.jpg`) **plus** the alternate orientation `press/video/<id>-hook-horizontal.mp4` — every video-producing run yields both 9:16 and 16:9 by default (center-cropped re-encode, not a re-capture). Override with `--horizontal-only` / `--vertical-only`.
+Needs: nothing (no accounts). Output: `press/video/<id>-hook.mp4` (+ `.thumb.jpg`) **plus** the alternate orientation `press/video/<id>-hook-horizontal.mp4` — every video-producing run captures the game natively in both 9:16 and 16:9 (two real playthroughs, no cropping). Override with `--horizontal-only` / `--vertical-only`.
 
 ## The look (what the grader enforces, see `docs/QUALITY.md`)
 - Real characters (cats, zombies, cars), toon look, textured ground, sky, particles; never plain balls.

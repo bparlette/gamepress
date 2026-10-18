@@ -1,6 +1,6 @@
 # Recipe rules (every recipe and every game built from one)
 
-A demo exists to make one clip. These eight rules keep rapid builds finishable and filmable.
+A demo exists to make one clip. These nine rules keep rapid builds finishable and filmable.
 
 1. **Scope discipline: ONE screen, ONE mechanic.** Each recipe ships a *don't build* list (see `docs/RECIPES-CATALOG.md`, source `presets/recipes.json`). Always excluded: inventory, save systems, settings, menus beyond start/restart, a second mechanic. Scope creep is the number-one killer of rapid builds; if an idea needs more, make it a second recipe.
 2. **The 2-second rule.** (2026 data: gaming Shorts need the hook in 2s, not 3s — oversupplied category, 85%+ retention on first 100 impressions.) A viewer must see within 2 s of video: what is the player, what is the enemy, what is the goal. Every recipe states it in one line (`threeSecond`) and the hook caption at t=0 names the stakes. Check the stills from `gamepress grade` against it.
@@ -10,6 +10,7 @@ A demo exists to make one clip. These eight rules keep rapid builds finishable a
 6. **Touch first.** Every recipe plays with one finger: tap, drag, swipe, or on-screen buttons (`g.btn`). Keys are a bonus. `gamepress test` sends a tap every second; a game that ignores touch fails.
 7. **Name + hook per recipe.** Each recipe ships a working title and a one-line video hook (and two alternates) in the registry. `make` uses them for the title card, the first caption, the YouTube title and the store tagline, so the packaging is never an afterthought.
 8. **Spectate mode.** Every recipe implements the spectate contract (`docs/SPECTATE.md`): `?spectate=1` (bots play themselves, camera directs itself via `spectateCamera()` from `gpfeel.js`), `?autostart=1` (skip menus), `?seed=N` (deterministic). This is how the game gets filmed — `gamepress drive` with `"spectate": true` captures the game performing itself, no scripted input. A recipe without spectate mode can't make its own trailer.
+9. **Playable in both orientations.** Cherie's rule: the game must play on a phone held vertically AND horizontally. Responsive layout (safe zones via `gpviewport.js`, HUD never clipped in either), touch controls reachable in both, no orientation lock. `gamepress drive` films the game natively in portrait and landscape — a game that breaks in one orientation ships a video of a broken game. Test both with `?clean` at 540×960 and 960×540 before calling it done.
 
 ## Bot contract (`?auto=1`)
 - `g.auto` is true; `g.dumb()` is true only on attempt 0 (override with `&failfirst=0`).
