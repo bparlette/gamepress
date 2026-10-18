@@ -29,7 +29,7 @@ st.shell({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: 
 st.cine([{ t: 0, p: [0, 0, 0] }, { t: 3, p: [0, 3, -4] }, { t: 8, p: [0, 0, 0] }]);
 function update(dt) {
   if (!fight && !won && !lost) {
-    const k = st.keys, mv = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0); if (AUTO) { const g = gates.find(g => !g.used && g.z - cz < 14), want = g ? (g.ops[1][1](n) > g.ops[0][1](n) ? 2.4 : -2.4) : 0; cx += clamp(want - cx, -7 * dt, 7 * dt); } else if (mv) cx += mv * 7 * dt; else if (st.ptr.down) cx += (st.ptr.x * 3.8 - cx) * Math.min(1, dt * 9); cx = clamp(cx, -3.6, 3.6); cz += (9 + Math.min(4, n / 80)) * dt;
+    const k = st.keys, mv = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0); if (AUTO) { const g = gates.find(g => !g.used && g.z - cz < 14), good = g ? g.ops[1][1](n) > g.ops[0][1](n) : true, want = g ? ((good !== st.dumb()) ? 2.4 : -2.4) : 0; cx += clamp(want - cx, -7 * dt, 7 * dt); } else if (mv) cx += mv * 7 * dt; else if (st.ptr.down) cx += (st.ptr.x * 3.8 - cx) * Math.min(1, dt * 9); cx = clamp(cx, -3.6, 3.6); cz += (9 + Math.min(4, n / 80)) * dt;
     for (const g of gates) if (!g.used && cz >= g.z) { g.used = true; g.meshes.forEach(m => { m.visible = false; }); const op = g.ops[cx < 0 ? 0 : 1], before = n; n = Math.round(op[1](n)); sfx(op[2] ? 'ding' : 'crash'); st.hud.banner(op[0], .7); st.shake(op[2] ? 2 : 4); st.popup((n >= before ? '+' : '') + (n - before), { x: cx, y: 2.5, z: cz + 2 }, op[2] ? '#7dd3ff' : '#ff6b6b'); st.flash(op[2] ? '#3aa0ff' : '#ff3b3b', .25); st.kick(op[2] ? 5 : 2); if (n - before > 100) st.hitstop(.08); }
     if (cz >= TRACK - 16) { fight = true; foeN = 120; st.hud.banner(S.bossText, 1.2); sfx('boom'); }
   } else if (fight) {

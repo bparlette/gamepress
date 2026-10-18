@@ -56,6 +56,9 @@ function update(dt) {
   if (st.ptr.down) { aimX = clamp(st.ptr.x * 5, -4.5, 4.5); aimY = clamp(6 - (st.ptr.y + 1) * 4.2, .6, 9); }
   orbitV += (((k.d ? 1 : 0) - (k.a ? 1 : 0)) * 1.1 - orbitV) * Math.min(1, dt * 4); orbit += orbitV * dt;
   if (k[' ']) fire();
+  if (st.auto && !st.won && !st.lost) { // bot: walk shells up the tower; dumb bot fires at empty sky
+    if (st.dumb()) { aimX = -4.5; aimY = 9; } else { const spots = [[0, 4], [-2, 7], [2, 7], [0, 10], [-1, 5], [1, 5]]; const sp = spots[shots % spots.length]; aimX += (sp[0] - aimX) * Math.min(1, dt * 3); aimY += (sp[1] - aimY) * Math.min(1, dt * 3); }
+    if (cd <= 0 && !shellP) fire(); }
   if (shellP) { shellP.t += dt; shellP.p.addScaledVector(shellP.v, dt); shell.visible = true; shell.position.copy(shellP.p);
     const q = shellP.p; const gx = Math.round(q.x / V + CX), gy = Math.floor(q.y / V), gz = Math.round(q.z / V + CZ);
     if (solid.has(key(gx, gy, gz)) || shellP.t > 1.4) { blast(q.x, q.y, q.z, 3.1 + 1.2 * Math.min(1, shots / 8), 11); shell.visible = false; shellP = null; } }
@@ -80,6 +83,8 @@ function pre() {
   const dir = new THREE.Vector3(Math.sin(orbit), 0, Math.cos(orbit)), right = new THREE.Vector3(Math.cos(orbit), 0, -Math.sin(orbit));
   marker.position.copy(new THREE.Vector3().addScaledVector(right, aimX).addScaledVector(dir, 3.6).add(new THREE.Vector3(0, aimY, 0))); marker.lookAt(st.camera.position); marker.visible = ammo > 0;
 }
-st.shell({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, onReset: () => location.reload() });
+function resetGame() { for (let i = 0; i < count; i++) { const v = vox[i]; v.awake = false; v.vx = v.vy = v.vz = 0; v.vrx = v.vry = 0; v.rx = v.ry = v.rz = 0; v.px = (v.x - CX) * V; v.py = v.y * V + V / 2; v.pz = (v.z - CZ) * V; v.landed = false; v.done = false; mesh.set(i, v.px, v.py, v.pz, V * .98); } mesh.done(); solid.clear(); vox.forEach((v, i) => solid.set(key(v.x, v.y, v.z), i));
+  aimX = -2.2; aimY = 3.5; orbit = 0.5; orbitV = 0; shellP = null; cd = 0; shots = 0; killed = 0; queue = []; settled = 0; ammo = S.ammo; outT = 0; st.won = st.lost = false; shell.visible = false; st.hud.banner('GO!', .8); }
+st.shell({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, onReset: resetGame });
 st.run(update, pre);
 </script></body></html>

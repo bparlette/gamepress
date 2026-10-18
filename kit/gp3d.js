@@ -91,7 +91,12 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
   /** Scripted camera move: keys [{t, p:[dx,dy,dz], fov}] in game seconds; offsets are added to the camera after the game positions it. */
   st.cine = keys => { stats.cameraMoved = true; st.cineKeys = keys; };
   // ---- shell: title card, pause, results with best score, replay, mute. Skipped under ?auto / ?clean so capture stays clean.
-  const qs = new URLSearchParams(location.search), CLEAN = qs.has('clean') || qs.has('auto');
+  const qs = new URLSearchParams(location.search), CLEAN = qs.has('clean') || qs.has('auto') || qs.get('autostart') === '1' || qs.get('spectate') === '1';
+  // ---- bot contract (?auto=1): lose first, then win. Mirrors gp2d: attempt 0 plays badly
+  // (st.dumb()), and a loss auto-restarts after 2.4 s. gamepress botcheck proves the timeline.
+  const AUTO = qs.has('auto');
+  st.auto = AUTO; st.attempt = 0;
+  st.dumb = () => AUTO && st.attempt === 0 && qs.get('failfirst') !== '0';
   const ov = document.createElement('div'); ov.style.cssText = 'position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;color:#fff;background:rgba(8,10,20,.72);font-size:5vmin;text-shadow:0 .6vmin 0 #000;z-index:9'; document.body.appendChild(ov);
   let shellOn = false, ended = false, endT = 0, shellId = 'game';
   const show = html => { ov.innerHTML = html; ov.style.display = 'flex'; }, hide = () => { ov.style.display = 'none'; };
@@ -106,7 +111,7 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
   /** Show the results panel. Best score is kept per game id in localStorage. */
   st.end = ({ win = false, score = 0, label = 'SCORE' } = {}) => {
     if (ended) return; stats.ends++; ended = true; endT = 0; let best = 0; try { best = +localStorage.getItem('gp-best-' + shellId) || 0; if (score > best) { best = score; localStorage.setItem('gp-best-' + shellId, best); } } catch {}
-    st.result = { win, score, best }; window.__result = st.result; (window.__ends = window.__ends || []).push({ t: +(performance.now() / 1000).toFixed(1), win, score: Math.round(score), attempt: window.__ends?.length || 0 });
+    st.result = { win, score, best }; window.__result = st.result; (window.__ends = window.__ends || []).push({ t: +(performance.now() / 1000).toFixed(1), win, score: Math.round(score), attempt: st.attempt, state: JSON.stringify(window.__game || {}) });
     if (shellOn && !CLEAN) show(`<div style="font-size:12vmin;color:${win ? '#7dff7d' : '#ff6b6b'}">${win ? 'YOU WIN' : 'GAME OVER'}</div><div style="margin-top:2vh">${label} <b style="color:#ffd34d">${score.toLocaleString()}</b></div><div style="font-size:3.6vmin;margin-top:1vh;font-family:system-ui,sans-serif">BEST ${best.toLocaleString()}</div><div style="font-size:3.6vmin;margin-top:4vh;font-family:system-ui,sans-serif;font-weight:800">tap or press any key to play again</div>`);
   };
   st.rearm = () => { ended = false; }; st.isEnded = () => ended; st.endTick = dt => { if (ended) endT += dt; };
@@ -117,6 +122,8 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
       acc += Math.min(0.1, (ts - last) / 1000 || 0.016); last = ts;
       while (acc >= 1 / 60) {
         acc -= 1 / 60; st.endTick(1 / 60); if (st.paused) continue;
+        // bot contract: under ?auto=1 a loss restarts itself after 2.4 s (mirrors gp2d)
+        if (ended && AUTO && endT > 2.4 && !st.result?.win) { st.attempt++; ended = false; endT = 0; st.result = null; hide(); st.onReset?.(); }
         if (st.freeze > 0) { st.freeze -= 1 / 60; continue; }
         if (st.slowT > 0 && (st.slowT -= 1 / 60) <= 0) st.timeScale = 1;
         const dt = 1 / 60 * st.timeScale; st.t += dt; update(dt); st.hud._tick(dt); st.shakeAmt = Math.max(0, st.shakeAmt - 1.2 / 60 * 10);

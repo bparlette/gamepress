@@ -44,7 +44,7 @@ for (const T of TYPES) {
     T.items.push({ x, z, s: 1, fall: 0, gone: false, rot: rand(0, 6) }); T.cr.color(i, T.col[i % T.col.length]); }
 }
 const nextLevel = () => { const i = TYPES.findIndex(T => T.r >= size * .78); return i < 0 ? TYPES.length : i; };
-let screamCd = 0; const AUTOP = new URLSearchParams(location.search).has('auto');
+let screamCd = 0;
 let hx = 0, hz = 0, size = 1.4, eaten = 0, lvl = nextLevel(), tleft = S.seconds, over = false;
 const ray = new THREE.Raycaster(), plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), tmp = new THREE.Vector3();
 function reset() { for (const T of TYPES) for (const it of T.items) { it.fall = 0; it.gone = false; it.s = 1; } hx = hz = 0; eaten = 0; size = 1.4; lvl = nextLevel(); tleft = S.seconds; over = false; st.hud.banner('GO!', .8); }
@@ -55,6 +55,9 @@ function update(dt) {
   walkClock.value = st.t; tleft -= dt;
   const k = st.keys; let mx = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0), mz = (k.s || k.arrowdown ? 1 : 0) - (k.w || k.arrowup ? 1 : 0);
   if (st.ptr.down) { ray.setFromCamera({ x: st.ptr.x, y: -st.ptr.y }, st.camera); if (ray.ray.intersectPlane(plane, tmp)) { const dx = tmp.x - hx, dz = tmp.z - hz, d = Math.hypot(dx, dz); if (d > .3) { mx = dx / d; mz = dz / d; } } }
+  if (st.auto && !mx && !mz) { // bot: chase the nearest edible prop; dumb bot runs from food
+    let bx = 0, bz = 0, bd = 1e9; for (const T of TYPES) { if (T.r >= size * .78) continue; for (const it of T.items) { if (it.gone || it.fall > 0) continue; const d = Math.hypot(it.x - hx, it.z - hz); if (d < bd) { bd = d; bx = it.x; bz = it.z; } } }
+    if (bd < 1e9) { const dx = bx - hx, dz = bz - hz, d = Math.hypot(dx, dz) || 1, s = st.dumb() ? -1 : 1; mx = dx / d * s; mz = dz / d * s; } }
   const l = Math.hypot(mx, mz) || 1, sp = 7 + size * 1.4; hx = clamp(hx + mx / l * sp * dt, -A, A); hz = clamp(hz + mz / l * sp * dt, -A, A); screamCd -= dt;
   for (const T of TYPES) for (const it of T.items) { if (it.gone) continue; const dx = it.x - hx, dz = it.z - hz, d = Math.hypot(dx, dz);
     if (T.mob && it.fall === 0) { if (d < size * 2.8) it.rot = Math.atan2(dz, dx) + Math.sin(st.t * 3 + it.x) * .4; else it.rot += rand(-1, 1) * dt * 2; it.x = clamp(it.x + Math.cos(it.rot) * T.mob * dt, -A, A); it.z = clamp(it.z + Math.sin(it.rot) * T.mob * dt, -A, A); }

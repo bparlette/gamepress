@@ -25,7 +25,7 @@ function crack(p) { p.broken = true; p.m.visible = false; sfx('crash'); st.shake
 function update(dt0) {
   fx.update(dt0); if (Math.random() < .5) fx.emit({ x: rand(-6, 6), y: -ROWS * GAP - 6, z: rand(-3, 3), vy: rand(3, 8), size: .25, life: 2, color: 0xff7a1a, g: -1 });
   slow += (1 - slow) * Math.min(1, dt0 * 2); const dt = dt0 * slow;
-  idle -= dt0; if ((st.keys[' '] || idle <= 0) && !alive && !over) { drop(); idle = 1.4; }
+  idle -= dt0; if ((st.keys[' '] || idle <= 0) && !alive && !over) { drop(); idle = st.auto ? .7 : 1.4; }
   if (alive) {
     const py = b.y; b.vy -= 22 * dt; b.y += b.vy * dt; b.x += b.vx * dt; if (Math.abs(b.x - b.tx) < .06) { b.x = b.tx; b.vx = 0; }
     for (let r = 0; r < ROWS; r++) { const p = pane(r, b.col), top = p.y + .07 + BR; if (!p.broken && py >= top && b.y < top && b.vy < 0 && Math.abs(b.x - p.m.position.x) < PW / 2) {
