@@ -1,0 +1,131 @@
+{
+ "_note": "Generated from kit/gpworld.js WORLDS. Roles map to sprite kinds; bg colours; backdrop = parallax palette + midground kinds. Keep in sync (test/worlds.test.mjs checks).",
+ "grassland": {
+  "ground": "grass_block",
+  "platform": "grass_block",
+  "wall": "grass_block",
+  "hazard": "spikes",
+  "barrier": "fence",
+  "spring": "spring",
+  "deco": [
+   "tree",
+   "bush",
+   "cloud",
+   "fence"
+  ],
+  "pickup": "coin",
+  "bonus": "gem",
+  "life": "heart",
+  "key": "key",
+  "goal": "crown",
+  "bg": "#7fd4ff",
+  "bgTop": "#8fdcff",
+  "bgBot": "#e4f7ff",
+  "accent": "#5cc04a",
+  "backdrop": {
+   "far": "mountains",
+   "far2": "#b7dcf0",
+   "far3": "#cfe9f7",
+   "mid": [
+    "tree",
+    "bush",
+    "cloud"
+   ],
+   "gap": 190
+  }
+ },
+ "dungeon": {
+  "ground": "brick",
+  "platform": "lava_brick",
+  "wall": "brick",
+  "hazard": "spikes",
+  "barrier": "brick",
+  "spring": "spring",
+  "deco": [
+   "torch",
+   "tnt",
+   "chest"
+  ],
+  "pickup": "coin",
+  "bonus": "gem",
+  "life": "heart",
+  "key": "key",
+  "goal": "chest",
+  "bg": "#1c1a26",
+  "bgTop": "#14121c",
+  "bgBot": "#2c2838",
+  "accent": "#ff7a1a",
+  "backdrop": {
+   "far": "mountains",
+   "far2": "#2a2638",
+   "far3": "#231f30",
+   "mid": [
+    "ruins",
+    "torch"
+   ],
+   "gap": 210
+  }
+ },
+ "cyber": {
+  "ground": "neon_block",
+  "platform": "neon_block",
+  "wall": "neon_block",
+  "hazard": "saw",
+  "barrier": "laser",
+  "spring": "spring",
+  "deco": [
+   "spawner",
+   "laser",
+   "saw"
+  ],
+  "pickup": "gem",
+  "bonus": "coin",
+  "life": "heart",
+  "key": "key",
+  "goal": "spawner",
+  "bg": "#0a0d18",
+  "bgTop": "#05070f",
+  "bgBot": "#141a33",
+  "accent": "#00e5ff",
+  "backdrop": {
+   "far": "grid",
+   "far2": "#0b3a52",
+   "far3": "#ff2a8a",
+   "mid": [
+    "tower"
+   ],
+   "gap": 170
+  }
+ },
+ "cosmic": {
+  "ground": "asteroid",
+  "platform": "ice_block",
+  "wall": "asteroid",
+  "hazard": "lava_brick",
+  "barrier": "asteroid",
+  "spring": "spring",
+  "deco": [
+   "asteroid",
+   "crystal"
+  ],
+  "pickup": "crystal",
+  "bonus": "gem",
+  "life": "heart",
+  "key": "key",
+  "goal": "crown",
+  "bg": "#120a2e",
+  "bgTop": "#0a0620",
+  "bgBot": "#2a1458",
+  "accent": "#b266ff",
+  "backdrop": {
+   "far": "stars",
+   "far2": "#ffffff",
+   "far3": "#8fd8ff",
+   "mid": [
+    "asteroid",
+    "crystal"
+   ],
+   "gap": 230
+  }
+ }
+}

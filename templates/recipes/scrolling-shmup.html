@@ -4,9 +4,11 @@
   DON'T BUILD: weapon shop, multiple ships, story, more than one boss. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp, dist } from '../_vendor/gp2d.js';
 import { ship, face, heart } from '../_vendor/gpsprites.js';
+import { drawWorld, drawBackdrop, WORLDS } from '../_vendor/gpworld.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CAT FIGHTER', sub: 'Drag to fly. It shoots for you.', hook: 'Dodge the bullet hell', pilot: 'cat', hull: '#4aa8ff', foe: 'zombie', bg: '#0b1030', bossAt: 8, bossHp: 22, style: 'toon', /*SPEC*/ ...{} /*END*/ };
-const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const W = S.world ? WORLDS[S.world] : null; /* optional world skin (docs/WORLDS.md): drawing + bg only */
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: W ? W.bg : S.bg, style: S.style });
 const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: 'BOMB', size: 92 } ] }) : null; /* TOUCH: floating stick (left) flies, BOMB (right). docs/TOUCH.md */
 let p, pb, en, eb, t0, fireT, wave, boss, stars, chain, chainT, bombs, botT;
 stars = Array.from({ length: 60 }, () => ({ x: rnd(0, 540), y: rnd(0, 960), s: rnd(.4, 1.6) }));
@@ -38,7 +40,8 @@ function update(dt) {
   g.hud.l = `${g.score}`; g.hud.r = boss ? 'BOSS' : `${Math.max(0, Math.ceil(S.bossAt - t0))}s`; g.state = { hp: p.hp, score: g.score, enemies: en.length, boss: boss ? boss.hp : -1 };
 }
 function draw(c) {
-  for (const s of stars) { c.fillStyle = `rgba(255,255,255,${.3 + s.s * .3})`; c.fillRect(s.x, s.y, s.s * 2, s.s * 4); }
+  if (W) drawBackdrop(W, c, 540, 960, g.t * 80, g.t);
+  else for (const s of stars) { c.fillStyle = `rgba(255,255,255,${.3 + s.s * .3})`; c.fillRect(s.x, s.y, s.s * 2, s.s * 4); }
   const saucer = (e, sc) => { c.save(); c.translate(e.x, e.y); c.scale(sc, sc); c.fillStyle = e.fl > 0 ? '#fff' : '#7a8bb0'; c.beginPath(); c.ellipse(0, 6, 44, 14, 0, 0, 7); c.fill(); c.lineWidth = 4; c.strokeStyle = '#000'; c.stroke(); c.fillStyle = '#bfeaff'; c.beginPath(); c.arc(0, -2, 22, Math.PI, 0); c.fill(); c.stroke(); c.restore(); face(c, S.foe, e.x, e.y - 8 * sc, 13 * sc, e.boss ? '#5a9a4a' : undefined); c.fillStyle = '#ffd34d'; for (let i = -1; i <= 1; i++) { c.beginPath(); c.arc(e.x + i * 24 * sc, e.y + 10 * sc, 4 * sc, 0, 7); c.fill(); } };
   for (const e of en) saucer(e, 1); if (boss) { saucer(boss, 2.6); g.bar(120, 100, 300, 14, boss.hp / S.bossHp, '#ff5a5a'); }
   c.fillStyle = '#ffd34d'; for (const b of pb) { c.fillRect(b.x - 3, b.y - 12, 6, 24); } c.fillStyle = '#ff5a8a'; for (const b of eb) { c.beginPath(); c.arc(b.x, b.y, 8, 0, 7); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 2; c.stroke(); }

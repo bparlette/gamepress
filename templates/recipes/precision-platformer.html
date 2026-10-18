@@ -4,10 +4,12 @@
   DON'T BUILD: powerups, enemies besides spikes, a level longer than 64 tiles, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
 import { drawChar, coin as coinS } from '../_vendor/gpsprites.js';
+import { drawWorld, drawBackdrop, WORLDS } from '../_vendor/gpworld.js';
 import { moveBox } from '../_vendor/gpphys.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CAT DASH', sub: 'Run, jump, reach the flag', hook: "Don't fall. Don't blink.", hero: 'cat', heroColor: '#ff9a3c', bg: '#7fd4ff', ground: '#6b4a2e', grass: '#6bbf59', spike: '#e63946', style: 'toon', /*SPEC*/ ...{} /*END*/ };
-const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const W = S.world ? WORLDS[S.world] : null; /* optional world skin (docs/WORLDS.md): drawing + bg only */
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: W ? W.bg : S.bg, style: S.style });
 const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: '⤒' } ] }) : null; /* TOUCH: floating joystick (left half) + JUMP button (right). See docs/TOUCH.md */
 const T = 48, COLS = 64, ROWS = 12, OY = 140, map = Array.from({ length: ROWS }, () => Array(COLS).fill('.'));
 for (let x = 0; x < COLS; x++) for (const y of [10, 11]) map[y][x] = '#';
@@ -40,10 +42,14 @@ function update(dt) {
   cam = clamp(p.x - 160, 0, COLS * T - 540); g.state = { x: Math.round(p.x), y: Math.round(p.y), coins };
 }
 function draw(c) {
-  for (const cl of clouds) { const x = (cl.x - cam * .3 + 3000) % 1400 - 200; c.fillStyle = 'rgba(255,255,255,.8)'; c.beginPath(); c.arc(x, cl.y, 34 * cl.s, 0, 7); c.arc(x + 36, cl.y - 12, 42 * cl.s, 0, 7); c.arc(x + 76, cl.y, 32 * cl.s, 0, 7); c.fill(); }
+  if (W) drawBackdrop(W, c, 540, 960, cam, g.t);
+  else for (const cl of clouds) { const x = (cl.x - cam * .3 + 3000) % 1400 - 200; c.fillStyle = 'rgba(255,255,255,.8)'; c.beginPath(); c.arc(x, cl.y, 34 * cl.s, 0, 7); c.arc(x + 36, cl.y - 12, 42 * cl.s, 0, 7); c.arc(x + 76, cl.y, 32 * cl.s, 0, 7); c.fill(); }
   c.save(); c.translate(-cam, OY);
   for (let y = 0; y < ROWS; y++) for (let x = Math.floor(cam / T); x < Math.floor((cam + 540) / T) + 2; x++) { const t = map[y]?.[x], px = x * T, py = y * T;
-    if (t === '#') { c.fillStyle = S.ground; c.fillRect(px, py, T, T); if (!solid(x, y - 1)) { c.fillStyle = S.grass; c.fillRect(px, py, T, 12); } c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 2; c.strokeRect(px + 1, py + 1, T - 2, T - 2); }
+    if (W && t === '#') drawWorld(y >= 10 ? W.ground : W.platform, c, px + T / 2, py + T / 2, T, { t: g.t });
+    else if (W && t === '^') drawWorld(W.hazard, c, px + T / 2, py + T / 2, T, { t: g.t });
+    else if (W && t === 'o') drawWorld(W.pickup, c, px + T / 2, py + T / 2, 38, { t: g.t + x });
+    else if (t === '#') { c.fillStyle = S.ground; c.fillRect(px, py, T, T); if (!solid(x, y - 1)) { c.fillStyle = S.grass; c.fillRect(px, py, T, 12); } c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 2; c.strokeRect(px + 1, py + 1, T - 2, T - 2); }
     else if (t === '^') { c.fillStyle = S.spike; for (let i = 0; i < 2; i++) { c.beginPath(); c.moveTo(px + i * 24, py + T); c.lineTo(px + i * 24 + 12, py + 8); c.lineTo(px + i * 24 + 24, py + T); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 2; c.stroke(); } }
     else if (t === 'o') coinS(c, px + T / 2, py + T / 2, 12, g.t + x);
     else if (t === 'F') { c.fillStyle = '#ddd'; c.fillRect(px + 20, py - 90, 6, 138); c.fillStyle = '#e63946'; c.beginPath(); c.moveTo(px + 26, py - 90); c.lineTo(px + 76, py - 70 + Math.sin(g.t * 6) * 4); c.lineTo(px + 26, py - 50); c.fill(); } }

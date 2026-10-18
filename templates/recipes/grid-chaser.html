@@ -5,9 +5,11 @@
 import { createGame, sfx, comboPitch, R, rnd, pick, shuffle, clamp } from '../_vendor/gp2d.js';
 import { drawChar } from '../_vendor/gpsprites.js';
 import { DIRS, bfs } from '../_vendor/gpgrid.js';
+import { drawWorld, drawBackdrop, WORLDS } from '../_vendor/gpworld.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'PAC CAT', sub: 'Swipe to turn', hook: 'Eat everything. Avoid the zombies.', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#0b0f26', wall: '#3a5bff', style: 'toon', /*SPEC*/ ...{} /*END*/ };
-const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const WLD = S.world ? WORLDS[S.world] : null; /* optional world skin (docs/WORLDS.md): drawing + bg only */
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: WLD ? WLD.bg : S.bg, style: S.style });
 const CW = 7, CH = 8, W = CW * 2 + 1, H = CH * 2 + 1, TS = 36, OX = 0, OY = 180;
 const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: '' } ], maxRadius: 60 }) : null; /* TOUCH: floating stick only; the unused button is hidden (needs kit support for buttons: []). docs/TOUCH.md */
 if (TC) TC._buttons.a.el.style.display = 'none';
@@ -46,8 +48,9 @@ function update(dt) {
   g.hud.l = `${g.score}`; g.hud.r = `DOTS ${left}`; g.state = { left, scared: Math.round(scared * 10) / 10, score: g.score, p: [pl.tx, pl.ty, pl.nx, pl.ny, pl.want.join()], goal: botGoal, gh: gh.map(q => [q.tx, q.ty, q.wait > 0 ? 1 : 0]) };
 }
 function draw(c) {
-  c.lineCap = 'round'; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (wall[y][x]) { c.fillStyle = '#0e1840'; c.fillRect(x * TS + OX, y * TS + OY, TS, TS); c.strokeStyle = S.wall; c.lineWidth = 5; c.beginPath(); for (const [dx, dy] of DIRS) if (!wall[y + dy]?.[x + dx] && wall[y + dy] !== undefined && x + dx >= 0 && x + dx < W) { const x0 = x * TS + OX + (dx === 1 ? TS : 0), y0 = y * TS + OY + (dy === 1 ? TS : 0); if (dx) { c.moveTo(x0, y0 + 3); c.lineTo(x0, y0 + TS - 3); } else { c.moveTo(x0 + 3, y0); c.lineTo(x0 + TS - 3, y0); } } c.stroke(); }
-  for (const [k, v] of dots) { const [x, y] = k.split(',').map(Number), cx = x * TS + TS / 2 + OX, cy = y * TS + TS / 2 + OY; c.fillStyle = v === 2 ? '#4aa8ff' : '#ffd34d'; if (v === 2) { c.beginPath(); c.ellipse(cx, cy, 13 + Math.sin(g.t * 8) * 2, 7, 0, 0, 7); c.moveTo(cx + 12, cy); c.lineTo(cx + 20, cy - 7); c.lineTo(cx + 20, cy + 7); c.fill(); } else { c.beginPath(); c.arc(cx, cy, 4.5, 0, 7); c.fill(); } }
+  if (WLD) drawBackdrop(WLD, c, 540, 960, 0, g.t);
+  c.lineCap = 'round'; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (wall[y][x] && WLD) drawWorld(WLD.wall, c, x * TS + OX + TS / 2, y * TS + OY + TS / 2, TS, { t: g.t }); else if (wall[y][x]) { c.fillStyle = '#0e1840'; c.fillRect(x * TS + OX, y * TS + OY, TS, TS); c.strokeStyle = S.wall; c.lineWidth = 5; c.beginPath(); for (const [dx, dy] of DIRS) if (!wall[y + dy]?.[x + dx] && wall[y + dy] !== undefined && x + dx >= 0 && x + dx < W) { const x0 = x * TS + OX + (dx === 1 ? TS : 0), y0 = y * TS + OY + (dy === 1 ? TS : 0); if (dx) { c.moveTo(x0, y0 + 3); c.lineTo(x0, y0 + TS - 3); } else { c.moveTo(x0 + 3, y0); c.lineTo(x0 + TS - 3, y0); } } c.stroke(); }
+  for (const [k, v] of dots) { const [x, y] = k.split(',').map(Number), cx = x * TS + TS / 2 + OX, cy = y * TS + TS / 2 + OY; if (WLD && v !== 2) { drawWorld(WLD.pickup, c, cx, cy, 20, { t: g.t + x }); continue; } c.fillStyle = v === 2 ? '#4aa8ff' : '#ffd34d'; if (v === 2) { c.beginPath(); c.ellipse(cx, cy, 13 + Math.sin(g.t * 8) * 2, 7, 0, 0, 7); c.moveTo(cx + 12, cy); c.lineTo(cx + 20, cy - 7); c.lineTo(cx + 20, cy + 7); c.fill(); } else { c.beginPath(); c.arc(cx, cy, 4.5, 0, 7); c.fill(); } }
   for (const q of gh) if (!q.dead) drawChar(S.foe, c, px(q), py(q) + 16, 40, { dir: q.dx || 1, t: g.t, anim: 'walk', color: scared > 0 ? (scared < 2 && Math.floor(g.t * 8) % 2 ? '#fff' : '#6aa0ff') : undefined });
   drawChar(S.hero || 'cat', c, px(pl), py(pl) + 16, 40, { color: S.heroColor, dir: pl.dx || pl.want[0] || 1, t: g.t, anim: pl.dx || pl.dy ? 'walk' : 'idle', hurt: g.mode === 'over' });
 }

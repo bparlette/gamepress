@@ -4,9 +4,11 @@
   DON'T BUILD: weapon wheel, more than one level, co-op, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp } from '../_vendor/gp2d.js';
 import { drawChar, heart } from '../_vendor/gpsprites.js';
+import { drawWorld, drawBackdrop, WORLDS } from '../_vendor/gpworld.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CONTRA CAT', sub: 'Run, jump, shoot', hook: 'Run. Jump. Shoot.', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#7fd4ff', length: 2100, style: 'toon', /*SPEC*/ ...{} /*END*/ };
-const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const W = S.world ? WORLDS[S.world] : null; /* optional world skin (docs/WORLDS.md): drawing + bg only */
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: W ? W.bg : S.bg, style: S.style });
 const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: '⤒' }, { id: 'b', label: '🔫' } ] }) : null; /* TOUCH: floating joystick (left half) + JUMP (A) / FIRE (B). See docs/TOUCH.md */
 const GY = 700;
 let p, bl, eb, en, cam, boss, kills, botT, fireT, streak, streakT;
@@ -33,11 +35,12 @@ function update(dt) {
   g.hud.l = `${g.score}`; g.hud.r = `${Math.min(100, Math.round(p.x / S.length * 100))}%`; g.state = { x: Math.round(p.x), hp: p.hp, kills, boss: boss ? boss.hp : -1 };
 }
 function draw(c) {
-  c.fillStyle = '#ffe08a'; c.beginPath(); c.arc(420, 160, 60, 0, 7); c.fill();
-  for (let l = 0; l < 2; l++) { c.fillStyle = l ? '#3f8f4a' : '#6fb87a'; for (let i = -1; i < 8; i++) { const x = i * 120 - (cam * (.2 + l * .25)) % 120; c.beginPath(); c.moveTo(x, GY - 20); c.lineTo(x + 60, GY - 200 + l * 70 - (i * 31 % 40)); c.lineTo(x + 120, GY - 20); c.fill(); } }
-  c.fillStyle = '#6b4a2e'; c.fillRect(0, GY, 540, 260); c.fillStyle = '#6bbf59'; c.fillRect(0, GY, 540, 20); c.strokeStyle = '#000'; c.lineWidth = 4; c.beginPath(); c.moveTo(0, GY); c.lineTo(540, GY); c.stroke();
+  if (W) { drawBackdrop(W, c, 540, 960, cam, g.t); for (let x = -(cam % 60) + 30; x < 600; x += 60) { drawWorld(W.ground, c, x, GY + 30, 60, { t: g.t }); drawWorld(W.ground, c, x, GY + 90, 60, { t: g.t }); } c.fillStyle = W.bgBot; c.fillRect(0, GY + 120, 540, 140); }
+  else { c.fillStyle = '#ffe08a'; c.beginPath(); c.arc(420, 160, 60, 0, 7); c.fill(); }
+  if (!W) for (let l = 0; l < 2; l++) { c.fillStyle = l ? '#3f8f4a' : '#6fb87a'; for (let i = -1; i < 8; i++) { const x = i * 120 - (cam * (.2 + l * .25)) % 120; c.beginPath(); c.moveTo(x, GY - 20); c.lineTo(x + 60, GY - 200 + l * 70 - (i * 31 % 40)); c.lineTo(x + 120, GY - 20); c.fill(); } }
+  if (!W) { c.fillStyle = '#6b4a2e'; c.fillRect(0, GY, 540, 260); c.fillStyle = '#6bbf59'; c.fillRect(0, GY, 540, 20); c.strokeStyle = '#000'; c.lineWidth = 4; c.beginPath(); c.moveTo(0, GY); c.lineTo(540, GY); c.stroke(); }
   c.save(); c.translate(-cam, 0);
-  for (const e of en) { if (e.hp <= 0) continue; if (e.k === 'z') drawChar(S.foe, c, e.x, e.y, 96, { dir: -1, t: e.t, anim: 'walk', hurt: e.fl > 0 }); else { c.fillStyle = '#555'; c.fillRect(e.x - 26, e.y - 50, 52, 50); c.strokeStyle = '#000'; c.lineWidth = 4; c.strokeRect(e.x - 26, e.y - 50, 52, 50); c.fillStyle = e.fl > 0 ? '#fff' : '#e63946'; c.fillRect(e.x - 40, e.y - 66, 40, 16); c.strokeRect(e.x - 40, e.y - 66, 40, 16); } }
+  for (const e of en) { if (e.hp <= 0) continue; if (e.k === 'z') drawChar(S.foe, c, e.x, e.y, 96, { dir: -1, t: e.t, anim: 'walk', hurt: e.fl > 0 }); else if (W) drawWorld(W.hazard, c, e.x - 10, e.y - 32, 64, { t: g.t }); else { c.fillStyle = '#555'; c.fillRect(e.x - 26, e.y - 50, 52, 50); c.strokeStyle = '#000'; c.lineWidth = 4; c.strokeRect(e.x - 26, e.y - 50, 52, 50); c.fillStyle = e.fl > 0 ? '#fff' : '#e63946'; c.fillRect(e.x - 40, e.y - 66, 40, 16); c.strokeRect(e.x - 40, e.y - 66, 40, 16); } }
   if (boss && boss.hp > 0) { drawChar(S.foe, c, boss.x, boss.y, 230, { dir: -1, t: boss.t, anim: 'walk', hurt: boss.fl > 0, color: '#5a9a4a' }); g.bar(boss.x - 70, boss.y - 250, 140, 12, boss.hp / boss.max, '#ff5a5a'); }
   if (p.inv <= 0 || Math.floor(g.t * 20) % 2) { drawChar(S.hero || 'cat', c, p.x, p.y, 92, { color: S.heroColor, dir: p.d, t: p.t, anim: p.air ? 'idle' : 'walk', hurt: g.mode === 'over' }); c.fillStyle = '#333'; c.fillRect(p.x + p.d * 24 - 4, p.y - 60, p.d * 34, 10); }
   c.fillStyle = '#ffd34d'; for (const b of bl) c.fillRect(b.x - 10, b.y - 3, 20, 6); c.fillStyle = '#ff5a8a'; for (const b of eb) { c.beginPath(); c.arc(b.x, b.y, 8, 0, 7); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 2; c.stroke(); } c.restore();

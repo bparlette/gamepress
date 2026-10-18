@@ -4,10 +4,12 @@
   DON'T BUILD: a map screen, more than 3 rooms, bosses, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
 import { drawChar } from '../_vendor/gpsprites.js';
+import { drawWorld, drawBackdrop, WORLDS } from '../_vendor/gpworld.js';
 import { moveBox } from '../_vendor/gpphys.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CAT CAVE', sub: 'Find the double jump', hook: 'Find the double jump', hero: 'cat', heroColor: '#ff9a3c', bg: '#241a3a', rock: '#5a4a7a', moss: '#7a6ab0', style: 'toon', /*SPEC*/ ...{} /*END*/ };
-const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const W = S.world ? WORLDS[S.world] : null; /* optional world skin (docs/WORLDS.md): drawing + bg only */
+const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: W ? W.bg : S.bg, style: S.style });
 const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: '⤒' } ] }) : null; /* TOUCH: floating joystick (left half) + JUMP button (right). See docs/TOUCH.md */
 const T = 45, RW = 12, ROWS = 13, OY = 190, COLS = RW * 3;
 const room = [
@@ -41,9 +43,13 @@ function update(dt) {
   cam += (Math.floor(p.x / (RW * T)) * RW * T - cam) * Math.min(1, dt * 8); g.state = { x: Math.round(p.x), y: Math.round(p.y), double: hasDouble, room: Math.floor(p.x / (RW * T)) };
 }
 function draw(c) {
-  c.save(); c.translate(-cam, OY); c.fillStyle = 'rgba(255,255,255,.04)'; for (let i = 0; i < 20; i++) c.fillRect(i * 90 + 20, -40, 40, ROWS * T + 80);
+  if (W) drawBackdrop(W, c, 540, 960, cam, g.t);
+  c.save(); c.translate(-cam, OY); if (!W) { c.fillStyle = 'rgba(255,255,255,.04)'; for (let i = 0; i < 20; i++) c.fillRect(i * 90 + 20, -40, 40, ROWS * T + 80); }
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) { const t = map[y][x], px = x * T, py = y * T;
-    if (t === '#') { c.fillStyle = S.rock; c.fillRect(px, py, T, T); if (!solid(x, y - 1)) { c.fillStyle = S.moss; c.fillRect(px, py, T, 10); } c.strokeStyle = 'rgba(0,0,0,.4)'; c.lineWidth = 2; c.strokeRect(px + 1, py + 1, T - 2, T - 2); }
+    if (W && t === '#') drawWorld(y >= 12 || !solid(x, y - 1) ? W.platform : W.ground, c, px + T / 2, py + T / 2, T, { t: g.t });
+    else if (W && t === '^') drawWorld(W.hazard, c, px + T / 2, py + T / 2, T, { t: g.t });
+    else if (W && t === 'D') { const b = Math.sin(g.t * 4) * 5; c.fillStyle = 'rgba(122,215,255,.3)'; c.beginPath(); c.arc(px + T / 2, py + T / 2 + b, 26, 0, 7); c.fill(); drawWorld(W.key, c, px + T / 2, py + T / 2 + b, 40, { t: g.t }); }
+    else if (t === '#') { c.fillStyle = S.rock; c.fillRect(px, py, T, T); if (!solid(x, y - 1)) { c.fillStyle = S.moss; c.fillRect(px, py, T, 10); } c.strokeStyle = 'rgba(0,0,0,.4)'; c.lineWidth = 2; c.strokeRect(px + 1, py + 1, T - 2, T - 2); }
     else if (t === '^') { c.fillStyle = '#e63946'; for (let i = 0; i < 2; i++) { c.beginPath(); c.moveTo(px + i * 22, py + T); c.lineTo(px + i * 22 + 11, py + 8); c.lineTo(px + i * 22 + 22, py + T); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 2; c.stroke(); } }
     else if (t === 'D') { const b = Math.sin(g.t * 4) * 5; c.fillStyle = 'rgba(122,215,255,.3)'; c.beginPath(); c.arc(px + T / 2, py + T / 2 + b, 26, 0, 7); c.fill(); c.fillStyle = '#7ad7ff'; c.beginPath(); c.arc(px + T / 2, py + T / 2 + b, 14, 0, 7); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 3; c.stroke(); }
     else if (t === 'F') { c.fillStyle = '#ddd'; c.fillRect(px + 18, py - 60, 6, 105); c.fillStyle = '#ffd34d'; c.beginPath(); c.moveTo(px + 24, py - 60); c.lineTo(px + 70, py - 42 + Math.sin(g.t * 6) * 4); c.lineTo(px + 24, py - 24); c.fill(); } }
