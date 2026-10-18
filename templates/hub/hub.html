@@ -87,16 +87,16 @@ td,th{padding:6px 8px;border-bottom:1px solid #fff2;text-align:left}th{color:var
 </div>
 
 <script type="module">
-import { CHAR } from '../_vendor/gpsprites.js';
+import { CHAR, drawChar } from '../_vendor/gpsprites.js';
 const CFG = __CONFIG__;
 const $ = id => document.getElementById(id);
 const Q = new URLSearchParams(location.search);
-const KEY = 'gp-hub', HEROES = CFG.heroes, byId = Object.fromEntries(HEROES.map(h => [h.id, h]));
+const KEY = CFG.cast ? 'gp-hub-' + CFG.cast : 'gp-hub', HEROES = CFG.heroes, byId = Object.fromEntries(HEROES.map(h => [h.id, h]));
 const LOOPQ = Q.get('loop') === '1'; // test flag: a "loop" is only the first 2 games
 
 // ---------------------------------------------------------------- save
 // Heroes with tier 'free' are available from the start; the rest unlock one per completed loop of the full hub (never in demo).
-const blank = () => ({ hero: 'cat', unlocked: [], best: {}, won: {} });
+const blank = () => ({ hero: CFG.heroes[0].id, unlocked: [], best: {}, won: {} });
 let S; try { S = { ...blank(), ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { S = blank(); }
 if (!Array.isArray(S.unlocked)) S.unlocked = [];
 S.unlocked = S.unlocked.filter(id => byId[id]);
@@ -104,8 +104,8 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ hero: S.he
 const owned = h => h.tier === 'free' || S.unlocked.includes(h.id);
 let demoMode = CFG.demo;
 const usable = h => demoMode ? h.tier === 'free' : owned(h);
-const heroNow = () => { const h = byId[S.hero]; return h && usable(h) ? h : byId.cat; };
-if (!byId[S.hero] || !owned(byId[S.hero])) S.hero = 'cat';
+const heroNow = () => { const h = byId[S.hero]; return h && usable(h) ? h : HEROES[0]; };
+if (!byId[S.hero] || !owned(byId[S.hero])) S.hero = HEROES[0].id;
 const lockedList = () => HEROES.filter(h => !owned(h));
 
 // ---------------------------------------------------------------- screens
@@ -122,7 +122,7 @@ const say = (el, t) => { $(el).textContent = t; };
 // ---------------------------------------------------------------- sprites
 function draw(cv, h, t) {
   const c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height);
-  try { (CHAR[h.kind] || CHAR.cat)(c, cv.width / 2, cv.width * .92, cv.width * .78, { color: h.color, t, anim: 'walk', dir: 1 }); } catch {}
+  try { drawChar(h.kind, c, cv.width / 2, cv.width * .92, cv.width * .78, { color: h.color, t, anim: 'walk', dir: 1 }); } catch {}
 }
 const T0 = performance.now();
 function tick(now) {

@@ -1,0 +1,36 @@
+{
+  "id": "karen",
+  "label": "Karen Arcade",
+  "note": "Cast = a roster of characters with art and voice barks. Source assets come from the HOA Warfare repo (set HOA_WARFARE_DIR or pass --source). Only the clean (c) voice clips are used, never the spicy (s) ones. Add a cast by adding a file here and running: gamepress cast <id>.",
+  "source": { "images": "web/assets/characters/{id}.png", "voices": "web/vo/{id}_{event}_c_{n}.ogg", "content": "data/hoa_content.json" },
+  "events": { "start": "roundStart", "kill": "kill", "combo": "double", "power": "objective", "low": "lowHealth", "miss": "humiliated", "win": "victory", "lose": "defeat", "spot": "spotted" },
+  "factions": [
+    { "id": "karens", "name": "The Karen", "tier": "free", "color": "#c96fb0", "blurb": "The manager is on line two." },
+    { "id": "hoaDads", "name": "HOA Dad", "tier": "free", "color": "#6a7f95", "blurb": "Your grass is 2.8 inches too tall." },
+    { "id": "fratHouse", "name": "Frat Bro", "tier": "free", "color": "#f2f2f2", "blurb": "Bro. Bro. BRO." },
+    { "id": "mlmHuns", "name": "MLM Hun", "tier": "locked", "color": "#f4b6d2", "blurb": "Girl, this is NOT a pyramid." },
+    { "id": "vcBros", "name": "VC Bro", "tier": "locked", "color": "#3b4a63", "blurb": "Disrupting your lawn." },
+    { "id": "wokeLibs", "name": "Woke Lib", "tier": "locked", "color": "#7ac27a", "blurb": "Actually, it's problematic." },
+    { "id": "tradwives", "name": "Tradwife", "tier": "locked", "color": "#e8d5b5", "blurb": "Sourdough first." },
+    { "id": "pickleballRetirees", "name": "Pickleball Retiree", "tier": "locked", "color": "#9bd16a", "blurb": "Kitchen violation!" },
+    { "id": "valleyGirls", "name": "Valley Girl", "tier": "locked", "color": "#f29ac2", "blurb": "Like, literally." },
+    { "id": "brainRot", "name": "Brain Rot", "tier": "locked", "color": "#4f8f84", "blurb": "Skibidi what?" },
+    { "id": "rednecks", "name": "Redneck", "tier": "locked", "color": "#b5651d", "blurb": "Hold my beer." },
+    { "id": "gymRats", "name": "Gym Rat", "tier": "locked", "color": "#d9534f", "blurb": "Never skip leg day." },
+    { "id": "cloutStreamers", "name": "Clout Streamer", "tier": "locked", "color": "#8e5be8", "blurb": "Smash that subscribe." },
+    { "id": "oldMoney", "name": "Old Money", "tier": "locked", "color": "#c9b26b", "blurb": "One simply doesn't." },
+    { "id": "trumpers", "name": "Trumper", "tier": "locked", "color": "#d94a3d", "blurb": "Tremendous lawn." },
+    { "id": "furries", "name": "Furry", "tier": "locked", "color": "#ffa24c", "blurb": "Owo what's this." },
+    { "id": "animeWeebs", "name": "Anime Weeb", "tier": "locked", "color": "#ff6fa8", "blurb": "Believe it!" },
+    { "id": "emoKids", "name": "Emo Kid", "tier": "locked", "color": "#3a2f4a", "blurb": "Nobody understands." },
+    { "id": "theGays", "name": "The Fabulous", "tier": "locked", "color": "#ff7fd1", "blurb": "Slay the lawn." },
+    { "id": "theaterKids", "name": "Theater Kid", "tier": "locked", "color": "#ffd34d", "blurb": "Places, everyone!" }
+  ],
+  "hub": {
+    "name": "karen-arcade",
+    "title": "KAREN ARCADE",
+    "tagline": "Pick a faction. Finish a loop to unlock a new one.",
+    "demoRecipes": ["slice-swipe", "one-tap-reflex", "ballistic-bouncer", "bullet-heaven", "kart-racer"]
+  },
+  "theme": "karen"
+}

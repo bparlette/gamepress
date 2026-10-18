@@ -8,7 +8,7 @@ test('themes: 30 recipes per theme, valid hero sprite, noun swapped in every tit
   assert.equal(ids.length, 30); assert.ok(Object.keys(T).length >= 4);
   for (const [tid, t] of Object.entries(T)) for (const r of ids) {
     const s = themeSpec(r, tid);
-    assert.ok(CHAR[s.hero], `${tid}/${r}: hero ${s.hero} is not a sprite kind`);
+    assert.ok(CHAR[s.hero] || /^cast:\w+:\w+$/.test(s.hero), `${tid}/${r}: hero ${s.hero} is not a sprite kind`);
     assert.ok(s.title && s.hook, `${tid}/${r}: missing title/hook`);
     if (t.noun !== 'CAT') assert.ok(!/\bcats?\b/i.test(s.title + ' ' + s.hook), `${tid}/${r}: still says cat: ${s.title} / ${s.hook}`);
   }

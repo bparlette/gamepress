@@ -1,5 +1,6 @@
 // gpsprites: procedural characters (cat, dog, zombie, person) + small icons. Side view, feet at (x,y), `h` = pixel height, facing o.dir (1 right, -1 left).
 // Styles are set once by createGame: STY.ow = outline width, STY.blocky = rectangles instead of ellipses (roblox / pixel styles).
+import { isCast, drawCast, faceCast } from './gpcast.js';
 export const STY = { ow: 3, blocky: false };
 const INK = '#151515';
 const ell = (c, x, y, rx, ry, fill) => { c.beginPath(); if (STY.blocky) c.rect(x - rx, y - ry, rx * 2, ry * 2); else c.ellipse(x, y, rx, ry, 0, 0, 7); c.fillStyle = fill; c.fill(); if (STY.ow) { c.lineWidth = STY.ow; c.strokeStyle = INK; c.stroke(); } };
@@ -242,9 +243,9 @@ export const mushfrog = (c, x, y, h, o = {}) => { frog(c, x, y, h, o); wrap(c, x
   ell(c, 8, -78 - b, 4.4, 3.6, '#fff'); ell(c, 26, -82 - b, 5, 4, '#fff'); ell(c, 36, -73 - b, 3.4, 3, '#fff'); ell(c, 15, -70 - b, 2.6, 2.2, '#fff'); }); };
 const NEWCOL = { spud: '#b98a5c', bean: '#ff8a3c', jester: '#f4e6d0', vampire: '#e9e6f0', joker: '#fbf7ee', ragdoll: '#f7efe4', noob: '#ffd23c', hacker: '#171b26', melon: '#3fae4f', scrapper: '#ff7a1a', reaper: '#161320', raccoon: '#8e96a3', doge: '#e8b062', slime: '#4fdc7a', phantom: '#1b1b2c', banana: '#ffe14d', capyyuzu: '#b9824f', duckknife: '#ffd23c', mushfrog: '#4cc36b' };
 export const CHAR = { cat, dog, zombie, person, car, duck, penguin, capybara, axolotl, dino, bunny, frog, robot, spud, bean, jester, vampire, joker, ragdoll, noob, hacker, melon, scrapper, reaper, raccoon, doge, slime, phantom, banana, capyyuzu, duckknife, mushfrog };
-export const drawChar = (kind, c, x, y, h, o) => (CHAR[kind] || cat)(c, x, y, h, o);
+export const drawChar = (kind, c, x, y, h, o) => (isCast(kind) ? drawCast(c, kind, x, y, h, o) : (CHAR[kind] || cat)(c, x, y, h, o));
 /** Cat/dog/zombie head only (for icons, HUD lives, card art): centered at (x,y), radius r. */
-export function face(c, kind, x, y, r, color) { c.save(); c.translate(x, y); const k = r / 20; c.scale(k, k); const ow = STY.ow; STY.ow = ow / k;
+export function face(c, kind, x, y, r, color) { if (isCast(kind)) return faceCast(c, kind, x, y, r); c.save(); c.translate(x, y); const k = r / 20; c.scale(k, k); const ow = STY.ow; STY.ow = ow / k;
   const col = color || { cat: '#ff9a3c', dog: '#c98a4b', zombie: '#8fcf7a', person: '#f1c27d' }[kind] || '#ff9a3c';
   if (kind === 'cat' || kind === 'dog') { poly(c, [[-18, -8], [-14, -26], [-4, -14]], col); poly(c, [[18, -8], [14, -26], [4, -14]], col); }
   if (NEWCOL[kind]) { const nc = color || NEWCOL[kind]; ell(c, 0, 0, 20, 18, nc); eyes(c, 0, -3, {}, false); mouth(c, 0, 9, 5, false); STY.ow = ow; c.restore(); return; }
@@ -258,5 +259,5 @@ export function ship(c, x, y, s, o = {}) { c.save(); c.translate(x, y); c.scale(
 
 // Runtime hero override (hub pages): ?hero=<kind>&heroColor=<#rrggbb>. Unknown kind / bad colour are ignored.
 const _q = () => { try { return new URLSearchParams(globalThis.location?.search || ''); } catch (e) { return new URLSearchParams(''); } };
-export const heroKind = (specKind) => { const k = _q().get('hero'); return k && Object.prototype.hasOwnProperty.call(CHAR, k) ? k : (specKind || 'cat'); };
+export const heroKind = (specKind) => { const k = _q().get('hero'); return k && (isCast(k) || Object.prototype.hasOwnProperty.call(CHAR, k)) ? k : (specKind || 'cat'); };
 export const heroColor = (specColor) => { const v = _q().get('heroColor'); return v && /^#[0-9a-fA-F]{6}$/.test(v) ? v : specColor; };

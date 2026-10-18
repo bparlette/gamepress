@@ -1,5 +1,6 @@
 // gpaudio: layered synth sfx (2-3 oscillators per sound) with pitch control, so combos/streaks can climb in pitch. Every call is logged to
 // window.__events as {t,type,pitch}; `gamepress drive` rebuilds the audio offline from that log (presets/sfx.json, pitch via asetrate).
+import { castSfx } from './gpcast.js';
 export const events = (window.__events = window.__events || []);
 let ac, muted = false;
 export const setMuted = m => { muted = m; };
@@ -28,6 +29,7 @@ const L = {
 };
 let nbuf;
 export function sfx(type, { pitch = 1, vol = 1 } = {}) {
+  castSfx(type);
   events.push({ t: +(performance.now() / 1000).toFixed(2), type, pitch: +pitch.toFixed(3) });
   if (muted) return;
   try {

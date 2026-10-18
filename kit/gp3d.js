@@ -1,6 +1,7 @@
 // gp3d: the ~100 lines every three.js demo in this folder shares. Portrait-first stage, fixed-step loop
 // (deterministic under gamepress's virtual clock), input, HUD, synth sfx, event log for capture scripts.
 import * as THREE from './three.module.min.js';
+import { castSfx, castEnd } from './gpcast.js';
 // ?hold=1 (hub): run a few frames so the game shows, then freeze until the hub posts {gp:'start'}.
 if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { let go = false; const hold = window.__gpHold = { onStart: null, is3d: true }; const start = () => { if (go) return; go = true; hold.onStart?.(); try { parent.postMessage({ gp: 'started' }, '*'); } catch {} };
   for (const t of ['pointerdown', 'touchstart', 'mousedown', 'keydown']) addEventListener(t, e => { if (!go) { if (e.cancelable) e.preventDefault(); e.stopImmediatePropagation(); start(); } }, { capture: true, passive: false });
@@ -15,6 +16,7 @@ let ac, muted = false;
 export const setMuted = m => { muted = m; };
 /** Tiny synth. Logs every call to window.__events so gamepress can rebuild the audio offline. */
 export function sfx(type, vol = 1) {
+  castSfx(type);
   events.push({ t: +(performance.now() / 1000).toFixed(2), type });
   if (muted) return;
   try {
@@ -137,7 +139,7 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
   /** Show the results panel. Best score is kept per game id in localStorage. */
   st.end = ({ win = false, score = 0, label = 'SCORE' } = {}) => {
     if (ended) return; stats.ends++; ended = true; endT = 0; let best = 0; try { best = +localStorage.getItem('gp-best-' + shellId) || 0; if (score > best) { best = score; localStorage.setItem('gp-best-' + shellId, best); } } catch {}
-    st.result = { win, score, best }; window.__result = st.result; if (PACK) try { parent.postMessage({ gp: 'end', id: shellId, win, score: Math.round(score) }, '*'); } catch {} (window.__ends = window.__ends || []).push({ t: +(performance.now() / 1000).toFixed(1), win, score: Math.round(score), attempt: st.attempt, state: JSON.stringify(window.__game || {}) });
+    st.result = { win, score, best }; castEnd(win); window.__result = st.result; if (PACK) try { parent.postMessage({ gp: 'end', id: shellId, win, score: Math.round(score) }, '*'); } catch {} (window.__ends = window.__ends || []).push({ t: +(performance.now() / 1000).toFixed(1), win, score: Math.round(score), attempt: st.attempt, state: JSON.stringify(window.__game || {}) });
     if (shellOn && !CLEAN && !PACK) show(`<div style="font-size:12vmin;color:${win ? '#7dff7d' : '#ff6b6b'}">${win ? 'YOU WIN' : 'GAME OVER'}</div><div style="margin-top:2vh">${label} <b style="color:#ffd34d">${score.toLocaleString()}</b></div><div style="font-size:3.6vmin;margin-top:1vh;font-family:system-ui,sans-serif">BEST ${best.toLocaleString()}</div><div style="font-size:3.6vmin;margin-top:4vh;font-family:system-ui,sans-serif;font-weight:800">tap or press any key to play again</div>`);
   };
   st.rearm = () => { ended = false; }; st.isEnded = () => ended; st.endTick = dt => { if (ended) endT += dt; };

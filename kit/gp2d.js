@@ -3,6 +3,7 @@
 // art styles, seeded RNG, an auto-pilot hook (?auto=1: bot plays, fails once on purpose, restarts, then wins) and window.__game for tests.
 import { R, SEED, clamp } from './gpmath.js';
 import { sfx, setMuted, comboPitch } from './gpaudio.js';
+import { castEnd } from './gpcast.js';
 import { STY } from './gpsprites.js';
 // ?hold=1 (hub): run a few frames so the game shows, then freeze until the hub posts {gp:'start'}.
 if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { const raf = window.requestAnimationFrame.bind(window); let q = [], go = false, n = 0; window.requestAnimationFrame = f => (go || n++ < 1) ? raf(f) : (q.push(f), 0);
@@ -81,7 +82,7 @@ export function createGame({ id = 'game', title = 'GAME', sub = 'Tap to start', 
   g.start = () => { if (g.mode === 'title') { g.mode = 'play'; g.onStart?.(); } };
   g.reset = () => { g.attempt++; g.mode = 'play'; g.result = null; g.overT = 0; g.score = 0; g.fxl.length = 0; g.pops.length = 0; tw.length = 0; g.timeScale = 1; g.onReset?.(); g.showBanner('GO!', .7); };
   /** End the round. Always shows a big in-canvas banner (so videos show the stakes); the panel with best score appears unless ?clean/?auto. */
-  g.end = ({ win = false, score = g.score, label = 'SCORE' } = {}) => { if (g.mode === 'over') return; stats.ends++; g.mode = 'over'; g.overT = 0; if (score > g.best) { g.best = score; try { localStorage.setItem('gp-best-' + id, score); } catch {} } g.result = { win, score, label, best: g.best }; if (PACK) try { parent.postMessage({ gp: 'end', id, win, score: Math.round(score) }, '*'); } catch {} (window.__ends = window.__ends || []).push({ t: +(performance.now() / 1000).toFixed(1), win, score: Math.round(score), attempt: g.attempt, state: JSON.stringify(g.state) }); sfx(win ? 'win' : 'lose'); g.shake(win ? 6 : 12); g.flash(win ? '#fff' : '#ff3b3b', .4); if (win) g.slowmo(.35, 1.0); };
+  g.end = ({ win = false, score = g.score, label = 'SCORE' } = {}) => { if (g.mode === 'over') return; castEnd(win); stats.ends++; g.mode = 'over'; g.overT = 0; if (score > g.best) { g.best = score; try { localStorage.setItem('gp-best-' + id, score); } catch {} } g.result = { win, score, label, best: g.best }; if (PACK) try { parent.postMessage({ gp: 'end', id, win, score: Math.round(score) }, '*'); } catch {} (window.__ends = window.__ends || []).push({ t: +(performance.now() / 1000).toFixed(1), win, score: Math.round(score), attempt: g.attempt, state: JSON.stringify(g.state) }); sfx(win ? 'win' : 'lose'); g.shake(win ? 6 : 12); g.flash(win ? '#fff' : '#ff3b3b', .4); if (win) g.slowmo(.35, 1.0); };
   window.__result = null;
   Object.defineProperty(window, '__game', { get: () => ({ ...g.state, mode: g.mode, attempt: g.attempt, score: Math.round(g.score) }), configurable: true });
   const panel = () => { const r = g.result; ctx.fillStyle = r.win ? 'rgba(10,40,20,.55)' : 'rgba(40,8,8,.55)'; ctx.fillRect(0, h * .3, w, h * .34);

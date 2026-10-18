@@ -5,6 +5,7 @@
 import { THREE as T } from './gp3d.js';
 import { build, hero, catGeo, dogGeo, zombieGeo, personGeo, carGeo } from './gpkit.js';
 import { buildBunny, updateCritter } from './gpchar.js';
+import { isCast, onArt } from './gpcast.js';
 
 const D = 0x151515, W = 0xffffff, ORANGE = 0xffa21a, PINK = 0xff9fb0;
 const eyes = (y, z, x = .13, s = .1, c = D) => [-1, 1].map(k => ({ g: 'sphere', s: [s, s * 1.3, s * .6], p: [k * x, y, z], c }));
@@ -78,7 +79,15 @@ const carParts = () => [
   ...[[-1, 1.35], [1, 1.35], [-1, -1.35], [1, -1.35]].flatMap(([x, z]) => [{ g: 'cyl', s: [.85, .45, .85], p: [x * .98, .42, z], r: [0, 0, Math.PI / 2], c: 0x141414 }, { g: 'cyl', s: [.45, .5, .45], p: [x * 1.0, .42, z], r: [0, 0, Math.PI / 2], c: 0xcfd6dd }])];
 
 /** buildHero(kind, color, opts): THREE.Group (feet at origin, ~1.2 tall, faces +z). opts.outline = hull thickness (default .03). userData.kind = resolved kind. */
+/** Cast character: a camera-facing sprite, feet at y=0, ~1.5 tall. Appears once its image has loaded. */
+function buildCastSprite(kind) {
+  const g = new T.Group(), mat = new T.SpriteMaterial({ transparent: true, alphaTest: .3 }), sp = new T.Sprite(mat); sp.center.set(.5, 0); sp.scale.set(.001, .001, 1); g.add(sp);
+  onArt(kind, a => { const cv = document.createElement('canvas'); cv.width = a.box.w; cv.height = a.box.h; cv.getContext('2d').drawImage(a.img, a.box.x, a.box.y, a.box.w, a.box.h, 0, 0, a.box.w, a.box.h);
+    const tex = new T.CanvasTexture(cv); if (T.SRGBColorSpace) tex.colorSpace = T.SRGBColorSpace; mat.map = tex; mat.needsUpdate = true; const hh = 1.5; sp.scale.set(hh * a.box.w / a.box.h, hh, 1); sp.userData.s0 = sp.scale.x; });
+  g.userData.kind = kind; g.userData.t = 0; return g;
+}
 export function buildHero(kind = 'cat', color, opts = {}) {
+  if (isCast(kind)) return buildCastSprite(kind);
   let k = String(kind || 'cat').toLowerCase().trim(); k = KIND_ALIAS[k] || k;
   const outline = opts.outline ?? .03, g = new T.Group(); let col = color == null ? undefined : toHex(color);
   try {
@@ -98,12 +107,12 @@ export function buildHero(kind = 'cat', color, opts = {}) {
 export function animate(h, dt, mode = 'idle') {
   const u = h.userData; u.t += dt;
   if (u.rig) { updateCritter(u.rig, dt, mode === 'run' ? 'hop' : mode); return h; }
-  const b = h.children[0]; if (!b) return h; const s0 = b.userData.s0 ?? (b.userData.s0 = b.scale.x);
+  const b = h.children[0]; if (!b) return h; if (b.isSprite) { b.position.y = mode === 'run' || mode === 'hop' ? Math.abs(Math.sin(u.t * 12)) * .06 : 0; return h; } const s0 = b.userData.s0 ?? (b.userData.s0 = b.scale.x);
   const run = mode === 'run' || mode === 'hop'; b.position.y = u.float ? .15 + Math.sin(u.t * 3) * .12 : run ? Math.abs(Math.sin(u.t * 12)) * .06 : 0;
   b.scale.set(s0 * (1 + Math.sin(u.t * (run ? 12 : 2.2)) * .02), s0 * (1 - Math.sin(u.t * (run ? 12 : 2.2)) * .02), s0); return h;
 }
 
 // Runtime hero override (hub pages): ?hero=<kind>&heroColor=<#rrggbb>. Unknown kind / bad colour are ignored.
 const _q = () => { try { return new URLSearchParams(globalThis.location?.search || ''); } catch (e) { return new URLSearchParams(''); } };
-export const urlHero = (specKind) => { const k = _q().get('hero'); return k && HERO_KINDS.includes(k) ? k : (specKind || 'cat'); };
+export const urlHero = (specKind) => { const k = _q().get('hero'); return k && (isCast(k) || HERO_KINDS.includes(k)) ? k : (specKind || 'cat'); };
 export const urlHeroColor = (specColor) => { const v = _q().get('heroColor'); return v && /^#[0-9a-fA-F]{6}$/.test(v) ? v : specColor; };
