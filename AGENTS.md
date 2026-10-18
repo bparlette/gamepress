@@ -22,3 +22,5 @@ Quality bar: `docs/QUALITY.md`; control contract: `docs/DRIVING.md`. Token saver
 
 ## Roblox
 Flow, key scopes and pitfalls: `docs/ROBLOX.md` and `docs/tracks/roblox.md`. Ship with `gamepress roblox-ship <file.rbxl> --test templates/roblox-smoke.luau` (needs the owner's Open Cloud key).
+
+Use case: a themed set of 30 games + 4 packs (`gamepress theme <hero> --world <w> --render --qc --publish`): see docs/VIRAL-SET.md.
