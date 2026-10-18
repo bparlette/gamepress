@@ -5,6 +5,8 @@ Release history for gamepress. The `gamepress version` command prepends a templa
 ## [Unreleased]
 
 ### Added
+- `test/catalog.test.mjs` — every registry recipe must have a template and a catalog row; `npm test` runs all `test/*.test.mjs`
+- README restored (description, entry points, recipe table); docs fixes: TOOLING commands/Kokoro size, KIT cross-link to NINTENDO-FEEL
 - `gamepress --help` / `gamepress <cmd> --help` — generated help for all 45+ commands (the #1 token-saver)
 - `gamepress approve <id>` / `gamepress expand <id> [--blueprint]` — full-game track CLI (was documented but missing)
 - `gamepress setup` (no args) — full environment bootstrap: doctor + download all `tools.json` tools
