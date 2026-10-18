@@ -80,6 +80,35 @@ shareBtn.onclick = () =>
 | Stripe payment links | https://stripe.com/docs/payment-links | paste link into `showPaywall({ paymentUrl })` |
 | Apple IAP | App Store Connect | native wrapper only; web build uses Stripe |
 
+
+## F2P whale mechanics (from Jacob Rodri's Whiteout Survival breakdown)
+
+Reference: Whiteout Survival does ~$34M/month (2M monthly downloads, via Appkittie).
+These are the 9 psychological levers. Not all fit web games — marked where they do.
+
+1. **Time as currency** — building, training, researching takes hours/days; skipping costs money.
+   Web fit: YES. Energy systems, build timers, "come back in 4h or pay to skip."
+2. **$0.99 starter pack** — ridiculous "value" to convert free→paying. First purchase breaks the barrier; second is easy.
+   Web fit: YES. One-tap $0.99 unlock via Stripe payment link. Cheapest conversion tool that exists.
+3. **Currency obfuscation** — real money becomes gems; you lose track of actual cost.
+   Web fit: PARTIAL. Works if you have an in-game shop; skip for single-purchase games.
+4. **Variable rewards (gacha)** — slot-machine pulls; you never know when you'll get the hero.
+   Web fit: YES. Loot boxes, random skins, mystery unlocks. Highest ARPPU lever in F2P.
+5. **Always-on limited events** — FOMO + exclusive rewards, something expiring at all times.
+   Web fit: YES. Weekend tournaments, seasonal skins, daily challenges with countdown timers.
+6. **Habit loops** — daily rewards, monthly cards, battle pass. Game becomes daily routine.
+   Web fit: YES. Daily login streaks, battle-pass-style progression tracks. Cheapest retention there is.
+7. **Social pressure** — spend to not let your alliance/team down. Real friendships formed in-game.
+   Web fit: HARD on web. Needs multiplayer + guilds. Skip unless building social features.
+8. **Whale-vs-whale matchmaking** — big spenders matched against each other; rival spent $5k, you spend more.
+   Web fit: HARD on web. Needs competitive multiplayer + leaderboard spending. Skip for solo games.
+9. **Infinite progression** — you can always get stronger; no ceiling, no "done."
+   Web fit: YES. Prestige systems, endless leaderboards, seasonal resets. Keeps payers paying.
+
+**Web-game shortlist** (highest ROI, lowest complexity): starter pack (#2) + habit loops (#6) + limited events (#5) + infinite progression (#9). Add gacha (#4) if you have cosmetic content. Skip #7/#8 unless multiplayer is core.
+
+Source: [@jacobrodri_](https://x.com/jacobrodri_/status/2111513350261674005) (Oct 17, 2026), via Appkittie data.
+
 ## Rules
 
 - Never block gameplay on a failed ad — `requestRewarded` always resolves.
