@@ -1232,6 +1232,122 @@ export const SONIC_PHYSICS = {
 };
 
 // ============================================================================
+// THREE.JS ADAPTER
+//
+// Bridges gpfeel's plain-object camera interface to THREE.PerspectiveCamera
+// without importing three.js (duck-typed — works with any camera-like object
+// that has .position and .lookAt).
+//
+// Usage:
+//   import { updateCamera, threeAdapter } from '../kit/gpfeel.js';
+//   const cam = threeAdapter(threeCamera);       // wraps THREE.PerspectiveCamera
+//   updateCamera(cam, target, colliders, { dt }); // gpfeel does its math
+//   cam.update();                               // pushes to threeCamera
+// ============================================================================
+
+/**
+ * threeAdapter(camera3) — wrap a Three.js camera for gpfeel.updateCamera().
+ *
+ * camera3: object with .position ({x,y,z} or .set(x,y,z)) and .lookAt(x,y,z).
+ * Returns a proxy with x/y/z synced to camera3.position, lookX/lookY/lookZ
+ * tracking, and .update() to push everything back to the real camera.
+ */
+export function threeAdapter(camera3) {
+  if (!camera3 || !camera3.position || typeof camera3.lookAt !== 'function') {
+    throw new Error('threeAdapter: expected a camera-like object with .position and .lookAt()');
+  }
+  const pos = camera3.position;
+  const proxy = {
+    // x/y/z proxy to the real camera position (supports both plain {x,y,z}
+    // and THREE.Vector3-style objects)
+    get x() { return pos.x; },
+    set x(v) { pos.x = v; },
+    get y() { return pos.y; },
+    set y(v) { pos.y = v; },
+    get z() { return pos.z; },
+    set z(v) { pos.z = v; },
+    // look target tracked by gpfeel.updateCamera / lakituCamera
+    lookX: pos.x,
+    lookY: pos.y,
+    lookZ: pos.z,
+    // internal gpfeel state (pan-lag deadzone bookkeeping)
+    _ptx: undefined,
+    _pty: undefined,
+    _ptz: undefined,
+    _settled: false,
+    /**
+     * update() — push proxy state to the real Three.js camera.
+     * Call after gpfeel.updateCamera(proxy, ...) each frame.
+     */
+    update() {
+      // position is already synced via getters/setters; just apply lookAt
+      camera3.lookAt(proxy.lookX, proxy.lookY, proxy.lookZ);
+      return camera3;
+    },
+    /** raw() — escape hatch to the wrapped camera. */
+    raw() { return camera3; },
+  };
+  return proxy;
+}
+
+// ============================================================================
+// RETROCONTROLLER — standalone input forgiveness
+//
+// Cleaner API than the inline coyote/buffer logic inside characterStep().
+// Use when you want forgiveness decoupled from the full physics step
+// (e.g. custom controllers, 2D recipes, touch input pipelines).
+//
+//   const ctl = new RetroController();
+//   // each frame:
+//   ctl.update(isGrounded, jumpPressed);
+//   if (jumpPressed && ctl.canJump()) { doJump(); ctl.consumeJump(); }
+// ============================================================================
+
+export class RetroController {
+  constructor() {
+    this.coyoteTimer = 0;      // frames remaining to jump after leaving a ledge
+    this.jumpBufferTimer = 0;  // frames remaining for an early jump press to fire
+    this.COYOTE_MAX = 4;       // SM64-style: 4 frames of coyote time
+    this.JUMP_BUFFER_MAX = 5;  // 5 frames of jump input buffering
+  }
+
+  /**
+   * update(isGrounded, jumpPressed) — call once per frame.
+   * isGrounded: boolean, whether the entity is on the ground this frame.
+   * jumpPressed: boolean, edge-triggered jump input (true only on press frame).
+   */
+  update(isGrounded, jumpPressed) {
+    if (isGrounded) {
+      this.coyoteTimer = this.COYOTE_MAX;
+    } else if (this.coyoteTimer > 0) {
+      this.coyoteTimer -= 1;
+    }
+    if (jumpPressed) {
+      this.jumpBufferTimer = this.JUMP_BUFFER_MAX;
+    } else if (this.jumpBufferTimer > 0) {
+      this.jumpBufferTimer -= 1;
+    }
+  }
+
+  /** canJump() — true if a buffered jump press overlaps the coyote window. */
+  canJump() {
+    return this.jumpBufferTimer > 0 && this.coyoteTimer > 0;
+  }
+
+  /** consumeJump() — call when the jump fires; clears both timers. */
+  consumeJump() {
+    this.jumpBufferTimer = 0;
+    this.coyoteTimer = 0;
+  }
+
+  /** reset() — clear all state (e.g. on respawn or scene change). */
+  reset() {
+    this.coyoteTimer = 0;
+    this.jumpBufferTimer = 0;
+  }
+}
+
+// ============================================================================
 // CLEAN EXPORT SURFACE
 // ============================================================================
 
@@ -1247,6 +1363,8 @@ const gpfeel = {
   characterStep,
   lakituCamera,
   updateCamera,
+  threeAdapter,
+  RetroController,
   ledgeCheck,
   squashStretch,
   tickSquash,

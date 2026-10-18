@@ -1,7 +1,12 @@
 // gpphys: the physics shared by the recipes. Circle World (merge sandbox, peggle, breakout balls), destructible Terrain (artillery),
 // and axis-separated tile movement for platformers (platformer, metroidvania, run-and-gun, dungeon).
 import { clamp } from './gpmath.js';
-/** Circles with gravity, walls, circle-circle impulses. Bodies: {x,y,r,vx,vy,m,static,bounce,data}. */
+/** Circles with gravity, walls, circle-circle impulses. Bodies: {x,y,r,vx,vy,m,static,bounce,data}.
+ *
+ * NOTE (feel upgrade path): World.step already sub-steps (sub=3) but has no
+ * input forgiveness. For character controllers needing coyote time / jump
+ * buffering, see gpfeel.characterStep() + gpfeel.RetroController in kit/gpfeel.js.
+ */
 export function World({ gx = 0, gy = 1400, x0 = 0, y0 = 0, x1 = 540, y1 = 960, damp = .9995, bounce = .5, sub = 3, walls = { l: 1, r: 1, b: 1, t: 0 } } = {}) {
   const w = { bodies: [], gx, gy, x0, y0, x1, y1, onHit: null, onWall: null, onDrain: null,
     add(b) { b.vx ??= 0; b.vy ??= 0; b.m ??= b.r * b.r; b.bounce ??= bounce; this.bodies.push(b); return b; }, remove(b) { const i = this.bodies.indexOf(b); if (i >= 0) this.bodies.splice(i, 1); },
@@ -23,7 +28,15 @@ export function Terrain({ w = 540, h = 960, step = 3, height = x => 640 } = {}) 
     carve(cx, cy, r) { for (let i = 0; i < n; i++) { const dx = i * step - cx; if (Math.abs(dx) > r) continue; const dy = Math.sqrt(r * r - dx * dx); if (cy - dy <= top[i] + 2) top[i] = Math.max(top[i], cy + dy * .9); } },
     draw(c, fill = '#6bbf59', edge = '#3f8f3a', under = '#7a5a3a') { c.beginPath(); c.moveTo(0, h); for (let i = 0; i < n; i++) c.lineTo(i * step, top[i]); c.lineTo(w, h); c.closePath(); c.fillStyle = under; c.fill(); c.beginPath(); for (let i = 0; i < n; i++) c.lineTo(i * step, top[i]); c.strokeStyle = edge; c.lineWidth = 10; c.lineJoin = 'round'; c.stroke(); c.strokeStyle = fill; c.lineWidth = 5; c.stroke(); } };
 }
-/** Move a box {x,y,w,h,vx,vy} through a tile grid. solid(tx,ty) says which tiles block. Returns {x:bool,y:bool,ground:bool,ceil:bool}. */
+/** Move a box {x,y,w,h,vx,vy} through a tile grid. solid(tx,ty) says which tiles block. Returns {x:bool,y:bool,ground:bool,ceil:bool}.
+ *
+ * NOTE (feel upgrade path): moveBox is single-step axis-separated movement —
+ * fine for simple recipes, but high-speed entities can tunnel and jumps feel
+ * stiff. For Nintendo-grade feel, replace with gpfeel.characterStep() from
+ * kit/gpfeel.js: 4x sub-stepping (no tunneling), 4-frame coyote time,
+ * 5-frame jump input buffering, and SM64-derived accel curves.
+ * See docs/NINTENDO-FEEL.md and each recipe's `feel.use` in presets/recipes.json.
+ */
 export function moveBox(b, solid, T, dt) {
   const hit = { x: false, y: false, ground: false, ceil: false }, hits = (x, y) => { for (let ty = Math.floor(y / T); ty <= Math.floor((y + b.h - .01) / T); ty++) for (let tx = Math.floor(x / T); tx <= Math.floor((x + b.w - .01) / T); tx++) if (solid(tx, ty)) return { tx, ty }; return null; };
   b.x += b.vx * dt; let o = hits(b.x, b.y); if (o) { b.x = b.vx > 0 ? o.tx * T - b.w : (o.tx + 1) * T; b.vx = 0; hit.x = true; }
