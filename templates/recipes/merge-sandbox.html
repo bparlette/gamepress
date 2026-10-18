@@ -3,7 +3,7 @@
 /*RECIPE merge-sandbox. ONE screen, ONE mechanic: drop pets into the jar; two of the same tier merge into the next. 3-SECOND RULE: the pet you drop = player, the overflow line = enemy, goal = merge up to the big pet.
   DON'T BUILD: daily rewards, shop, more than 8 tiers, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp, shade } from '../_vendor/gp2d.js';
-import { face } from '../_vendor/gpsprites.js';
+import { face, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { World } from '../_vendor/gpphys.js';
 const S = { title: 'MERGE PETS', sub: 'Drag, release to drop', hook: 'Merge to a MEGA cat', hero: 'cat', bg: '#3b2a5e', winTier: 5, drops: 26, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
@@ -24,7 +24,7 @@ function update(dt) {
   w.step(dt * 1.15); let hot = false; for (const b of w.bodies) if (b.y - b.r < TOP && g.t - b.data.born > 1.2 && Math.abs(b.vy) < 90) hot = true; over = hot ? over + dt : 0; if (left <= 0 && g.mode === 'play') { outT += dt; if (outT > 2.2) g.end({ win: false, score: g.score, label: 'SCORE' }); } if (over > 2.2) { sfx('hit'); g.end({ win: false, score: g.score, label: 'SCORE' }); }
   g.hud.l = `${g.score}`; g.hud.r = `PETS ${left}`; g.state = { bodies: w.bodies.length, tier: maxTier, score: g.score };
 }
-const pet = (c, x, y, tier, rot = 0) => { const [r, col] = TIERS[tier]; c.save(); c.translate(x, y); c.rotate(rot); c.beginPath(); c.arc(0, 0, r, 0, 7); c.fillStyle = col; c.fill(); c.lineWidth = 4; c.strokeStyle = '#000'; c.stroke(); c.restore(); face(c, tier % 2 ? 'dog' : S.hero, x, y + r * .05, r * .85, col); };
+const pet = (c, x, y, tier, rot = 0) => { const [r, col] = TIERS[tier]; c.save(); c.translate(x, y); c.rotate(rot); c.beginPath(); c.arc(0, 0, r, 0, 7); c.fillStyle = col; c.fill(); c.lineWidth = 4; c.strokeStyle = '#000'; c.stroke(); c.restore(); face(c, tier % 2 ? 'dog' : heroKind(S.hero), x, y + r * .05, r * .85, col); };
 function draw(c) {
   c.fillStyle = 'rgba(255,255,255,.1)'; c.beginPath(); c.roundRect(X0 - 6, TOP - 120, X1 - X0 + 12, Y1 - TOP + 126, 24); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 6; c.beginPath(); c.moveTo(X0 - 3, TOP - 120); c.lineTo(X0 - 3, Y1 + 3); c.lineTo(X1 + 3, Y1 + 3); c.lineTo(X1 + 3, TOP - 120); c.stroke();
   c.setLineDash([14, 12]); c.strokeStyle = over > 0 ? `rgba(255,70,70,${.5 + Math.sin(g.t * 20) * .5})` : 'rgba(255,255,255,.35)'; c.lineWidth = 4; c.beginPath(); c.moveTo(X0, TOP); c.lineTo(X1, TOP); c.stroke(); c.setLineDash([]);

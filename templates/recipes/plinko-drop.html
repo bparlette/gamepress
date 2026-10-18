@@ -3,7 +3,7 @@
 /*RECIPE plinko-drop. ONE screen, ONE mechanic: pick where to drop the cat; it bounces through pegs into a payout slot. 3-SECOND RULE: the falling cat = player, the low-pay slots = enemy, goal = reach the coin target before the drops run out.
   DON'T BUILD: boards shop, bets menu, more than one board, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
-import { face } from '../_vendor/gpsprites.js';
+import { face, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { World } from '../_vendor/gpphys.js';
 const S = { title: 'CAT PLINKO', sub: 'Tap where to drop', hook: 'Drop it. Win big.', hero: 'cat', bg: '#1b2b5e', target: 250, drops: 6, bet: 20, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
@@ -25,8 +25,8 @@ function draw(c) {
   const gr = c.createLinearGradient(0, 0, 0, 960); gr.addColorStop(0, '#24397a'); gr.addColorStop(1, '#101a3c'); c.fillStyle = gr; c.fillRect(0, 0, 540, 960);
   for (const p of w.bodies) if (p.static) { c.beginPath(); c.arc(p.x, p.y, p.r, 0, 7); c.fillStyle = '#7ad7ff'; c.fill(); c.lineWidth = 3; c.strokeStyle = '#000'; c.stroke(); }
   for (let i = 0; i < 7; i++) { const m = MULT[i]; c.fillStyle = m >= 3 ? '#ffd34d' : m >= 1 ? '#4caf50' : '#e63946'; c.globalAlpha = last === i ? 1 : .8; c.fillRect(i * SW + 3, SY, SW - 6, 110); c.globalAlpha = 1; c.strokeStyle = '#000'; c.lineWidth = 4; c.strokeRect(i * SW + 3, SY, SW - 6, 110); g.text('x' + m, i * SW + SW / 2, SY + 66, { size: 34, align: 'center', color: '#fff' }); }
-  for (let i = 0; i < trail.length; i++) { c.globalAlpha = i / trail.length * .5; c.fillStyle = '#fff'; c.beginPath(); c.arc(trail[i].x, trail[i].y, 9, 0, 7); c.fill(); } c.globalAlpha = 1; if (ball) face(c, S.hero, ball.x, ball.y, 17, '#ff9a3c');
-  if (!ball && g.mode === 'play') { const x = clamp(g.ptr.x, 30, 510); c.globalAlpha = .5; face(c, S.hero, x, 170, 17, '#ff9a3c'); c.globalAlpha = 1; }
+  for (let i = 0; i < trail.length; i++) { c.globalAlpha = i / trail.length * .5; c.fillStyle = '#fff'; c.beginPath(); c.arc(trail[i].x, trail[i].y, 9, 0, 7); c.fill(); } c.globalAlpha = 1; if (ball) face(c, heroKind(S.hero), ball.x, ball.y, 17, '#ff9a3c');
+  if (!ball && g.mode === 'play') { const x = clamp(g.ptr.x, 30, 510); c.globalAlpha = .5; face(c, heroKind(S.hero), x, 170, 17, '#ff9a3c'); c.globalAlpha = 1; }
   g.bar(60, 190, 420, 16, total / S.target, '#7dff7d'); g.text(`TARGET ${S.target}`, 270, 230, { size: 26, align: 'center', stroke: 4 });
 }
 g.run(update, draw);

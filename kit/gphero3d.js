@@ -102,3 +102,8 @@ export function animate(h, dt, mode = 'idle') {
   const run = mode === 'run' || mode === 'hop'; b.position.y = u.float ? .15 + Math.sin(u.t * 3) * .12 : run ? Math.abs(Math.sin(u.t * 12)) * .06 : 0;
   b.scale.set(s0 * (1 + Math.sin(u.t * (run ? 12 : 2.2)) * .02), s0 * (1 - Math.sin(u.t * (run ? 12 : 2.2)) * .02), s0); return h;
 }
+
+// Runtime hero override (hub pages): ?hero=<kind>&heroColor=<#rrggbb>. Unknown kind / bad colour are ignored.
+const _q = () => { try { return new URLSearchParams(globalThis.location?.search || ''); } catch (e) { return new URLSearchParams(''); } };
+export const urlHero = (specKind) => { const k = _q().get('hero'); return k && HERO_KINDS.includes(k) ? k : (specKind || 'cat'); };
+export const urlHeroColor = (specColor) => { const v = _q().get('heroColor'); return v && /^#[0-9a-fA-F]{6}$/.test(v) ? v : specColor; };

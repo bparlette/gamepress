@@ -3,7 +3,7 @@
 /*RECIPE micro-tower-defense. ONE screen, ONE mechanic: tap grass to place a cat tower; zombies walk the path to your base. 3-SECOND RULE: cat towers = player, zombie wave = enemy, goal = stop them reaching the base.
   DON'T BUILD: a tower tree, more than one map, hero units, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp, dist } from '../_vendor/gp2d.js';
-import { drawChar, heart, coin as coinS } from '../_vendor/gpsprites.js';
+import { drawChar, heart, coin as coinS, heroKind, heroColor } from '../_vendor/gpsprites.js';
 const S = { title: 'CAT DEFENSE', sub: 'Tap grass to place a cat', hook: "Don't let the zombies through", hero: 'cat', foe: 'zombie', bg: '#6bbf59', lives: 5, cash: 120, cost: 40, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const T = 60, OY = 140, WP = [[-1, 1], [7, 1], [7, 4], [1, 4], [1, 7], [9, 7]];
@@ -31,7 +31,7 @@ function draw(c) {
   c.strokeStyle = '#c9a56a'; c.lineWidth = 46; c.lineJoin = 'round'; c.lineCap = 'round'; c.beginPath(); PATH.forEach((p, i) => (i ? c.lineTo(p.x, p.y) : c.moveTo(p.x - 60, p.y))); c.stroke(); c.strokeStyle = '#a8864e'; c.lineWidth = 36; c.stroke();
   const end = PATH.at(-1); c.fillStyle = '#e63946'; c.fillRect(end.x - 20, end.y - 40, 40, 60); c.strokeStyle = '#000'; c.lineWidth = 4; c.strokeRect(end.x - 20, end.y - 40, 40, 60); g.text('BASE', end.x, end.y - 46, { size: 22, align: 'center' });
   if (g.mode === 'play') for (let y = 0; y < 10; y++) for (let x = 0; x < 9; x++) if (!onPath(x, y) && !tw.some(q => q.tx === x && q.ty === y) && cash >= S.cost) { c.strokeStyle = 'rgba(255,255,255,.18)'; c.lineWidth = 2; c.strokeRect(x * T + 8, y * T + OY + 8, T - 16, T - 16); }
-  for (const q of tw) { c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(q.x, q.y + 20, 22, 8, 0, 0, 7); c.fill(); drawChar(S.hero || 'cat', c, q.x, q.y + 24, 62, { color: ['#ff9a3c', '#f4efe4', '#9aa0aa'][(q.tx + q.ty) % 3], dir: q.d || 1, t: q.t, anim: 'idle' }); }
+  for (const q of tw) { c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(q.x, q.y + 20, 22, 8, 0, 0, 7); c.fill(); drawChar(heroKind(S.hero), c, q.x, q.y + 24, 62, { color: ['#ff9a3c', '#f4efe4', '#9aa0aa'][(q.tx + q.ty) % 3], dir: q.d || 1, t: q.t, anim: 'idle' }); }
   for (const z of [...zs].sort((a, b) => a.y - b.y)) { drawChar(S.foe, c, z.x, z.y + 22, z.max > 2 ? 78 : 56, { dir: z.d, t: z.t, anim: 'walk', hurt: z.fl > 0, color: z.max > 2 ? '#5a9a4a' : undefined }); if (z.hp < z.max) g.bar(z.x - 16, z.y - 40, 32, 5, z.hp / z.max, '#ff5a5a'); }
   c.fillStyle = '#ffd34d'; for (const b of bl) { c.beginPath(); c.ellipse(b.x, b.y, 10, 5, Math.atan2(b.vy, b.vx), 0, 7); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 2; c.stroke(); }
   for (let i = 0; i < lives; i++) heart(c, 40 + i * 44, 110, 34); if (g.mode === 'play' && cash >= S.cost && tw.length < 1) g.text('TAP GRASS TO PLACE A CAT', 270, 900, { size: 28, align: 'center' });

@@ -3,7 +3,7 @@
 /*RECIPE trajectory-artillery. ONE screen, ONE mechanic: drag back to aim, release to fire a fish bomb across the wind; craters change the ground. 3-SECOND RULE: left cat = player, right zombie = enemy, goal = land a bomb on the zombie.
   DON'T BUILD: a weapon menu, more than one weapon, teams, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp, dist } from '../_vendor/gp2d.js';
-import { drawChar, heart } from '../_vendor/gpsprites.js';
+import { drawChar, heart, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { Terrain } from '../_vendor/gpphys.js';
 const S = { title: 'CAT ARTILLERY', sub: 'Drag back to aim, release to fire', hook: 'Aim. Fire. Dig a crater.', hero: 'cat', foe: 'zombie', bg: '#8fd8ff', heroColor: '#ff9a3c', hp: 4, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
@@ -27,7 +27,7 @@ function update(dt) {
 }
 function draw(c) {
   const gr = c.createLinearGradient(0, 0, 0, 700); gr.addColorStop(0, '#6ec6ff'); gr.addColorStop(1, '#d8f1ff'); c.fillStyle = gr; c.fillRect(0, 0, 540, 960); c.fillStyle = '#fff'; for (let i = 0; i < 4; i++) { c.beginPath(); c.arc(80 + i * 140 + (g.t * 8) % 60, 150 + (i % 2) * 60, 36, 0, 7); c.arc(120 + i * 140 + (g.t * 8) % 60, 140 + (i % 2) * 60, 44, 0, 7); c.fill(); }
-  ter.draw(c); drawChar(S.hero || 'cat', c, a.x, gy(a.x) + 4, 90, { color: S.heroColor, dir: 1, t: a.t, anim: 'idle', hurt: a.fl > 0 }); drawChar(S.foe, c, b.x, gy(b.x) + 4, 92, { dir: -1, t: b.t, anim: 'idle', hurt: b.fl > 0 });
+  ter.draw(c); drawChar(heroKind(S.hero), c, a.x, gy(a.x) + 4, 90, { color: heroColor(S.heroColor), dir: 1, t: a.t, anim: 'idle', hurt: a.fl > 0 }); drawChar(S.foe, c, b.x, gy(b.x) + 4, 92, { dir: -1, t: b.t, anim: 'idle', hurt: b.fl > 0 });
   c.save(); c.translate(a.x + 26, gy(a.x) - 40); c.rotate(drag ? Math.atan2(drag.y - drag.py, drag.x - drag.px) : -.8); c.fillStyle = '#555'; c.fillRect(0, -9, 44, 18); c.strokeStyle = '#000'; c.lineWidth = 3; c.strokeRect(0, -9, 44, 18); c.restore();
   if (drag) { c.setLineDash([8, 10]); c.strokeStyle = 'rgba(255,255,255,.8)'; c.lineWidth = 4; c.beginPath(); c.moveTo(drag.px, drag.py); c.lineTo(drag.x, drag.y); c.stroke(); c.setLineDash([]); const dx = drag.x - drag.px, dy = drag.y - drag.py, pw = Math.min(900, Math.hypot(dx, dy) * 3.2), l = Math.hypot(dx, dy) || 1; let x = drag.x, y = drag.y, vx = dx / l * pw, vy = dy / l * pw; c.fillStyle = 'rgba(255,255,255,.7)'; for (let i = 0; i < 24; i++) { vx += wind / 60 * 3; vy += G / 60 * 3; x += vx / 60 * 3; y += vy / 60 * 3; c.beginPath(); c.arc(x, y, 4, 0, 7); c.fill(); } }
   if (drag?.bot) { const v = drag.bot; let x = a.x, y = gy(a.x) - 60, vx = v.vx, vy = v.vy; c.fillStyle = 'rgba(255,255,255,.7)'; for (let i = 0; i < 20; i++) { vx += wind / 60 * 3; vy += G / 60 * 3; x += vx / 60 * 3; y += vy / 60 * 3; c.beginPath(); c.arc(x, y, 4, 0, 7); c.fill(); } }

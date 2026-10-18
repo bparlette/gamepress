@@ -3,7 +3,7 @@
 /*RECIPE falling-blocks. ONE screen, ONE mechanic: rotate and place falling pieces to clear lines. 3-SECOND RULE: the falling piece = player, the top of the board = enemy, goal = clear lines.
   DON'T BUILD: hold queue, marathon modes, multiple piece sets, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, pick, shuffle } from '../_vendor/gp2d.js';
-import { face } from '../_vendor/gpsprites.js';
+import { face, heroKind, heroColor } from '../_vendor/gpsprites.js';
 const S = { title: 'BLOCK CATS', sub: 'Stack it or lose it', hook: 'Stack it or lose it', hero: 'cat', bg: '#14183a', lines: 8, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const CW = 10, CH = 20, CS = 36, OX = 90, OY = 120;
@@ -33,7 +33,7 @@ function draw(c) {
   c.strokeStyle = 'rgba(255,255,255,.06)'; c.lineWidth = 1; for (let x = 0; x <= CW; x++) { c.beginPath(); c.moveTo(OX + x * CS, OY); c.lineTo(OX + x * CS, OY + CH * CS); c.stroke(); } for (let y = 0; y <= CH; y++) { c.beginPath(); c.moveTo(OX, OY + y * CS); c.lineTo(OX + CW * CS, OY + y * CS); c.stroke(); }
   const cell = (x, y, k, a = 1) => { c.globalAlpha = a; c.fillStyle = COL[k]; c.beginPath(); c.roundRect(OX + x * CS + 2, OY + y * CS + 2, CS - 4, CS - 4, 7); c.fill(); c.lineWidth = 3; c.strokeStyle = '#000'; c.stroke(); c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(OX + x * CS + 7, OY + y * CS + 6, CS - 18, 5); c.globalAlpha = 1; };
   for (let y = 0; y < CH; y++) for (let x = 0; x < CW; x++) if (bd[y][x]) cell(x, y, bd[y][x]);
-  if (g.mode === 'play') { let gp = { ...cur }; while (ok({ ...gp, y: gp.y + 1 })) gp.y++; for (const [x, y] of cellsOf(gp)) if (y >= 0) cell(x, y, cur.k, .22); for (const [x, y] of cellsOf(cur)) if (y >= 0) cell(x, y, cur.k); const m = cellsOf(cur)[1]; if (m && m[1] >= 0) face(c, S.hero, OX + m[0] * CS + CS / 2, OY + m[1] * CS + CS / 2, 11); }
+  if (g.mode === 'play') { let gp = { ...cur }; while (ok({ ...gp, y: gp.y + 1 })) gp.y++; for (const [x, y] of cellsOf(gp)) if (y >= 0) cell(x, y, cur.k, .22); for (const [x, y] of cellsOf(cur)) if (y >= 0) cell(x, y, cur.k); const m = cellsOf(cur)[1]; if (m && m[1] >= 0) face(c, heroKind(S.hero), OX + m[0] * CS + CS / 2, OY + m[1] * CS + CS / 2, 11); }
 }
 g.run(update, draw);
 </script></body></html>

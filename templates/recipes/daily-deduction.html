@@ -3,7 +3,7 @@
 /*RECIPE daily-deduction. ONE screen, ONE mechanic: guess the 5-letter word in 6 tries. 3-SECOND RULE: on-screen keyboard = player, 6 rows = enemy, goal = turn the tiles green.
   DON'T BUILD: accounts, share screen, dictionary beyond ~120 words, hard mode. The answer comes from ?seed= (the "daily" word). Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, ri, pick, shuffle } from '../_vendor/gp2d.js';
-import { face } from '../_vendor/gpsprites.js';
+import { face, heroKind, heroColor } from '../_vendor/gpsprites.js';
 const S = { title: 'WORD CAT', sub: 'Guess the word in 6', hook: 'Can you solve it in 6?', hero: 'cat', bg: '#121a2b', correct: '#6aaa64', present: '#c9b458', absent: '#4a4f5a', style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const WORDS = 'APPLE BRAVE CHAIR DREAM EARTH FLAME GRAPE HOUSE JUICE KNIFE LEMON MOUSE NIGHT OCEAN PIANO QUEEN RIVER SMILE TIGER UNCLE VOICE WATER YOUTH ZEBRA CANDY DANCE EAGLE FIELD GHOST HEART IVORY JELLY KOALA LIGHT MAGIC NOBLE OLIVE PEACH QUIET ROBOT SUGAR TRAIN UNDER VIVID WORLD XENON YEAST ZONAL BEACH CLOUD DRIVE ELBOW FRUIT GIANT HONEY IGLOO JOKER KITTY LUNCH MANGO NURSE ORBIT PLANT QUILT RADIO STONE TOAST URBAN VALVE WHALE PIZZA BREAD CRANE DAISY EMBER FLUTE GLOBE HAPPY INDEX JEWEL KARMA LASER MAPLE NINJA OTTER PARTY QUEST ROAST SHEEP TULIP UMBRA VENOM WITCH CLOWN BLOOM CRISP FROST GRAIN HINGE'.split(' ');
@@ -26,7 +26,7 @@ function update(dt) {
 }
 function botGuess() { if (g.dumb()) return pick(WORDS); let c = WORDS.filter(w => rows.every(r => { const a = ans; ans = w; const s = score(r.guess); ans = a; return s.join() === r.res.join(); })); if (rows.length === 0) return 'CRANE'; return c.length ? c[0] : pick(WORDS); }
 function draw(c) {
-  face(c, S.hero, 60, 78, 34); g.text(S.title, 110, 96, { size: 44, color: '#ffd34d', stroke: 0 }); g.text(`${rows.length}/6`, 500, 96, { size: 36, align: 'right', stroke: 0 });
+  face(c, heroKind(S.hero), 60, 78, 34); g.text(S.title, 110, 96, { size: 44, color: '#ffd34d', stroke: 0 }); g.text(`${rows.length}/6`, 500, 96, { size: 36, align: 'right', stroke: 0 });
   for (let r = 0; r < 6; r++) for (let i = 0; i < 5; i++) { const x = GX + i * (TS + 8), y = GY + r * (TS + 8); let ch = '', col = null, flip = 1;
     if (r < rows.length) { ch = rows[r].guess[i]; col = S[rows[r].res[i]]; } else if (reveal && r === rows.length) { ch = reveal.guess[i]; const t = reveal.t / .22 - i; col = t > .5 ? S[reveal.res[i]] : null; flip = Math.abs(Math.cos(Math.min(1, Math.max(0, t)) * Math.PI)); } else if (r === rows.length) ch = cur[i] || '';
     c.save(); c.translate(x + TS / 2, y + TS / 2); c.scale(1, Math.max(.05, flip)); c.fillStyle = col || '#1b2540'; c.fillRect(-TS / 2, -TS / 2, TS, TS); c.strokeStyle = col ? '#000' : (ch ? '#9aa6c8' : '#39466b'); c.lineWidth = 4; c.strokeRect(-TS / 2, -TS / 2, TS, TS); c.restore(); if (ch) g.text(ch, x + TS / 2, y + TS / 2 + 18, { size: 54, align: 'center', stroke: 5 }); }

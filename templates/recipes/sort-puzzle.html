@@ -3,7 +3,7 @@
 /*RECIPE sort-puzzle. ONE screen, ONE mechanic: tap a tube, tap another to pour the top cats onto the same colour; sort every tube before the moves run out. 3-SECOND RULE: the tubes of cats = player, the move counter = enemy, goal = one colour per tube.
   DON'T BUILD: levels list, hints shop, undo packs, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, pick, shuffle, clamp } from '../_vendor/gp2d.js';
-import { face } from '../_vendor/gpsprites.js';
+import { face, heroKind, heroColor } from '../_vendor/gpsprites.js';
 const S = { title: 'CAT SORT', sub: 'Tap a tube, then another', hook: 'Satisfying? Try the last tube.', hero: 'cat', bg: '#3a2a5e', slack: 4, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const COL = ['#ff9a3c', '#f4efe4', '#7ab0ff', '#ff7ab6', '#7dd87d'], CAP = 4, NT = 7, TW = 92, TH = 290;
@@ -27,7 +27,7 @@ function update(dt) {
 }
 function draw(c) {
   for (let i = 0; i < NT; i++) { const x = tx(i), y = ty(i), up = sel === i ? -26 : 0; c.fillStyle = 'rgba(255,255,255,.12)'; c.beginPath(); c.roundRect(x - TW / 2, y, TW, TH, 28); c.fill(); c.lineWidth = 6; c.strokeStyle = sel === i ? '#ffd34d' : (tubes[i].length === CAP && tubes[i].every(x => x === tubes[i][0]) ? '#7dff7d' : '#fff'); c.stroke();
-    tubes[i].forEach((col, k) => { const lift = sel === i && k >= tubes[i].length - run(tubes[i]) ? up : 0, cy = y + TH - 42 - k * 66 + lift; c.beginPath(); c.arc(x, cy, 30, 0, 7); c.fillStyle = COL[col]; c.fill(); c.lineWidth = 4; c.strokeStyle = '#000'; c.stroke(); face(c, S.hero, x, cy + 2, 24, COL[col]); }); }
+    tubes[i].forEach((col, k) => { const lift = sel === i && k >= tubes[i].length - run(tubes[i]) ? up : 0, cy = y + TH - 42 - k * 66 + lift; c.beginPath(); c.arc(x, cy, 30, 0, 7); c.fillStyle = COL[col]; c.fill(); c.lineWidth = 4; c.strokeStyle = '#000'; c.stroke(); face(c, heroKind(S.hero), x, cy + 2, 24, COL[col]); }); }
   if (g.mode === 'play' && moves > 0) g.text(sel < 0 ? 'PICK A TUBE' : 'POUR WHERE?', 270, 925, { size: 34, align: 'center' });
 }
 g.run(update, draw);

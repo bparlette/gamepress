@@ -3,7 +3,7 @@
 /*RECIPE card-roguelite. ONE screen, ONE mechanic: pick up to 5 cards, play a poker hand, chips x mult beats the blind. 3-SECOND RULE: your hand of cards = player, the target score and 3 hands = enemy, goal = beat the blind.
   DON'T BUILD: a shop, more than a few jokers, a run map, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, shuffle, clamp } from '../_vendor/gp2d.js';
-import { face } from '../_vendor/gpsprites.js';
+import { face, heroKind, heroColor } from '../_vendor/gpsprites.js';
 const S = { title: 'CARD CATS', sub: 'Tap cards, then PLAY', hook: 'Beat the blind with 5 cards', hero: 'cat', bg: '#0f5a3a', target: 240, hands: 3, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const SUITS = [['♥', '#e63946'], ['♦', '#ff8a1f'], ['♣', '#2a2f3a'], ['♠', '#2a2f3a']], RANK = r => (r === 14 ? 'A' : r === 13 ? 'K' : r === 12 ? 'Q' : r === 11 ? 'J' : String(r)), CH = r => (r === 14 ? 11 : Math.min(10, r));
@@ -35,9 +35,9 @@ function update(dt) {
 }
 function draw(c) {
   const gr = c.createRadialGradient(270, 480, 60, 270, 480, 700); gr.addColorStop(0, '#1b8a58'); gr.addColorStop(1, '#0a3a26'); c.fillStyle = gr; c.fillRect(0, 0, 540, 960);
-  g.text(`BLIND  ${S.target}`, 270, 150, { size: 48, align: 'center', color: '#ffd34d' }); g.bar(60, 170, 420, 22, total / S.target, total >= S.target ? '#7dff7d' : '#ffd34d'); face(c, S.hero, 40, 100, 26);
+  g.text(`BLIND  ${S.target}`, 270, 150, { size: 48, align: 'center', color: '#ffd34d' }); g.bar(60, 170, 420, 22, total / S.target, total >= S.target ? '#7dff7d' : '#ffd34d'); face(c, heroKind(S.hero), 40, 100, 26);
   hand.forEach((cd, i) => { const p = cardPos(i), s = SUITS[cd.s], hot = tally && tally.idx.includes(i); c.save(); c.translate(p.x + p.w / 2, p.y + p.h / 2); if (hot && tally.idx.indexOf(i) < tally.shown) c.scale(1.08, 1.08); c.shadowColor = 'rgba(0,0,0,.4)'; c.shadowBlur = 14; c.fillStyle = sel.has(i) ? '#fff6c8' : '#fff'; c.beginPath(); c.roundRect(-p.w / 2, -p.h / 2, p.w, p.h, 12); c.fill(); c.shadowBlur = 0; c.lineWidth = sel.has(i) ? 6 : 3; c.strokeStyle = sel.has(i) ? '#ffd34d' : '#222'; c.stroke(); c.restore();
-    g.text(RANK(cd.r), p.x + 14, p.y + 42, { size: 40, color: s[1], stroke: 0 }); g.text(s[0], p.x + 14, p.y + 76, { size: 32, color: s[1], stroke: 0 }); face(c, S.hero, p.x + p.w / 2 + 8, p.y + p.h / 2 + 24, 22, ['#ff6a6a', '#ffb02a', '#9aa0aa', '#4a4f5a'][cd.s]); });
+    g.text(RANK(cd.r), p.x + 14, p.y + 42, { size: 40, color: s[1], stroke: 0 }); g.text(s[0], p.x + 14, p.y + 76, { size: 32, color: s[1], stroke: 0 }); face(c, heroKind(S.hero), p.x + p.w / 2 + 8, p.y + p.h / 2 + 24, 22, ['#ff6a6a', '#ffb02a', '#9aa0aa', '#4a4f5a'][cd.s]); });
   if (sel.size && phase === 'pick') { const sc = scoreOf([...sel].map(i => hand[i])); g.text(`${sc.name}   ${sc.chips} x ${sc.mult}`, 270, 270, { size: 36, align: 'center', color: '#fff' }); }
   if (phase === 'tally' && tally.done) g.text(`${tally.sc.name}`, 270, 270, { size: 40, align: 'center', color: '#ffd34d' });
   if (phase === 'pick' && !sel.size && g.mode === 'play') g.text(total ? 'PICK UP TO 5 CARDS' : 'TAP CARDS, THEN PLAY', 270, 270, { size: 32, align: 'center', color: '#fff' });

@@ -3,7 +3,7 @@
 /*RECIPE footsies-duel. ONE screen, ONE mechanic: strike, parry and step on a single line; every hit pushes the other fighter toward the cliff. 3-SECOND RULE: orange cat = player, green zombie = enemy, goal = push the zombie off the edge.
   DON'T BUILD: character select, more than three moves, online play, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
-import { drawChar } from '../_vendor/gpsprites.js';
+import { drawChar, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CAT DUEL', sub: 'Strike, parry, step. Push them off.', hook: 'First to push wins', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#ff9a5a', style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
@@ -35,7 +35,7 @@ function draw(c) {
   c.fillStyle = '#6b4a2e'; c.fillRect(L - 20, FY, Rr - L + 40, 100); c.fillStyle = '#6bbf59'; c.fillRect(L - 20, FY, Rr - L + 40, 16); c.strokeStyle = '#000'; c.lineWidth = 5; c.strokeRect(L - 20, FY, Rr - L + 40, 100);
   c.fillStyle = 'rgba(255,60,60,.5)'; c.fillRect(0, FY - 4, L - 20, 8); c.fillRect(Rr + 20, FY - 4, 40, 8);
   const draw1 = (f, kind, col) => { const lean = f.st === 'strike' && f.t > .1 ? f.d * 22 : f.st === 'stagger' ? -f.d * 16 : 0; drawChar(kind, c, f.x + lean, FY + 4, 150, { color: col, dir: f.d, t: g.t, anim: f.vx ? 'idle' : 'idle', hurt: f.st === 'stagger' }); if (f.st === 'parry') { c.strokeStyle = '#7dff7d'; c.lineWidth = 6; c.beginPath(); c.arc(f.x + f.d * 40, FY - 80, 50, f.d > 0 ? -1 : Math.PI - 1, f.d > 0 ? 1 : Math.PI + 1); c.stroke(); } if (f.st === 'strike' && f.t > .1) { c.fillStyle = 'rgba(255,255,255,.8)'; c.beginPath(); c.arc(f.x + f.d * 90, FY - 80, 26, 0, 7); c.fill(); } };
-  draw1(a, 'cat', S.heroColor); draw1(b, S.foe, undefined);
+  draw1(a, heroKind(S.hero), heroColor(S.heroColor)); draw1(b, S.foe, undefined);
   c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(L, 130, 500, 8); g.text('PUSH THEM OFF THE EDGE', 270, 190, { size: 28, align: 'center', color: '#fff', stroke: 4 }); c.fillStyle = S.heroColor; c.beginPath(); c.arc(L + (a.x - L) / (Rr - L) * 500, 134, 11, 0, 7); c.fill(); c.fillStyle = '#8fcf7a'; c.beginPath(); c.arc(L + (b.x - L) / (Rr - L) * 500, 134, 11, 0, 7); c.fill();
 }
 g.run(update, draw);

@@ -3,7 +3,7 @@
 /*RECIPE idle-tycoon. ONE screen, ONE mechanic: tap the cat for fish, buy machines that make fish for you, hit the quota before the clock ends. 3-SECOND RULE: the big cat button = player, the clock = enemy, goal = reach the fish quota.
   DON'T BUILD: prestige, more than 3 machines, offline progress, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
-import { face, coin as coinS } from '../_vendor/gpsprites.js';
+import { face, coin as coinS, heroKind, heroColor } from '../_vendor/gpsprites.js';
 const S = { title: 'CAT FACTORY', sub: 'Tap the cat. Buy machines.', hook: 'Make 1,000,000 fish', hero: 'cat', bg: '#1d3b5e', goal: 900, seconds: 24, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const MACH = [{ n: 'FISHING NET', base: 10, rate: 4, c: '#7ad7ff' }, { n: 'BOAT', base: 80, rate: 24, c: '#ffd34d' }, { n: 'FACTORY', base: 450, rate: 120, c: '#ff8a1f' }];
@@ -27,7 +27,7 @@ function draw(c) {
   const gr = c.createLinearGradient(0, 0, 0, 960); gr.addColorStop(0, '#244a78'); gr.addColorStop(1, '#14283f'); c.fillStyle = gr; c.fillRect(0, 0, 540, 960);
   g.text(fmt(fish), 270, 130, { size: 96, align: 'center', color: '#fff' }); g.text('FISH  +' + rate().toFixed(1) + '/s', 270, 175, { size: 30, align: 'center', color: '#7ad7ff', stroke: 4 });
   g.bar(60, 195, 420, 18, total / S.goal, '#7dff7d'); g.text(`${fmt(total)} / ${fmt(S.goal)}`, 270, 240, { size: 26, align: 'center', stroke: 4 }); g.text(Math.max(0, Math.ceil(left)) + 's', 500, 60, { size: 40, align: 'right', color: left < 6 ? '#ff6b6b' : '#ffd34d' });
-  const s = 1 + pulse * 1.2; c.save(); c.translate(270, 340); c.scale(s, s); c.fillStyle = 'rgba(255,255,255,.12)'; c.beginPath(); c.arc(0, 0, 124, 0, 7); c.fill(); c.fillStyle = '#ff9a3c'; c.beginPath(); c.arc(0, 0, 104, 0, 7); c.fill(); c.lineWidth = 6; c.strokeStyle = '#000'; c.stroke(); c.restore(); face(c, S.hero, 270, 345, 80 * s, '#ff9a3c');
+  const s = 1 + pulse * 1.2; c.save(); c.translate(270, 340); c.scale(s, s); c.fillStyle = 'rgba(255,255,255,.12)'; c.beginPath(); c.arc(0, 0, 124, 0, 7); c.fill(); c.fillStyle = '#ff9a3c'; c.beginPath(); c.arc(0, 0, 104, 0, 7); c.fill(); c.lineWidth = 6; c.strokeStyle = '#000'; c.stroke(); c.restore(); face(c, heroKind(S.hero), 270, 345, 80 * s, '#ff9a3c');
   for (let i = 0; i < 3; i++) { const r = rect(i), m = MACH[i], can = fish >= cost(i); c.fillStyle = can ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.35)'; c.beginPath(); c.roundRect(r.x, r.y, r.w, r.h, 16); c.fill(); c.strokeStyle = can ? m.c : '#555'; c.lineWidth = 5; c.stroke();
     c.fillStyle = m.c; c.beginPath(); c.roundRect(r.x + 12, r.y + 12, 60, 62, 10); c.fill(); c.lineWidth = 3; c.strokeStyle = '#000'; c.stroke(); if (lv[i]) { c.fillStyle = '#fff'; for (let k = 0; k < Math.min(lv[i], 5); k++) c.fillRect(r.x + 18 + k * 10, r.y + 20 + ((g.t * 30 + k * 8) % 40), 6, 6); }
     g.text(m.n, r.x + 86, r.y + 38, { size: 30, color: '#1d2a3a', stroke: 0 }); g.text(`LV ${lv[i]}  +${m.rate}/s each`, r.x + 86, r.y + 70, { size: 22, color: '#4a5a70', stroke: 0 }); g.text(fmt(cost(i)), r.x + r.w - 16, r.y + 54, { size: 38, align: 'right', color: can ? '#1c8f4a' : '#999', stroke: 0 }); }

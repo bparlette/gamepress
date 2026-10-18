@@ -3,7 +3,7 @@
 /*RECIPE hide-and-seek. ONE screen, ONE mechanic: hold to sneak toward the exit, release to freeze as a barrel; the hunter spots anything that moves in its cone. 3-SECOND RULE: cat in a barrel = player, zombie hunter and its light cone = enemy, goal = reach the exit.
   DON'T BUILD: multiplayer, more than one map, voice chat, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp, dist } from '../_vendor/gp2d.js';
-import { drawChar, face } from '../_vendor/gpsprites.js';
+import { drawChar, face, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'PROP CAT', sub: 'Hold to move. Release to freeze.', hook: "Don't move when it looks", hero: 'cat', foe: 'zombie', bg: '#3a3550', floor: '#5a5470', speed: 170, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
@@ -33,7 +33,7 @@ function draw(c) {
   for (const q of props) barrel(c, q.x, q.y, .95, ['#8a5a2e', '#8a5a2e', '#7a4e28'][q.r]);
   const cone = (x, y, a, r, w) => { const gr = c.createRadialGradient(x, y - 40, 10, x, y - 40, r); gr.addColorStop(0, 'rgba(255,240,140,.5)'); gr.addColorStop(1, 'rgba(255,240,140,0)'); c.fillStyle = gr; c.beginPath(); c.moveTo(x, y - 40); c.arc(x, y - 40, r, a - w, a + w); c.closePath(); c.fill(); }; cone(h.x, h.y, h.a, 340, .55);
   drawChar(S.foe, c, h.x, h.y, 100, { dir: h.d, t: h.t, anim: 'walk', color: undefined });
-  if (p.mv) drawChar(S.hero || 'cat', c, p.x, p.y, 74, { color: '#ff9a3c', dir: 1, t: t0, anim: 'walk' }); else barrel(c, p.x, p.y, .95, '#8a5a2e', spot > .3);
+  if (p.mv) drawChar(heroKind(S.hero), c, p.x, p.y, 74, { color: '#ff9a3c', dir: 1, t: t0, anim: 'walk' }); else barrel(c, p.x, p.y, .95, '#8a5a2e', spot > .3);
   if (spot > 0) { g.bar(150, 170, 240, 18, spot, spot > .7 ? '#ff5a5a' : '#ffd34d'); g.text('!', p.x, p.y - 80, { size: 60 + spot * 40, align: 'center', color: '#ff5a5a' }); }
 }
 g.run(update, draw);

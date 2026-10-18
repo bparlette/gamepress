@@ -3,7 +3,7 @@
 /*RECIPE mini-metroidvania. THREE rooms, ONE ability: grab the double-jump orb, then climb the ledge that was out of reach. 3-SECOND RULE: orange cat = player, red spikes = enemy, goal = get the orb, then reach the flag.
   DON'T BUILD: a map screen, more than 3 rooms, bosses, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
-import { drawChar } from '../_vendor/gpsprites.js';
+import { drawChar, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { drawWorld, drawBackdrop, WORLDS } from '../_vendor/gpworld.js';
 import { moveBox } from '../_vendor/gpphys.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
@@ -54,7 +54,7 @@ function draw(c) {
     else if (t === 'D') { const b = Math.sin(g.t * 4) * 5; c.fillStyle = 'rgba(122,215,255,.3)'; c.beginPath(); c.arc(px + T / 2, py + T / 2 + b, 26, 0, 7); c.fill(); c.fillStyle = '#7ad7ff'; c.beginPath(); c.arc(px + T / 2, py + T / 2 + b, 14, 0, 7); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 3; c.stroke(); }
     else if (t === 'F') { c.fillStyle = '#ddd'; c.fillRect(px + 18, py - 60, 6, 105); c.fillStyle = '#ffd34d'; c.beginPath(); c.moveTo(px + 24, py - 60); c.lineTo(px + 70, py - 42 + Math.sin(g.t * 6) * 4); c.lineTo(px + 24, py - 24); c.fill(); } }
   if (hasDouble) { c.fillStyle = 'rgba(122,215,255,.25)'; c.beginPath(); c.arc(p.x + 15, p.y + 24, 34 + Math.sin(g.t * 6) * 3, 0, 7); c.fill(); }
-  drawChar(S.hero, c, p.x + 15, p.y + 46, 62, { color: S.heroColor, dir: p.dir, t: p.t, anim: p.air ? 'idle' : (Math.abs(p.vx) > 1 ? 'walk' : 'idle'), hurt: g.mode === 'over' }); c.restore();
+  drawChar(heroKind(S.hero), c, p.x + 15, p.y + 46, 62, { color: heroColor(S.heroColor), dir: p.dir, t: p.t, anim: p.air ? 'idle' : (Math.abs(p.vx) > 1 ? 'walk' : 'idle'), hurt: g.mode === 'over' }); c.restore();
   for (let i = 0; i < 3; i++) { c.fillStyle = Math.floor(p.x / (RW * T)) === i ? '#ffd34d' : '#555'; c.fillRect(200 + i * 44, 100, 36, 12); } g.text(hasDouble ? 'DOUBLE JUMP: FLY TO THE FLAG' : 'FIND THE BLUE ORB', 270, 150, { size: 26, align: 'center', color: hasDouble ? '#7ad7ff' : '#999' });
 }
 g.run(update, draw);

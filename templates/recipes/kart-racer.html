@@ -4,7 +4,7 @@
   DON'T BUILD: an item roulette, more than one track, drift tutorials, menus. Edit the SPEC JSON (gamepress make).*/
 import { createStage, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
 import { toon, catGeo, dogGeo, zombieGeo, hero, particles, sky, groundTex, build } from '../_vendor/gpkit.js';
-import { buildHero } from '../_vendor/gphero3d.js';
+import { urlHero, urlHeroColor, buildHero } from '../_vendor/gphero3d.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CAT KART', sub: 'Hold left or right. Grab the pads.', hook: 'Win by a whisker', bg: 0x8fd3ff, skyTop: 0x3f8cff, skyBottom: 0xffe7b8, road: 0x474b57, catColor: 0xff9a3c, hero: 'cat', laps: 2, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const P = new URLSearchParams(location.search), AUTO = P.has('auto'), FAILFIRST = P.get('failfirst') !== '0';
@@ -20,8 +20,8 @@ const grass = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), toon(0xffffff, {
   for (let i = 0; i < 40; i++) { const th = rand(0, TAU), s = rand(0, 1) > .5 ? 1 : -1, q = posAt(th, s * rand(HALF + 3, HALF + 18)), t = new THREE.Mesh(new THREE.ConeGeometry(1.3, 3.6, 8), toon(0x2f8f4a)); t.position.set(q.x, 1.8, q.z); st.scene.add(t); } }
 const PADS = [[.9, 2.0], [2.3, -2.0], [3.5, 1.5], [4.9, -1.8], [5.7, 0]].map(([th, l]) => { const q = posAt(th, l), m = new THREE.Mesh(new THREE.BoxGeometry(2.2, .06, 3.4), new THREE.MeshBasicMaterial({ color: 0x7dff7d })); m.position.set(q.x, .06, q.z); m.rotation.y = -Math.atan2(tan(th).z, tan(th).x); st.scene.add(m); return { th, l, m }; });
 const kartGeo = () => build([{ g: 'box', s: [1.4, .5, 2.2], p: [0, .45, 0] }, { g: 'box', s: [1.2, .4, .5], p: [0, .75, 1.0], c: 0x222222 }, ...[[-.8, .8], [.8, .8], [-.8, -.8], [.8, -.8]].map(([x, z]) => ({ g: 'cyl', s: [.55, .3, .55], p: [x, .28, z], r: [0, 0, Math.PI / 2], c: 0x141414 }))]);
-const mkKart = (kind, geo, col, body) => { const g = new THREE.Group(), k = new THREE.Mesh(kartGeo(), toon(body, { vertexColors: true })), h = geo ? hero(geo(), col, .04) : buildHero(S.hero || 'cat', col, { outline: .04 }); h.scale.setScalar(.85); h.position.y = .5; g.add(k, h); st.scene.add(g); return g; };
-const karts = [{ name: 'YOU', geo: null, col: S.heroColor ?? S.catColor, body: 0xe63946, me: 1 }, { name: 'DOG', geo: dogGeo, col: 0xc98a4b, body: 0x2a9d8f }, { name: 'ZOMBIE', geo: zombieGeo, col: 0x8fcf7a, body: 0x7b4bff }, { name: 'CAT2', geo: catGeo, col: 0xf4efe4, body: 0xffd34d }].map((k, i) => ({ ...k, m: mkKart(k.name, k.geo, k.col, k.body), th: -.06 * i, l: [0, -2.4, 2.4, 0][i], v: 0, boost: 0, lap: 0, done: false, place: 0 }));
+const mkKart = (kind, geo, col, body) => { const g = new THREE.Group(), k = new THREE.Mesh(kartGeo(), toon(body, { vertexColors: true })), h = geo ? hero(geo(), col, .04) : buildHero(urlHero(S.hero), col, { outline: .04 }); h.scale.setScalar(.85); h.position.y = .5; g.add(k, h); st.scene.add(g); return g; };
+const karts = [{ name: 'YOU', geo: null, col: urlHeroColor(S.heroColor ?? S.catColor), body: 0xe63946, me: 1 }, { name: 'DOG', geo: dogGeo, col: 0xc98a4b, body: 0x2a9d8f }, { name: 'ZOMBIE', geo: zombieGeo, col: 0x8fcf7a, body: 0x7b4bff }, { name: 'CAT2', geo: catGeo, col: 0xf4efe4, body: 0xffd34d }].map((k, i) => ({ ...k, m: mkKart(k.name, k.geo, k.col, k.body), th: -.06 * i, l: [0, -2.4, 2.4, 0][i], v: 0, boost: 0, lap: 0, done: false, place: 0 }));
 let attempt = 0, over, overT, finished, botCd, dumb, t0, steerL;
 function init() { st.rearm(); karts.forEach((k, i) => { k.th = .2 - .05 * i; k.l = [0, -2.6, 2.6, 0][i]; k.v = 0; k.boost = 0; k.lap = 0; k.done = false; k.passed = new Set(); }); over = false; overT = 0; finished = 0; botCd = 0; dumb = AUTO && attempt === 0 && FAILFIRST; t0 = 0; steerL = 0; st.score = 0; sfx('zoom'); }
 st.shell({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, onReset: () => { attempt++; init(); st.hud.banner('GO!', .7); } }); init();

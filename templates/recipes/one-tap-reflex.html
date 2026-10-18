@@ -3,7 +3,7 @@
 /*RECIPE one-tap-reflex. ONE screen, ONE mechanic: tap to flap through gaps. 3-SECOND RULE: orange jetpack cat = player, green pipes = enemy, goal = pass the gaps.
   DON'T BUILD: skins/shop, levels, leaderboards, menus beyond start/restart. Edit the SPEC JSON, not the code (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp, lerp } from '../_vendor/gp2d.js';
-import { drawChar } from '../_vendor/gpsprites.js';
+import { drawChar, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { drawWorld, drawBackdrop, WORLDS } from '../_vendor/gpworld.js';
 const S = { title: 'FLAP CAT', sub: 'Tap to flap', hook: 'One tap. One cat. Impossible?', hero: 'cat', heroColor: '#ff9a3c', bg: '#59c9ff', pipe: '#4caf50', gap: 260, speed: 210, winScore: 8, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const W = S.world ? WORLDS[S.world] : null; /* optional world skin (docs/WORLDS.md): drawing + bg only */
@@ -35,7 +35,7 @@ function draw(c) {
   else for (const p of pipes) for (const [y0, y1] of [[-20, p.gy], [p.gy + S.gap, g.H]]) { c.fillStyle = S.pipe; c.fillRect(p.x, y0, p.w, y1 - y0); c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(p.x + 8, y0, 14, y1 - y0); const cap = y0 < 0 ? y1 - 40 : y0; c.fillStyle = S.pipe; c.fillRect(p.x - 10, cap, p.w + 20, 40); c.strokeStyle = '#143d16'; c.lineWidth = 5; c.strokeRect(p.x, y0, p.w, y1 - y0); c.strokeRect(p.x - 10, cap, p.w + 20, 40); }
   if (W) for (let x = 35; x < g.W + 70; x += 70) drawWorld(W.ground, c, x, g.H - 35, 70, { t: g.t });
   else { c.fillStyle = '#8b5a2b'; c.fillRect(0, g.H - 70, g.W, 70); c.fillStyle = '#6bbf59'; c.fillRect(0, g.H - 70, g.W, 18); }
-  c.save(); c.translate(cat.x, cat.y); c.rotate(clamp(cat.vy / 900, -.5, .9)); c.fillStyle = '#ffd34d'; c.beginPath(); c.moveTo(-34, 14); c.lineTo(-62 - Math.sin(g.t * 50) * 8, 30); c.lineTo(-34, 36); c.fill(); drawChar(S.hero, c, 0, 46, 96, { color: S.heroColor, t: g.t, anim: 'walk', hurt: g.mode === 'over' }); c.restore();
+  c.save(); c.translate(cat.x, cat.y); c.rotate(clamp(cat.vy / 900, -.5, .9)); c.fillStyle = '#ffd34d'; c.beginPath(); c.moveTo(-34, 14); c.lineTo(-62 - Math.sin(g.t * 50) * 8, 30); c.lineTo(-34, 36); c.fill(); drawChar(heroKind(S.hero), c, 0, 46, 96, { color: heroColor(S.heroColor), t: g.t, anim: 'walk', hurt: g.mode === 'over' }); c.restore();
   g.text(String(g.score), g.W / 2, 150, { size: 120, align: 'center' });
   if (g.mode === 'play' && flaps < 4) { const k = 1 + Math.sin(g.t * 8) * .06; g.text('TAP ANYWHERE', g.W / 2, 800, { size: 64 * k, align: 'center' }); g.text('to flap up', g.W / 2, 860, { size: 34, align: 'center', color: '#fff' }); }
 }

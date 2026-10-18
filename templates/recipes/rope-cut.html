@@ -3,7 +3,7 @@
 /*RECIPE rope-cut. ONE screen, ONE mechanic: swipe to cut the rope at the right moment so the swinging fish drops into the cat's mouth. 3-SECOND RULE: the swinging fish = player, the hungry cat's mouth = goal, a missed fish = enemy.
   DON'T BUILD: more than 3 rope gadgets, stars shop, level packs, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
-import { drawChar, star } from '../_vendor/gpsprites.js';
+import { drawChar, star, heroKind, heroColor } from '../_vendor/gpsprites.js';
 const S = { title: 'CAT ROPE', sub: 'Swipe the rope to cut it', hook: 'Feed the cat. Cut at the right time.', hero: 'cat', heroColor: '#ff9a3c', bg: '#7fd4ff', tries: 3, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const AX = 120, AY = 150, N = 14, SEG = 22, MX = 410, MY = 770, GRAV = 1500;
@@ -30,7 +30,7 @@ function draw(c) {
   c.fillStyle = '#6b4a2e'; c.fillRect(AX - 14, AY - 14, 28, 28); c.lineWidth = 4; c.strokeStyle = '#000'; c.strokeRect(AX - 14, AY - 14, 28, 28);
   if (!cut) { c.strokeStyle = '#8a6a3a'; c.lineWidth = 12; c.lineCap = 'round'; c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y))); c.stroke(); c.strokeStyle = '#c9a56a'; c.lineWidth = 6; c.stroke(); }
   const f = pts.at(-1); c.save(); c.translate(f.x, f.y); c.rotate(cut ? g.t * 6 : 0); c.fillStyle = '#7ad7ff'; c.beginPath(); c.ellipse(0, 0, 34, 20, 0, 0, 7); c.fill(); c.lineWidth = 4; c.strokeStyle = '#000'; c.stroke(); c.beginPath(); c.moveTo(28, 0); c.lineTo(48, -14); c.lineTo(48, 14); c.closePath(); c.fill(); c.stroke(); c.fillStyle = '#fff'; c.beginPath(); c.arc(-14, -5, 5, 0, 7); c.fill(); c.restore();
-  const near = Math.hypot(f.x - MX, f.y - (MY - 60)) < 200; drawChar(S.hero || 'cat', c, MX, MY + 30, 170, { color: S.heroColor, dir: -1, t: g.t, anim: 'idle', hurt: false }); if (near) { c.fillStyle = '#2a1010'; c.beginPath(); c.ellipse(MX - 26, MY - 62, 18, 24, 0, 0, 7); c.fill(); }
+  const near = Math.hypot(f.x - MX, f.y - (MY - 60)) < 200; drawChar(heroKind(S.hero), c, MX, MY + 30, 170, { color: heroColor(S.heroColor), dir: -1, t: g.t, anim: 'idle', hurt: false }); if (near) { c.fillStyle = '#2a1010'; c.beginPath(); c.ellipse(MX - 26, MY - 62, 18, 24, 0, 0, 7); c.fill(); }
   c.strokeStyle = '#ffd34d'; c.lineWidth = 6; c.globalAlpha = .5 + Math.sin(g.t * 6) * .3; c.beginPath(); c.arc(MX, MY - 60, 58, 0, 7); c.stroke(); c.globalAlpha = 1;
   g.text(`TRIES ${tries}`, 270, 110, { size: 34, align: 'center' });
 }

@@ -3,7 +3,7 @@
 /*RECIPE slice-swipe. ONE screen, ONE mechanic: swipe across flying fish and melons, never touch a zombie bomb. 3-SECOND RULE: your finger's slash = player, zombie bombs and missed fish = enemy, goal = slice them all.
   DON'T BUILD: blades or skins, more than 3 fruit kinds, modes, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, pick, clamp } from '../_vendor/gp2d.js';
-import { face, heart } from '../_vendor/gpsprites.js';
+import { face, heart, heroKind, heroColor } from '../_vendor/gpsprites.js';
 const S = { title: 'CAT NINJA', sub: 'Swipe to slice. Avoid bombs.', hook: 'Slice everything. Do not touch the bomb.', hero: 'cat', bg: '#2a6e5a', goal: 14, lives: 3, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 let objs, halves, trail, lives, sliced, combo, comboT, spawnT, wave, last, botQ;
@@ -31,7 +31,7 @@ function draw(c) {
   for (let i = 0; i < 6; i++) { c.fillStyle = i % 2 ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.06)'; c.fillRect(0, i * 160, 540, 160); }
   for (const o of objs) draw1(c, o); for (const h of halves) { c.globalAlpha = h.life; draw1(c, { ...h }, h.s); c.globalAlpha = 1; }
   for (const t of trail) { c.globalAlpha = 1 - t.t / .18; c.strokeStyle = '#fff'; c.lineWidth = 10; c.lineCap = 'round'; c.beginPath(); c.moveTo(t.x0, t.y0); c.lineTo(t.x1, t.y1); c.stroke(); } c.globalAlpha = 1;
-  for (let i = 0; i < lives; i++) heart(c, 40 + i * 44, 110, 34); face(c, S.hero, 500, 110, 26);
+  for (let i = 0; i < lives; i++) heart(c, 40 + i * 44, 110, 34); face(c, heroKind(S.hero), 500, 110, 26);
 }
 g.run(update, draw);
 </script></body></html>

@@ -255,3 +255,8 @@ export function coin(c, x, y, r, t = 0) { const w = Math.abs(Math.cos(t * 4)) * 
 /** Little spaceship with a cat/dog/zombie pilot. */
 export function ship(c, x, y, s, o = {}) { c.save(); c.translate(x, y); c.scale(s / 50, s / 50); const col = o.color || '#4aa8ff'; poly(c, [[-26, 12], [-12, -4], [12, -4], [26, 12], [10, 22], [-10, 22]], col); ell(c, 0, -6, 11, 11, '#bfeaff'); face(c, o.pilot || 'cat', 0, -7, 8, o.pilotColor);
   poly(c, [[-26, 12], [-38, 28], [-14, 18]], '#e63946'); poly(c, [[26, 12], [38, 28], [14, 18]], '#e63946'); if (o.flame !== false) poly(c, [[-6, 22], [0, 38 + Math.sin((o.t || 0) * 40) * 5], [6, 22]], '#ffd34d'); c.restore(); }
+
+// Runtime hero override (hub pages): ?hero=<kind>&heroColor=<#rrggbb>. Unknown kind / bad colour are ignored.
+const _q = () => { try { return new URLSearchParams(globalThis.location?.search || ''); } catch (e) { return new URLSearchParams(''); } };
+export const heroKind = (specKind) => { const k = _q().get('hero'); return k && Object.prototype.hasOwnProperty.call(CHAR, k) ? k : (specKind || 'cat'); };
+export const heroColor = (specColor) => { const v = _q().get('heroColor'); return v && /^#[0-9a-fA-F]{6}$/.test(v) ? v : specColor; };

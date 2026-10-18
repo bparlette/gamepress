@@ -4,7 +4,7 @@
   DON'T BUILD: checkpoint menus, shops, more than 8 platforms, menus. Edit the SPEC JSON (gamepress make).*/
 import { createStage, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
 import { toon, catGeo, hero, particles, sky, groundTex } from '../_vendor/gpkit.js';
-import { buildHero, animate as animHero } from '../_vendor/gphero3d.js';
+import { urlHero, urlHeroColor, buildHero, animate as animHero } from '../_vendor/gphero3d.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CAT OBBY', sub: 'Tap to jump. Drag to steer.', hook: 'Beat the obby or rage quit', bg: 0x8fd3ff, skyTop: 0x3f8cff, skyBottom: 0xffe7b8, lava: 0xff4a1a, pad: 0x4aa8ff, catColor: 0xff9a3c, hero: 'cat', speed: 8, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const P = new URLSearchParams(location.search), AUTO = P.has('auto'), FAILFIRST = P.get('failfirst') !== '0';
@@ -17,7 +17,7 @@ const END = 80, cols = [S.pad, 0xffd34d, 0xff6b9a, 0x7dff7d];
 for (const [i, [z, len, w, k]] of COURSE.entries()) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, .6, len), toon(k === 'goal' ? 0xffd34d : cols[i % cols.length])); m.position.set(0, -.3, z + len / 2); st.scene.add(m); const e = new THREE.Mesh(new THREE.BoxGeometry(w + .1, .1, len + .1), new THREE.MeshBasicMaterial({ color: 0x111111 })); e.position.set(0, -.62, z + len / 2); st.scene.add(e); }
 const spinPivot = { x: -3.2, z: 38 }, BL = 7, bar = new THREE.Mesh(new THREE.BoxGeometry(BL, .5, .35), toon(0xe63946)); bar.position.set(spinPivot.x, .35, spinPivot.z); st.scene.add(bar); const post = new THREE.Mesh(new THREE.CylinderGeometry(.35, .35, .8, 10), toon(0x333)); post.position.set(spinPivot.x, .4, spinPivot.z); st.scene.add(post);
 const flag = new THREE.Group(); const pole = new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, 4, 6), toon(0xdddddd)); pole.position.y = 2; const cloth = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1), new THREE.MeshBasicMaterial({ color: 0xe63946, side: THREE.DoubleSide })); cloth.position.set(.8, 3.4, 0); flag.add(pole, cloth); flag.position.set(0, 0, END - 2); st.scene.add(flag);
-const HC = S.heroColor ?? S.catColor, cat = buildHero(S.hero || 'cat', HC); cat.scale.setScalar(1.25); st.scene.add(cat);
+const HC = urlHeroColor(S.heroColor ?? S.catColor), cat = buildHero(urlHero(S.hero), HC); cat.scale.setScalar(1.25); st.scene.add(cat);
 let p, over, overT, attempt = 0, jumpBuf, botCd, spin, spinAng, dumb;
 const barHit = (x, z, ang) => { const bx = Math.cos(ang), bz = -Math.sin(ang), rx = x - spinPivot.x, rz = z - spinPivot.z, t = clamp(rx * bx + rz * bz, 0, BL); return Math.hypot(rx - bx * t, rz - bz * t) < .75; };
 const platAt = (x, z) => COURSE.find(([z0, len, w]) => z >= z0 && z <= z0 + len && Math.abs(x) <= w / 2 + .15);

@@ -3,7 +3,7 @@
 /*RECIPE ballistic-bouncer. ONE screen, ONE mechanic: aim and fire one ball, it bounces through pegs, clear every orange peg. 3-SECOND RULE: cannon + ball = player, gravity and the drain = enemy, goal = clear the orange pegs.
   DON'T BUILD: powerup menu, 20 levels, character picks. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp, shuffle } from '../_vendor/gp2d.js';
-import { face } from '../_vendor/gpsprites.js';
+import { face, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { World } from '../_vendor/gpphys.js';
 const S = { title: 'CAT PEGGLE', sub: 'Aim and tap to fire', hook: 'One shot. 50 pegs.', hero: 'cat', bg: '#2a1650', peg: '#4aa8ff', target: '#ff8a1f', balls: 6, orange: 6, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
@@ -34,10 +34,10 @@ function draw(c) {
   const gr = c.createLinearGradient(0, 0, 0, 960); gr.addColorStop(0, '#3a1d6e'); gr.addColorStop(1, '#1a0d36'); c.fillStyle = gr; c.fillRect(0, 0, 540, 960);
   for (const p of pegs) { c.beginPath(); c.arc(p.x, p.y, p.r, 0, 7); c.fillStyle = p.data.hit ? '#fff' : p.data.orange ? S.target : S.peg; c.fill(); c.lineWidth = 3; c.strokeStyle = '#000'; c.stroke(); c.fillStyle = 'rgba(255,255,255,.45)'; c.beginPath(); c.arc(p.x - 5, p.y - 5, 4.5, 0, 7); c.fill(); }
   if (!ball && g.mode === 'play') { c.setLineDash([8, 10]); c.strokeStyle = 'rgba(255,255,255,.55)'; c.lineWidth = 4; c.beginPath(); c.moveTo(CX + Math.cos(aim) * 60, CY + Math.sin(aim) * 60); c.lineTo(CX + Math.cos(aim) * 200, CY + Math.sin(aim) * 200); c.stroke(); c.setLineDash([]); }
-  c.save(); c.translate(CX, CY); c.rotate(aim); c.fillStyle = '#7a8bb0'; c.fillRect(0, -16, 58, 32); c.strokeStyle = '#000'; c.lineWidth = 4; c.strokeRect(0, -16, 58, 32); c.restore(); c.fillStyle = '#4a5578'; c.beginPath(); c.arc(CX, CY, 34, 0, 7); c.fill(); c.stroke(); face(c, S.hero, CX, CY + 2, 24);
+  c.save(); c.translate(CX, CY); c.rotate(aim); c.fillStyle = '#7a8bb0'; c.fillRect(0, -16, 58, 32); c.strokeStyle = '#000'; c.lineWidth = 4; c.strokeRect(0, -16, 58, 32); c.restore(); c.fillStyle = '#4a5578'; c.beginPath(); c.arc(CX, CY, 34, 0, 7); c.fill(); c.stroke(); face(c, heroKind(S.hero), CX, CY + 2, 24);
   for (let i = 0; i < trail.length; i++) { c.globalAlpha = i / trail.length * .5; c.fillStyle = '#fff'; c.beginPath(); c.arc(trail[i].x, trail[i].y, 9 * i / trail.length + 2, 0, 7); c.fill(); } c.globalAlpha = 1;
   if (ball) { c.beginPath(); c.arc(ball.x, ball.y, 11, 0, 7); c.fillStyle = '#fff'; c.fill(); c.lineWidth = 3; c.strokeStyle = '#000'; c.stroke(); }
-  c.fillStyle = '#ffd34d'; c.beginPath(); c.roundRect(bucket.x - 62, 925, 124, 28, 10); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 4; c.stroke(); for (let i = 0; i < ballsLeft && i < 8; i++) face(c, S.hero, 30 + i * 36, 150, 14);
+  c.fillStyle = '#ffd34d'; c.beginPath(); c.roundRect(bucket.x - 62, 925, 124, 28, 10); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 4; c.stroke(); for (let i = 0; i < ballsLeft && i < 8; i++) face(c, heroKind(S.hero), 30 + i * 36, 150, 14);
   if (g.mode === 'play' && !ball && ballsLeft === S.balls) { c.globalAlpha = .65 + Math.sin(g.t * 6) * .3; g.text('DRAG TO AIM, RELEASE TO FIRE', 270, 850, { size: 28, align: 'center', color: '#fff', stroke: 5 }); g.text('CLEAR THE ORANGE PEGS', 270, 810, { size: 26, align: 'center', color: '#ff9a3c', stroke: 5 }); c.globalAlpha = 1; }
 }
 g.run(update, draw);

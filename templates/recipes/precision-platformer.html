@@ -3,7 +3,7 @@
 /*RECIPE precision-platformer. ONE screen of mechanic: run and jump with coyote time and jump buffering. 3-SECOND RULE: orange cat = player, red spikes and pits = enemy, goal = the flag.
   DON'T BUILD: powerups, enemies besides spikes, a level longer than 64 tiles, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
-import { drawChar, coin as coinS } from '../_vendor/gpsprites.js';
+import { drawChar, coin as coinS, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { drawWorld, drawBackdrop, WORLDS } from '../_vendor/gpworld.js';
 import { moveBox } from '../_vendor/gpphys.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
@@ -53,7 +53,7 @@ function draw(c) {
     else if (t === '^') { c.fillStyle = S.spike; for (let i = 0; i < 2; i++) { c.beginPath(); c.moveTo(px + i * 24, py + T); c.lineTo(px + i * 24 + 12, py + 8); c.lineTo(px + i * 24 + 24, py + T); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 2; c.stroke(); } }
     else if (t === 'o') coinS(c, px + T / 2, py + T / 2, 12, g.t + x);
     else if (t === 'F') { c.fillStyle = '#ddd'; c.fillRect(px + 20, py - 90, 6, 138); c.fillStyle = '#e63946'; c.beginPath(); c.moveTo(px + 26, py - 90); c.lineTo(px + 76, py - 70 + Math.sin(g.t * 6) * 4); c.lineTo(px + 26, py - 50); c.fill(); } }
-  drawChar(S.hero, c, p.x + 15, p.y + 46, 62, { color: S.heroColor, dir: p.dir, t: p.t, anim: p.air ? 'idle' : (Math.abs(p.vx) > 1 ? 'walk' : 'idle'), hurt: g.mode === 'over' });
+  drawChar(heroKind(S.hero), c, p.x + 15, p.y + 46, 62, { color: heroColor(S.heroColor), dir: p.dir, t: p.t, anim: p.air ? 'idle' : (Math.abs(p.vx) > 1 ? 'walk' : 'idle'), hurt: g.mode === 'over' });
   c.restore(); g.text(`COINS ${coins}`, 24, 70, { size: 38, color: '#ffd34d' }); g.text(`${Math.round(p.x / T)}/${COLS - 2}`, 516, 70, { size: 38, align: 'right' });
 }
 g.run(update, draw);
