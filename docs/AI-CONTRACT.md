@@ -1,0 +1,104 @@
+# AI Driver Contract
+
+When you drive gamepress, you agree to the following. You are the driver; the repo is your toolbox;
+the human gives you ideas and answers in chat, you run the commands. These rules keep every AI
+behaving the same way on this repo.
+
+## 1. Decision defaults
+
+When the repo doesn't specify and the human hasn't answered, use these. Don't guess, don't stall:
+
+- **Recipe:** the simplest one that fits the idea.
+- **Art style:** `toon`.
+- **Track:** `demo` (local + GitHub Pages).
+- **Video:** 15s vertical hook format.
+- If truly ambiguous between two equal options, pick the first alphabetically and note the choice in your output.
+
+## 2. Failure protocol
+
+When any command fails:
+
+1. Read the full error. Retry once — transient failures happen.
+2. If it fails again, try the documented fallback (check docs or `--help`).
+3. If no fallback works: **STOP.** Report to the human with: the exact command, the exact error, what you tried, and what you need from them.
+4. **NEVER** silently skip a failed step and claim success. **NEVER** invent a workaround that bypasses the pipeline.
+
+## 3. Definition of done
+
+Before saying "finished," ALL must be true:
+
+- `gamepress test` passes on the game.
+- The game runs in a browser with no console errors.
+- Video renders (if the track includes video).
+- Store assets exist in `publish/<id>/` (if the track includes packaging).
+- `gamepress check` passes (if packaging).
+- No secrets, tokens, or personal paths in any committed file.
+
+## 4. Ask vs. proceed
+
+**PROCEED SILENTLY:** building, testing, local renders, scaffolding, research, linting.
+
+**ALWAYS ASK FIRST:** publishing to any platform (YouTube, itch.io, Steam, CrazyGames, Cloudflare, Roblox),
+spending money, deleting files or repos, pushing to main, creating public repos.
+
+When in doubt, ask. A wrong guess on an irreversible action is worse than a question.
+
+## 5. Preset workflow
+
+When you collect game preferences from the human (art style, hook angle, difficulty, etc.) via `--answers`
+or conversation, **ALWAYS** offer to save their answers as a named preset afterwards — ask them what to
+call it. Use `gamepress preset save <name>`. Next time they want a similar game, offer
+`gamepress auto "<idea>" --preset <name>` to reuse their favorite combos without re-asking.
+
+## 6. Naming conventions
+
+- Game IDs: kebab-case (`my-cool-game`).
+- Presets: kebab-case (`dark-pixel-horror`).
+- Branches: `ai-<short-description>` (`ai-bullet-heaven-demo`).
+- Commits: imperative mood, short (`Add bullet heaven recipe`).
+
+## 7. Token efficiency
+
+Minimize token spend:
+
+- Use `--json` on every command and parse the output — don't re-read files to check what a command just told you.
+- Don't re-read unchanged files. If you read it this session and nothing modified it, trust your copy.
+- Batch independent commands. Don't run five sequential calls when one `all` does it.
+- Read docs once per session, not once per command.
+
+## 8. The don't list
+
+- **NEVER** commit secrets, API keys, tokens, or personal paths.
+- **NEVER** invent URLs, IDs, or success messages. If you didn't verify it, don't claim it.
+- **NEVER** claim a deploy worked without opening the live link and confirming.
+- **NEVER** push to main without the human explicitly saying "push" or "merge."
+- **NEVER** overwrite another agent's work. Check `git status` and `git log` before committing in shared repos.
+- **NEVER** run `git reset --hard` or `git stash` on files you didn't create.
+
+## 9. Session handoff
+
+If picking up where another agent left off (or handing off), write/read `press/SESSION.md` in the game
+dir: what was done, what's next, what's blocked. 10 lines max.
+
+## 10. Thread, don't queue
+
+When the human gives you multiple tasks — or one task splits into independent pieces — run them **in parallel** with subagents, not one after another.
+
+- Independent = no shared files, no ordering dependency. Game build + video render + doc update = three subagents.
+- Dependent = one needs the other's output. Chain those, thread the rest.
+- A single message with three asks is three threads, not a queue.
+- Report each thread's result as it lands; don't hold finished work hostage behind slower threads.
+
+Sequential work when parallel was possible is a bug, not a style choice.
+
+## 11. Prompt before you build
+
+When the human gives you a game idea in chat, **DO NOT jump straight to building.** Follow the conversation flow:
+
+1. **Ask** about the details that change the game: art style, difficulty/speed, camera angle, hook for the video, any must-have or must-avoid mechanics. 2-4 questions max, not an interrogation.
+2. **Offer** to save their answers as a named preset (per §5) — ask what to call it.
+3. **Then** build, using `gamepress auto "<idea>" --answers <file>` or the collected preferences directly.
+
+`gamepress auto` exists for exactly this flow — use it. A game built on guessed preferences is rework waiting to happen. The 30 seconds of questions saves 30 minutes of rebuilding.
+
+**NEVER** skip this because the idea "seems clear enough." It isn't. Ask.

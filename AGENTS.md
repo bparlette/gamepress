@@ -1,19 +1,18 @@
 # AGENTS.md: point an AI here to ship a viral game demo
 
+**AI agents: read [`docs/AI-CONTRACT.md`](docs/AI-CONTRACT.md) before doing anything else.** It is the
+behavioral contract every driver agrees to: decision defaults, failure protocol, ask-vs-proceed rules,
+prompt-before-build, threading, and the don't list.
+
 ## Pick a track first (`node bin/gamepress.mjs tracks` or read `tracks.json`)
 | Track | Use when | Read |
 |---|---|---|
 | shared | always: research, build, test, film, images | `docs/tracks/shared.md` |
 | hook | only a viral vertical video of a game (no hosting) | `docs/tracks/hook.md` |
 | demo | free web game on the GitHub Pages demo page only | `docs/tracks/demo.md` |
-| full-game | scale approved demo into multi-level game with save & worlds | `docs/tracks/full-game.md` |
 | web-store | release on itch.io / CrazyGames / Steam / YouTube | `docs/tracks/web-store.md` |
 | roblox | the game is a Roblox experience | `docs/tracks/roblox.md` |
 **Recipes (24 + 4):** `gamepress recipes` lists them, `docs/RECIPE-RULES.md` is the scope/3-second/seed/sound/failure/touch/hook rulebook, `docs/KIT.md` the shared code, `gamepress botcheck <id>` proves the demo loses then wins.
-
-**Two-Phase Full Game Production:**
-1. **Vertical-Slice Demo:** Build a rapid, single-screen prototype with zero token waste (`gamepress auto "<idea>"` or `make`/`lego`). Verify mechanics, art style, and physics via `test` and `grade`.
-2. **Approval & Scale-Up:** When the creator or AI confirms the prototype works, run `gamepress approve <id> --notes "5 worlds, boss fights, coin shop" --levels 10 --worlds "Forest,Desert,Castle"`. Then run `gamepress expand <id> --blueprint` for an exact token-saving AI architecture blueprint, or `gamepress expand <id> --scaffold` to automatically integrate `kit/gplevels.js` (multi-level progression, star ratings, save persistence, camera follow, and level select).
 
 **Zero-AI path:** `gamepress auto "<idea>" --track demo` (maps to a recipe or builds a composable `gplego` game in 0 tokens; add `--local-ai` if local Ollama is available to enrich specs/captions). **Least-AI path:** `gamepress context` (~400-token cheat sheet in 1 command), `gamepress doctor`, `gamepress ideate "<idea>"`, then `gamepress make <id> --recipe <name> --spec spec.json` or `gamepress lego <id> --idea "<idea>"`, then `gamepress all <id> --track demo --heal`. Only write custom game code when neither a recipe nor a Lego combination fits.
 
