@@ -6,7 +6,7 @@ import { sfx, setMuted, comboPitch } from './gpaudio.js';
 import { STY } from './gpsprites.js';
 // ?hold=1 (hub): run a few frames so the game shows, then freeze until the hub posts {gp:'start'}.
 if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { const raf = window.requestAnimationFrame.bind(window); let q = [], go = false, n = 0; window.requestAnimationFrame = f => (go || n++ < 1) ? raf(f) : (q.push(f), 0);
-  const ov = document.createElement('div'); ov.textContent = 'TAP TO START'; ov.style.cssText = 'position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;background:#0005;color:#fff;font:900 8vmin system-ui,sans-serif;text-shadow:0 2px 0 #000;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none';
+  const ov = document.createElement('div'); ov.textContent = 'TAP TO START'; ov.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:#0005;color:#fff;font:900 8vmin system-ui,sans-serif;text-shadow:0 2px 0 #000;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none';
   const attach = () => { if (document.body && !ov.parentNode) document.body.appendChild(ov); };
   if (document.body) attach(); else addEventListener('DOMContentLoaded', attach);
   const start = () => { if (go) return; go = true; ov.remove(); q.splice(0).forEach(raf); try { parent.postMessage({ gp: 'started' }, '*'); } catch {} };
