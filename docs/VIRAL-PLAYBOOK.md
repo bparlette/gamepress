@@ -86,6 +86,15 @@ Never write a generic caption. Use one of these proven patterns (bold sans-serif
 - **Nostalgia Juxtaposition**: "Why modern games can't match 16-bit sound design."
 - **Collision Hook** (2026: gaming Shorts need 85%+ retention on first 100 impressions — oversupplied category): two contradictory facts in frame one. "This game has no jump button. You beat it by falling." "The boss is invincible. The floor is the weapon."
 
+## Spectate-first capture: let the game perform
+Scripted input ("walk forward, click at t=3") produces dead footage — the failure mode behind two rejected HOA Warfare videos. The winning pattern: **the game plays itself, the camera directs itself.**
+
+- Every game implements `?spectate=1&autostart=1&seed=N` (docs/SPECTATE.md). Bots fight, `spectateCamera()` chases the kills, the footage is real.
+- `gamepress drive` with `"spectate": true` in the plan is the **default** capture strategy. It appends the params and ignores scripted input.
+- Scripted input (`input: [...]`) is the **fallback** — for games that can't self-play, or for one specific staged moment (a jump, a UI click) inside an otherwise spectate capture.
+- Capture 3–5× more footage than you need (multiple seeds = multiple matches), then cut the best moments. Spectate footage is cheap; staged footage is expensive.
+- The 2-second rule still applies: the FIRST spectate segment must open on action — pick the seed whose first 2 seconds have a kill.
+
 ## The twelve demos and their videos
 Each plan is in `examples/<id>/hook.drive.json`. Suggested titles (edit freely):
 

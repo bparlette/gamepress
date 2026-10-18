@@ -64,6 +64,21 @@ Keys: names like `"d"`, `" "`, `"ArrowLeft"`, `"Enter"`. Input is real `Input.di
 ### Batch mode
 `--batch` / `--batch-dir` renders N plans in **one Chrome session** — one browser launch instead of N, one command instead of N. Each plan gets its own `<name>.mp4` + `.thumb.jpg` + `.stats.json` from its `name` field. The viewport resizes per plan; the seeded clock script is swapped per plan. Use it for multi-segment videos (one segment per faction/map/moment), then concat or cut together.
 
+### Spectate mode (preferred)
+`"spectate": true` in the plan makes the game perform itself — no scripted input needed:
+
+```jsonc
+{
+  "name": "karens-culdesac",
+  "root": "../../games", "path": "hoa-warfare/index.html",
+  "viewport": [1280, 720], "fps": 30, "seed": 42, "duration": 20,
+  "spectate": true,   // -> ?spectate=1&autostart=1&seed=42 appended automatically
+  "captions": [ { "t": 0, "text": "Sixteen factions. One cul-de-sac.", "style": "hook" } ]
+}
+```
+
+`drive` appends `?spectate=1&autostart=1&seed=<plan.seed>` to the URL and **ignores `input`** (it logs what it skipped). The game must implement the spectate contract (`docs/SPECTATE.md`): bots play, `spectateCamera()` directs. This is the default capture strategy — scripted input is the fallback for games that can't self-play. If the game doesn't support `?spectate=1` yet, the plan renders whatever the URL gives you (usually a menu); add spectate support to the game first.
+
 ### Polish options
 `"blur": 2` (motion blur via frame blend), `"fade": {"in": .2, "out": .4}` (video and audio), `audio.bed.lead` (arpeggio level, default .35). Audio is two-pass loudnorm to -14 LUFS. `gamepress drive <plan> --dry-run --json` validates a plan without Chrome. Chrome is auto-found (`CHROME=` overrides).
 
@@ -84,7 +99,9 @@ Conventions that keep games capture-friendly (the demos in `brad-demos/g` follow
 - Use `Math.random()` for all randomness (the plan seeds it) and `performance.now()` for time. Avoid `new Date()` ordering.
 - Support `?clean=1` (hide the on-screen hint text), `?dpr=1` (cap pixel ratio for fast renders), and a pacing knob
   (`?speed=`, `?grow=`) so a 10-minute game can show its payoff in 15 seconds without code changes.
-- An attract-mode autopilot (`?auto=1`) is the easiest way to script games with hard-to-time steering.
+- An attract-mode autopilot (`?auto=1`) is the easiest way to script games with hard-to-time steering. For video
+  capture, prefer the full spectate contract (`?spectate=1&autostart=1&seed=N`, docs/SPECTATE.md) — self-playing
+  game + self-directing camera, no scripted input at all.
 - Keep the canvas filling the viewport and lay out for **portrait** first; landscape then comes free.
 
 ## Gotchas learned building the examples
