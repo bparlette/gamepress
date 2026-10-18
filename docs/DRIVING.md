@@ -113,3 +113,49 @@ A drive plan that just moves and clicks is a **failed video**. Before writing an
 5. **Checklist before render:** [ ] hook in first second [ ] each viral feature visible [ ] real game audio [ ] kills/action on camera (not menus) [ ] CTA only in last 5s
 
 A video that shows menus + walking + synth music failed the brief. Reshoot it.
+
+## Advanced: in-engine director scripts
+
+For games with complex combat or choreography, `eval` steps in the plan get unwieldy.
+The battle-tested pattern (from Hawk/Cinema City and HOA Warfare shoots) is a **director
+script** that runs inside the game, one frame at a time:
+
+```javascript
+// In the game (or injected via a plan "eval" step):
+window.__D = { f: 0 };                    // persistent director state, f = frame counter
+window.__dir = function(D) {
+  const H = game.hero, enemy = game.enemies[0];
+  if (D.f === 0) {                        // frame 0: stage the shot
+    H.pos.set(-12.5, 0, 1.6); H.yaw = -Math.PI / 2;
+    enemy.pos.set(-11.0, 0, 3.8);
+    game.camera.yaw = Math.PI / 2;        // dramatic angle, aligned before action
+    game.camera.pivot.set(-12.5, 1.55, 1.6);
+  }
+  if (enemy.isStunned) {                  // state machine on game state, not timers
+    // ...move hero in, press the finisher key
+    return;
+  }
+  if (!enemy.alive && D.f > D.deadAt + 30) return 'END';
+};
+```
+
+Drive it from the plan with a single `eval` per frame, or step it manually:
+
+```javascript
+// Manual step loop: decouple sim from rAF for frame-perfect capture
+window.__capStep = function(steps = 1) {
+  for (let i = 0; i < steps; i++) sim.step(1 / 30);
+  renderer.render(scene, camera);
+};
+// Director input injection: override movement per frame without touching input code
+function getPlayerMovement() {
+  if (window.__CAPMV) return { x: window.__CAPMV[0], y: window.__CAPMV[1] };  // [dx, dz] in camera space
+  return keyboardInput();
+}
+```
+
+Camera choreography rules that sell scale: open on a wide establishing move
+(`st.cine` or manual orbit), punch in on impact frames, hold the kill shot for
+~0.5 s before cutting. The 9:16 composition is four layers — meme hook banner
+(top 15%), clean action viewport (center 70%), voice-bark subtitles (lower 15%,
+yellow `#FFE600` with heavy black stroke), CTA pill (bottom).

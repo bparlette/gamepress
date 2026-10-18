@@ -34,6 +34,27 @@ Example: `{"title":"Cat Stampede","hero":"cat","foe":"zombie","bossText":"ZOMBIE
 
 Adding a recipe: copy a finished game to `templates/recipes/<name>.html`, move its tunables into the `const S = {..., /*SPEC*/ ...{} /*END*/}` block, register it in `RECIPES` in `lib/extras.mjs`. Existing demos (zombie-horde, black-hole) are the recipe's first two outputs.
 
+## Wiring feel into recipes (`--feel`)
+
+Every recipe in `presets/recipes.json` carries a `feel` spec: `{ use: [...], why: "..." }` naming the
+`kit/gpfeel.js` features it wants. `gamepress recipes --json` exposes them.
+
+| Feel feature | What it gives the game | Recipes that use it |
+|---|---|---|
+| `characterStep` | 4x sub-stepped character controller: coyote time, jump buffering, variable jump height | platformers, kart-racer, bouncer, single-input |
+| `MARIO_PHYSICS` / `SONIC_PHYSICS` | Decomp-derived movement constants (gravity, jump curves, acceleration) | precision-platformer, rail-runner, obby-gauntlet |
+| `updateCamera` | Lakitu follow camera with occlusion pull-in and pan-lag deadzone | exploration, kart-racer, metroidvania |
+| `DeterministicRNG` | Seeded 16-bit LFSR — same run every time (replayable videos) | shmup, brawler, falling-blocks, swarm |
+| `makeFSM` | Deterministic enemy state machines (Goomba-pattern) | grid-chaser, mini-zelda, 3v3 |
+| `VirtualAPU` / `APU` | 4-channel chiptune audio with voice stealing (SFX preempts music) | farm, tycoon, merge, card, deduction |
+| `squashStretch` | Juice: squash & stretch on jumps/landings/hits | everywhere it reads well |
+| `TraumaCamera` / `HitStopManager` | Screen shake (trauma²) and hit-stop on big moments | brawler, artillery, demolition |
+| `sphericalGravity` | Planet-style gravity toward a point (Galaxy decomp) | gravity-janitor, orbital mechanics |
+| `meleeKnockback` | Full Melee knockback formula + hitstun frames | footsies-duel, arena-brawler |
+
+In game code: `import { characterStep, MARIO_PHYSICS } from '../_vendor/gpfeel.js'`
+(`syncKit` copies it next to every game). Design doc: `docs/NINTENDO-FEEL.md`.
+
 ## Environment and safety checks
 `gamepress doctor` lists missing tools with the install command. `gamepress lint <id>` blocks personal paths, secrets, external requests and oversized bundles; `all` runs it before `demo`/`pack`. `gamepress grade <id> --vision` adds a local vision-model check (Ollama, default `qwen3-vl:4b-instruct`, override `GP_VISION`) that asks fixed yes/no questions about 3 stills; it skips itself if Ollama is not running. `gamepress test` prints `hints` (known error -> one-line fix, `lib/hints.mjs`) and saves a screenshot.
 

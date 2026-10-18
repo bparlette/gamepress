@@ -9,5 +9,5 @@ Steam needs a desktop wrapper (not built here). Credentials: owner supplies, env
 ## Build and copy
 - `gamepress build <id> --target web` zip for itch/CrazyGames; `--target steam` Electron wrapper + `app_build.vdf` template in `publish/<id>/steam/` (run `npm i && npm run pack`, fill APPID/DEPOTID, `steamcmd +run_app_build`); `--target roblox` runs `rojo build`.
 - `gamepress copy <id>` drafts store copy, tags and age-rating answers to `publish/<id>/copy.json`. Polish it; answer each store questionnaire truthfully.
-- `gamepress deploy <host> <id> [--live]` is the upload entry point (stubs until the hosting AI implements them; CrazyGames has no upload API, so it is a checklist).
+- `gamepress host <host> <id> [--live]` is the upload entry point (dry run by default; `deploy` is a deprecated alias). CrazyGames has no upload API, so it is a checklist.
 - CrazyGames: games already call `CrazyGames.SDK.game.gameplayStart/Stop` when the SDK is loaded (via the shell); add the SDK script tag in the submitted build only.

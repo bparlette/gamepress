@@ -33,7 +33,7 @@ gamepress drive plan.json [--vo ".."]# scripted, frame-locked playthrough -> cap
 gamepress catalog games.json ...     # add a game + thumbnail to a demo-page catalog
 gamepress approve <id> [--levels N]  # approve vertical-slice demo & define full-game expansion goals
 gamepress expand <id> [--blueprint]  # token-saving AI blueprint or scaffold multi-level world (gplevels.js)
-gamepress deploy <host> <id> [--run] # github, itch, crazygames, steam, youtube (dry-run by default)
+gamepress host <host> <id> [--live] # github, itch, crazygames, steam, youtube, cloudflare (dry-run by default; `deploy` is a deprecated alias)
 ```
 
 > **AI agents: start at [`AGENTS.md`](AGENTS.md) or run `node bin/gamepress.mjs context`.** On the owner's Mac this repo is at `~/.gemini/antigravity/scratch/gamepress`; AGENTS.md lists the other local paths (games clone, videos, Roblox files, keychain item names). It drives research, build, test, film, package and the hosting hand-off.
@@ -52,7 +52,7 @@ Script everything from game idea to hosted game, each step usable alone, for fou
 | Piece | State |
 |---|---|
 | `context` / `status` / `all` / `grade` / `heal` / `--json` | built: the token-saving layer (runtime telemetry + static rubric + auto-repair) |
-| `lego` (`kit/gplego.js`) + `make` recipes | built: 12 fixed recipes + composable Lego engine (5 controllers × 4 spawners × 5 hooks × 4 progressions) |
+| `lego` (`kit/gplego.js`) + `make` recipes | built: 24 fixed recipes (+ 4 legacy) + composable Lego engine (5 controllers × 4 spawners × 5 hooks × 4 progressions) |
 | `drive --vo` / `hooks` / `pack --title` | built: TTS hook voiceover (Edge TTS + macOS `say` fallback), 3-variant A/B hooks, auto-composited capsule logos |
 | `new --target web\|roblox`, `copy`, `build --target web\|steam\|roblox` | built (Steam needs a Steamworks app to go live) |
 | `deploy github\|itch\|crazygames\|steam\|youtube` + `stats` | built: GitHub Pages branch deploy, itch `butler push`, YouTube Shorts Data API v3 upload, Steam `steamcmd` VDF builder, CrazyGames bundle validator, analytics feedback loop |
@@ -115,8 +115,9 @@ Everything the pipeline needs installed: [`docs/TOOLING.md`](docs/TOOLING.md). W
 
 ## Programmatic Game Director & Viral Videos
 
-For advanced automation and viral shorts (9:16 vertical for TikTok, Reels, YouTube Shorts), see:
-- [`docs/game-director-scripting.md`](docs/game-director-scripting.md): Complete blueprint on deterministic frame stepping (`__capStep`), seeded PRNG, headless Playwright puppeteering, camera choreography, and scripted character combat directors.
+For advanced automation and viral shorts (9:16 vertical for TikTok, Reels, YouTube Shorts), see
+[`docs/DRIVING.md`](docs/DRIVING.md) ("Advanced: in-engine director scripts" — deterministic frame
+stepping, `__capStep`, director input injection, camera choreography).
 
 - **GIFs:** `pack` shrinks size, fps and palette until the GIF fits the itch limit. Keep the source clip short.
 - **Real footage only:** stores reject or hurt trust with fake or heavily staged shots; capture the real game.

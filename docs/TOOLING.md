@@ -26,7 +26,8 @@ They download on demand into `~/.gamepress/`:
 | `gamepress tools --check` | check upstream for newer versions |
 | `gamepress setup --tts` | download kokoro-tts (~340MB, one time) |
 
-Current registry: `kokoro-tts` v1.0 (MIT) — local TTS for trailers and voice lines.
+Current registry: `kokoro-tts` v1.1 (MIT) — local TTS for trailers and voice lines (int8 model, ~137MB total).
+`edge-tts` is also registered as a network-service fallback (`gamepress voices --engine edge`).
 To add a tool: append to `tools.json` (files with url/size_mb/sha256, version,
 check_latest, license); `lib/tools.mjs` handles the rest.
 
@@ -36,8 +37,16 @@ check_latest, license); `lib/tools.mjs` handles the rest.
 - **HTML/CSS**: caption overlay and HUD are DOM drawn into the page, so screenshots include them.
 - **zsh**: `scripts/render-all.sh`.
 
-## Commands (all `node bin/gamepress.mjs <cmd>`)
+## Commands
+
+`gamepress --help` lists all 45+ commands with one-line descriptions; `gamepress <cmd> --help`
+shows usage and flags per command. (The table below is the original core set — `--help` is
+the complete, always-current reference.)
+
 `init`, `capture`, `drive`, `scenes`, `pack`, `check`, `catalog`. See `README.md` and `docs/DRIVING.md`.
+
+Local AI: `docs/local-ai-integration.md` covers the Qwen 14B local-AI setup
+(`--local-ai` coprocessor for spec enrichment, vision grading, and self-healing).
 
 ## Files
 ```

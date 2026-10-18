@@ -6,4 +6,12 @@ publish/
 gamepress.config.json
 dist/
 examples/try-*/
+# Scratch / test artifacts (never committed)
+examples/test-kart/
+games/test-kart/
+games/_vendor/
+intel/
+research/test-kart.json
+*.test.jpg
+*.test.png
 

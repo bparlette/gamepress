@@ -18,6 +18,9 @@
 | `gpshaders.js` | 3D | Ready-to-use retro effects for Three.js materials (onBeforeCompile wrappers over `gpretro.js` GLSL): `vertexJitter(material, intensity)`, `bayerDither(material)`, `scanlines(material)`, `applyRetro(material, opts)`, `applyRetroAll(scene, opts)`. Demo-stage visual polish. |
 | `gbfixed.js` | ROM | 8.8 fixed-point math for homebrew: `f2x`/`x2f`/`fmul`/`fdiv`, `Fixed` sub-pixel accumulator class. Integer-only hot paths for SNES/Game Boy targets. See `docs/tracks/port.md`. |
 | `gpmonetize.js` | all | Day-1 monetization: `requestRewarded`/`requestInterstitial` (CrazyGames/Poki SDKs, graceful fallback), `showPaywall` (1-tap Stripe overlay), `generateShareText`/`copyShareText`/`shareScore` (Wordle-style emoji cards). See `docs/tracks/monetize.md`. |
+| `gpviewport.js` | all | Safe-zone helpers for the viral pipeline: tightened caption/action zones, `actionBand()`/`captionZone()` for 9:16 safe areas, 1.35x FOV compensation. Used by `drive` caption layout. |
+| `gplevels.js` | both | Multi-level progression for full-game expansions: `createLevelManager()` (unlock/star/save schema), `createCamera()` (follow + world-bounds clamp). Injected by `gamepress expand`. |
+| `three.module.min.js` | 3D | Vendored three.js r160 (single file, no npm). Imported by `gp3d.js`/`gpkit.js`. |
 
 ### Recommended external tools (not kit files — workflow integrations)
 
@@ -25,7 +28,7 @@
 |---|---|---|
 | **img2threejs** ([github.com/img2threejs/img2threejs](https://github.com/img2threejs/img2threejs), Apache 2.0) | 2D image → procedural Three.js hero asset (pivots, sockets, <1,200 polys; no binary blobs) | `gamepress auto --prompt` asks "Start from an image?" first; `--from-image` skips the question. Templates in `lib/img2threejs.mjs`. Full pipeline: `docs/IMG2THREEJS-WORKFLOW.md`. |
 | **REA** ([github.com/morluto/rea](https://github.com/morluto/rea), MIT) | Agent-native reverse engineering: extract physics/logic from binaries, WASM, web games with an evidence trail for clean-room reimplementation | Install: `npx rea-agents setup`. See `docs/tracks/port.md`. |
-| **Kokoro** ([github.com/thewh1teagle/kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx), MIT) | Local text-to-speech for trailer voiceovers and in-game voice lines. CPU-friendly ONNX, ~340MB, zero API cost — unblocks audio-first video production | `gamepress setup --tts` (one-time model download, never committed) → `gamepress voice "script" --voice trailer\|character\|narrator --out out.wav`. Wrapper: `lib/tts.mjs` (`speak()`), bridge: `lib/tts_bridge.py`. |
+| **Kokoro** ([github.com/thewh1teagle/kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx), MIT) | Local text-to-speech for trailer voiceovers and in-game voice lines. CPU-friendly ONNX, ~137MB (int8), zero API cost — unblocks audio-first video production | `gamepress setup` (one-time model download, never committed) → `gamepress voice "script" --voice trailer\|character\|narrator --out out.wav`. Wrapper: `lib/tts.mjs` (`speak()`), bridge: `lib/tts_bridge.py`. |
 
 ### Voice (Kokoro TTS)
 

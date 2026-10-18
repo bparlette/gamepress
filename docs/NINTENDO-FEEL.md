@@ -4,6 +4,9 @@
 and retro audio synthesis derived from decompiled Nintendo games. Drop it into
 any gamepress recipe to get that "Nintendo feel" without guessing.
 
+> API reference: the `gpfeel.js` row in `docs/KIT.md`. Recipe wiring: `docs/RECIPES.md`
+> ("Wiring feel into recipes").
+
 ## What's in it
 
 | Export | What it does | Source |
