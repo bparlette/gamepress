@@ -65,3 +65,14 @@ $ gamepress run --job a1b2c3d4 --answer '{"style": 1, "hook": "CARS GO BOOM"}' -
 $ gamepress run --status a1b2c3d4 --json
 {"job": "a1b2c3d4", "state": "done", "done": true, "game": "https://bparlette.github.io/gamepress/run-a1b2c3d4/", "video": "https://bparlette.github.io/gamepress/run-a1b2c3d4/run-a1b2c3d4-hook.mp4", "hosted": true, "images": ["press/video/run-a1b2c3d4-hook.thumb.jpg", "publish/run-a1b2c3d4/press/out/steam/header_capsule.png", "..."]}
 ```
+
+## The QC gate (before delivery)
+
+The tooling is never the product. Before you hand over any finished game, ask yourself one question: **would a stranger actually play this?** Not "did it build" — "is it fun for 30 seconds?"
+
+Fail the gate if the game is:
+- Technically complete but boring — compiles, runs, all systems work, nothing worth playing
+- Built around the recipe instead of the fun — the structure mattered more than the feel
+- Something you'd close after one round — no hook, no juice, no reason to keep going
+
+If it fails, say so honestly and fix the foundation (game feel, tuning, the core loop) before re-delivering. Never ship a game you wouldn't play.
