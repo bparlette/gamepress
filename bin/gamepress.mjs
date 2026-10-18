@@ -521,14 +521,25 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
   stats: () => gatherStats(positional[0] || null, { gamesDir: CFG().games, publishDir: CFG().publish, stateDir: CFG().state })
     .then(r => out(r, o => o.games.map(g => `${g.id.padEnd(20)} grade=${String(g.gradeScore ?? '-').padStart(3)} yt=${g.ytViews} itch=${g.itchViews} -> ${g.verdict}`).join('\n') || 'no games found')).catch(e => die('stats: ' + e.message)),
   judge: async () => {
-    const target = positional[0] || die('usage: gamepress judge <game-id | game-path> [--json] [--shot-dir dir] [--vision]');
+    const target = positional[0] || die('usage: gamepress judge <game-id | game-path> [--json] [--shot-dir dir] [--vision] [--landscape]');
     const root = join(HERE, '..');
-    const gamePath = existsSync(target) ? target
-      : (existsSync(join(CFG().games, target)) ? join(CFG().games, target)
-      : (existsSync(join(root, 'templates', 'recipes', `${target}.html`)) ? join(root, 'templates', 'recipes', `${target}.html`)
-      : (existsSync(join(CFG().examples, target)) ? join(CFG().examples, target) : target)));
+    const scratch = '/Users/braidpairlette/.gemini/antigravity/scratch';
+    let gamePath = target;
+    if (!/^https?:/.test(target)) {
+      if (existsSync(target)) gamePath = target;
+      else if (existsSync(join(scratch, target))) gamePath = join(scratch, target);
+      else if (target === 'karen' || target === 'hoa-karen' || target === 'hoa' || target === 'hoa-warfare') {
+        if (existsSync(join(scratch, 'hoa-warfare'))) gamePath = join(scratch, 'hoa-warfare');
+      }
+      else if (existsSync(join(CFG().games, target))) gamePath = join(CFG().games, target);
+      else if (existsSync(join(root, 'templates', 'recipes', `${target}.html`))) gamePath = join(root, 'templates', 'recipes', `${target}.html`);
+      else if (existsSync(join(CFG().examples, target))) gamePath = join(CFG().examples, target);
+    }
     const visionHook = argv.includes('--vision') ? vision : null;
-    const r = await judgeGame(gamePath, { shotDir: flag('shot-dir', '.gp/judge'), visionHook });
+    const isLandscape = argv.includes('--landscape') || flag('landscape');
+    const width = flag('width') ? Number(flag('width')) : (isLandscape ? 960 : 540);
+    const height = flag('height') ? Number(flag('height')) : (isLandscape ? 540 : 960);
+    const r = await judgeGame(gamePath, { shotDir: flag('shot-dir', '.gp/judge'), visionHook, width, height });
     out(r, o => `${o.id}: ${o.score}/100 ${o.verdict}\n  facets:\n    palette:     ${String(o.facets.palette.score).padStart(3)}/100 (dominant ${o.facets.palette.dominant} ${o.facets.palette.flatPct}%, ${o.facets.palette.buckets} buckets)\n    camera:      ${String(o.facets.camera.score).padStart(3)}/100 (balance ${o.facets.camera.quadrantBalance})\n    layout:      ${String(o.facets.layout.score).padStart(3)}/100 (${o.facets.layout.canvasCount} canvas)\n    readability: ${String(o.facets.readability.score).padStart(3)}/100 (max contrast ${o.facets.readability.maxContrast}:1)\n  states:\n    boot:   ${o.states.boot.score}/100 (${o.states.boot.file})\n    action: ${o.states.action.score}/100 (${o.states.action.file})\n    over:   ${o.states.over.score}/100 (${o.states.over.file})${o.fixes.length ? '\n  fixes:\n    - ' + o.fixes.join('\n    - ') : ''}`);
     process.exit(r.score >= 65 ? 0 : 1);
   },
