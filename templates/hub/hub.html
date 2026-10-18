@@ -22,10 +22,9 @@ p{font-family:system-ui,sans-serif;font-weight:800;margin:0;font-size:max(15px,3
 .btn[disabled]{opacity:.45;cursor:not-allowed}
 .wide{width:min(86vw,420px);box-sizing:border-box}
 .col{display:flex;flex-direction:column;gap:max(10px,1.8vh);align-items:center}
-#wallet{position:absolute;right:14px;top:max(10px,var(--st));background:#0008;border:2px solid #ffd34d88;border-radius:99px;padding:6px 14px;font-size:max(16px,3.6vmin);color:#ffd34d}
 #hero-pv{width:min(34vmin,170px);height:min(34vmin,170px)}
 #menu .sp{flex:1}
-#cards{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;width:100%;padding:8px 4px 14px;box-sizing:border-box;flex:0 0 auto;-webkit-overflow-scrolling:touch}
+#cards,#lcards{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;width:100%;padding:8px 4px 14px;box-sizing:border-box;flex:0 0 auto;-webkit-overflow-scrolling:touch}
 .card{scroll-snap-align:center;flex:0 0 min(46vw,200px);background:#ffffff14;border:3px solid #ffffff33;border-radius:22px;padding:10px 8px 12px;text-align:center;position:relative}
 .card canvas{width:100%;aspect-ratio:1;display:block}
 .card b{display:block;font-size:max(18px,4vmin);font-weight:400}
@@ -34,55 +33,48 @@ p{font-family:system-ui,sans-serif;font-weight:800;margin:0;font-size:max(15px,3
 .card.locked canvas{filter:grayscale(1) brightness(.55)}
 .card.locked b{opacity:.7}
 .tag{position:absolute;top:8px;right:8px;border-radius:99px;padding:2px 9px;font-size:max(12px,2.6vmin);background:#000a}
-.tag.free{color:#7dff7d}.tag.earn{color:#ffd34d}.tag.premium{color:#ff8ad8}
+.tag.free{color:#7dff7d}.tag.locked{color:#ccc}
 .lock{position:absolute;left:8px;top:8px;font-size:max(18px,4vmin)}
 #info{min-height:6vh}
 table{border-collapse:collapse;width:min(92vw,460px);font-family:system-ui,sans-serif;font-weight:800;font-size:max(13px,2.8vmin)}
 td,th{padding:6px 8px;border-bottom:1px solid #fff2;text-align:left}th{color:var(--a)}td:last-child,th:last-child{text-align:right}
 .scroll{overflow:auto;width:100%;display:flex;justify-content:center;flex:1;min-height:0}
 .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.shop{background:#ffffff14;border:2px solid #ffffff33;border-radius:18px;padding:10px 14px;display:flex;align-items:center;gap:12px;width:min(88vw,420px);box-sizing:border-box}
-.shop canvas{width:56px;height:56px}.shop span{flex:1;font-size:max(16px,3.6vmin)}
-.shop .btn{font-size:max(16px,3.6vmin);padding:8px 18px;min-height:44px}
 </style></head>
 <body>
 <div id="bar"><span id="name"></span><div id="dots"></div><button id="quit">MENU</button></div>
 <div id="toast"></div>
 
 <div class="scr show" id="menu">
-  <div id="wallet">&#9679; <span class="coins">0</span></div>
   <div class="col" style="margin-top:6vh"><h1>__TITLE__</h1><p>__TAGLINE__</p></div>
   <canvas id="hero-pv" width="340" height="340"></canvas>
   <p id="heroname"></p>
   <div class="col">
     <button class="btn wide" id="play">PLAY</button>
     <button class="btn wide alt" id="heroes">HEROES</button>
-    <button class="btn wide alt" id="shop">SHOP</button>
     <button class="btn wide alt" id="demo">FREE DEMO (5 GAMES)</button>
     <button class="btn wide alt" id="scores">BEST SCORES</button>
   </div>
 </div>
 
 <div class="scr" id="hsel">
-  <div id="wallet2" style="font-size:max(16px,3.6vmin);color:#ffd34d;align-self:flex-end">&#9679; <span class="coins">0</span></div>
   <h2>CHOOSE YOUR HERO</h2>
   <div id="cards"></div>
   <p id="info"></p>
   <div class="col"><button class="btn wide" id="act">PICK</button><button class="btn wide alt" id="back1">BACK</button></div>
 </div>
 
-<div class="scr" id="shopscr">
-  <div style="font-size:max(16px,3.6vmin);color:#ffd34d;align-self:flex-end">&#9679; <span class="coins">0</span></div>
-  <h2>SHOP</h2>
-  <p>Premium heroes. Coins cannot buy these.</p>
-  <div class="scroll"><div class="col" id="shoplist"></div></div>
-  <p id="shopmsg"></p>
-  <button class="btn wide alt" id="back2">BACK</button>
+<div class="scr" id="loopscr">
+  <h2>LOOP COMPLETE!</h2>
+  <p>CHOOSE A HERO TO UNLOCK</p>
+  <div id="lcards"></div>
+  <p id="linfo"></p>
+  <div class="col"><button class="btn wide" id="lact">UNLOCK</button><button class="btn wide alt" id="luse" style="display:none">USE NOW</button><button class="btn wide alt" id="lgo" style="display:none">KEEP PLAYING</button></div>
 </div>
 
 <div class="scr" id="scorescr">
   <h2>BEST SCORES</h2>
-  <p>Total coins earned: <span id="totalcoins">0</span> &middot; Wallet: <span class="coins">0</span></p>
+  <p>Heroes unlocked: <span id="unlockedn">0</span> / 20</p>
   <div class="scroll"><table id="tbl"></table></div>
   <button class="btn wide alt" id="back3">BACK</button>
 </div>
@@ -99,112 +91,82 @@ import { CHAR } from '../_vendor/gpsprites.js';
 const CFG = __CONFIG__;
 const $ = id => document.getElementById(id);
 const Q = new URLSearchParams(location.search);
-// Dev flag: only with ?dev=1 may the purchase stub unlock premium. Dev unlocks are session-only (never persisted).
-const DEV = Q.get('dev') === '1';
 const KEY = 'gp-hub', HEROES = CFG.heroes, byId = Object.fromEntries(HEROES.map(h => [h.id, h]));
-const devOwned = new Set(); let devAll = false;
+const LOOPQ = Q.get('loop') === '1'; // test flag: a "loop" is only the first 2 games
 
-// ---------------------------------------------------------------- wallet / save
-const blank = () => ({ coins: 0, total: 0, hero: 'cat', unlocked: [], best: {}, won: {} });
+// ---------------------------------------------------------------- save
+// Heroes with tier 'free' are available from the start; the rest unlock one per completed loop of the full hub (never in demo).
+const blank = () => ({ hero: 'cat', unlocked: [], best: {}, won: {} });
 let S; try { S = { ...blank(), ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { S = blank(); }
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
-const owned = h => h.tier === 'free' || (h.tier === 'earn' && S.unlocked.includes(h.id)) || (h.tier === 'premium' && (devAll || devOwned.has(h.id)));
+if (!Array.isArray(S.unlocked)) S.unlocked = [];
+S.unlocked = S.unlocked.filter(id => byId[id]);
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ hero: S.hero, unlocked: S.unlocked, best: S.best, won: S.won })); } catch {} };
+const owned = h => h.tier === 'free' || S.unlocked.includes(h.id);
+let demoMode = CFG.demo;
+const usable = h => demoMode ? h.tier === 'free' : owned(h);
+const heroNow = () => { const h = byId[S.hero]; return h && usable(h) ? h : byId.cat; };
 if (!byId[S.hero] || !owned(byId[S.hero])) S.hero = 'cat';
-const earn = n => { S.coins += n; S.total += n; save(); paintCoins(); };
-const paintCoins = () => document.querySelectorAll('.coins').forEach(e => e.textContent = S.coins);
-
-// ---------------------------------------------------------------- IAP stub
-/** STUB. Real implementation = Steamworks microtransactions (Steam) / StoreKit IAP (App Store) / Play Billing: start the platform purchase,
- *  verify the receipt server-side, then persist the entitlement. This page NEVER fakes a payment: without ?dev=1 it returns false and unlocks nothing.
- *  productId is a hero id, or 'all-access'. */
-function purchase(productId) {
-  if (!DEV) return false; // no store connected -> nothing is unlocked
-  if (productId === 'all-access') devAll = true; else if (byId[productId]?.tier === 'premium') devOwned.add(productId); else return false;
-  return true;
-}
+const lockedList = () => HEROES.filter(h => !owned(h));
 
 // ---------------------------------------------------------------- screens
-const screens = ['menu', 'hsel', 'shopscr', 'scorescr', 'upsell'];
+const screens = ['menu', 'hsel', 'loopscr', 'scorescr', 'upsell'];
+let screen = 'menu';
 function go(name) {
   screens.forEach(s => $(s).classList.toggle('show', s === name));
-  document.body.classList.toggle('playing', name === 'game');
-  if (name === 'menu') paintMenu(); if (name === 'hsel') paintCards(); if (name === 'shopscr') paintShop(); if (name === 'scorescr') paintScores();
-  paintCoins(); screen = name;
+  document.body.classList.toggle('playing', name === 'game'); screen = name;
+  if (name === 'menu') paintMenu(); if (name === 'hsel') paintCards(); if (name === 'scorescr') paintScores();
 }
-let screen = 'menu';
 const toast = (t, col, ms = 1100) => { const e = $('toast'); e.textContent = t; e.style.color = col; e.classList.add('show'); setTimeout(() => e.classList.remove('show'), ms); };
 const say = (el, t) => { $(el).textContent = t; };
 
 // ---------------------------------------------------------------- sprites
-function draw(cv, h, t, dim) {
+function draw(cv, h, t) {
   const c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height);
-  const fn = CHAR[h.kind] || CHAR.cat, s = cv.width;
-  try { fn(c, s / 2, s * .92, s * .78, { color: h.color, t, anim: 'walk', dir: 1 }); } catch {}
+  try { (CHAR[h.kind] || CHAR.cat)(c, cv.width / 2, cv.width * .92, cv.width * .78, { color: h.color, t, anim: 'walk', dir: 1 }); } catch {}
 }
-let T0 = performance.now();
+const T0 = performance.now();
 function tick(now) {
   const t = (now - T0) / 1000;
-  if (screen === 'menu') draw($('hero-pv'), byId[S.hero], t);
-  else if (screen === 'hsel') document.querySelectorAll('#cards canvas').forEach(cv => draw(cv, byId[cv.dataset.id], t));
-  else if (screen === 'shopscr') document.querySelectorAll('#shoplist canvas').forEach(cv => draw(cv, byId[cv.dataset.id], t));
+  if (screen === 'menu') draw($('hero-pv'), heroNow());
+  else if (screen === 'hsel' || screen === 'loopscr') document.querySelectorAll('.card canvas').forEach(cv => draw(cv, byId[cv.dataset.id], t));
   requestAnimationFrame(tick);
 }
-
-function paintMenu() { say('heroname', byId[S.hero].name + ' is ready'); $('demo').style.display = CFG.demo ? 'none' : ''; $('play').textContent = CFG.demo ? 'PLAY FREE 5' : 'PLAY'; }
+function paintMenu() { say('heroname', heroNow().name + ' is ready'); $('demo').style.display = CFG.demo ? 'none' : ''; $('play').textContent = CFG.demo ? 'PLAY FREE 5' : 'PLAY'; }
+function card(h, tag, cls, onclick) {
+  const d = document.createElement('div'); d.className = 'card ' + cls; d.dataset.id = h.id; d.tabIndex = 0;
+  d.innerHTML = `<span class="tag ${tag[1]}">${tag[0]}</span>${cls.includes('locked') ? '<span class="lock">&#128274;</span>' : ''}<canvas width="240" height="240" data-id="${h.id}"></canvas><b>${h.name}</b><small>${h.id === S.hero && !cls.includes('locked') ? 'SELECTED' : ''}</small>`;
+  d.onclick = onclick; return d;
+}
 
 // ---------------------------------------------------------------- hero select
 let pick = S.hero;
+const lockTextNow = () => (demoMode ? 'Full game only' : 'Complete a loop to unlock');
 function paintCards() {
   const box = $('cards'); box.innerHTML = '';
   HEROES.forEach(h => {
-    const d = document.createElement('div'), ok = owned(h);
-    d.className = 'card' + (ok ? '' : ' locked') + (h.id === pick ? ' sel' : ''); d.dataset.id = h.id; d.tabIndex = 0;
-    d.innerHTML = `<span class="tag ${h.tier}">${h.tier === 'free' ? 'FREE' : h.tier === 'earn' ? (ok ? 'EARNED' : h.cost + ' coins') : (ok ? 'OWNED' : h.cost)}</span>${ok ? '' : '<span class="lock">&#128274;</span>'}<canvas width="240" height="240" data-id="${h.id}"></canvas><b>${h.name}</b><small>${h.id === S.hero ? 'SELECTED' : ''}</small>`;
-    d.onclick = () => { pick = h.id; paintCards(); d.scrollIntoView({ inline: 'center', block: 'nearest' }); };
-    box.appendChild(d);
+    const ok = usable(h);
+    box.appendChild(card(h, ok ? [h.tier === 'free' ? 'FREE' : 'UNLOCKED', 'free'] : ['LOCKED', 'locked'], (ok ? '' : 'locked ') + (h.id === pick ? 'sel' : ''), () => { pick = h.id; paintCards(); }));
   });
-  const h = byId[pick], ok = owned(h), a = $('act');
-  say('info', h.blurb + (ok ? '' : h.tier === 'earn' ? ` Unlock for ${h.cost} coins.` : ` Premium hero (${h.cost}).`));
-  a.disabled = false;
-  if (ok) { a.textContent = h.id === S.hero ? 'SELECTED' : 'PICK ' + h.name.toUpperCase(); a.disabled = h.id === S.hero; }
-  else if (h.tier === 'earn') { a.textContent = `UNLOCK ${h.cost}`; a.disabled = S.coins < h.cost; }
-  else a.textContent = 'SHOP';
+  const h = byId[pick], ok = usable(h), a = $('act');
+  say('info', ok ? h.blurb : lockTextNow());
+  a.textContent = !ok ? 'LOCKED' : h.id === S.hero ? 'SELECTED' : 'PICK ' + h.name.toUpperCase(); a.disabled = !ok || h.id === S.hero;
   document.querySelector('#cards .sel')?.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
-function act() {
-  const h = byId[pick];
-  if (owned(h)) { S.hero = h.id; save(); paintCards(); toast('PICKED!', '#7dff7d', 700); return; }
-  if (h.tier === 'earn') { if (S.coins < h.cost) return toast('NEED COINS', '#ff6b6b', 800); S.coins -= h.cost; S.unlocked.push(h.id); S.hero = h.id; save(); paintCoins(); paintCards(); toast('UNLOCKED!', '#ffd34d'); return; }
-  go('shopscr');
-}
-
-// ---------------------------------------------------------------- shop
-function paintShop() {
-  const box = $('shoplist'); box.innerHTML = '';
-  const row = (title, price, id, ok, hero) => {
-    const d = document.createElement('div'); d.className = 'shop';
-    d.innerHTML = `${hero ? `<canvas width="112" height="112" data-id="${hero.id}"></canvas>` : ''}<span>${title}</span>`;
-    const b = document.createElement('button'); b.className = 'btn'; b.textContent = ok ? 'OWNED' : price; b.disabled = ok;
-    b.onclick = () => { if (purchase(id)) { say('shopmsg', 'Unlocked (dev mode).'); paintShop(); } else say('shopmsg', 'Store not connected yet. Premium heroes arrive with the Steam / App Store release.'); };
-    d.appendChild(b); box.appendChild(d);
-  };
-  HEROES.filter(h => h.tier === 'premium').forEach(h => row(h.name, h.cost, h.id, owned(h), h));
-  row('ALL-ACCESS (all premium heroes)', CFG.allAccess.price, 'all-access', devAll);
-}
+function act() { const h = byId[pick]; if (!usable(h)) return; S.hero = h.id; save(); paintCards(); toast('PICKED!', '#7dff7d', 700); }
 
 // ---------------------------------------------------------------- scores
 function paintScores() {
-  say('totalcoins', S.total);
+  say('unlockedn', HEROES.filter(owned).length);
   $('tbl').innerHTML = '<tr><th>Game</th><th>Best</th></tr>' + CFG.games.map(g => `<tr><td>${CFG.names[g] || g}${S.won[g] ? ' &#9733;' : ''}</td><td>${S.best[g] ?? '-'}</td></tr>`).join('');
 }
 
 // ---------------------------------------------------------------- rotation engine (same as templates/packs/pack.html)
-let games = CFG.games, N = games.length, demoMode = CFG.demo;
+let games = CFG.games, N = games.length;
 const CAP = 45000, GAP = 1300, a = Math.floor(Math.random() * 1e6);
 let idx = -1, loop = 0, cur = 0, timer = 0, locked = true, results = [];
 const frames = [document.createElement('iframe'), document.createElement('iframe')];
 frames.forEach(f => { f.className = 'off'; f.allow = 'autoplay; fullscreen; gamepad'; document.body.prepend(f); });
-const url = (id, n) => { const h = byId[S.hero]; return `${CFG.base}${id}/index.html?pack=1&seed=${(a + n * 7) % 1e6}&hero=${encodeURIComponent(h.kind)}&heroColor=${encodeURIComponent(h.color)}${CFG.world ? '&world=' + encodeURIComponent(CFG.world) : ''}`; };
+const url = (id, n) => { const h = heroNow(); return `${CFG.base}${id}/index.html?pack=1&seed=${(a + n * 7) % 1e6}&hero=${encodeURIComponent(h.kind)}&heroColor=${encodeURIComponent(h.color)}${CFG.world ? '&world=' + encodeURIComponent(CFG.world) : ''}`; };
 const dots = $('dots');
 function paint() { dots.innerHTML = ''; dots.style.visibility = N > 12 ? 'hidden' : ''; games.forEach((_, i) => { const d = document.createElement('i'); d.className = i === idx ? 'on' : results[i] === true ? 'win' : results[i] === false ? 'lose' : ''; dots.appendChild(d); }); $('name').textContent = idx >= 0 ? `${idx + 1}/${N} ${CFG.names[games[idx]] || games[idx]}` : ''; }
 function preload(i) { const f = frames[1 - cur]; f.className = 'off'; f.src = url(games[i % N], i + loop * N); }
@@ -215,25 +177,36 @@ function show(i) {
   frames[1 - cur].removeAttribute('src'); setTimeout(() => { if (screen === 'game') preload((i + 1) % N); }, 600);
   timer = setTimeout(() => next(null), CAP);
 }
-function reward(g, win, score) {
-  let c = win ? 10 : 2; if (win && !S.won[g]) { c += 25; S.won[g] = true; }
-  score = Math.max(0, Math.floor(+score || 0)); c += Math.min(40, Math.floor(score / 10));
-  if (score > (S.best[g] ?? -1)) S.best[g] = score;
-  earn(c); return c;
-}
+function record(g, win, score) { if (win) S.won[g] = true; score = Math.max(0, Math.floor(+score || 0)); if (score > (S.best[g] ?? -1)) S.best[g] = score; save(); }
 function next(win, score) {
   if (locked) return; locked = true; clearTimeout(timer);
-  if (win !== null) { results[idx] = win; const c = reward(games[idx], win, score); toast((win ? 'NICE!' : 'TRY NEXT!') + ' +' + c, win ? '#7dff7d' : '#ff6b6b', GAP - 200); }
+  if (win !== null) { results[idx] = win; record(games[idx], win, score); const t = $('toast'); t.textContent = win ? 'NICE!' : 'TRY NEXT!'; t.style.color = win ? '#7dff7d' : '#ff6b6b'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), GAP - 200); }
   paint();
-  setTimeout(() => {
-    if (screen !== 'game') return;
-    const n = idx + 1;
-    if (n >= N) { loop++; results = []; if (demoMode) { stop(); $('upmsg').textContent = `That was ${N} of ${CFG.fullGames}. Get the full arcade to play them all and unlock every hero.`; go('upsell'); return; } show(0); } else show(n);
-  }, GAP);
+  setTimeout(() => { if (screen !== 'game') return; const n = idx + 1; if (n >= N) finishLoop(); else show(n); }, GAP);
 }
 function stop() { clearTimeout(timer); locked = true; idx = -1; frames.forEach(f => { f.className = 'off'; f.removeAttribute('src'); }); }
+function resume() { loop++; results = []; go('game'); show(0); }
+/** The rotation wrapped from the last game to the first. Demo: upsell, never unlocks. Full hub: choose one locked hero to unlock. */
+function finishLoop() {
+  stop();
+  if (demoMode) { say('upmsg', `That was ${N} of ${CFG.fullGames}. Get the full game to play them all and unlock every hero.`); go('upsell'); return; }
+  const left = lockedList();
+  if (!left.length) { toast('ALL HEROES UNLOCKED', '#ffd34d', 1600); resume(); return; }
+  chosen = null; lpick = left[0].id; go('loopscr'); paintLoop();
+}
+let chosen = null, lpick = null;
+function paintLoop() {
+  const box = $('lcards'); box.innerHTML = '';
+  (chosen ? [byId[chosen]] : lockedList()).forEach(h => box.appendChild(card(h, chosen ? ['UNLOCKED', 'free'] : ['LOCKED', 'locked'], (chosen ? 'sel' : 'locked ') + (h.id === lpick ? 'sel' : ''), () => { if (!chosen) { lpick = h.id; paintLoop(); } })));
+  const h = byId[chosen || lpick];
+  say('linfo', chosen ? `${h.name} unlocked for good!` : h.blurb);
+  $('lact').style.display = chosen ? 'none' : ''; $('lact').textContent = 'UNLOCK ' + h.name.toUpperCase();
+  $('luse').style.display = $('lgo').style.display = chosen ? '' : 'none';
+  document.querySelector('#lcards .sel')?.scrollIntoView({ inline: 'center', block: 'nearest' });
+}
+function unlockChosen() { if (chosen || !lpick || owned(byId[lpick])) return; chosen = lpick; S.unlocked.push(chosen); save(); paintLoop(); }
 function start(demo) {
-  demoMode = demo; games = demo ? CFG.demoGames : CFG.games; N = games.length; loop = 0; results = []; idx = -1;
+  demoMode = demo; games = demo ? CFG.demoGames : (LOOPQ ? CFG.games.slice(0, 2) : CFG.games); N = games.length; loop = 0; results = []; idx = -1;
   try { const ac = new (window.AudioContext || window.webkitAudioContext)(); ac.resume(); } catch {}
   go('game'); show(0);
 }
@@ -242,24 +215,30 @@ addEventListener('message', e => { if (screen !== 'game' || e.source !== frames[
 // ---------------------------------------------------------------- wiring
 $('play').onclick = () => start(CFG.demo);
 $('demo').onclick = () => start(true);
-$('heroes').onclick = () => { pick = S.hero; go('hsel'); };
-$('shop').onclick = () => go('shopscr');
+$('heroes').onclick = () => { demoMode = CFG.demo; pick = S.hero; go('hsel'); };
 $('scores').onclick = () => go('scorescr');
 $('act').onclick = act;
-['back1', 'back2', 'back3', 'back4'].forEach(b => $(b).onclick = () => go('menu'));
-$('quit').onclick = () => { stop(); go('menu'); };
+$('lact').onclick = unlockChosen;
+$('luse').onclick = () => { if (chosen) { S.hero = chosen; save(); } resume(); };
+$('lgo').onclick = resume;
+['back1', 'back3', 'back4'].forEach(b => $(b).onclick = () => { demoMode = CFG.demo; go('menu'); });
+$('quit').onclick = () => { stop(); demoMode = CFG.demo; go('menu'); };
 $('again').onclick = () => start(true);
 $('buy').href = CFG.buyUrl || '#';
 addEventListener('keydown', e => {
   const k = e.key;
-  if (screen === 'game') { if (k === 'n' || k === 'N') next(null); else if (k === 'Escape') { stop(); go('menu'); } return; }
-  if (screen === 'menu') { if (k === 'Enter' || k === ' ') start(CFG.demo); else if (k === 'h' || k === 'H') $('heroes').click(); else if (k === 's' || k === 'S') $('shop').click(); }
+  if (screen === 'game') { if (k === 'n' || k === 'N') next(null); else if (k === 'Escape') { stop(); demoMode = CFG.demo; go('menu'); } return; }
+  if (screen === 'menu') { if (k === 'Enter' || k === ' ') start(CFG.demo); else if (k === 'h' || k === 'H') $('heroes').click(); }
   else if (screen === 'hsel') {
     const i = HEROES.findIndex(h => h.id === pick);
     if (k === 'ArrowRight') { pick = HEROES[Math.min(HEROES.length - 1, i + 1)].id; paintCards(); } else if (k === 'ArrowLeft') { pick = HEROES[Math.max(0, i - 1)].id; paintCards(); } else if (k === 'Enter') act(); else if (k === 'Escape') go('menu');
+  } else if (screen === 'loopscr') {
+    const l = chosen ? [] : lockedList(), i = l.findIndex(h => h.id === lpick);
+    if (k === 'ArrowRight' && l.length) { lpick = l[Math.min(l.length - 1, i + 1)].id; paintLoop(); } else if (k === 'ArrowLeft' && l.length) { lpick = l[Math.max(0, i - 1)].id; paintLoop(); } else if (k === 'Enter') chosen ? resume() : unlockChosen();
   } else if (k === 'Escape') go('menu');
 });
 frames.forEach(f => f.addEventListener('load', () => { try { if (f === frames[cur] && screen === 'game') f.contentWindow.focus(); } catch {} }));
-window.__hub = { get S() { return S; }, get idx() { return idx; }, get screen() { return screen; }, get games() { return games; }, owned: id => owned(byId[id]), purchase, next: (w, s) => next(w, s), frame: () => frames[cur], DEV };
-paintCoins(); paintMenu(); requestAnimationFrame(tick);
+// Test hook: complete a loop without playing every game.
+window.__hub = { get S() { return S; }, get idx() { return idx; }, get screen() { return screen; }, get games() { return games; }, owned: id => owned(byId[id]), next: (w, s) => next(w, s), finishLoop, frame: () => frames[cur] };
+paintMenu(); requestAnimationFrame(tick);
 </script></body></html>

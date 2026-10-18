@@ -1,9 +1,5 @@
 {
- "_note": "Arcade Hub roster: 5 free, 10 earned with coins, 5 premium (IAP). kind = sprite key in kit/gpsprites.js CHAR. The Among-Us-like bean was replaced by scrapper.",
- "allAccess": {
-  "id": "all-access",
-  "price": "$2.99"
- },
+ "_note": "Arcade Hub roster: 5 heroes free at the start, 15 locked and unlocked one per completed loop of the full hub. kind = sprite key in kit/gpsprites.js CHAR.",
  "heroes": [
   {
    "id": "cat",
@@ -11,7 +7,6 @@
    "kind": "cat",
    "color": "#ff9a3c",
    "tier": "free",
-   "cost": 0,
    "blurb": "The classic. Lands on its feet, mostly."
   },
   {
@@ -20,7 +15,6 @@
    "kind": "capyyuzu",
    "color": "#b9824f",
    "tier": "free",
-   "cost": 0,
    "blurb": "Calm under pressure. Wears a yuzu."
   },
   {
@@ -29,7 +23,6 @@
    "kind": "noob",
    "color": "#ffd23c",
    "tier": "free",
-   "cost": 0,
    "blurb": "Everyone starts somewhere. Blocky and brave."
   },
   {
@@ -38,7 +31,6 @@
    "kind": "spud",
    "color": "#b98a5c",
    "tier": "free",
-   "cost": 0,
    "blurb": "One very determined potato."
   },
   {
@@ -47,7 +39,6 @@
    "kind": "duckknife",
    "color": "#ffd23c",
    "tier": "free",
-   "cost": 0,
    "blurb": "A duck with a tiny blade and big plans."
   },
   {
@@ -55,8 +46,7 @@
    "name": "Mushfrog",
    "kind": "mushfrog",
    "color": "#4cc36b",
-   "tier": "earn",
-   "cost": 50,
+   "tier": "locked",
    "blurb": "Frog with a mushroom hat. Bouncy."
   },
   {
@@ -64,8 +54,7 @@
    "name": "Bandit",
    "kind": "raccoon",
    "color": "#8e96a3",
-   "tier": "earn",
-   "cost": 100,
+   "tier": "locked",
    "blurb": "Steals the spotlight and the snacks."
   },
   {
@@ -73,8 +62,7 @@
    "name": "Melon",
    "kind": "melon",
    "color": "#3fae4f",
-   "tier": "earn",
-   "cost": 150,
+   "tier": "locked",
    "blurb": "Juicy, round, hard to put down."
   },
   {
@@ -82,8 +70,7 @@
    "name": "Goo",
    "kind": "slime",
    "color": "#4fdc7a",
-   "tier": "earn",
-   "cost": 200,
+   "tier": "locked",
    "blurb": "Squishes through anything."
   },
   {
@@ -91,8 +78,7 @@
    "name": "Axo",
    "kind": "axolotl",
    "color": "#ffb3c7",
-   "tier": "earn",
-   "cost": 250,
+   "tier": "locked",
    "blurb": "Smiles through every level."
   },
   {
@@ -100,8 +86,7 @@
    "name": "Doge",
    "kind": "doge",
    "color": "#e8b062",
-   "tier": "earn",
-   "cost": 300,
+   "tier": "locked",
    "blurb": "Much speed. Very wow."
   },
   {
@@ -109,8 +94,7 @@
    "name": "Ragdoll",
    "kind": "ragdoll",
    "color": "#f7efe4",
-   "tier": "earn",
-   "cost": 350,
+   "tier": "locked",
    "blurb": "Floppy but unstoppable."
   },
   {
@@ -118,8 +102,7 @@
    "name": "Reaper",
    "kind": "reaper",
    "color": "#7a5cff",
-   "tier": "earn",
-   "cost": 400,
+   "tier": "locked",
    "blurb": "Cool hood, collects high scores."
   },
   {
@@ -127,8 +110,7 @@
    "name": "Nana",
    "kind": "banana",
    "color": "#ffe14d",
-   "tier": "earn",
-   "cost": 450,
+   "tier": "locked",
    "blurb": "Slips past every obstacle."
   },
   {
@@ -136,8 +118,7 @@
    "name": "Hacker",
    "kind": "hacker",
    "color": "#37ff8b",
-   "tier": "earn",
-   "cost": 500,
+   "tier": "locked",
    "blurb": "Bends the rules of the arcade."
   },
   {
@@ -145,8 +126,7 @@
    "name": "Jester",
    "kind": "jester",
    "color": "#f4e6d0",
-   "tier": "premium",
-   "cost": "$0.99",
+   "tier": "locked",
    "blurb": "Chaos in checkerboard."
   },
   {
@@ -154,8 +134,7 @@
    "name": "Count",
    "kind": "vampire",
    "color": "#e9e6f0",
-   "tier": "premium",
-   "cost": "$0.99",
+   "tier": "locked",
    "blurb": "Never skips a night shift."
   },
   {
@@ -163,8 +142,7 @@
    "name": "Wildcard",
    "kind": "joker",
    "color": "#fbf7ee",
-   "tier": "premium",
-   "cost": "$0.99",
+   "tier": "locked",
    "blurb": "Wild grin, wilder moves."
   },
   {
@@ -172,8 +150,7 @@
    "name": "Phantom",
    "kind": "phantom",
    "color": "#6c6cff",
-   "tier": "premium",
-   "cost": "$0.99",
+   "tier": "locked",
    "blurb": "Appears when you least expect."
   },
   {
@@ -181,8 +158,7 @@
    "name": "Scrapper",
    "kind": "scrapper",
    "color": "#ff7a1a",
-   "tier": "premium",
-   "cost": "$0.99",
+   "tier": "locked",
    "blurb": "Built from spare parts and spite."
   }
  ]
