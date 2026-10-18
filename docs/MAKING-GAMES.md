@@ -70,8 +70,26 @@ physics → film with `?auto=1` bot choreography.
 
 `gamepress auto "<idea>" --prompt` asks "Start from an image?" first and prints
 the Gemini prompt template for the chosen recipe (kart-racer, arena-brawler,
-one-tap-reflex included; `--from-image` skips the question). Full pipeline,
+one-tap-reflex included; `--from-image` skips the question). `gamepress make`
+suggests the workflow automatically for 3D recipes. Full pipeline,
 prompt templates, and verification checklist: `docs/IMG2THREEJS-WORKFLOW.md`.
+
+## Demo vs Full Game — stage-appropriate tools
+
+Demos and full games need different things. Don't drag full-game
+machinery into a 20-second clip, and don't hand-roll what a library does
+better once real players show up.
+
+| Need | Demo stage (base build) | Full-game stage (upgrade path) |
+|---|---|---|
+| Hero assets | **img2threejs** — procedural Three.js from a 2D image (`--from-image`) | same assets scale up, no change |
+| Visual polish | **`kit/gpshaders.js`** — `applyRetro()` (vertex jitter, Bayer dither, scanlines) in one call | same calls carry through unchanged |
+| Physics | hand-written per game + `kit/gpfeel.js` (deterministic, bot-scriptable) | **[Rapier](docs/RAPIER-UPGRADE.md)** — WASM rigid bodies when real players, stacking, or netcode arrive |
+| Multiplayer | none — the clip films itself | **[PlayroomKit](docs/PLAYROOM-UPGRADE.md)** — QR-code phone controllers for brawler/kart/duel recipes |
+| Monetization | none | **`kit/gpmonetize.js`** — ads, paywall, share cards (see `docs/tracks/monetize.md`) |
+
+Short version: demos need **looks** (img2threejs + gpshaders). Full games
+need **determinism** (Rapier) and optionally **multiplayer** (PlayroomKit).
 
 ## The twelve demos
 

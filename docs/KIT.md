@@ -15,6 +15,7 @@
 | `gplego.js` | both | composable mechanic blocks for brand-new hybrids (`gamepress lego`). |
 | `gpfeel.js` | both | Nintendo-decomp-derived feel: `characterStep()` (4x sub-stepping, coyote time, jump buffering), `updateCamera()` (Lakitu occlusion), `VirtualAPU` (4-ch voice stealing), `DeterministicRNG` (LFSR). See `docs/NINTENDO-FEEL.md`. |
 | `gpretro.js` | 3D/2D | Retro rendering: `bayerDither` (RGB555 GLSL), `vertexSnap` (fixed-point jitter), `affineWarp` (PS1 texture swimming), `lowResTarget` (320x240 nearest-neighbor), `mode7Ground` (SNES pseudo-3D), `scanlines`. |
+| `gpshaders.js` | 3D | Ready-to-use retro effects for Three.js materials (onBeforeCompile wrappers over `gpretro.js` GLSL): `vertexJitter(material, intensity)`, `bayerDither(material)`, `scanlines(material)`, `applyRetro(material, opts)`, `applyRetroAll(scene, opts)`. Demo-stage visual polish. |
 | `gbfixed.js` | ROM | 8.8 fixed-point math for homebrew: `f2x`/`x2f`/`fmul`/`fdiv`, `Fixed` sub-pixel accumulator class. Integer-only hot paths for SNES/Game Boy targets. See `docs/tracks/port.md`. |
 | `gpmonetize.js` | all | Day-1 monetization: `requestRewarded`/`requestInterstitial` (CrazyGames/Poki SDKs, graceful fallback), `showPaywall` (1-tap Stripe overlay), `generateShareText`/`copyShareText`/`shareScore` (Wordle-style emoji cards). See `docs/tracks/monetize.md`. |
 
