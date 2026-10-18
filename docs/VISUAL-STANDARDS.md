@@ -988,10 +988,56 @@ style.binderHoles(ctx); // punch-out key art has the 3 holes
 9. **Touch controls:** always `gptouch.js` (floating joystick left, round buttons right).
 10. **Spectate mode:** always `?spectate=1` + `?autostart=1` + `?seed=N` (see SPECTATE.md).
 
+## Character Design Rules (kit/gpchar.js)
+
+Cherie's bar (2026-10-17): *"Need them to look like the animal or person they are
+supposed to be not shapes."* Boxy minecraft-style figures are out. Every character
+must pass the **silhouette test**: render it pure black against white — if you can't
+tell what it is from the shadow alone, the design is wrong.
+
+### Humanoids
+1. **Real proportions: ~7.5 heads tall.** Not minecraft (4 heads), not chibi — a
+   stylized human. Head height = total height / 7.5.
+2. **Rounded head (sphere), never a box.** Slight egg scale (taller than wide) reads
+   more human than a perfect ball.
+3. **A face is mandatory:** two eyes with glints, angled brows, nose hint, mouth line.
+   Bold simple features (Jet Set Radio / Wind Waker) — readable at 3/4 camera angle.
+4. **Tapered torso:** shoulders wider than waist (cylinder with different top/bottom
+   radius, elliptical cross-section). No box torsos.
+5. **Jointed limbs:** shoulder/elbow/wrist + hip/knee/ankle pivots. Upper arm and
+   forearm as separate capsules so arms can bend.
+6. **Hands and feet:** sphere hands, forward-pointing feet. No stump ends.
+7. **Hair or headwear:** every humanoid gets hair (spiky/topknot/long/bald) or a
+   headband/hat. A bald shiny sphere head reads as "egg", not "person".
+8. **Clothing shapes:** gi lapels, belts (torus), hakama flare, shoulder pads —
+   costume pieces that break up the body silhouette.
+
+### Animals
+1. **Silhouette-first:** bunny = long ears above the head; cat = triangle ears +
+   whiskers + curl tail; dog = snout + floppy ears + wag tail. If the ears came off,
+   it should stop reading as that animal.
+2. **Round bodies:** spheres and capsules, never boxes. Plump reads as cute/alive.
+3. **Face on the head:** eyes + nose minimum; buck teeth for the bunny.
+4. **Procedural motion:** bunnies hop (body bob + ear lag), quadrupeds walk
+   (diagonal leg pairs), dog tails wag.
+
+### Animation
+1. **Procedural poses, damped:** `setPose(rig, name)` + `update(rig, dt)` — joints
+   ease toward targets, never snap. Poses: idle (breathing), guard, walk (phase-driven),
+   crouch, attack (weapon-aware keyframes), hit (flinch), dead (sprawl), victory.
+2. **Weapon-aware attacks:** slash (diagonal cleave), thrust (pierce), overhead
+   (two-handed slam), whack (wide horizontal swat). The arm follows the weapon.
+3. **Game-driven joints:** games that pose a weapon arm directly pass
+   `exclude: ['shoulderR','elbowR','wristR']` to `update()` — the pose system leaves
+   those joints alone.
+4. **Walk is a full-body cycle:** hips swing + knees bend on the forward leg + arms
+   counter-swing + hip bob. Never just rotate the legs.
+
 ## What NOT to do
 
 - No `MeshStandardMaterial` with default grey — everything gets explicit color
-- No realistic proportions on stylized games — big heads, chunky bodies
+- No box heads, box torsos, box limbs on characters — spheres, capsules, tapered cylinders
+- No faceless characters — eyes/brows/nose/mouth minimum
 - No smooth gradient shading on toon games — 3 bands, hard steps
 - No tiny UI text — minimum 14px on mobile, always stroked
 - No silent hits — every impact gets flash + shake + sound
