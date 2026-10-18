@@ -75,6 +75,10 @@ Stack in one line: Blender for 3D, GSAP for motion, HyperFrames for final render
 
 Source: [@thegreatest_sv](https://x.com/thegreatest_sv/status/2111520366791414136) (Oct 17, 2026).
 
+- **awesome-opus5-5-videos** (github.com/yihui-dev/awesome-opus5-5-videos) — 475 video demos built with Claude Opus 5.5: motion graphics, interactive explainers, 3D scenes, browser-based games, creative animations. All HTML/Canvas/SVG/Three.js. Every demo ships its original prompt + source post — study how it was made, copy the approach. Best prompt-reference library for AI-generated video content.
+
+Source: [@frontm_an](https://x.com/frontm_an/status/2111768445259821154) (Oct 18, 2026).
+
 ## Publishing the videos
 YouTube Shorts / TikTok / Reels take the 1080x1920 MP4 directly (`press/video/*.mp4`, under 60 s). Upload by hand:
 tooling does not log in to accounts. Titles follow `docs/VIRAL-PLAYBOOK.md`.
