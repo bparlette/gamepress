@@ -104,8 +104,10 @@ When the human gives you a game idea in chat, **DO NOT jump straight to building
 **NEVER** skip this because the idea "seems clear enough." It isn't. Ask.
 
 ## 12. Self-improvement direction (Harness²)
-Google open-sourced Harness² (Oct 2026): turns any agent harness into a self-improving system. The agent proposes edits to its own harness (system prompt, tools, memory, skills, subagents), runs candidate versions, compares behavior, keeps what works — learning across tasks without needing a grader. One round of edits beat original harnesses in their tests.
+Google open-sourced Harness² (Oct 2026, Apache-2.0, github.com/google-research/harness2, paper arxiv.org/abs/2610.14224): turns any agent harness into a self-improving system. The agent proposes edits to its own harness, probes them on the same task, and keeps only changes backed by behavioral evidence (Propose-Probe-Compose) — no ground-truth labels or verifiers needed. A second recursion level saves adopted harnesses + lessons to a library so each new task starts from accumulated experience.
+
+Results: +11.5 pts on WorkBuddy-Bench, +11.8pp on Harvey's legal benchmark; all 4 model/harness setups improved on all 3 benchmarks. A weaker model (GLM-5) with a better harness beat base Gemini 3.5 Flash. 8 editable components: system prompt, guardrails, memory, tool guidance, subagents, skills, scripts, plugins. Cost: ~4 agent runs per task. Caveat: Meta-Harness still leads on some setups.
 
 gamepress already does the informal version: tests catch regressions, docs get corrected when reality disagrees, the kit evolves per game. Harness² is the formal version of that loop. Future direction: let `gamepress` runs propose their own harness edits (new recipes, better defaults, fixed prompts) and validate them against the test suite before keeping them.
 
-Source: [@akshay_pachaar](https://x.com/akshay_pachaar/status/2111753928031531232) (Oct 18, 2026).
+Sources: [@akshay_pachaar](https://x.com/akshay_pachaar/status/2111753928031531232), [@Marktechpost](https://x.com/marktechpost/status/2111737885141688348) (Oct 18, 2026).
