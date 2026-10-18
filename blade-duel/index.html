@@ -35,10 +35,11 @@
   <div class="tc-btn" id="tc-stc">M</div>
 </div>
 <script type="module">
-import { THREE, createStage, sfx, rand, clamp } from './_vendor/gp3d.js';
-import { toon, build, hero, particles, sky } from './_vendor/gpkit.js';
+import { THREE, createStage, sfx, rand, clamp } from '../_vendor/gp3d.js';
+import { toon, build, hero, particles, sky } from '../_vendor/gpkit.js';
+import { buildHumanoid, HIPS_Y } from '../_vendor/gpchar.js';
 import { STANCE, STANCE_NAMES, WEAPONS, WEAPON_IDS, ZONE, CLASH_DIST, FSTATE,
-         segmentDistance, stanceAdvantage, BladeFighter, resolveExchange } from './_vendor/gpblade.js';
+         segmentDistance, stanceAdvantage, BladeFighter, resolveExchange } from '../_vendor/gpblade.js';
 
 // ---------------------------------------------------------------- params
 const QS = new URLSearchParams(location.search);
@@ -364,58 +365,21 @@ function buildWeaponMesh(id) {
   return g;
 }
 
-// Stylized duelist rig. Faces +X when facing=1, -X when facing=-1.
+// Duelist rig built on gpchar's procedural humanoid — real proportions, face,
+// jointed limbs. Same parts interface the combat code expects.
 function buildFighterMesh(color) {
-  const g = new THREE.Group();
-  const skin = toon(color), dark = toon(0x2a2438), wrap = toon(0xf0e6d2);
-  const parts = {};
-  // legs (hakama trousers)
-  parts.legL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.55, 0.18), dark);
-  parts.legL.position.set(0, 0.28, 0.13); g.add(parts.legL);
-  parts.legR = parts.legL.clone(); parts.legR.position.z = -0.13; g.add(parts.legR);
-  // hakama skirt flare
-  const hakama = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.34, 0.3, 8), dark);
-  hakama.position.y = 0.52; g.add(hakama);
-  // torso (gi)
-  parts.torso = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.62, 0.28), skin);
-  parts.torso.position.y = 0.86; g.add(parts.torso);
-  // gi lapel cross panels
-  const lapelL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.02), wrap);
-  lapelL.position.set(0.1, 0.9, 0.15); lapelL.rotation.z = 0.5; g.add(lapelL);
-  const lapelR = lapelL.clone(); lapelR.position.x = -0.02; lapelR.rotation.z = -0.5; g.add(lapelR);
-  const belt = new THREE.Mesh(new THREE.BoxGeometry(0.39, 0.11, 0.31), toon(0x14141e));
-  belt.position.y = 0.6; g.add(belt);
-  // shoulder guards
-  for (const s of [-1, 1]) {
-    const pad = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 6), toon(0x3a3450));
-    pad.scale.set(1, 0.6, 1); pad.position.set(0.08, 1.16, 0.22 * s); g.add(pad);
-  }
-  // head
-  parts.head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 10), wrap);
-  parts.head.position.y = 1.32; g.add(parts.head);
-  // headband + fluttering tails
-  const band = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.175, 0.07, 12), toon(0xc22a2a));
-  band.position.y = 1.38; g.add(band);
-  parts.tail1 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.3, 0.02), toon(0xc22a2a));
-  parts.tail1.position.set(-0.14, 1.3, 0.05); g.add(parts.tail1);
-  parts.tail2 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.24, 0.02), toon(0xc22a2a));
-  parts.tail2.position.set(-0.16, 1.32, -0.05); g.add(parts.tail2);
-  const knot = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), dark);
-  knot.position.set(-0.05, 1.48, 0); g.add(knot);
-  // arms: shoulder pivot groups so we can pose the weapon arm
-  parts.armR = new THREE.Group(); parts.armR.position.set(0.1, 1.12, -0.2); g.add(parts.armR);
-  const armRm = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.5, 0.14), skin);
-  armRm.position.y = -0.22; parts.armR.add(armRm);
-  const wrapR = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 0.16), wrap);
-  wrapR.position.y = -0.42; parts.armR.add(wrapR); // wrist wrap
-  parts.hand = new THREE.Group(); parts.hand.position.y = -0.48; parts.armR.add(parts.hand);
-  parts.armL = new THREE.Group(); parts.armL.position.set(0.1, 1.12, 0.2); g.add(parts.armL);
-  const armLm = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.5, 0.14), skin);
-  armLm.position.y = -0.22; parts.armL.add(armLm);
-  parts.armL.rotation.x = 0.5; parts.armL.rotation.z = 0.4;
-  // weapon mount
-  parts.weaponMount = new THREE.Group(); parts.hand.add(parts.weaponMount);
-  return { group: g, parts };
+  const rig = buildHumanoid({ gi: color, hair: 'headband', armor: true, skirt: true });
+  const J = rig.joints;
+  const parts = {
+    legL: J.hipL, legR: J.hipR,
+    torso: J.chest,
+    head: J.head,
+    armR: J.shoulderR, armL: J.shoulderL,
+    hand: J.wristR,
+    weaponMount: rig.parts.weaponMount,
+    tail1: rig.parts.tail1, tail2: rig.parts.tail2,
+  };
+  return { group: rig.group, parts, rig };
 }
 
 // Stance poses: [armR.rotation.z, armR.rotation.x, torsoY, headY, crouch]
@@ -432,7 +396,7 @@ class Duelist {
     this.name = name; this.facing = facing; this.isBot = isBot;
     this.weaponId = weaponId; this.weapon = WEAPONS[weaponId];
     const rig = buildFighterMesh(color);
-    this.group = rig.group; this.parts = rig.parts;
+    this.group = rig.group; this.parts = rig.parts; this.rig = rig.rig;
     this.weaponMesh = buildWeaponMesh(weaponId);
     this.weaponMesh.scale.setScalar(1.18); // read clearly at a glance
     this.weaponMats = [];
@@ -555,13 +519,22 @@ class Duelist {
     const moving = Math.abs(this.vx) + Math.abs(this.vz) > 0.3;
     if (moving && this.alive) this.walkPh += dt * 10;
     const sw = moving ? Math.sin(this.walkPh) * 0.35 : 0;
-    this.parts.legL.rotation.x = sw; this.parts.legR.rotation.x = -sw;
+    this.parts.legL.rotation.z = sw; this.parts.legR.rotation.z = -sw;
+    this.rig.joints.kneeL.rotation.z = -Math.max(0, sw) * 0.9 - 0.06;
+    this.rig.joints.kneeR.rotation.z = -Math.max(0, -sw) * 0.9 - 0.06;
+    this.parts.armL.rotation.z = -sw * 0.45 + 0.1;
+    this.rig.joints.elbowL.rotation.z = 0.45;
     // stance pose + crouch
     const pose = STANCE_POSE[f.stance];
     const crouch = f.crippled ? 0.42 : pose.crouch;
     this.group.position.y = -crouch * 0.55;
     this.parts.torso.rotation.x = pose.lean + crouch * 0.5;
-    this.parts.head.position.y = 1.32 - crouch * 0.55;
+    this.parts.torso.rotation.z = -0.04 + Math.sin(st.t * 2.2 + this.walkPh) * 0.015;
+    this.rig.joints.hips.position.y = HIPS_Y - crouch * 0.45;
+    if (crouch > 0.05) {
+      this.rig.joints.kneeL.rotation.z = -crouch * 1.3;
+      this.rig.joints.kneeR.rotation.z = -crouch * 1.3;
+    }
     // weapon arm follows weapon dir
     const d = this._weaponDir();
     const ang = Math.atan2(d.y, Math.abs(d.x) * this.facing);
