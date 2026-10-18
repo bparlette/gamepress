@@ -1,6 +1,6 @@
 // gp3d: the ~100 lines every three.js demo in this folder shares. Portrait-first stage, fixed-step loop
 // (deterministic under gamepress's virtual clock), input, HUD, synth sfx, event log for capture scripts.
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 export { THREE };
 
 export const rand = (a = 0, b = 1) => a + Math.random() * (b - a);
