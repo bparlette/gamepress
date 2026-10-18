@@ -90,5 +90,16 @@
     ],
     "needs": "nothing: no accounts, no keys",
     "purpose": "Viral vertical video (Shorts/TikTok/Reels) of a game at full quality. Same game kit and quality bar as every other track."
+  },
+  "port": {
+    "doc": "docs/tracks/port.md",
+    "tools": [
+      "kit/gbfixed.js",
+      "kit/gpfeel.js",
+      "kit/gpretro.js",
+      "viral"
+    ],
+    "needs": "target SDK (PVSnesLib for SNES, GBDK-2020 for Game Boy, cc65 for NES, SGDK for Genesis); emulator for testing; user must own source game",
+    "purpose": "Convert games between retro platforms (e.g. NES->Virtual Boy). Clean-room reimplementation: mechanics and math ported, no copyrighted assets."
   }
 }
