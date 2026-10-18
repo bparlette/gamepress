@@ -136,6 +136,21 @@ A drive plan that just moves and clicks is a **failed video**. Before writing an
 
 A video that shows menus + walking + synth music failed the brief. Reshoot it.
 
+## Dual orientation: every render produces both 16:9 and 9:16
+
+Cherie's rule: **every video-producing run outputs both orientations.** The plan's
+`viewport` decides the primary (e.g. `[540, 960]` → 1080×1920 vertical at scale 2,
+`[1280, 720]` → 1280×720 horizontal). After the primary encodes, `drive` derives the
+alternate with a center-cropped re-encode (action stays centered; audio copied untouched):
+
+- `<name>.mp4` (primary) + `<name>-horizontal.mp4` (1280×720) or `<name>-vertical.mp4` (1080×1920)
+- Flags: `--horizontal-only` / `--vertical-only` when you explicitly want just one
+- `gamepress all <id> --track hook|demo|web-store` passes the flags through to the video step
+
+Lay out for **portrait first** — a center crop from vertical to horizontal keeps the action;
+a center crop from horizontal to vertical can cut the sides. Design the plan's viewport for
+the platform that matters most, knowing the other comes free.
+
 ## Advanced: in-engine director scripts
 
 For games with complex combat or choreography, `eval` steps in the plan get unwieldy.

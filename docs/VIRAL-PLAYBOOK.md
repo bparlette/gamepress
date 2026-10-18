@@ -131,7 +131,7 @@ Haunted Roomba, Pizza Delivery From Hell, Reverse Dodgeball, plus the dropped Ti
 Every gamepress run must end with the AI showing the user links to the main products — no exceptions, no "it's in the folder." The outputs:
 
 1. **Game link** — wherever the game is playable: local file path, GitHub Pages URL, Cloudflare URL, itch.io page, Steam store page, Roblox experience link. Whatever the user's output host was.
-2. **Video link** — the viral clip / trailer. Google Drive preview link, YouTube Shorts URL, or local file path. Must be playable on the user's phone.
+2. **Video links** — the viral clip / trailer in BOTH orientations: horizontal (16:9, 1280×720) and vertical (9:16, 1080×1920). Every video-producing run outputs both by default (`<name>.mp4` + `<name>-horizontal.mp4` / `<name>-vertical.mp4`). Google Drive preview link, YouTube Shorts URL, or local file path. Must be playable on the user's phone.
 3. **Images** — thumbnail + at least one screenshot. Linked, not just "saved to disk."
 
 If the game isn't hosted anywhere yet, say so explicitly and offer the next step ("want me to put this on itch.io?"). Never end with "done" and no links.

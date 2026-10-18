@@ -381,7 +381,7 @@ function die(msg) { JSON_OUT ? console.log(JSON.stringify({ ok: false, error: St
 const HELP = {
   init: ['create press/ with a starter capture plan', 'gamepress init [dir]', ['--dir press']],
   capture: ['drive a web game in headless Chrome: stills + clips -> press/raw', 'gamepress capture <plan.json>', ['--dir press']],
-  drive: ['frame-locked playthrough of a web game -> captioned MP4 with audio (spectate-first: "spectate":true in plan lets the game perform itself)', 'gamepress drive <plan.json> [--out dir] [--quick N] [--vo "text"] [--dry-run] [--batch a.json,b.json] [--batch-dir plans/]', ['--out press/video', '--quick 4 (smoke test: low-res, short)', '--vo "line" (voiceover)', '--dry-run (validate only)', '--batch (one Chrome session, N videos)', '--batch-dir (all *.json in dir)', 'plan "spectate":true -> ?spectate=1&autostart=1&seed=N, input ignored (docs/SPECTATE.md)']],
+  drive: ['frame-locked playthrough of a web game -> captioned MP4 with audio (spectate-first: "spectate":true in plan lets the game perform itself)', 'gamepress drive <plan.json> [--out dir] [--quick N] [--vo "text"] [--dry-run] [--batch a.json,b.json] [--batch-dir plans/] [--horizontal-only] [--vertical-only]', ['--out press/video', '--quick 4 (smoke test: low-res, short)', '--vo "line" (voiceover)', '--dry-run (validate only)', '--batch (one Chrome session, N videos)', '--batch-dir (all *.json in dir)', '--horizontal-only / --vertical-only (default: both orientations)', 'plan "spectate":true -> ?spectate=1&autostart=1&seed=N, input ignored (docs/SPECTATE.md)', 'output: <name>.mp4 + <name>-horizontal.mp4 / <name>-vertical.mp4 (dual orientation default)']],
   catalog: ['add/update a game on a demo page catalog and build its thumbnail', 'gamepress catalog <games.json> --id x --title "X" --path g/x/index.html', ['--id', '--title', '--category', '--path', '--still shot.jpg', '--orientation portrait', '--keys {}', '--labels {}']],
   scenes: ['pull the best stills and clips out of a screen recording', 'gamepress scenes <video> [--count 12]', ['--count 12', '--threshold 0.25']],
   pack: ['crop/scale/encode everything each store needs -> press/out/<platform>', 'gamepress pack [--platforms steam,itch] [--focus 0.5,0.4] [--title "Game"]', ['--platforms', '--focus x,y', '--title', '--no-logo']],
@@ -394,7 +394,7 @@ const HELP = {
   test: ['headless playtest: must print "ok": true', 'gamepress test <game dir or url> [--root dir]', ['--root']],
   botcheck: ['prove the demo loses then wins (bot playtest)', 'gamepress botcheck <game-id> [--seconds 40]', ['--seconds 40']],
   status: ['what is done/stale, what is next (token-saving)', 'gamepress status <game-id> [--json]', ['--json', '--games', '--catalog']],
-  all: ['run every missing/stale step of a track in order', 'gamepress all <id> --track hook|demo|web-store [--heal] [--vo]', ['--track', '--force', '--heal', '--vo', '--local (skip cloud)', '--local-ai']],
+  all: ['run every missing/stale step of a track in order', 'gamepress all <id> --track hook|demo|web-store [--heal] [--vo] [--horizontal-only] [--vertical-only]', ['--track', '--force', '--heal', '--vo', '--local (skip cloud)', '--local-ai', '--horizontal-only / --vertical-only (default: both orientations)']],
   grade: ['score game + hook video against the quality bar', 'gamepress grade <id> [--vision] [--threshold 80]', ['--vision (Ollama)', '--threshold 80']],
   heal: ['auto-repair lint/test bugs (optionally with local AI)', 'gamepress heal <id> [--no-local-ai]', ['--no-local-ai']],
   hooks: ['render 3 opening A/B hook variants', 'gamepress hooks <id>', []],
@@ -460,7 +460,7 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
   new: () => console.log('created', scaffold(positional[0] || die('usage: gamepress new <id> [--target web|roblox] [--games dir] [--title T]'), { games: CFG().games, title: flag('title'), target: flag('target', 'web') })),
   status: () => out(status(need('status'), CFG()), o => `${o.id}: ${Object.entries(o.steps).map(([k, v]) => `${k}=${v}`).join(' ')}${o.grade ? ` grade=${o.grade.score}` : ''} -> next: ${o.next || 'nothing, all done'}`),
   grade: async () => { const r = grade(need('grade'), CFG(), { threshold: +flag('threshold', 80) }); if (argv.includes('--vision') && r.stills) { r.vision = await vision(r.stills); if (r.vision.available && r.vision.score < 75) { r.pass = false; r.fixes.push(...r.vision.failed.map(q => 'vision: ' + q)); } } out(r, o => `${o.id}: ${o.score}/100 ${o.pass ? 'PASS' : 'FAIL'}${o.fixes.length ? '\n  fix: ' + o.fixes.join('\n  fix: ') : ''}`); process.exit(r.pass ? 0 : 1); },
-  all: () => runAll(need('all --track hook|demo|web-store'), flag('track', 'demo'), CFG(), { force: argv.includes('--force'), heal: argv.includes('--heal'), localAi: LOCAL_AI, vo: flag('vo') || argv.includes('--vo'), cloud: !argv.includes('--local'), log: m => !JSON_OUT && console.log(m) }).then(r => out(r, o => `${o.id}: ran [${o.ran}] skipped [${o.skipped}] -> next: ${o.status.next || 'done'}`)).catch(e => die(e.message)),
+  all: () => runAll(need('all --track hook|demo|web-store'), flag('track', 'demo'), CFG(), { force: argv.includes('--force'), heal: argv.includes('--heal'), localAi: LOCAL_AI, vo: flag('vo') || argv.includes('--vo'), cloud: !argv.includes('--local'), orientation: argv.includes('--horizontal-only') ? 'horizontal-only' : argv.includes('--vertical-only') ? 'vertical-only' : 'both', log: m => !JSON_OUT && console.log(m) }).then(r => out(r, o => `${o.id}: ran [${o.ran}] skipped [${o.skipped}] -> next: ${o.status.next || 'done'}`)).catch(e => die(e.message)),
   auto: async () => {
     const idea = positional.join(' ') || die('usage: gamepress auto "<game idea>" [--id x] [--track demo|web-store|hook] [--style comic] [--answers answers.json] [--preset name] [--prompt] [--from-image [--image-mode upload|describe|game|prompt-me] [--image-desc "..."]] [--lego] [--local-ai] [--heal] [--vo]');
     const br = ideate(idea, { live: !argv.includes('--offline') });
@@ -545,7 +545,8 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
   roblox: () => publishRoblox({ file: positional[0], universeId: flag('universe'), placeId: flag('place'), versionType: flag('type', 'Published'), rojoProject: flag('rojo'), live: argv.includes('--live') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die('roblox: ' + e.message)),
   tracks: () => { const t = JSON.parse(readFileSync(join(HERE, '..', 'tracks.json'), 'utf8')); const k = positional[0]; console.log(JSON.stringify(k ? t[k] || die('tracks: shared | demo | web-store | roblox') : t, null, 1)); },
   drive: () => {
-    const opts = { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false, vo: flag('vo') || argv.includes('--vo') };
+    const orientation = argv.includes('--horizontal-only') ? 'horizontal-only' : argv.includes('--vertical-only') ? 'vertical-only' : 'both';
+    const opts = { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false, vo: flag('vo') || argv.includes('--vo'), orientation };
     if (argv.includes('--dry-run')) return out(dryRun(positional[0] || die('usage: gamepress drive <plan.json> [--dry-run]')));
     const batch = flag('batch'), batchDir = flag('batch-dir');
     if (batch || batchDir) {
@@ -604,7 +605,7 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
     if (argv.includes('--local')) process.stderr.write('cloud: --local flag — skipping cloud\n');
     const localDrive = () => drive(positional[1] || die('usage: gamepress cloud drive <plan.json>'),
       { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false,
-        vo: flag('vo') || argv.includes('--vo') }).catch(e => die('drive failed: ' + e.message));
+        vo: flag('vo') || argv.includes('--vo'), orientation: argv.includes('--horizontal-only') ? 'horizontal-only' : argv.includes('--vertical-only') ? 'vertical-only' : 'both' }).catch(e => die('drive failed: ' + e.message));
     const localVoice = () => {
       const scriptFile = positional[1] || die('usage: gamepress cloud voice <script.txt> [--voice x] [--speed N] [--out dir]');
       const lines = readFileSync(scriptFile, 'utf8').split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#'));
