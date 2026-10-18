@@ -407,7 +407,7 @@ const HELP = {
   lint: ['catch personal paths, secrets, external requests, huge bundles', 'gamepress lint <id>', ['--games']],
   copy: ['write store copy (description, tags) for a game', 'gamepress copy <id>', []],
   build: ['build a target bundle', 'gamepress build <id> --target web|steam|roblox', ['--target']],
-  host: ['publish to a host (dry run unless --live)', 'gamepress host <itch|crazygames|steam|youtube|cloudflare|github> <id> [--live]', ['--live', '--user', '--dir publish']],
+  host: ['publish to a host: tries the real upload, else prints exact manual steps', 'gamepress host <itch|crazygames|steam|youtube|cloudflare|github> <id> [--live]', ['--live', '--user', '--dir publish']],
   deploy: ['DEPRECATED alias of `host` — use `gamepress host` instead', 'gamepress deploy <host> <id> [--live]', ['--live']],
   repo: ['init git repo + layout (+ GitHub creation)', 'gamepress repo <id> [--github] [--private]', ['--github', '--private', '--examples']],
   bundle: ['zip a game dir for distribution', 'gamepress bundle <game dir> [--out dist]', ['--out dist']],
@@ -531,7 +531,7 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
   copy: () => copyDraft(need('copy'), { examples: CFG().examples, outDir: CFG().publish, localAi: LOCAL_AI }).then(c => out({ copy: c }, o => 'wrote ' + o.copy)).catch(e => die('copy: ' + e.message)),
   build: () => out(buildTarget(need('build --target web|steam|roblox'), flag('target', 'web'), { gamesDir: CFG().games }), o => JSON.stringify(o)),
   // deploy is a deprecated alias of host (C1/A8): one implementation, deprecation warning, removal next release.
-  _doHost: () => hosts[positional[0]]?.upload(JSON.parse(readFileSync(join(flag('dir', 'publish'), positional[1] || die('usage: gamepress host <itch|crazygames|steam|youtube|cloudflare|github> <id> [--live]'), 'manifest.json'), 'utf8')), { dryRun: !argv.includes('--live'), user: flag('user') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die(e.message)) || die('unknown host'),
+  _doHost: () => hosts[positional[0]]?.upload(JSON.parse(readFileSync(join(flag('dir', 'publish'), positional[1] || die('usage: gamepress host <itch|crazygames|steam|youtube|cloudflare|github> <id> [--live]'), 'manifest.json'), 'utf8')), { dryRun: !argv.includes('--live'), user: flag('user') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => { if (e.manualSteps?.length) console.log(JSON.stringify({ ok: false, error: String(e.message).split('\n')[0], manualSteps: e.manualSteps }, null, 1)); else die(e.message); }) || die('unknown host'),
   deploy: function () { console.error('DEPRECATED: `gamepress deploy` is now `gamepress host` (same args). This alias will be removed in a future release.'); return this._doHost(); },
   host: function () { return this._doHost(); },
   botcheck: () => botCheck(positional[0] ? resolve(CFG().games, positional[0]) : die('usage: gamepress botcheck <game-id> [--seconds 40]'), { root: CFG().games, seconds: +flag('seconds', 40) }).then(r => out(r, o => `${o.ok ? 'OK' : 'CHECK'}: ${o.ends.map(e => (e.win ? 'W' : 'L') + e.t).join(' ')}${o.errors.length ? ' errors ' + o.errors : ''}`)).catch(e => die('botcheck: ' + e.message)),
@@ -576,7 +576,6 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
       const install = platform === 'darwin' ? 'brew install gh' : platform === 'linux' ? 'sudo apt install gh  (or: sudo dnf install gh)' : 'winget install GitHub.cli';
       console.log(`gh: NOT INSTALLED — needed for gamepress cloud.\n  install: ${install}\n  then: gh auth login`);
     }
-    console.log('\nsetup guide (what to install, what each tool enables): https://bparlette.github.io/gamepress/setup/');
     console.log('\nnext: gamepress auto "<idea>" --track demo   (or: gamepress context for the 400-token cheat sheet)');
   },
   tools: () => { try {
