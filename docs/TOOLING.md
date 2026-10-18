@@ -24,7 +24,7 @@ They download on demand into `~/.gamepress/`:
 |---|---|
 | `gamepress tools` | list all registered tools with version, size, install status |
 | `gamepress tools --check` | check upstream for newer versions |
-| `gamepress setup --tts` | download kokoro-tts (~340MB, one time) |
+| `gamepress setup --tts` | download kokoro-tts (~137MB, one time) |
 
 Current registry: `kokoro-tts` v1.1 (MIT) — local TTS for trailers and voice lines (int8 model, ~137MB total).
 `edge-tts` is also registered as a network-service fallback (`gamepress voices --engine edge`).
@@ -35,15 +35,13 @@ check_latest, license); `lib/tools.mjs` handles the rest.
 - **JavaScript (ES modules)**: games and all tooling. **JSON**: capture plans (`*.drive.json`, `*.plan.json`), store presets, SFX recipes, demo-page catalog.
 - **ffmpeg expression language** (`aevalsrc`, `-filter_complex`): synthesized sound effects and the music bed.
 - **HTML/CSS**: caption overlay and HUD are DOM drawn into the page, so screenshots include them.
-- **zsh**: `scripts/render-all.sh`.
+- **zsh**: `scripts/render-all.sh`. All dev scripts: `scripts/README.md`.
 
 ## Commands
 
-`gamepress --help` lists all 45+ commands with one-line descriptions; `gamepress <cmd> --help`
-shows usage and flags per command. (The table below is the original core set — `--help` is
-the complete, always-current reference.)
-
-`init`, `capture`, `drive`, `scenes`, `pack`, `check`, `catalog`. See `README.md` and `docs/DRIVING.md`.
+Run `gamepress` with no arguments for usage, `gamepress --help` for every command with a one-line
+description, and `gamepress <cmd> --help` for flags. The per-command reference for AI agents is
+`AGENTS.md` (entry point: `ORCHESTRATOR.md`); capture-plan format is in `docs/DRIVING.md`.
 
 Local AI: `docs/local-ai-integration.md` covers the Qwen 14B local-AI setup
 (`--local-ai` coprocessor for spec enrichment, vision grading, and self-healing).
@@ -60,7 +58,7 @@ presets/platforms.json   store asset specs (verify against current store docs be
 presets/sfx.json         synth recipes for sound effects
 examples/<game>/*.json   worked plans for ten games
 scripts/render-all.sh    render every example
-test/                    node --test
+test/                    npm test (node --test test/*.test.mjs)
 ```
 
 ## Where the games live

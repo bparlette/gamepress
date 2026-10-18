@@ -1,5 +1,7 @@
 # The kit (`kit/` -> `<games>/_vendor/`)
 
+Feel constants and their sources: `docs/NINTENDO-FEEL.md`. Recipe wiring: `docs/RECIPES.md`.
+
 `gamepress make` copies the kit next to your games (`syncKit`), so every game imports `../_vendor/<file>.js`.
 
 | File | For | What it gives you |
@@ -32,7 +34,7 @@
 
 ### Voice (Kokoro TTS)
 
-One-time setup (downloads the model, ~340MB, into `~/.gamepress/tts/` — never committed):
+One-time setup (downloads the model, ~137MB, into `~/.gamepress/tts/` — never committed):
 
 ```sh
 gamepress setup --tts
