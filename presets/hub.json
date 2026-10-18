@@ -1,0 +1,16 @@
+{
+ "_note": "Arcade Hub config. games omitted = the 30 recipe ids of action15+brains15.",
+ "name": "arcade-hub",
+ "title": "CAT ARCADE HUB",
+ "tagline": "30 mini-games. Pick a hero. Earn coins. Unlock them all.",
+ "accent": "#ffd34d",
+ "demoGames": [
+  "one-tap-reflex",
+  "rail-runner",
+  "bullet-heaven",
+  "kart-racer",
+  "falling-blocks"
+ ],
+ "buyUrl": "",
+ "price": "$4.99"
+}

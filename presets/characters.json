@@ -1,0 +1,189 @@
+{
+ "_note": "Arcade Hub roster: 5 free, 10 earned with coins, 5 premium (IAP). kind = sprite key in kit/gpsprites.js CHAR. The Among-Us-like bean was replaced by scrapper.",
+ "allAccess": {
+  "id": "all-access",
+  "price": "$2.99"
+ },
+ "heroes": [
+  {
+   "id": "cat",
+   "name": "Biscuit",
+   "kind": "cat",
+   "color": "#ff9a3c",
+   "tier": "free",
+   "cost": 0,
+   "blurb": "The classic. Lands on its feet, mostly."
+  },
+  {
+   "id": "capyyuzu",
+   "name": "Yuzu Capy",
+   "kind": "capyyuzu",
+   "color": "#b9824f",
+   "tier": "free",
+   "cost": 0,
+   "blurb": "Calm under pressure. Wears a yuzu."
+  },
+  {
+   "id": "noob",
+   "name": "Noob",
+   "kind": "noob",
+   "color": "#ffd23c",
+   "tier": "free",
+   "cost": 0,
+   "blurb": "Everyone starts somewhere. Blocky and brave."
+  },
+  {
+   "id": "spud",
+   "name": "Spud",
+   "kind": "spud",
+   "color": "#b98a5c",
+   "tier": "free",
+   "cost": 0,
+   "blurb": "One very determined potato."
+  },
+  {
+   "id": "duckknife",
+   "name": "Quack Knife",
+   "kind": "duckknife",
+   "color": "#ffd23c",
+   "tier": "free",
+   "cost": 0,
+   "blurb": "A duck with a tiny blade and big plans."
+  },
+  {
+   "id": "mushfrog",
+   "name": "Mushfrog",
+   "kind": "mushfrog",
+   "color": "#4cc36b",
+   "tier": "earn",
+   "cost": 50,
+   "blurb": "Frog with a mushroom hat. Bouncy."
+  },
+  {
+   "id": "raccoon",
+   "name": "Bandit",
+   "kind": "raccoon",
+   "color": "#8e96a3",
+   "tier": "earn",
+   "cost": 100,
+   "blurb": "Steals the spotlight and the snacks."
+  },
+  {
+   "id": "melon",
+   "name": "Melon",
+   "kind": "melon",
+   "color": "#3fae4f",
+   "tier": "earn",
+   "cost": 150,
+   "blurb": "Juicy, round, hard to put down."
+  },
+  {
+   "id": "slime",
+   "name": "Goo",
+   "kind": "slime",
+   "color": "#4fdc7a",
+   "tier": "earn",
+   "cost": 200,
+   "blurb": "Squishes through anything."
+  },
+  {
+   "id": "axolotl",
+   "name": "Axo",
+   "kind": "axolotl",
+   "color": "#ffb3c7",
+   "tier": "earn",
+   "cost": 250,
+   "blurb": "Smiles through every level."
+  },
+  {
+   "id": "doge",
+   "name": "Doge",
+   "kind": "doge",
+   "color": "#e8b062",
+   "tier": "earn",
+   "cost": 300,
+   "blurb": "Much speed. Very wow."
+  },
+  {
+   "id": "ragdoll",
+   "name": "Ragdoll",
+   "kind": "ragdoll",
+   "color": "#f7efe4",
+   "tier": "earn",
+   "cost": 350,
+   "blurb": "Floppy but unstoppable."
+  },
+  {
+   "id": "reaper",
+   "name": "Reaper",
+   "kind": "reaper",
+   "color": "#7a5cff",
+   "tier": "earn",
+   "cost": 400,
+   "blurb": "Cool hood, collects high scores."
+  },
+  {
+   "id": "banana",
+   "name": "Nana",
+   "kind": "banana",
+   "color": "#ffe14d",
+   "tier": "earn",
+   "cost": 450,
+   "blurb": "Slips past every obstacle."
+  },
+  {
+   "id": "hacker",
+   "name": "Hacker",
+   "kind": "hacker",
+   "color": "#37ff8b",
+   "tier": "earn",
+   "cost": 500,
+   "blurb": "Bends the rules of the arcade."
+  },
+  {
+   "id": "jester",
+   "name": "Jester",
+   "kind": "jester",
+   "color": "#f4e6d0",
+   "tier": "premium",
+   "cost": "$0.99",
+   "blurb": "Chaos in checkerboard."
+  },
+  {
+   "id": "vampire",
+   "name": "Count",
+   "kind": "vampire",
+   "color": "#e9e6f0",
+   "tier": "premium",
+   "cost": "$0.99",
+   "blurb": "Never skips a night shift."
+  },
+  {
+   "id": "joker",
+   "name": "Wildcard",
+   "kind": "joker",
+   "color": "#fbf7ee",
+   "tier": "premium",
+   "cost": "$0.99",
+   "blurb": "Wild grin, wilder moves."
+  },
+  {
+   "id": "phantom",
+   "name": "Phantom",
+   "kind": "phantom",
+   "color": "#6c6cff",
+   "tier": "premium",
+   "cost": "$0.99",
+   "blurb": "Appears when you least expect."
+  },
+  {
+   "id": "scrapper",
+   "name": "Scrapper",
+   "kind": "scrapper",
+   "color": "#ff7a1a",
+   "tier": "premium",
+   "cost": "$0.99",
+   "blurb": "Built from spare parts and spite."
+  }
+ ]
+}
