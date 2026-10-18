@@ -52,7 +52,7 @@
       "build --target web|steam",
       "copy",
       "publish-pack",
-      "deploy itch|crazygames|steam|youtube|cloudflare|github"
+      "host itch|crazygames|steam|youtube|cloudflare|github"
     ],
     "needs": "itch butler key, CrazyGames portal login, Steamworks app ($100), YouTube OAuth, Cloudflare API token (free), GitHub: owner-provided, other agent implements uploads",
     "purpose": "Web build (HTML5) for itch.io and CrazyGames, desktop wrap + store page for Steam, Shorts on YouTube."
@@ -65,7 +65,7 @@
       "test",
       "grade",
       "pack",
-      "deploy"
+      "host"
     ],
     "needs": "approval of demo vertical slice",
     "purpose": "Scale an approved vertical-slice demo into a full multi-level production game with save persistence, level select, and expanded worlds."

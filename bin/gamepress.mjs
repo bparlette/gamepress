@@ -576,6 +576,7 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
       const install = platform === 'darwin' ? 'brew install gh' : platform === 'linux' ? 'sudo apt install gh  (or: sudo dnf install gh)' : 'winget install GitHub.cli';
       console.log(`gh: NOT INSTALLED — needed for gamepress cloud.\n  install: ${install}\n  then: gh auth login`);
     }
+    console.log('\nsetup guide (what to install, what each tool enables): https://bparlette.github.io/gamepress/setup/');
     console.log('\nnext: gamepress auto "<idea>" --track demo   (or: gamepress context for the 400-token cheat sheet)');
   },
   tools: () => { try {
