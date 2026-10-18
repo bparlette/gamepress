@@ -719,7 +719,7 @@
         "Beat the boss at 0 HP",
         "Combo breaker"
       ],
-      "seconds": 32,
+      "seconds": 31,
       "engine": "2d",
       "colors": "css",
       "match": "beat.?em|brawler|double dragon|kung.?fu|street fight|fighter",

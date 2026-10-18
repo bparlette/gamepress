@@ -4,8 +4,10 @@
   DON'T BUILD: weapon wheel, more than one level, co-op, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp } from '../_vendor/gp2d.js';
 import { drawChar, heart } from '../_vendor/gpsprites.js';
+import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CONTRA CAT', sub: 'Run, jump, shoot', hook: 'Run. Jump. Shoot.', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#7fd4ff', length: 2100, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: '⤒' }, { id: 'b', label: '🔫' } ] }) : null; /* TOUCH: floating joystick (left half) + JUMP (A) / FIRE (B). See docs/TOUCH.md */
 const GY = 700;
 let p, bl, eb, en, cam, boss, kills, botT, fireT, streak, streakT;
 function init() { p = { x: 80, y: GY, vy: 0, d: 1, hp: g.dumb() ? 1 : 3, inv: 0, t: 0, air: false }; bl = []; eb = []; cam = 0; boss = null; kills = 0; botT = 0; fireT = 0; streak = 0; streakT = 0; g.score = 0; en = [];
@@ -15,7 +17,8 @@ function hurt() { if (p.inv > 0) return; p.hp--; p.inv = 1.3; sfx('hit'); g.shak
 function shoot() { if (fireT > 0) return; fireT = .17; bl.push({ x: p.x + p.d * 40, y: p.y - 56, vx: p.d * 720, life: .7 }); sfx('shoot', { vol: .4 }); g.burst(p.x + p.d * 46, p.y - 56, 3, { color: '#ffd34d', speed: 120, size: 6, life: .2 }); }
 function update(dt) {
   if (g.mode !== 'play') return; p.t += dt; p.inv -= dt; fireT -= dt; streakT -= dt; if (streakT <= 0) streak = 0; botT -= dt;
-  const Lb = g.btn('l', 10, 830, 100, 100, '◀', { key: 'ArrowLeft' }), Rb = g.btn('r', 120, 830, 100, 100, '▶', { key: 'ArrowRight' }), Jb = g.btn('j', 270, 830, 110, 100, 'JUMP', { key: 'ArrowUp' }), Fb = g.btn('f', 390, 830, 130, 100, 'FIRE', { key: 'Space' });
+  const ti = TC ? TC.getInput() : null; /* touch: read once per frame */
+  const Lb = ti ? { held: ti.x < -0.35 } : g.btn('l', 10, 830, 100, 100, '◀', { key: 'ArrowLeft' }), Rb = ti ? { held: ti.x > 0.35 } : g.btn('r', 120, 830, 100, 100, '▶', { key: 'ArrowRight' }), Jb = ti ? { pressed: ti.aPressed || g.pressed.ArrowUp } : g.btn('j', 270, 830, 110, 100, 'JUMP', { key: 'ArrowUp' }), Fb = ti ? { held: ti.b } : g.btn('f', 390, 830, 130, 100, 'FIRE', { key: 'Space' });
   let mv = (Rb.held || g.keys.KeyD ? 1 : 0) - (Lb.held || g.keys.KeyA ? 1 : 0), jp = Jb.pressed, fire = Fb.held;
   if (g.auto && !g.dumb()) { mv = 1; fire = true; const near = [...en.filter(e => e.hp > 0 && e.k === 'z'), ...(boss ? [boss] : [])].find(e => e.x > p.x && e.x - p.x < 150), inc = eb.some(b => Math.abs(b.x - p.x) < 90 && b.y > GY - 90); if ((near && Math.abs(near.x - p.x) < 120 || inc) && !p.air && botT <= 0) { jp = true; botT = .5; } if (boss && p.x > boss.x - 330) mv = 0; }
   if (mv) p.d = mv > 0 ? 1 : mv < 0 ? -1 : p.d; p.x = clamp(p.x + mv * 190 * dt, 40, S.length + 380); if (jp && !p.air) { p.vy = -760; p.air = true; sfx('jump'); } if (fire || g.keys.Space) shoot();

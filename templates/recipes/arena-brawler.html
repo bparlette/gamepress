@@ -19,7 +19,7 @@ function punch() { if (p.cd > 0 || g.mode !== 'play') return; p.cd = .34; p.atk 
 function update(dt) {
   if (g.mode !== 'play') return; p.t += dt; p.cd -= dt; p.atk -= dt; p.inv -= dt; comboT -= dt; if (comboT <= 0) combo = 0;
   const ti = TC ? TC.getInput() : null; /* touch: read once per frame */
-  const P = ti ? { pressed: ti.aPressed || g.pressed.Space, held: ti.a || g.keys.Space } : g.btn('p', 360, 820, 160, 110, 'PUNCH', { key: 'Space' }); if (P.pressed) punch();
+  const P = ti ? { pressed: ti.aPressed || g.pressed.Space, held: ti.a || g.keys.Space } : g.btn('p', 360, 820, 160, 110, 'PUNCH', { key: 'Space' }); if (P.pressed || (ti && P.held)) punch();
   let mx = (g.keys.ArrowRight ? 1 : 0) - (g.keys.ArrowLeft ? 1 : 0), my = (g.keys.ArrowDown ? 1 : 0) - (g.keys.ArrowUp ? 1 : 0);
   if (ti) { if (Math.abs(ti.x) > 0.2) mx = Math.sign(ti.x); if (Math.abs(ti.y) > 0.2) my = Math.sign(ti.y); }
   else if (g.ptr.down && g.ptr.x < 350) { const dx = g.ptr.x - p.x, dy = g.ptr.y - p.y; if (Math.hypot(dx, dy) > 20) { mx = Math.sign(dx); my = Math.sign(dy) * (Math.abs(dy) > 14 ? 1 : 0); } }
