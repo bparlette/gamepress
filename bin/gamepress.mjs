@@ -57,6 +57,13 @@ import { cloudAvailable, cloudOrLocal } from '../lib/cloud.mjs';
 import { startRun, answerRun, statusRun } from '../lib/run.mjs';
 import { createInterface as _rl } from 'node:readline';
 
+// Auto-enable WebSocket on Node < 22 (e.g. Node 20 runners) so CDP and Edge TTS work without manual flags
+if (typeof WebSocket === 'undefined' && !process.execArgv.includes('--experimental-websocket')) {
+  const { spawnSync } = await import('node:child_process');
+  const r = spawnSync(process.execPath, ['--experimental-websocket', ...process.execArgv, ...process.argv.slice(1)], { stdio: 'inherit' });
+  process.exit(r.status ?? (r.error ? 1 : 0));
+}
+
 /** One-off free-text prompt (only called when --prompt already verified a TTY). */
 async function _askText(q) {
   const rl = _rl({ input: process.stdin, output: process.stdout });
