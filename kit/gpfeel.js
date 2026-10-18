@@ -1348,6 +1348,220 @@ export class RetroController {
 }
 
 // ============================================================================
+// HITSTOP — freeze physics for N frames on impact (Smash Bros style)
+//
+// The single most impactful juice mechanic: on a heavy hit, freeze EVERYTHING
+// for 2-6 frames. The contrast between motion and stillness makes impacts
+// feel 10x heavier than particles or shake alone.
+//
+// Usage:
+//   const hitstop = new HitStopManager();
+//   // in game loop:
+//   if (hitstop.update()) return; // skip physics this frame
+//   // ... normal update ...
+//   // on heavy impact:
+//   hitstop.trigger(4); // freeze for 4 frames
+// ============================================================================
+
+export class HitStopManager {
+  constructor() {
+    this.freezeFrames = 0;
+  }
+
+  /** trigger(frames) — freeze the game for N frames. Heavier hit = more frames. */
+  trigger(frames = 3) {
+    this.freezeFrames = Math.max(this.freezeFrames, frames);
+  }
+
+  /**
+   * update() — call at the top of the game loop.
+   * Returns true if the game should skip physics this frame (frozen).
+   */
+  update() {
+    if (this.freezeFrames > 0) {
+      this.freezeFrames -= 1;
+      return true;
+    }
+    return false;
+  }
+
+  /** isFrozen() — peek without consuming a frame. */
+  isFrozen() {
+    return this.freezeFrames > 0;
+  }
+
+  /** clear() — cancel any active freeze. */
+  clear() {
+    this.freezeFrames = 0;
+  }
+}
+
+// ============================================================================
+// CORNER NUDGE — Celeste-style ledge assist for 2D platformers
+//
+// When jumping upward and the player's head clips a ledge corner, nudge them
+// horizontally so they land on the ledge instead of bonking. This is the
+// forgiveness that makes Celeste's pixel-perfect jumps feel fair.
+//
+// entity: { x, y, vy } (x,y = center)
+// worldColliders: { checkPoint(x, y) } returns truthy if solid
+// ============================================================================
+
+/**
+ * applyCornerNudge2D(entity, worldColliders, width, height) — ledge assist.
+ *
+ * Only fires while moving upward (vy > 0 in y-down coords, i.e. ascending).
+ * If the head's left or right edge hits but center is clear, nudge 3px
+ * toward the clear side.
+ */
+export function applyCornerNudge2D(entity, worldColliders, width = 16, height = 16) {
+  if (!worldColliders || typeof worldColliders.checkPoint !== 'function') return;
+  if (entity.vy <= 0) return; // only while ascending (gpfeel uses y-up: vy>0 = rising)
+  const headY = entity.y + height / 2 + 1;
+  const leftHit = worldColliders.checkPoint(entity.x - width / 2, headY);
+  const rightHit = worldColliders.checkPoint(entity.x + width / 2, headY);
+  const centerHit = worldColliders.checkPoint(entity.x, headY);
+  if (leftHit && !centerHit) entity.x += 3;
+  else if (rightHit && !centerHit) entity.x -= 3;
+}
+
+// ============================================================================
+// APEX GRAVITY — halve gravity at the jump peak (floaty apex)
+//
+// Real platformers (Mario, Celeste) don't use constant gravity through a jump.
+// Near the apex (vy ≈ 0), gravity drops — the character hangs for a few extra
+// frames, giving the player time to aim the landing. This is the "floaty"
+// feeling players describe.
+//
+// Usage in a custom integrator:
+//   const g = calculateApexGravity(baseGravity, entity.vy);
+//   entity.vy += g * dt;
+// ============================================================================
+
+/**
+ * calculateApexGravity(baseGravity, vy, threshold) — gravity scaled near apex.
+ * Returns baseGravity * 0.5 when |vy| < threshold, else baseGravity.
+ */
+export function calculateApexGravity(baseGravity, vy, threshold = 1.5) {
+  return Math.abs(vy) < threshold ? baseGravity * 0.5 : baseGravity;
+}
+
+// ============================================================================
+// TRAUMA CAMERA — polynomial screen shake (GDC standard)
+//
+// From "Math for Game Programmers: Juicing Your Cameras With Math" (GDC).
+// Trauma is a 0..1 value; shake magnitude = trauma². Small hits add a little
+// trauma, big hits add a lot — but the quadratic falloff means small shakes
+// stay subtle while big ones feel massive.
+//
+// Driven by gpfeel.DeterministicRNG for replay-deterministic bot captures.
+//
+// Usage:
+//   const shake = new TraumaCamera();
+//   const rng = new DeterministicRNG(seed);
+//   // on impact: shake.addTrauma(0.4);
+//   // each frame:
+//   const offset = shake.update(dt, rng);
+//   renderX = baseX + offset.x; renderY = baseY + offset.y;
+// ============================================================================
+
+export class TraumaCamera {
+  constructor() {
+    this.trauma = 0;
+    this.decay = 1.8; // trauma/second decay rate
+  }
+
+  /** addTrauma(amount) — add shake, clamped to [0, 1]. */
+  addTrauma(amount) {
+    this.trauma = Math.min(this.trauma + amount, 1.0);
+  }
+
+  /**
+   * update(dt, rng) — decay trauma, return shake offsets.
+   * rng: object with .next() returning [0,1). Use DeterministicRNG for replays.
+   * Returns { x, y, rotation } pixel/radian offsets to add to the camera.
+   */
+  update(dt, rng) {
+    this.trauma = Math.max(this.trauma - this.decay * dt, 0);
+    const shake = this.trauma * this.trauma; // polynomial falloff
+    const r = rng && typeof rng.next === 'function' ? rng : { next: Math.random };
+    return {
+      x: (r.next() * 2 - 1) * shake * 12,
+      y: (r.next() * 2 - 1) * shake * 12,
+      rotation: (r.next() * 2 - 1) * shake * 0.08,
+    };
+  }
+
+  /** isShaking() — true while any trauma remains. */
+  isShaking() {
+    return this.trauma > 0;
+  }
+
+  /** clear() — kill all shake immediately. */
+  clear() {
+    this.trauma = 0;
+  }
+}
+
+// ============================================================================
+// SQUASHSTRETCH — stateful landing/jump scale tweens
+//
+// Class version of the squashStretch()/tickSquash() helpers above.
+// The helpers work on entity.scale objects; this class holds its own state
+// for use in render pipelines that track scale separately.
+//
+//   const ss = new SquashStretch();
+//   // on land: ss.onLand();  on jump: ss.onJump();
+//   // each frame: ss.update(dt); apply ss.scaleX / ss.scaleY to the sprite.
+// ============================================================================
+
+export class SquashStretch {
+  constructor() {
+    this.scaleX = 1;
+    this.scaleY = 1;
+  }
+
+  /** onLand() — squash: wide and flat. */
+  onLand() {
+    this.scaleX = 1.35;
+    this.scaleY = 0.65;
+  }
+
+  /** onJump() — stretch: tall and thin. */
+  onJump() {
+    this.scaleX = 0.75;
+    this.scaleY = 1.30;
+  }
+
+  /** onHit() — punch squash, stronger than landing. */
+  onHit() {
+    this.scaleX = 1.5;
+    this.scaleY = 0.5;
+  }
+
+  /**
+   * update(dt) — exponential recovery toward (1,1).
+   * Rate 18/s: snappy but visible (~0.25s to settle).
+   */
+  update(dt) {
+    const k = 1 - Math.exp(-18 * dt);
+    this.scaleX += (1 - this.scaleX) * k;
+    this.scaleY += (1 - this.scaleY) * k;
+  }
+
+  /** isActive() — true while visibly deformed. */
+  isActive() {
+    return Math.abs(this.scaleX - 1) > 0.01 || Math.abs(this.scaleY - 1) > 0.01;
+  }
+
+  /** reset() — snap back to neutral. */
+  reset() {
+    this.scaleX = 1;
+    this.scaleY = 1;
+  }
+}
+
+// ============================================================================
 // CLEAN EXPORT SURFACE
 // ============================================================================
 
@@ -1365,6 +1579,12 @@ const gpfeel = {
   updateCamera,
   threeAdapter,
   RetroController,
+  // juice
+  HitStopManager,
+  applyCornerNudge2D,
+  calculateApexGravity,
+  TraumaCamera,
+  SquashStretch,
   ledgeCheck,
   squashStretch,
   tickSquash,
