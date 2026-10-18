@@ -37,11 +37,42 @@ export function faceCast(c, kind, x, y, r) {
 const KIND = Q.get('hero'), ON = isCast(KIND) && !Q.has('mute') && !Q.has('auto') && !Q.has('clean');
 let manifest = null, last = 0, lastFile = '', cur = null;
 if (ON) fetch(`${BASE}${parse(KIND).cast}/cast.json`).then(r => r.json()).then(m => { manifest = m; }).catch(() => {});
+
+const SKEY = 'gp_cast_bag';
+function clipsFor(f, ev) {
+  if (!f?.vo) return [];
+  const target = manifest?.events?.[ev] || ev;
+  const keys = Array.isArray(target) ? target : [target];
+  const out = [];
+  for (const k of keys) { if (Array.isArray(f.vo[k])) out.push(...f.vo[k]); }
+  if (!out.length && Array.isArray(f.vo[ev])) out.push(...f.vo[ev]);
+  return out;
+}
+function pickClip(fId, ev, files) {
+  if (!files || !files.length) return null;
+  if (files.length === 1) return files[0];
+  let bags = {};
+  try { bags = JSON.parse(sessionStorage.getItem(SKEY) || '{}'); } catch {}
+  const key = `${fId}:${ev}`;
+  let pool = bags[key];
+  if (!Array.isArray(pool) || !pool.length) {
+    pool = [...files];
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const prev = bags[`${key}:last`];
+    if (pool.length > 1 && pool[0] === prev) { const s = Math.floor(Math.random() * (pool.length - 1)) + 1; [pool[0], pool[s]] = [pool[s], pool[0]]; }
+  }
+  const pick = pool.shift();
+  bags[key] = pool; bags[`${key}:last`] = pick;
+  try { sessionStorage.setItem(SKEY, JSON.stringify(bags)); } catch {}
+  return pick;
+}
+
 /** bark('start'|'kill'|'combo'|'power'|'low'|'miss'|'win'|'lose'|'spot'); throttled to one every ~3.5 s unless force. */
 export function bark(ev, force = false) {
   if (!ON || !manifest) return; const now = performance.now(); if (!force && (now - last < 3500 || (cur && !cur.ended && !cur.paused))) return;
-  const f = manifest.factions[parse(KIND).f], files = f?.vo[manifest.events[ev] || ev]; if (!files?.length) return;
-  let pick = files[Math.floor(Math.random() * files.length)]; if (files.length > 1 && pick === lastFile) pick = files[(files.indexOf(pick) + 1) % files.length];
+  const f = manifest.factions[parse(KIND).f];
+  const files = clipsFor(f, ev); if (!files?.length) return;
+  const pick = pickClip(parse(KIND).f, ev, files); if (!pick) return;
   lastFile = pick; last = now; try { cur?.pause(); cur = new Audio(`${BASE}${parse(KIND).cast}/vo/${pick}`); cur.volume = .9; cur.play().catch(() => {}); } catch {}
 }
 const SFX_EV = { coin: 'kill', ding: 'kill', pop: 'kill', boom: 'kill', hit: 'kill', slash: 'kill', powerup: 'power' };
@@ -49,3 +80,4 @@ const SFX_EV = { coin: 'kill', ding: 'kill', pop: 'kill', boom: 'kill', hit: 'ki
 export const castSfx = type => { const ev = SFX_EV[type]; if (ev) bark(ev, ev === 'win' || ev === 'lose'); };
 export const castEnd = win => bark(win ? 'win' : 'lose', true);
 if (ON) { addEventListener('pointerdown', () => bark('start', true), { once: true, capture: true }); window.__castBark = bark; }
+

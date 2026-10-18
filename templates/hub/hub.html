@@ -188,7 +188,8 @@ function next(win, score) {
   setTimeout(() => { if (screen !== 'game') return; if (again) return show(idx, true); const n = idx + 1; if (n >= N) { if (demoMode) { loop++; results = []; show(0); } else finishLoop(); } else show(n); }, GAP);
 }
 function stop() { clearTimeout(timer); locked = true; idx = -1; frames.forEach(f => { f.className = 'off'; f.removeAttribute('src'); }); }
-function resume() { loop++; results = []; go('game'); show(0); }
+const shuf = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+function resume() { loop++; results = []; games = shuf(demoMode ? CFG.demoGames : (LOOPQ ? CFG.games.slice(0, 2) : CFG.games)); N = games.length; go('game'); show(0); }
 /** The rotation wrapped from the last game to the first. Demo: upsell, never unlocks. Full hub: choose one locked hero to unlock. */
 function finishLoop() {
   stop();
@@ -209,7 +210,7 @@ function paintLoop() {
 }
 function unlockChosen() { if (chosen || !lpick || owned(byId[lpick])) return; chosen = lpick; S.unlocked.push(chosen); save(); paintLoop(); }
 function start(demo) {
-  again = false; demoMode = demo; games = (demo ? CFG.demoGames : (LOOPQ ? CFG.games.slice(0, 2) : CFG.games)); N = games.length; loop = 0; results = []; idx = -1;
+  again = false; demoMode = demo; games = shuf(demo ? CFG.demoGames : (LOOPQ ? CFG.games.slice(0, 2) : CFG.games)); N = games.length; loop = 0; results = []; idx = -1;
   try { const ac = new (window.AudioContext || window.webkitAudioContext)(); ac.resume(); } catch {}
   go('game'); show(0);
 }
