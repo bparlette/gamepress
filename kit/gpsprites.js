@@ -31,7 +31,13 @@ export function person(c, x, y, h, o = {}) { wrap(c, x, y, h, o, (c, t) => {
   rct(c, -11 + swing(o, 0, 9), -34, 11, 36, '#2c3e66'); rct(c, 2 - swing(o, 0, 9), -34, 11, 36, '#2c3e66');
   rct(c, -15, -72 - b, 30, 40, o.color || '#e63946'); rct(c, -21, -68 - b + swing(o, 1, 4), 9, 30, '#f1c27d'); rct(c, 12, -68 - b - swing(o, 1, 4), 9, 30, '#f1c27d');
   ell(c, 0, -86 - b, 14, 14, '#f1c27d'); ell(c, 0, -94 - b, 15, 8, '#3a2a1a'); eyes(c, 5, -86 - b, o, o.hurt); }); }
-export const CHAR = { cat, dog, zombie, person };
+export function car(c, x, y, h, o = {}) { const col = o.color || '#e63946', b = o.anim === 'walk' ? Math.abs(Math.sin((o.t || 0) * 18)) * 2 : 0; wrap(c, x, y, h, o, (c) => {
+  poly(c, [[-46, -22 - b], [-40, -44 - b], [-22, -66 - b], [14, -66 - b], [32, -44 - b], [50, -40 - b], [52, -22 - b]], col);
+  poly(c, [[-18, -60 - b], [-30, -44 - b], [-4, -44 - b], [-4, -60 - b]], '#bfe9ff'); poly(c, [[2, -60 - b], [2, -44 - b], [26, -44 - b], [12, -60 - b]], '#bfe9ff');
+  ell(c, 51, -32 - b, 4, 5, '#ffe66d'); ell(c, -50, -32 - b, 3, 5, '#ff5b5b');
+  for (const wx of [-26, 28]) { ell(c, wx, -12, 13, 13, '#2a2a2a'); ell(c, wx, -12, 6, 6, '#c9ced6'); }
+  if (o.hurt) { c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(-6, -40); c.lineTo(8, -28); c.moveTo(8, -40); c.lineTo(-6, -28); c.stroke(); } }); }
+export const CHAR = { cat, dog, zombie, person, car };
 export const drawChar = (kind, c, x, y, h, o) => (CHAR[kind] || cat)(c, x, y, h, o);
 /** Cat/dog/zombie head only (for icons, HUD lives, card art): centered at (x,y), radius r. */
 export function face(c, kind, x, y, r, color) { c.save(); c.translate(x, y); const k = r / 20; c.scale(k, k); const ow = STY.ow; STY.ow = ow / k;

@@ -1,0 +1,7 @@
+{
+  "_note": "A theme re-skins all 30 recipes: it swaps the hero sprite (cat|dog|person|car|zombie, see kit/gpsprites.js), the hero colour, and the noun in titles and hooks. `gamepress theme <id>` builds the whole set (30 games + 4 packs). Add a theme here and nothing else; per-recipe `titles` override the automatic noun swap where it reads badly.",
+  "cats":    { "label": "Cat Arcade",    "hero": "cat",    "noun": "CAT",    "plural": "CATS",    "color": "#ff9a3c", "prefix": "",        "titles": {} },
+  "dogs":    { "label": "Dog Arcade",    "hero": "dog",    "noun": "DOG",    "plural": "DOGS",    "color": "#c98a4b", "prefix": "dogs-",   "titles": { "card-roguelite": "CARD DOGS" } },
+  "people":  { "label": "People Arcade", "hero": "person", "noun": "GUY",    "plural": "GUYS",    "color": "#e63946", "prefix": "people-", "titles": { "one-tap-reflex": "FLAP GUY", "card-roguelite": "CARD GUYS", "cozy-farm": "COZY FARM" } },
+  "cars":    { "label": "Car Arcade",    "hero": "car",    "noun": "CAR",    "plural": "CARS",    "color": "#e63946", "prefix": "cars-",   "titles": { "cozy-farm": "COZY GARAGE", "card-roguelite": "CARD CARS", "pet-battle": "CAR BATTLE" } }
+}
