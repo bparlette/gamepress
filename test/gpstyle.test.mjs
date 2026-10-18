@@ -15,6 +15,9 @@ test('exports applyVisualStandard with cel/shellshock/roadkill presets', () => {
   assert.ok(src.includes("'shellshock'"), 'missing shellshock preset');
   assert.ok(src.includes("'roadkill'"), 'missing roadkill preset');
   assert.ok(src.includes("'shellshock-live'"), 'missing shellshock-live preset');
+  assert.ok(src.includes("'sticker-retro'"), 'missing sticker-retro preset');
+  assert.ok(src.includes("'sticker-night'"), 'missing sticker-night preset');
+  assert.ok(src.includes("'sticker-warm'"), 'missing sticker-warm preset');
 });
 
 test('exports toon material, outline, palette, and portrait FOV helpers', () => {
@@ -194,4 +197,215 @@ test('shellshock-live bloom matches source (blur 2px, opacity .35, screen)', () 
   assert.ok(src.includes("filter: 'blur(2px)'"), 'bloom blur missing');
   assert.ok(src.includes('0.35'), 'bloom opacity missing');
   assert.ok(src.includes("'screen'"), 'bloom blend mode missing');
+});
+
+test('crystal-cave preset exists with dark cave lighting rig', () => {
+  assert.ok(src.includes("preset === 'crystal-cave'"), 'crystal-cave preset branch missing');
+  assert.ok(src.includes("'#1a2b55'"), 'crystal-cave hemisphere sky missing');
+  assert.ok(src.includes("'#05070f'"), 'crystal-cave hemisphere ground missing');
+  assert.ok(src.includes('0.5'), 'crystal-cave hemisphere intensity missing');
+  assert.ok(src.includes('0.028'), 'crystal-cave fog density missing');
+});
+
+test('crystal-cave palette matches Crystal Cave source values', () => {
+  for (const hex of ['#030816', '#eaf6ff', '#7ff0ff', '#38e8ff', '#ff8ae8', '#ff5ad8',
+                     '#ff4f8b', '#fff3b0', '#ffc93a', '#c47d12', '#0d1526', '#06112c']) {
+    assert.ok(src.includes(hex), `crystal-cave palette missing ${hex}`);
+  }
+});
+
+test('crystal-cave exports crystal and glow helpers', () => {
+  assert.ok(src.includes('export function makeCrystal'), 'makeCrystal missing');
+  assert.ok(src.includes('export function makeGlowSprite3D'), 'makeGlowSprite3D missing');
+  assert.ok(src.includes('export const crystalHUD'), 'crystalHUD missing');
+  assert.ok(src.includes('emissiveIntensity'), 'crystal emissive missing');
+  assert.ok(src.includes('AdditiveBlending'), 'glow additive blending missing');
+  assert.ok(src.includes('OctahedronGeometry'), 'crystal geometry missing');
+});
+
+test('crystal-cave HUD CSS matches source values', () => {
+  assert.ok(src.includes('linear-gradient(90deg,#7ff0ff,#ff8ae8)'), 'title gradient missing');
+  assert.ok(src.includes('linear-gradient(90deg,#38e8ff,#ff5ad8)'), 'button gradient missing');
+  assert.ok(src.includes('rgba(6,14,40,.55)'), 'pill background missing');
+  assert.ok(src.includes('rgba(120,220,255,.35)'), 'pill border missing');
+  assert.ok(src.includes('radial-gradient(circle at 35% 35%,#fff3b0,#ffc93a 55%,#c47d12)'), 'coin gradient missing');
+});
+
+test('crystal-cave camera uses side-on 2.5D FOV', () => {
+  assert.ok(src.includes('camera.fov = 60'), 'crystal-cave FOV 60 missing');
+});
+
+test('gulf-thunder preset exists with 270x480 portrait resolution', () => {
+  assert.ok(src.includes("preset === 'gulf-thunder'"), 'gulf-thunder preset branch missing');
+  assert.ok(src.includes('applyGulfThunder2D'), 'applyGulfThunder2D missing');
+  assert.ok(src.includes('RES_W: 270'), 'internal width 270 missing');
+  assert.ok(src.includes('RES_H: 480'), 'internal height 480 missing');
+  assert.ok(src.includes("PAGE_BG: '#0b0b18'"), 'page bg #0b0b18 missing');
+});
+
+test('gulf-thunder sunset palette matches source art', () => {
+  for (const hex of ['#e8613a', '#f27b3b', '#f89a3c', '#ffed9d', '#ffeeb8',
+                     '#fee295', '#f3b161', '#e99058', '#c8715a', '#280a1d']) {
+    assert.ok(src.includes(hex), `gulf-thunder palette missing ${hex}`);
+  }
+});
+
+test('gulf-thunder touch UI matches source CSS', () => {
+  assert.ok(src.includes('rgba(255,90,70,.8)'), 'FIRE button accent missing');
+  assert.ok(src.includes('rgba(90,200,255,.8)'), 'SPCL button accent missing');
+  assert.ok(src.includes('STICK_BASE: 110'), 'stick base 110px missing');
+  assert.ok(src.includes('STICK_KNOB: 48'), 'stick knob 48px missing');
+  assert.ok(src.includes('BTN_FIRE: 84'), 'FIRE button 84px missing');
+});
+
+test('gulf-thunder arcade pacing matches source (5 stages, 5 bosses, 55s)', () => {
+  assert.ok(src.includes('STAGES: 5'), 'stages 5 missing');
+  assert.ok(src.includes('BOSSES: 5'), 'bosses 5 missing');
+  assert.ok(src.includes('TARGET_SECONDS: 55'), 'target 55s missing');
+});
+
+test('gulf-thunder docs section exists', () => {
+  const docs = readFileSync(new URL('../docs/VISUAL-STANDARDS.md', import.meta.url), 'utf8');
+  assert.ok(docs.includes('PRESET: `gulf-thunder`'), 'docs gulf-thunder section missing');
+  assert.ok(docs.includes('270 × 480'), 'docs resolution missing');
+});
+
+test('iso-city preset exists with Hades isometric camera spec', () => {
+  assert.ok(src.includes("preset === 'iso-city'"), 'iso-city branch missing');
+  assert.ok(src.includes('setupIsoCamera'), 'setupIsoCamera missing');
+  assert.ok(src.includes('rotateIsoCamera'), 'rotateIsoCamera missing');
+  assert.ok(src.includes('35.264'), 'iso elevation 35.264 missing');
+  assert.ok(src.includes('CRT_CSS'), 'CRT_CSS missing');
+});
+
+test('iso-city palette matches source values', () => {
+  for (const hex of ['#0d0a14', '#c8323c', '#1a2a3a', '#ff7a1a', '#e8dcc8', '#2a1a2e', '#07070a', '#8a7ab8', '#3a2a1e', '#ffd9a0', '#6a8aff']) {
+    assert.ok(src.includes(hex), `iso-city palette missing ${hex}`);
+  }
+});
+
+test('iso-city lighting rig matches source shell', () => {
+  assert.ok(src.includes('1.1'), 'hemisphere intensity 1.1 missing');
+  assert.ok(src.includes('1.6'), 'key intensity 1.6 missing');
+  assert.ok(src.includes('0.9'), 'rim intensity 0.9 missing');
+  assert.ok(src.includes('40, 60, 20'), 'key position missing');
+});
+
+test('toad-city preset exists with chunky 32-bit HUD spec', () => {
+  assert.ok(src.includes("preset === 'toad-city'"), 'toad-city branch missing');
+  assert.ok(src.includes('applyToadCity2D'), '2D entry point missing');
+  assert.ok(src.includes('3px solid #000'), 'HUD border spec missing');
+  assert.ok(src.includes('3px 3px 0 #000'), 'HUD shadow spec missing');
+  assert.ok(src.includes('repeating-linear-gradient(90deg, #9dd84a 0 6px, #6aa82a 6px 8px)'), 'segmented HP bar missing');
+});
+
+test('toad-city palette matches Toad Street 32 source values', () => {
+  for (const hex of ['#ffe08a', '#c83a2a', '#a02a2a', '#9dd84a', '#6aa82a', '#f0b0d8', '#e0379b', '#c87a3a', '#6a9ac8', '#e8e0c8', '#0b0f17', '#1a1010', '#6f7f34']) {
+    assert.ok(src.includes(hex), `toad-city palette missing ${hex}`);
+  }
+});
+
+test('toad-city docs sections exist', () => {
+  const docs = readFileSync(new URL('../docs/VISUAL-STANDARDS.md', import.meta.url), 'utf8');
+  assert.ok(docs.includes('PRESET 9: `iso-city`'), 'docs gulf-thunder section missing');
+  assert.ok(docs.includes('PRESET 10: `toad-city`'), 'docs preset 10 missing');
+  assert.ok(docs.includes('35.264'), 'docs iso elevation missing');
+  assert.ok(docs.includes('border-radius: 0'), 'docs square HUD rule missing');
+});
+
+test('sticker-retro palette matches Notebook Arcade source values', () => {
+  for (const hex of ['#f4efe0', '#fffdf6', '#ddd6c4', '#5a8cbe55', '#d24646aa', '#d96a6a', '#1b1b1b', '#1b1b1b88', '#e7d8b0', '#8b1e1e', '#1e4a8b', '#ef8c2b', '#d32f2f']) {
+    assert.ok(src.includes(hex), `sticker-retro palette missing ${hex}`);
+  }
+});
+
+test('sticker-retro paper spec matches excitebike source (34px rules, margin x=78)', () => {
+  assert.ok(src.includes('RULE_GAP: 34'), 'rule gap 34 missing');
+  assert.ok(src.includes('RULE_START: 36'), 'rule start 36 missing');
+  assert.ok(src.includes('MARGIN_X: 78'), 'margin x=78 missing');
+  assert.ok(src.includes('INK_WIDTH: 3.2'), 'ink width 3.2 missing');
+  assert.ok(src.includes('INK_WIDTH_THIN: 1.4'), 'thin ink width 1.4 missing');
+});
+
+test('sticker-retro hand fonts are Patrick Hand + Caveat', () => {
+  assert.ok(src.includes('Patrick Hand'), 'Patrick Hand font missing');
+  assert.ok(src.includes('Caveat'), 'Caveat font missing');
+});
+
+test('sticker-night is the dark variant (black paper, neon ink)', () => {
+  for (const hex of ['#0b1018', '#14101a', '#000000', '#7aa2ff', '#3dd6c6', '#ffe566', '#ffe08a', '#ff8a78']) {
+    assert.ok(src.includes(hex), `sticker-night palette missing ${hex}`);
+  }
+});
+
+test('sticker-warm is the punch-out vintage variant', () => {
+  for (const hex of ['#f6f1df', '#cfc6ad', '#efe6c8', '#fff4c2', '#e07b7b', '#b7d3ea']) {
+    assert.ok(src.includes(hex), `sticker-warm palette missing ${hex}`);
+  }
+});
+
+test('sticker 2D entry point exports paper/ink/font/beep helpers', () => {
+  for (const fn of ['drawNotebookPaper', 'drawBinderHoles', 'inkStyle', 'applySticker2D', 'makeStickerBeep']) {
+    assert.ok(src.includes(fn), `missing export ${fn}`);
+  }
+});
+
+test('sticker presets wired into applyVisualStandard as 2D presets', () => {
+  assert.ok(src.includes("preset === 'sticker-retro'"), 'sticker-retro not wired in applyVisualStandard');
+  assert.ok(src.includes('applySticker2D'), 'applySticker2D not called from applyVisualStandard');
+});
+
+test('sticker docs section exists', () => {
+  const docs = readFileSync(new URL('../docs/VISUAL-STANDARDS.md', import.meta.url), 'utf8');
+  assert.ok(docs.includes('sticker-retro'), 'docs missing sticker-retro');
+  assert.ok(docs.includes('Notebook Arcade'), 'docs missing Notebook Arcade reference');
+});
+
+test('poly-track preset exists with flat-shaded lighting rig', () => {
+  assert.ok(src.includes("preset === 'poly-track'"), 'poly-track branch missing');
+  assert.ok(src.includes('1.35'), 'poly-track hemisphere intensity 1.35 missing');
+  assert.ok(src.includes('1.6'), 'poly-track sun intensity 1.6 missing');
+  assert.ok(src.includes('60, 90, 30'), 'poly-track sun position missing');
+  assert.ok(src.includes('PCFSoftShadowMap'), 'poly-track soft shadows missing');
+  assert.ok(src.includes('-0.0005'), 'poly-track shadow bias missing');
+});
+
+test('poly-track exports flat-shaded material helpers', () => {
+  assert.ok(src.includes('makeFlatMaterial'), 'makeFlatMaterial missing');
+  assert.ok(src.includes('facetJitter'), 'facetJitter missing');
+  assert.ok(src.includes('flatShading: true'), 'flatShading flag missing');
+  assert.ok(src.includes('roughness: 0.95'), 'flat material roughness missing');
+});
+
+test('poly-track palette matches sampled screenshot values', () => {
+  for (const hex of ['#5da9e8', '#bfe0f2', '#fffbe8', '#cfe4f2',
+                     '#a8d4f0', '#9fd8a8', '#fff5e0',
+                     '#7a8b9d', '#16181c', '#f2f2f2',
+                     '#5fbf77', '#4aa862', '#f3cd83', '#e0b96e',
+                     '#c99a5e', '#a87f4c', '#8a5a2a', '#4fae5c', '#9aa3ad',
+                     '#e63b2e', '#2e7de6', '#7b3fe4', '#1a1a1a',
+                     '#4ade80', '#ffb020']) {
+    assert.ok(src.includes(hex), `poly-track palette missing ${hex}`);
+  }
+});
+
+test('poly-track fog is light blue-white, far (120-450)', () => {
+  assert.ok(src.includes("'#cfe4f2'"), 'poly-track fog color missing');
+  assert.ok(src.includes('120'), 'poly-track fog near missing');
+  assert.ok(src.includes('450'), 'poly-track fog far missing');
+});
+
+test('poly-track returns track/terrain/props/cars/ui color groups', () => {
+  assert.ok(src.includes("track: { surface: P.TRACK"), 'track color group missing');
+  assert.ok(src.includes("terrain: { grass: P.GRASS"), 'terrain color group missing');
+  assert.ok(src.includes("cars: { red: P.CAR_RED"), 'cars color group missing');
+  assert.ok(src.includes("ui: { panel: P.UI_PANEL"), 'ui spec group missing');
+  assert.ok(src.includes('Roboto Mono'), 'poly-track UI font missing');
+});
+
+test('poly-track docs section exists', () => {
+  const docs = readFileSync(new URL('../docs/VISUAL-STANDARDS.md', import.meta.url), 'utf8');
+  assert.ok(docs.includes('`poly-track`'), 'docs poly-track missing');
+  assert.ok(docs.includes('flat-shaded'), 'docs flat-shading trait missing');
+  assert.ok(docs.includes('makeFlatMaterial'), 'docs makeFlatMaterial missing');
 });
