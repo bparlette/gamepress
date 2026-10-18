@@ -1,0 +1,26 @@
+{
+  "kokoro-tts": {
+    "description": "Local TTS for trailers and in-game voice lines (zero API cost, CPU-friendly)",
+    "version": "v1.0",
+    "license": "MIT",
+    "install_dir": "~/.gamepress/tts",
+    "env_override": "GAMEPRESS_TTS_DIR",
+    "check_latest": "https://api.github.com/repos/thewh1teagle/kokoro-onnx/releases/latest",
+    "python_deps": ["kokoro-onnx", "soundfile"],
+    "used_by": ["gamepress voice", "gamepress voices", "gamepress drive --vo"],
+    "files": [
+      {
+        "name": "kokoro-v1.0.onnx",
+        "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.onnx",
+        "size_mb": 311,
+        "sha256": "7d5df8ecf7d4b1878015a32686053fd0eebe2bc377234608764cc0ef3636a6c5"
+      },
+      {
+        "name": "voices-v1.0.bin",
+        "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin",
+        "size_mb": 27,
+        "sha256": "bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d"
+      }
+    ]
+  }
+}

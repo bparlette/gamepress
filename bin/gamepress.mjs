@@ -6,6 +6,11 @@
 //   gamepress drive <plan.json> [--out dir] frame-locked scripted playthrough of a web game -> captioned MP4 with audio
 //   gamepress catalog <games.json> --id x --title "X" --category "Y" --path g/x/index.html [--still shot.jpg] [--orientation portrait]
 //                                           add/update a game on a demo page catalog and build its thumbnail
+//   gamepress voices <script.json> [--dir press]  batch-synthesize voice lines for a game
+//   gamepress voice "Your script here" [--voice trailer|character|narrator|VOICE_ID] [--speed 1.0] [--out out.wav]
+//                                           local Kokoro TTS (free, no API); run `gamepress setup --tts` once first
+//   gamepress setup --tts                   download the Kokoro TTS model (~340MB, one time, never committed)
+//   gamepress tools [--check]               list external tools (sizes, install status); --check for upstream updates
 //   gamepress roblox <file.rbxl> --universe N --place N [--type Published|Saved] [--rojo project.json] [--live]
 //                                           publish a Roblox place via Open Cloud (dry run unless --live)
 //   gamepress scenes <video> [--count 12]   any game: pull the best stills and clips out of a screen recording
@@ -40,6 +45,8 @@ import { buildLegoGame } from '../lib/lego.mjs';
 import { gatherStats } from '../lib/stats.mjs';
 import { listPresets, loadPreset, savePreset, deletePreset, sanitizeAnswers, readAnswersFile, recordLastAnswers, readLastAnswers, promptAnswers } from '../lib/presets.mjs';
 import { printImageWorkflow, printImageIntake, intakeQuestions, generateViewPrompts, answersToDescription } from '../lib/img2threejs.mjs';
+import { speak, setupTts, VOICE_PRESETS } from '../lib/tts.mjs';
+import { listTools, checkUpdates } from '../lib/tools.mjs';
 import { createInterface as _rl } from 'node:readline';
 
 /** One-off free-text prompt (only called when --prompt already verified a TTY). */
@@ -458,7 +465,13 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
   tracks: () => { const t = JSON.parse(readFileSync(join(HERE, '..', 'tracks.json'), 'utf8')); const k = positional[0]; console.log(JSON.stringify(k ? t[k] || die('tracks: shared | demo | web-store | roblox') : t, null, 1)); },
   drive: () => argv.includes('--dry-run') ? out(dryRun(positional[0] || die('usage: gamepress drive <plan.json> [--dry-run]'))) : drive(positional[0] || die('usage: gamepress drive <plan.json>'), { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false, vo: flag('vo') || argv.includes('--vo') }).catch(e => die('drive failed: ' + e.message)), scenes: () => scenes(positional[0]), pack, check,
   voices: () => voices(positional[0] || die('usage: gamepress voices <script.json> [--dir press]'), { dir: flag('dir', 'press') }).then(r => out({ command: 'voices', ...r }, o => `voices: ${o.synthesized} synthesized, ${o.skipped} skipped, ${o.failed} failed → ${o.manifest}`)).catch(e => die('voices: ' + e.message)),
+  voice: () => { try { const r = speak(positional.join(' ') || die(`usage: gamepress voice "Your script here" [--voice ${Object.keys(VOICE_PRESETS).join('|')}|VOICE_ID] [--speed 1.0] [--out file.wav]`), { voice: flag('voice', 'narrator'), speed: flag('speed') ? Number(flag('speed')) : undefined, output: flag('out') }); out(r, o => `voice → ${o.file} (${o.seconds}s, voice=${o.voice}, speed=${o.speed})`); } catch (e) { die('voice: ' + e.message); } },
+  setup: () => { if (!argv.includes('--tts')) die('usage: gamepress setup --tts'); try { const r = setupTts(); out(r, o => `tts ready → ${o.dir}/ (${o.files.join(', ')})`); } catch (e) { die('setup: ' + e.message); } },
+  tools: () => { try {
+    if (argv.includes('--check')) { const r = checkUpdates(); out({ command: 'tools --check', updates: r }, o => o.updates.map(u => `${u.tool}: ${u.current} → ${u.latest}${u.update ? '  UPDATE AVAILABLE' : ''}`).join('\n')); }
+    else { const r = listTools(); out({ command: 'tools', tools: r }, o => o.tools.map(t => `${t.tool} ${t.version} — ${t.total_mb}MB ${t.installed ? '[installed]' : '[missing]'} — ${t.description}`).join('\n')); }
+  } catch (e) { die('tools: ' + e.message); } },
   version: () => { try { const r = bumpVersion(positional[0] || 'patch', { dir: flag('dir', '.') }); out({ command: 'version', ...r }, o => `${o.from} → ${o.to} (${o.file}); changelog template added to ${o.changelog}`); } catch (e) { die('version: ' + e.message); } },
   icons: () => { try { const r = makeIcons(flag('logo') || die('usage: gamepress icons --logo <logo.png> [--name Title]'), { dir: flag('dir', 'press'), name: flag('name', 'Game') }); out({ command: 'icons', ...r }, o => `icons → ${o.dir}/ (${o.files.join(', ')})`); } catch (e) { die('icons: ' + e.message); } } }[cmd] ||
-  (() => die('usage: gamepress auto | lego | context | heal | hooks | stats | local-ai | recipes | preset | ideate | make | doctor | lint | status | all | grade | copy | build | deploy | host | repo | botcheck | research | new | test | bundle | publish-pack | roblox | init | capture | drive | catalog | scenes | pack | check | voices | version | icons   (options: --json, --local-ai, --no-local-ai, --heal, --vo, --answers, --preset, --prompt)')))();
+  (() => die('usage: gamepress auto | lego | context | heal | hooks | stats | local-ai | recipes | preset | ideate | make | doctor | lint | status | all | grade | copy | build | deploy | host | repo | botcheck | research | new | test | bundle | publish-pack | roblox | init | capture | drive | catalog | scenes | pack | check | voices | voice | setup | tools | version | icons   (options: --json, --local-ai, --no-local-ai, --heal, --vo, --answers, --preset, --prompt)')))();
 

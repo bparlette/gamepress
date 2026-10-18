@@ -14,6 +14,22 @@ Everything needed to make a game demo, film it, and publish it. Nothing here is 
 
 No npm dependencies. three.js r160 is vendored as a single file.
 
+## Downloaded tools (tools.json registry)
+
+Large external tools (models, binaries) are declared in `tools.json` with URLs,
+sizes, sha256 hashes, and upstream update-check URLs — never committed to git.
+They download on demand into `~/.gamepress/`:
+
+| Command | What it does |
+|---|---|
+| `gamepress tools` | list all registered tools with version, size, install status |
+| `gamepress tools --check` | check upstream for newer versions |
+| `gamepress setup --tts` | download kokoro-tts (~340MB, one time) |
+
+Current registry: `kokoro-tts` v1.0 (MIT) — local TTS for trailers and voice lines.
+To add a tool: append to `tools.json` (files with url/size_mb/sha256, version,
+check_latest, license); `lib/tools.mjs` handles the rest.
+
 ## Languages and formats
 - **JavaScript (ES modules)**: games and all tooling. **JSON**: capture plans (`*.drive.json`, `*.plan.json`), store presets, SFX recipes, demo-page catalog.
 - **ffmpeg expression language** (`aevalsrc`, `-filter_complex`): synthesized sound effects and the music bed.

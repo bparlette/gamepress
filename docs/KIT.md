@@ -25,6 +25,36 @@
 |---|---|---|
 | **img2threejs** ([github.com/img2threejs/img2threejs](https://github.com/img2threejs/img2threejs), Apache 2.0) | 2D image → procedural Three.js hero asset (pivots, sockets, <1,200 polys; no binary blobs) | `gamepress auto --prompt` asks "Start from an image?" first; `--from-image` skips the question. Templates in `lib/img2threejs.mjs`. Full pipeline: `docs/IMG2THREEJS-WORKFLOW.md`. |
 | **REA** ([github.com/morluto/rea](https://github.com/morluto/rea), MIT) | Agent-native reverse engineering: extract physics/logic from binaries, WASM, web games with an evidence trail for clean-room reimplementation | Install: `npx rea-agents setup`. See `docs/tracks/port.md`. |
-| **Kokoro** ([github.com/thewh1teagle/kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx), MIT) | Local text-to-speech for trailer voiceovers and in-game voice lines. CPU-friendly ONNX, ~300MB, zero API cost — unblocks audio-first video production | `pip install kokoro-onnx`; download `kokoro-v1.0.onnx` + `voices-v1.0.bin` from the repo's releases. |
+| **Kokoro** ([github.com/thewh1teagle/kokoro-onnx](https://github.com/thewh1teagle/kokoro-onnx), MIT) | Local text-to-speech for trailer voiceovers and in-game voice lines. CPU-friendly ONNX, ~340MB, zero API cost — unblocks audio-first video production | `gamepress setup --tts` (one-time model download, never committed) → `gamepress voice "script" --voice trailer\|character\|narrator --out out.wav`. Wrapper: `lib/tts.mjs` (`speak()`), bridge: `lib/tts_bridge.py`. |
+
+### Voice (Kokoro TTS)
+
+One-time setup (downloads the model, ~340MB, into `~/.gamepress/tts/` — never committed):
+
+```sh
+gamepress setup --tts
+```
+
+Then synthesize from the CLI:
+
+```sh
+gamepress voice "What if Vampire Survivors had Mario physics?" --voice trailer --out trailer-vo.wav
+gamepress voice "Touchdown! Unbelievable run!" --voice character --out call.wav
+gamepress voice "Previously, on Pigskin Bowl..." --voice narrator --out intro.wav
+# any raw Kokoro voice id also works: --voice am_michael
+# JSON for scripts: gamepress voice "..." --json
+```
+
+From another agent or script (`lib/tts.mjs`):
+
+```js
+import { speak } from './lib/tts.mjs';
+const r = speak('One fat runner. One thousand defenders.', { voice: 'trailer', output: 'vo.wav' });
+// → { file, seconds, voice, speed, sample_rate, ... }
+```
+
+Presets: `trailer` (deep, slow — `am_adam` @ 0.85x), `character` (energetic — `af_sky` @ 1.15x),
+`narrator` (neutral — `af_sarah` @ 1.0x). Long text is auto-chunked on sentence
+boundaries and concatenated. Model dir override: `GAMEPRESS_TTS_DIR`.
 
 Rules for kit changes: keep it dependency-free, deterministic, and backward compatible; run `gamepress botcheck` on a few recipes after touching it.
