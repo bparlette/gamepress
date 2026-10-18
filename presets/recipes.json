@@ -455,7 +455,7 @@
         "The luckiest shot ever",
         "Clear the board in 1 ball"
       ],
-      "seconds": 32,
+      "seconds": 23,
       "engine": "2d",
       "colors": "css",
       "match": "peggle|breakout|arkanoid|angry birds|bounce|pegs|brick",
@@ -529,7 +529,7 @@
         "Pac-Man but cats",
         "One wrong turn"
       ],
-      "seconds": 39,
+      "seconds": 26,
       "engine": "2d",
       "colors": "css",
       "match": "pac.?man|bomberman|maze|chase|dots|ghost",
