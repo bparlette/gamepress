@@ -26,7 +26,7 @@ The tool replies with either:
 - `{"ask": "...", "options": [...]}` — no game type matched; show the list (name + hook) to the human and relay their pick: `--answer '{"recipe": "<id>"}'` (a number also works). This never starts a build.
 - `{"ask": "...", "questions": [...]}` — ask the human, relay back with `--answer`
 - `{"status": "building", ...}` — the tool is building; go to step 3
-- `{"done": true, "game": "<path>", "video": "<path>", "images": [...], "note": "..."}` — tell the human the game, the video and the images are ready (local file paths, nothing is hosted); relay `note` if present (e.g. images could not be made)
+- `{"done": true, "game": "<url>", "video": "<url>", "images": [...], "hosted": true, "note": "..."}` — done. `game` and `video` are real clickable URLs (hosted on GitHub Pages). Tell the human the links. If `hosted` is false, the URLs are local file paths because hosting failed — say so and relay `note`.
 
 **3. Poll a build:**
 ```
@@ -44,6 +44,7 @@ If building, wait and poll again. If done, show the links. If error, show the er
   local output. Never fails because cloud is unavailable. You don't need to do anything.
 - `--local` forces local execution: `gamepress run --job <id> --answer '{...}' --local`.
   Use it only if the human explicitly asks to skip the cloud.
+- When done, `game` and `video` are hosted URLs the human can open — the tool publishes to GitHub Pages automatically. If hosting failed (`"hosted": false`), say so and relay `note`; the paths are local files, not links.
 - Never run `make`, `drive`, `test`, `all`, or any other gamepress command directly.
 - Never read docs/, lib/, or any other file. This file is the whole interface.
 - If the tool says `{"error": ...}`, show it to the human and stop.
@@ -62,5 +63,5 @@ $ gamepress run --job a1b2c3d4 --answer '{"style": 1, "hook": "CARS GO BOOM"}' -
 {"job": "a1b2c3d4", "status": "building", "step": "starting"}
 
 $ gamepress run --status a1b2c3d4 --json
-{"job": "a1b2c3d4", "state": "done", "done": true, "game": "games/run-a1b2c3d4/index.html", "video": "press/video/run-a1b2c3d4-hook.mp4", "images": ["press/video/run-a1b2c3d4-hook.thumb.jpg", "publish/run-a1b2c3d4/press/out/steam/header_capsule.png", "..."]}
+{"job": "a1b2c3d4", "state": "done", "done": true, "game": "https://bparlette.github.io/gamepress/run-a1b2c3d4/", "video": "https://bparlette.github.io/gamepress/run-a1b2c3d4/run-a1b2c3d4-hook.mp4", "hosted": true, "images": ["press/video/run-a1b2c3d4-hook.thumb.jpg", "publish/run-a1b2c3d4/press/out/steam/header_capsule.png", "..."]}
 ```
