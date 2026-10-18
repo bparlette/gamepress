@@ -5,9 +5,12 @@
 import { createGame, sfx, comboPitch, R, rnd, pick, shuffle, clamp } from '../_vendor/gp2d.js';
 import { drawChar } from '../_vendor/gpsprites.js';
 import { DIRS, bfs } from '../_vendor/gpgrid.js';
+import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'PAC CAT', sub: 'Swipe to turn', hook: 'Eat everything. Avoid the zombies.', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#0b0f26', wall: '#3a5bff', style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const CW = 7, CH = 8, W = CW * 2 + 1, H = CH * 2 + 1, TS = 36, OX = 0, OY = 180;
+const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: '' } ], maxRadius: 60 }) : null; /* TOUCH: floating stick only; the unused button is hidden (needs kit support for buttons: []). docs/TOUCH.md */
+if (TC) TC._buttons.a.el.style.display = 'none';
 let botGoal = null, wall, dots, pl, gh, scared, eaten, left, swipe, combo, botT;
 function maze() { wall = Array.from({ length: H }, () => Array(W).fill(true)); const seen = new Set(), st = [[0, 0]]; wall[1][1] = false; seen.add('0,0');
   while (st.length) { const [cx, cy] = st.at(-1), nb = shuffle(DIRS).map(([dx, dy]) => [cx + dx, cy + dy]).filter(([x, y]) => x >= 0 && y >= 0 && x < CW && y < CH && !seen.has(x + ',' + y)); if (!nb.length) { st.pop(); continue; } const [nx, ny] = nb[0]; seen.add(nx + ',' + ny); wall[cy * 2 + 1 + (ny - cy)][cx * 2 + 1 + (nx - cx)] = false; wall[ny * 2 + 1][nx * 2 + 1] = false; st.push([nx, ny]); }
@@ -31,7 +34,9 @@ function hitCheck(q) { if (Math.hypot(px(q) - px(pl), py(q) - py(pl)) < 26) { if
 function update(dt) {
   if (g.mode !== 'play') return; scared = Math.max(0, scared - dt); const k = g.keys;
   if (g.pressed.ArrowLeft || g.pressed.KeyA) pl.want = [-1, 0]; if (g.pressed.ArrowRight || g.pressed.KeyD) pl.want = [1, 0]; if (g.pressed.ArrowUp || g.pressed.KeyW) pl.want = [0, -1]; if (g.pressed.ArrowDown || g.pressed.KeyS) pl.want = [0, 1];
-  if (g.taps.length) swipe = { x: g.ptr.x, y: g.ptr.y }; if (swipe && g.ptr.down) { const dx = g.ptr.x - swipe.x, dy = g.ptr.y - swipe.y; if (Math.hypot(dx, dy) > 24) { pl.want = Math.abs(dx) > Math.abs(dy) ? [Math.sign(dx), 0] : [0, Math.sign(dy)]; swipe = { x: g.ptr.x, y: g.ptr.y }; } } else if (!g.ptr.down) swipe = null;
+  const ti = TC ? TC.getInput() : null; /* touch: read once per frame */
+  if (ti && Math.hypot(ti.x, ti.y) > .5) pl.want = Math.abs(ti.x) > Math.abs(ti.y) ? [Math.sign(ti.x), 0] : [0, Math.sign(ti.y)];
+  if (TC) swipe = null; else if (g.taps.length) swipe = { x: g.ptr.x, y: g.ptr.y }; if (swipe && g.ptr.down && !TC) { const dx = g.ptr.x - swipe.x, dy = g.ptr.y - swipe.y; if (Math.hypot(dx, dy) > 24) { pl.want = Math.abs(dx) > Math.abs(dy) ? [Math.sign(dx), 0] : [0, Math.sign(dy)]; swipe = { x: g.ptr.x, y: g.ptr.y }; } } else if (!g.ptr.down) swipe = null;
   if (g.auto) { botT -= dt; if (botT <= 0) { botT = .08; if (!pl.dx && !pl.dy) pl.want = botDir(); } }
   if (pl.want[0] === -pl.dx && pl.want[1] === -pl.dy && (pl.dx || pl.dy)) { [pl.tx, pl.nx] = [pl.nx, pl.tx]; [pl.ty, pl.ny] = [pl.ny, pl.ty]; pl.prog = 1 - pl.prog; pl.dx = pl.want[0]; pl.dy = pl.want[1]; }
   step(pl, dt, e => (g.auto && (e.want = botDir()), free(e.tx + e.want[0], e.ty + e.want[1]) ? e.want : (free(e.tx + e.dx, e.ty + e.dy) ? [e.dx, e.dy] : null)));

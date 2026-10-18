@@ -4,16 +4,19 @@
   DON'T BUILD: multiplayer, more than one map, voice chat, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp, dist } from '../_vendor/gp2d.js';
 import { drawChar, face } from '../_vendor/gpsprites.js';
+import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'PROP CAT', sub: 'Hold to move. Release to freeze.', hook: "Don't move when it looks", hero: 'cat', foe: 'zombie', bg: '#3a3550', floor: '#5a5470', speed: 170, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: 'HOLD', size: 110 } ] }) : null; /* TOUCH: hold HOLD (right) or push the left stick up to sneak; let go to freeze. docs/TOUCH.md */
 let p, h, spot, props, botT, moving, t0;
 function init() { p = { x: 270, y: 860, mv: false }; h = { x: 90, y: 520, d: 1, a: 0, wp: 0, t: 0, turn: 0, scan: 0 }; spot = 0; botT = 0; moving = false; t0 = 0; g.score = 0; props = Array.from({ length: 12 }, (_, i) => ({ x: 70 + ((i * 97) % 400), y: 260 + ((i * 151) % 520), r: i % 3 })); }
 g.onReset = init; init();
 const barrel = (c, x, y, s = 1, col = '#8a5a2e', face_) => { c.save(); c.translate(x, y); c.scale(s, s); c.fillStyle = 'rgba(0,0,0,.28)'; c.beginPath(); c.ellipse(0, 4, 28, 9, 0, 0, 7); c.fill(); c.fillStyle = col; c.beginPath(); c.roundRect(-24, -56, 48, 58, 8); c.fill(); c.lineWidth = 4; c.strokeStyle = '#000'; c.stroke(); c.fillStyle = '#3a2a18'; c.fillRect(-24, -42, 48, 6); c.fillRect(-24, -16, 48, 6); if (face_) { c.fillStyle = '#fff'; c.beginPath(); c.arc(-9, -34, 4, 0, 7); c.arc(9, -34, 4, 0, 7); c.fill(); c.fillStyle = '#111'; c.beginPath(); c.arc(-8, -34, 2, 0, 7); c.arc(10, -34, 2, 0, 7); c.fill(); } c.restore(); };
 function caught(why) { sfx('hit'); g.shake(14); g.hitstop(.1); g.flash('#ff3b3b', .4); g.burst(p.x, p.y - 30, 24, { color: ['#8a5a2e', '#ff9a3c', '#fff'], speed: 380 }); g.showBanner(why, 1); g.end({ win: false, score: g.score, label: 'SCORE' }); }
 function update(dt) {
-  if (g.mode !== 'play') return; t0 += dt; h.t += dt; botT -= dt; const HB = g.btn('h', 170, 830, 200, 100, 'HOLD', { key: 'Space' });
-  moving = g.ptr.down || HB.held || g.keys.Space || g.keys.ArrowUp;
+  if (g.mode !== 'play') return; t0 += dt; h.t += dt; botT -= dt; const ti = TC ? TC.getInput() : null; /* touch: read once per frame */
+  const HB = ti ? { held: ti.a || ti.y < -.3 } : g.btn('h', 170, 830, 200, 100, 'HOLD', { key: 'Space' });
+  moving = (g.ptr.down && !TC) || HB.held || g.keys.Space || g.keys.ArrowUp;
   const dh = Math.atan2(p.y - h.y, p.x - h.x), inCone = (() => { const d = dist(h, p); if (d > 330) return false; let da = Math.abs(((dh - h.a + Math.PI * 3) % (Math.PI * 2)) - Math.PI); return da < .55; })();
   if (g.auto) { if (g.dumb()) moving = t0 > 1.2 && p.y > 545; else { const dx = Math.abs(h.x - p.x), behind = (p.x - h.x) * h.d < -30, lane = Math.abs(p.y - 520) < 90;
     if (p.y > 610 && p.y < 760) moving = (behind && dx > 40) || dx > 230; else moving = lane ? true : !inCone; } g.sim.h = moving; }

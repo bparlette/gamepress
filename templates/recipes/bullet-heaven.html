@@ -4,8 +4,10 @@
   DON'T BUILD: an upgrade menu (auto-pick), meta progression, maps. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, pick, clamp, dist } from '../_vendor/gp2d.js';
 import { drawChar, heart } from '../_vendor/gpsprites.js';
+import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'ZOMBIE SURVIVORS', sub: 'Drag to move. Survive.', hook: '10,000 zombies vs one cat', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#5aa84a', seconds: 16, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: 'NOVA', size: 92 } ] }) : null; /* TOUCH: floating stick (left) moves, NOVA blast (right). docs/TOUCH.md */
 let p, en, bl, gems, t0, fireT, kills, lvl, xp, joy, novaT, cam;
 function init() { p = { x: 0, y: 0, hp: g.dumb() ? 1 : 5, inv: 0, d: 1, t: 0, rate: .55, dmg: 1, multi: 1, mag: 90 }; en = []; bl = []; gems = []; t0 = 0; fireT = 0; kills = 0; lvl = 1; xp = 0; joy = null; novaT = 5; g.score = 0; cam = { x: 0, y: 0 }; }
 g.onReset = init; init();
@@ -14,7 +16,9 @@ function hurt() { if (p.inv > 0) return; p.hp--; p.inv = 1; sfx('hit'); g.shake(
 function update(dt) {
   if (g.mode !== 'play') return; t0 += dt; p.t += dt; p.inv -= dt; fireT -= dt; novaT -= dt;
   let mx = (g.keys.KeyD || g.keys.ArrowRight ? 1 : 0) - (g.keys.KeyA || g.keys.ArrowLeft ? 1 : 0), my = (g.keys.KeyS || g.keys.ArrowDown ? 1 : 0) - (g.keys.KeyW || g.keys.ArrowUp ? 1 : 0);
-  if (g.ptr.down) { if (!joy) joy = { x: g.ptr.x, y: g.ptr.y }; const dx = g.ptr.x - joy.x, dy = g.ptr.y - joy.y, d = Math.hypot(dx, dy); if (d > 10) { mx = dx / d; my = dy / d; } } else joy = null;
+  const ti = TC ? TC.getInput() : null; /* touch: read once per frame */
+  if (ti && (ti.x || ti.y)) { mx = ti.x; my = ti.y; }
+  if (g.ptr.down && !TC) { if (!joy) joy = { x: g.ptr.x, y: g.ptr.y }; const dx = g.ptr.x - joy.x, dy = g.ptr.y - joy.y, d = Math.hypot(dx, dy); if (d > 10) { mx = dx / d; my = dy / d; } } else if (!TC) joy = null;
   if (g.auto && !g.dumb()) { let fx = 0, fy = 0; for (const e of en) { const d = dist(e, p); if (d < 260) { fx += (p.x - e.x) / (d * d) * 900; fy += (p.y - e.y) / (d * d) * 900; } } let tg = gems.filter(q => dist(q, p) < 220).sort((a, b) => dist(a, p) - dist(b, p))[0]; if (tg) { fx += (tg.x - p.x) / 300; fy += (tg.y - p.y) / 300; } const l = Math.hypot(fx, fy) || 1; if (l > .02) { mx = fx / l; my = fy / l; } else { mx = Math.cos(t0 * .7); my = Math.sin(t0 * .7); } }
   const l = Math.hypot(mx, my) || 1; if (mx || my) { p.x += mx / l * 210 * dt; p.y += my / l * 210 * dt; if (mx) p.d = mx > 0 ? 1 : -1; }
   const rate = Math.min(2.4, .5 + t0 * .09); const spawn = rate * (1 + t0 / 8) * dt * 4;
@@ -24,19 +28,19 @@ function update(dt) {
   bl = bl.filter(b => b.life > 0); en = en.filter(e => e.hp > 0);
   for (const e of en) { const a = Math.atan2(p.y - e.y, p.x - e.x); e.x += Math.cos(a) * e.sp * dt; e.y += Math.sin(a) * e.sp * dt; e.t += dt; e.fl = Math.max(0, (e.fl || 0) - dt); e.d = Math.cos(a) > 0 ? 1 : -1; if ((e.x - p.x) ** 2 + (e.y - p.y) ** 2 < 1000) hurt(); }
   for (const q of gems) { const d = dist(q, p); if (d < p.mag) { q.x += (p.x - q.x) / d * 420 * dt; q.y += (p.y - q.y) / d * 420 * dt; } if (d < 24) { q.got = true; xp++; sfx('coin', { pitch: comboPitch(xp % 12), vol: .4 }); if (xp >= 3 + lvl * 2) { xp = 0; lvl++; const up = ['rate', 'dmg', 'multi', 'nova'][(lvl - 2) % 4]; if (up === 'rate') p.rate *= .8; else if (up === 'dmg') p.dmg++; else if (up === 'multi') p.multi++; p.mag += 20; g.showBanner('LEVEL ' + lvl, .8); sfx('powerup'); g.flash('#ffd34d', .25); g.popup(up.toUpperCase() + ' UP', p.x, p.y - 100, '#7dff7d', 34); } } } gems = gems.filter(q => !q.got);
-  if (novaT <= 0 && en.length > 8) { novaT = 6; sfx('boom'); g.shake(8); g.flash('#fff', .35); for (const e of en) if (dist(e, p) < 230) { e.hp = 0; kills++; g.score = kills; gems.push({ x: e.x, y: e.y }); } g.burst(p.x, p.y, 30, { color: ['#fff', '#ffd34d'], speed: 520 }); g.popup('NOVA!', p.x, p.y - 80, '#fff', 56); }
+  if (novaT <= 0 && ((!TC && en.length > 8) || (TC && ti.aPressed) || g.pressed.Space)) { novaT = 6; sfx('boom'); g.shake(8); g.flash('#fff', .35); for (const e of en) if (dist(e, p) < 230) { e.hp = 0; kills++; g.score = kills; gems.push({ x: e.x, y: e.y }); } g.burst(p.x, p.y, 30, { color: ['#fff', '#ffd34d'], speed: 520 }); g.popup('NOVA!', p.x, p.y - 80, '#fff', 56); }
   cam.x += (p.x - cam.x) * Math.min(1, dt * 8); cam.y += (p.y - cam.y) * Math.min(1, dt * 8);
   if (t0 >= S.seconds && g.mode === 'play') { g.end({ win: true, score: kills, label: 'KILLS' }); }
   g.hud.l = `${kills} KILLS`; g.hud.r = `${Math.max(0, Math.ceil(S.seconds - t0))}s`; g.state = { hp: p.hp, kills, enemies: en.length, t: Math.round(t0) };
 }
 function draw(c) {
   c.save(); c.translate(270 - cam.x, 520 - cam.y); c.fillStyle = 'rgba(0,0,0,.08)'; for (let x = Math.floor((cam.x - 300) / 120) * 120; x < cam.x + 300; x += 120) for (let y = Math.floor((cam.y - 560) / 120) * 120; y < cam.y + 560; y += 120) if (((x + y) / 120) % 2 === 0) c.fillRect(x, y, 120, 120);
-  for (const q of gems) { c.fillStyle = '#5ad7ff'; c.beginPath(); c.moveTo(q.x, q.y - 9); c.lineTo(q.x + 7, q.y); c.lineTo(q.x, q.y + 9); c.lineTo(q.x - 7, q.y); c.fill(); }
+  for (const q of gems) { c.fillStyle = '#5ad7ff'; c.beginPath(); c.moveTo(q.x, q.y - 12); c.lineTo(q.x + 9, q.y); c.lineTo(q.x, q.y + 12); c.lineTo(q.x - 9, q.y); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 2; c.stroke(); }
   for (const e of [...en].sort((a, b) => a.y - b.y)) { c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(e.x, e.y, 18, 7, 0, 0, 7); c.fill(); drawChar(S.foe, c, e.x, e.y, e.hp > 2 ? 96 : 62, { dir: e.d, t: e.t, anim: 'walk', hurt: e.fl > 0, color: e.hp > 2 ? '#5a9a4a' : undefined }); }
   c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(p.x, p.y, 24, 9, 0, 0, 7); c.fill(); if (p.inv <= 0 || Math.floor(g.t * 20) % 2) drawChar('cat', c, p.x, p.y, 74, { color: S.heroColor, dir: p.d, t: p.t, anim: 'walk', hurt: g.mode === 'over' });
   c.fillStyle = '#ffd34d'; for (const b of bl) { c.beginPath(); c.arc(b.x, b.y, 7, 0, 7); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 2; c.stroke(); } c.restore();
   if (joy) { c.strokeStyle = 'rgba(255,255,255,.5)'; c.lineWidth = 4; c.beginPath(); c.arc(joy.x, joy.y, 50, 0, 7); c.stroke(); c.fillStyle = 'rgba(255,255,255,.4)'; c.beginPath(); c.arc(g.ptr.x, g.ptr.y, 24, 0, 7); c.fill(); }
-  for (let i = 0; i < p.hp; i++) heart(c, 40 + i * 44, 110, 34); g.bar(24, 140, 220, 14, xp / (3 + lvl * 2), '#5ad7ff'); g.text('LV ' + lvl, 252, 154, { size: 24 });
+  for (let i = 0; i < p.hp; i++) heart(c, 40 + i * 44, 110, 34); g.bar(24, 140, 220, 14, xp / (3 + lvl * 2), '#5ad7ff'); g.text('LV ' + lvl, 252, 154, { size: 24 }); g.text(novaT <= 0 ? (TC ? 'NOVA READY: tap NOVA' : 'NOVA READY') : 'NOVA ' + Math.ceil(novaT) + 's', 24, 190, { size: 22, color: novaT <= 0 ? '#ffd34d' : '#cfe8c8' });
 }
 g.run(update, draw);
 </script></body></html>

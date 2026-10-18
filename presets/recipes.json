@@ -529,7 +529,7 @@
         "Pac-Man but cats",
         "One wrong turn"
       ],
-      "seconds": 26,
+      "seconds": 22,
       "engine": "2d",
       "colors": "css",
       "match": "pac.?man|bomberman|maze|chase|dots|ghost",
@@ -783,7 +783,7 @@
         "Gradius but cats",
         "The boss is 10 screens tall"
       ],
-      "seconds": 30,
+      "seconds": 28,
       "engine": "2d",
       "colors": "css",
       "match": "shmup|shoot.?em|gradius|ikaruga|bullet hell|space shooter|galaga",

@@ -6,11 +6,11 @@ import { createGame, sfx, comboPitch, R, rnd, clamp, lerp } from '../_vendor/gp2
 import { drawChar } from '../_vendor/gpsprites.js';
 const S = { title: 'FLAP CAT', sub: 'Tap to flap', hook: 'One tap. One cat. Impossible?', hero: 'cat', heroColor: '#ff9a3c', bg: '#59c9ff', pipe: '#4caf50', gap: 260, speed: 210, winScore: 8, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
-let cat, pipes, streak, speed, cd, clouds = Array.from({ length: 6 }, (_, i) => ({ x: i * 110, y: rnd(80, 420), s: rnd(.6, 1.4) }));
+let flaps = 0, cat, pipes, streak, speed, cd, clouds = Array.from({ length: 6 }, (_, i) => ({ x: i * 110, y: rnd(80, 420), s: rnd(.6, 1.4) }));
 let lastGy = 400; const mk = x => ({ x, gy: (lastGy = clamp(lastGy + rnd(-130, 130), 230, 560)), w: 96, scored: false });
-function init() { cat = { x: 150, y: 460, vy: 0, t: 0 }; pipes = [0, 1, 2, 3].map(i => mk(640 + i * 270)); streak = 0; speed = S.speed; cd = 0; g.score = 0; }
+function init() { flaps = 0; cat = { x: 150, y: 460, vy: 0, t: 0 }; pipes = [0, 1, 2, 3].map(i => mk(640 + i * 270)); streak = 0; speed = S.speed; cd = 0; g.score = 0; }
 g.onReset = init; init();
-function flap() { cat.vy = -400; sfx('jump', { pitch: comboPitch(streak) }); g.burst(cat.x - 30, cat.y + 20, 4, { color: ['#ffd34d', '#ff8a3c'], speed: 90, up: -60, size: 8, life: .35 }); }
+function flap() { flaps++; cat.vy = -400; sfx('jump', { pitch: comboPitch(streak) }); g.burst(cat.x - 30, cat.y + 20, 4, { color: ['#ffd34d', '#ff8a3c'], speed: 90, up: -60, size: 8, life: .35 }); }
 function die() { sfx('hit'); g.hitstop(.12); g.burst(cat.x, cat.y, 22, { color: [S.heroColor, '#fff', '#ffd34d'], speed: 380 }); g.end({ win: false, score: g.score, label: 'PIPES' }); }
 function update(dt) {
   if (g.mode !== 'play') return; cat.t += dt; cd -= dt;
@@ -31,6 +31,7 @@ function draw(c) {
   c.fillStyle = '#8b5a2b'; c.fillRect(0, g.H - 70, g.W, 70); c.fillStyle = '#6bbf59'; c.fillRect(0, g.H - 70, g.W, 18);
   c.save(); c.translate(cat.x, cat.y); c.rotate(clamp(cat.vy / 900, -.5, .9)); c.fillStyle = '#ffd34d'; c.beginPath(); c.moveTo(-34, 14); c.lineTo(-62 - Math.sin(g.t * 50) * 8, 30); c.lineTo(-34, 36); c.fill(); drawChar(S.hero, c, 0, 46, 96, { color: S.heroColor, t: g.t, anim: 'walk', hurt: g.mode === 'over' }); c.restore();
   g.text(String(g.score), g.W / 2, 150, { size: 120, align: 'center' });
+  if (g.mode === 'play' && flaps < 4) { const k = 1 + Math.sin(g.t * 8) * .06; g.text('TAP ANYWHERE', g.W / 2, 800, { size: 64 * k, align: 'center' }); g.text('to flap up', g.W / 2, 860, { size: 34, align: 'center', color: '#fff' }); }
 }
 g.run(update, draw);
 </script></body></html>

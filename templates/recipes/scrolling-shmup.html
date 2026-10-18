@@ -4,19 +4,23 @@
   DON'T BUILD: weapon shop, multiple ships, story, more than one boss. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp, dist } from '../_vendor/gp2d.js';
 import { ship, face, heart } from '../_vendor/gpsprites.js';
+import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CAT FIGHTER', sub: 'Drag to fly. It shoots for you.', hook: 'Dodge the bullet hell', pilot: 'cat', hull: '#4aa8ff', foe: 'zombie', bg: '#0b1030', bossAt: 8, bossHp: 22, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: 'BOMB', size: 92 } ] }) : null; /* TOUCH: floating stick (left) flies, BOMB (right). docs/TOUCH.md */
 let p, pb, en, eb, t0, fireT, wave, boss, stars, chain, chainT, bombs, botT;
 stars = Array.from({ length: 60 }, () => ({ x: rnd(0, 540), y: rnd(0, 960), s: rnd(.4, 1.6) }));
-function init() { p = { x: 270, y: 780, hp: 3, inv: 0 }; pb = []; en = []; eb = []; t0 = 0; fireT = 0; wave = 0; boss = null; chain = 0; chainT = 0; bombs = 1; botT = 0; g.score = 0; }
+function init() { p = { x: 270, y: 780, hp: g.dumb() ? 2 : 3, inv: 0 }; pb = []; en = []; eb = []; t0 = 0; fireT = 0; wave = 0; boss = null; chain = 0; chainT = 0; bombs = 1; botT = 0; g.score = 0; }
 g.onReset = init; init();
 const ufo = (x, y, hp = 1, o = {}) => ({ x, y, hp, max: hp, t: rnd(0, 6), x0: x, fl: 0, sh: rnd(1, 3), ...o });
 function hurt() { if (p.inv > 0) return; p.hp--; p.inv = 1.4; sfx('hit'); g.shake(12); g.hitstop(.08); g.flash('#ff3b3b', .3); eb = []; if (p.hp <= 0) { g.burst(p.x, p.y, 30, { color: [S.hull, '#fff', '#ffd34d'], speed: 420 }); g.end({ win: false, score: g.score, label: 'SCORE' }); } }
 function kill(e) { chain = chainT > 0 ? chain + 1 : 1; chainT = 1; g.score += 50 * chain; sfx('boom', { vol: .5, pitch: comboPitch(chain) }); g.burst(e.x, e.y, 16, { color: ['#8fcf7a', '#ffd34d', '#fff'], speed: 340 }); g.popup('+' + 50 * chain, e.x, e.y - 20, '#ffd34d', 28); }
 function update(dt) {
   if (g.mode !== 'play') return; t0 += dt; p.inv -= dt; fireT -= dt; chainT -= dt; botT -= dt;
-  const B = g.btn('b', 400, 850, 120, 90, 'BOMB', { key: 'KeyB' });
-  if (g.ptr.down && !g.auto) { p.x += (g.ptr.x - p.x) * Math.min(1, dt * 14); p.y += (g.ptr.y - 90 - p.y) * Math.min(1, dt * 14); } p.x += ((g.keys.ArrowRight ? 1 : 0) - (g.keys.ArrowLeft ? 1 : 0)) * 340 * dt; p.y += ((g.keys.ArrowDown ? 1 : 0) - (g.keys.ArrowUp ? 1 : 0)) * 340 * dt;
+  const ti = TC ? TC.getInput() : null; /* touch: read once per frame */
+  const B = ti ? { pressed: !!(ti.aPressed || g.pressed.KeyB) } : g.btn('b', 400, 850, 120, 90, 'BOMB', { key: 'KeyB' });
+  if (ti) { p.x += ti.x * 400 * dt; p.y += ti.y * 400 * dt; }
+  if (g.ptr.down && !g.auto && !TC) { p.x += (g.ptr.x - p.x) * Math.min(1, dt * 14); p.y += (g.ptr.y - 90 - p.y) * Math.min(1, dt * 14); } p.x += ((g.keys.ArrowRight ? 1 : 0) - (g.keys.ArrowLeft ? 1 : 0)) * 340 * dt; p.y += ((g.keys.ArrowDown ? 1 : 0) - (g.keys.ArrowUp ? 1 : 0)) * 340 * dt;
   if (g.auto && !g.dumb()) { let best = p.x, bs = 1e9; for (let x = 40; x <= 500; x += 20) { let th = 0; for (const b of eb) { const d = Math.hypot(b.x - x, b.y - p.y); if (d < 150) th += 150 / (d + 5); } for (const e of en) { const d = Math.hypot(e.x - x, e.y - p.y); if (d < 120) th += 90 / (d + 5); } const tg = (boss || en[0] || { x: 270 }).x; th += Math.abs(x - tg) * .004 + Math.abs(x - p.x) * .006; if (th < bs) { bs = th; best = x; } } p.x += clamp(best - p.x, -330 * dt, 330 * dt); p.y = 780 + Math.sin(t0) * 30; if (eb.length > 14 && bombs > 0 && B.pressed === false && botT <= 0) { botT = 9; B.pressed = true; } }
   p.x = clamp(p.x, 30, 510); p.y = clamp(p.y, 200, 900);
   if (B.pressed && bombs > 0) { bombs--; sfx('boom'); g.flash('#fff', .6); g.shake(14); eb = []; for (const e of en) { e.hp -= 5; e.fl = .2; } if (boss) boss.hp -= 5; g.burst(p.x, p.y - 200, 40, { color: ['#fff', '#ffd34d'], speed: 600 }); }
