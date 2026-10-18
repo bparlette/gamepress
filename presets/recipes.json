@@ -14,6 +14,20 @@
       "engine": "2d",
       "colors": "css",
       "match": "flappy|geometry dash|one.?tap|tap to (jump|fly)|reflex|gap",
+      "keywords": [
+        "flappy",
+        "flappy bird",
+        "flap",
+        "geometry dash",
+        "one tap",
+        "tap to jump",
+        "tap to fly",
+        "jetpack",
+        "reflex",
+        "endless flyer",
+        "helicopter game",
+        "pipes"
+      ],
       "refs": [
         "Flappy Bird",
         "Geometry Dash",
@@ -63,6 +77,19 @@
       "engine": "2d",
       "colors": "css",
       "match": "wordle|connections|daily|word|guess|deduc|puzzle",
+      "keywords": [
+        "wordle",
+        "word game",
+        "word puzzle",
+        "guess the word",
+        "connections",
+        "daily puzzle",
+        "deduction",
+        "crossword",
+        "hangman",
+        "mastermind",
+        "trivia"
+      ],
       "refs": [
         "Wordle",
         "Connections",
@@ -112,6 +139,20 @@
       "engine": "2d",
       "colors": "css",
       "match": "platform|mario|celeste|jump|side.?scroll|precision",
+      "keywords": [
+        "platformer",
+        "platform game",
+        "mario",
+        "super mario",
+        "celeste",
+        "sonic",
+        "side scroller",
+        "side-scroller",
+        "jump game",
+        "precision jump",
+        "super meat boy",
+        "mega man"
+      ],
       "refs": [
         "Super Mario Bros",
         "Celeste",
@@ -162,6 +203,26 @@
       "engine": "2d",
       "colors": "css",
       "match": "farm|cozy|stardew|animal crossing|life sim|garden|isometric",
+      "keywords": [
+        "farm",
+        "farming",
+        "stardew",
+        "animal crossing",
+        "cozy",
+        "life sim",
+        "garden",
+        "gardening",
+        "harvest",
+        "village",
+        "pet shop",
+        "pets",
+        "cats",
+        "cat game",
+        "kitten",
+        "animal",
+        "pond",
+        "fishing"
+      ],
       "refs": [
         "Stardew Valley",
         "Animal Crossing",
@@ -189,7 +250,7 @@
         "bot": "Single circular drag harvests entire field",
         "escalation": "+10/+20/+50 coin cascades, pentatonic pop sounds",
         "climax": "Golden border glow, cash register ding",
-        "personality": "Chaotic harvest goblin \u2014 grabs everything, spins in circles, pure joy"
+        "personality": "Chaotic harvest goblin — grabs everything, spins in circles, pure joy"
       },
       "feel": {
         "use": [
@@ -211,6 +272,19 @@
       "engine": "2d",
       "colors": "css",
       "match": "vampire survivors|survivor|bullet heaven|horde|swarm|auto.?shoot|survive",
+      "keywords": [
+        "vampire survivors",
+        "survivors",
+        "bullet heaven",
+        "horde survival",
+        "zombie survival",
+        "survive the horde",
+        "auto shooter",
+        "auto-shoot",
+        "brotato",
+        "swarm survival",
+        "zombies"
+      ],
       "refs": [
         "Vampire Survivors",
         "Survivor.io",
@@ -261,6 +335,18 @@
       "engine": "3d",
       "colors": "num",
       "match": "obby|only up|parkour|gauntlet|platform gauntlet|roblox obby",
+      "keywords": [
+        "obby",
+        "only up",
+        "parkour",
+        "gauntlet",
+        "roblox obby",
+        "obstacle course",
+        "climb game",
+        "jump tower",
+        "tower of hell",
+        "deathrun"
+      ],
       "refs": [
         "Roblox Obby",
         "Only Up!",
@@ -288,7 +374,7 @@
         "bot": "Misses final jump attempt 0 (ragdoll); speedrun attempt 1",
         "escalation": "Tiles turn red and drop, speed lines warp",
         "climax": "Confetti blast, horn + slow-mo",
-        "personality": "Rage-prone but stubborn \u2014 eats dirt on attempt 0, then speedruns like nothing happened"
+        "personality": "Rage-prone but stubborn — eats dirt on attempt 0, then speedruns like nothing happened"
       },
       "feel": {
         "use": [
@@ -311,6 +397,18 @@
       "engine": "3d",
       "colors": "num",
       "match": "subway|temple run|endless runner|rail|lane|runner",
+      "keywords": [
+        "subway surfers",
+        "subway",
+        "temple run",
+        "endless runner",
+        "runner",
+        "lane runner",
+        "three lane",
+        "train runner",
+        "run away",
+        "chase run"
+      ],
       "refs": [
         "Subway Surfers",
         "Temple Run",
@@ -361,6 +459,30 @@
       "engine": "2d",
       "colors": "css",
       "match": "peggle|breakout|arkanoid|angry birds|bounce|pegs|brick",
+      "keywords": [
+        "peggle",
+        "breakout",
+        "arkanoid",
+        "brick breaker",
+        "angry birds",
+        "pegs",
+        "bouncer",
+        "bounce",
+        "pinball",
+        "bowling",
+        "bowling with cars",
+        "pachinko",
+        "pong",
+        "paddle",
+        "ball and bricks",
+        "football",
+        "football game",
+        "soccer",
+        "basketball",
+        "sports game",
+        "billiards",
+        "pool"
+      ],
       "refs": [
         "Peggle",
         "Breakout",
@@ -388,7 +510,7 @@
         "bot": "Trajectory pulses, bumper bounce to final peg",
         "escalation": "Hit pitch ascends, camera tracks ball",
         "climax": "Ode to Joy brass, rainbow explosion",
-        "personality": "Pool shark energy \u2014 calls the shot, banks it off three bumpers, sinks it"
+        "personality": "Pool shark energy — calls the shot, banks it off three bumpers, sinks it"
       },
       "feel": {
         "use": [
@@ -411,6 +533,21 @@
       "engine": "2d",
       "colors": "css",
       "match": "pac.?man|bomberman|maze|chase|dots|ghost",
+      "keywords": [
+        "pacman",
+        "pac-man",
+        "pac man",
+        "bomberman",
+        "maze",
+        "maze chase",
+        "chase game",
+        "ghosts",
+        "dots",
+        "snake",
+        "snake game",
+        "dungeon chase",
+        "grid chase"
+      ],
       "refs": [
         "Pac-Man",
         "Bomberman",
@@ -444,7 +581,7 @@
         "use": [
           "makeFSM"
         ],
-        "why": "Ghost AI is pure state machines: scatter, chase, frightened, eaten \u2014 Pac-Man Dossier patterns."
+        "why": "Ghost AI is pure state machines: scatter, chase, frightened, eaten — Pac-Man Dossier patterns."
       }
     },
     {
@@ -460,6 +597,21 @@
       "engine": "2d",
       "colors": "css",
       "match": "tetris|falling block|columns|stack|block puzzle|match",
+      "keywords": [
+        "tetris",
+        "falling blocks",
+        "falling block",
+        "block puzzle",
+        "columns",
+        "puzzle blocks",
+        "line clear",
+        "match three",
+        "match 3",
+        "candy crush",
+        "bejeweled",
+        "2048 blocks",
+        "jewels"
+      ],
       "refs": [
         "Tetris",
         "Columns",
@@ -509,6 +661,19 @@
       "engine": "2d",
       "colors": "css",
       "match": "suika|2048|merge|watermelon|combine|evolve",
+      "keywords": [
+        "suika",
+        "watermelon game",
+        "2048",
+        "merge",
+        "merge game",
+        "merge pets",
+        "combine",
+        "evolve",
+        "fruit merge",
+        "drop and merge",
+        "sandbox"
+      ],
       "refs": [
         "Suika Game",
         "2048",
@@ -558,6 +723,21 @@
       "engine": "2d",
       "colors": "css",
       "match": "beat.?em|brawler|double dragon|kung.?fu|street fight|fighter",
+      "keywords": [
+        "brawler",
+        "beat em up",
+        "beat-em-up",
+        "double dragon",
+        "streets of rage",
+        "kung fu",
+        "street fight",
+        "fighter",
+        "fighting",
+        "martial arts",
+        "punch",
+        "brawl",
+        "arena fight"
+      ],
       "refs": [
         "Double Dragon",
         "Kung-Fu Master",
@@ -585,7 +765,7 @@
         "bot": "Counter-parry, 10-hit wall juggle",
         "escalation": "Hit-stop scales 2-6 frames, damage digits spray",
         "climax": "Inverted flash, KO gong",
-        "personality": "Street brawler with main-character energy \u2014 parries with a smirk, juggles for style points"
+        "personality": "Street brawler with main-character energy — parries with a smirk, juggles for style points"
       },
       "feel": {
         "use": [
@@ -607,6 +787,22 @@
       "engine": "2d",
       "colors": "css",
       "match": "shmup|shoot.?em|gradius|ikaruga|bullet hell|space shooter|galaga",
+      "keywords": [
+        "shmup",
+        "shoot em up",
+        "shoot-em-up",
+        "gradius",
+        "ikaruga",
+        "bullet hell",
+        "space shooter",
+        "galaga",
+        "space invaders",
+        "asteroids",
+        "spaceship",
+        "fighter jet",
+        "plane shooter",
+        "1942"
+      ],
       "refs": [
         "Gradius",
         "Ikaruga",
@@ -656,6 +852,17 @@
       "engine": "2d",
       "colors": "css",
       "match": "contra|metal slug|run.?and.?gun|run and gun|shooter platform",
+      "keywords": [
+        "contra",
+        "metal slug",
+        "run and gun",
+        "run-and-gun",
+        "side shooter",
+        "commando",
+        "platform shooter",
+        "gun game",
+        "shooter"
+      ],
       "refs": [
         "Contra",
         "Metal Slug",
@@ -706,6 +913,17 @@
       "engine": "2d",
       "colors": "css",
       "match": "metroidvania|hollow knight|metroid|ability gate|backtrack",
+      "keywords": [
+        "metroidvania",
+        "hollow knight",
+        "metroid",
+        "castlevania",
+        "ability gate",
+        "backtrack",
+        "double jump",
+        "explore cave",
+        "ori"
+      ],
       "refs": [
         "Hollow Knight",
         "Metroid Dread",
@@ -756,6 +974,20 @@
       "engine": "2d",
       "colors": "css",
       "match": "footsies|divekick|nidhogg|duel|1v1|fighting game|parry",
+      "keywords": [
+        "footsies",
+        "divekick",
+        "nidhogg",
+        "duel",
+        "1v1",
+        "fencing",
+        "sword duel",
+        "fighting game",
+        "parry",
+        "samurai",
+        "swordfight",
+        "tug of war duel"
+      ],
       "refs": [
         "Nidhogg",
         "Divekick",
@@ -805,6 +1037,19 @@
       "engine": "2d",
       "colors": "css",
       "match": "zelda|dungeon|link's awakening|top.?down adventure|key door",
+      "keywords": [
+        "zelda",
+        "dungeon",
+        "dungeon crawler",
+        "link",
+        "link's awakening",
+        "top-down adventure",
+        "top down adventure",
+        "key and door",
+        "adventure game",
+        "rpg adventure",
+        "action adventure"
+      ],
       "refs": [
         "Zelda",
         "Link's Awakening",
@@ -854,6 +1099,21 @@
       "engine": "2d",
       "colors": "css",
       "match": "pokemon|turn.?based|battle|rpg|3v3|monster",
+      "keywords": [
+        "pokemon",
+        "turn based",
+        "turn-based",
+        "battle",
+        "monster battle",
+        "monsters",
+        "rpg",
+        "jrpg",
+        "final fantasy",
+        "3v3",
+        "pet battle",
+        "auto battler",
+        "monster catching"
+      ],
       "refs": [
         "Pokemon",
         "Final Fantasy",
@@ -903,6 +1163,19 @@
       "engine": "2d",
       "colors": "css",
       "match": "tower defense|bloons|kingdom rush|defend|lane defense|td",
+      "keywords": [
+        "tower defense",
+        "tower-defense",
+        "bloons",
+        "kingdom rush",
+        "plants vs zombies",
+        "defend",
+        "defense",
+        "lane defense",
+        "td",
+        "castle defense",
+        "wave defense"
+      ],
       "refs": [
         "Bloons TD",
         "Kingdom Rush",
@@ -953,6 +1226,20 @@
       "engine": "3d",
       "colors": "num",
       "match": "kart|mario kart|racer|racing|micro machines|race",
+      "keywords": [
+        "kart",
+        "mario kart",
+        "racing",
+        "racer",
+        "race",
+        "race cars",
+        "micro machines",
+        "drift",
+        "cars racing",
+        "car game",
+        "racing game",
+        "speedway"
+      ],
       "refs": [
         "Mario Kart",
         "Micro Machines",
@@ -978,9 +1265,9 @@
       "viral": {
         "hook": "Final lap final corner, 2nd place drafting",
         "bot": "Red shell, drift boost, wins by a nose",
-        "escalation": "Drift sparks blue\u2192purple, wind FX",
+        "escalation": "Drift sparks blue→purple, wind FX",
         "climax": "Checkered flag, crowd roar",
-        "personality": "Dirty racer \u2014 bumps, drafts, cuts corners, wins by a pixel with a smirk"
+        "personality": "Dirty racer — bumps, drafts, cuts corners, wins by a pixel with a smirk"
       },
       "feel": {
         "use": [
@@ -1003,6 +1290,21 @@
       "engine": "2d",
       "colors": "css",
       "match": "balatro|slay the spire|deckbuilder|card|poker|roguelike card",
+      "keywords": [
+        "balatro",
+        "slay the spire",
+        "deckbuilder",
+        "deck builder",
+        "card game",
+        "cards",
+        "poker",
+        "blackjack",
+        "solitaire",
+        "roguelike card",
+        "roguelite",
+        "tcg",
+        "hearthstone"
+      ],
       "refs": [
         "Balatro",
         "Slay the Spire",
@@ -1028,7 +1330,7 @@
       "viral": {
         "hook": "1 card left, 400k chips needed on Boss Blind",
         "bot": "Plays 5-card flush, jokers trigger sequentially",
-        "escalation": "Mult x2\u2192x64, chip flames brighten",
+        "escalation": "Mult x2→x64, chip flames brighten",
         "climax": "Fire from score counter, goal shatters",
         "personality": "High-roller who slow-plays the winning hand just to watch the mult counter explode"
       },
@@ -1052,6 +1354,22 @@
       "engine": "2d",
       "colors": "css",
       "match": "tycoon|idle|incremental|factory|clicker|cookie clicker|automation",
+      "keywords": [
+        "tycoon",
+        "idle",
+        "idle game",
+        "incremental",
+        "factory",
+        "clicker",
+        "cookie clicker",
+        "automation",
+        "click game",
+        "business",
+        "empire",
+        "shop tycoon",
+        "restaurant",
+        "cafe"
+      ],
       "refs": [
         "Cookie Clicker",
         "Roblox Tycoon",
@@ -1077,7 +1395,7 @@
       "viral": {
         "hook": "Conveyor jammed with gold, upgrade flashing",
         "bot": "Taps BUY 10x SPEED, belt becomes laser",
-        "escalation": "Digits 1e12\u21921e18, counter blur",
+        "escalation": "Digits 1e12→1e18, counter blur",
         "climax": "Cash rain, ascending chimes",
         "personality": "Unhinged capitalist who slams the 10x button and cackles as numbers go vertical"
       },
@@ -1101,6 +1419,21 @@
       "engine": "2d",
       "colors": "css",
       "match": "prop hunt|hide and seek|among us|hide|disguise|red light green light|stealth",
+      "keywords": [
+        "prop hunt",
+        "hide and seek",
+        "hide & seek",
+        "among us",
+        "hide",
+        "disguise",
+        "red light green light",
+        "squid game",
+        "stealth",
+        "sneak",
+        "sneaking",
+        "spy",
+        "imposter"
+      ],
       "refs": [
         "Prop Hunt",
         "Among Us",
@@ -1151,6 +1484,21 @@
       "engine": "2d",
       "colors": "css",
       "match": "worms|scorched earth|artillery|trajectory|cannon|tank|turn.?based shooter",
+      "keywords": [
+        "worms",
+        "scorched earth",
+        "artillery",
+        "trajectory",
+        "cannon",
+        "tank",
+        "tanks",
+        "tank game",
+        "angry tanks",
+        "aim and fire",
+        "turn-based shooter",
+        "mortar",
+        "artillery duel"
+      ],
       "refs": [
         "Worms",
         "Scorched Earth",

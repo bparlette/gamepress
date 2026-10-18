@@ -23,9 +23,10 @@ gamepress run --answer '{"idea": "<what they said>"}' --job <id>
 Add `--local` only if the human explicitly asked to skip the cloud. Otherwise the tool
 picks the fastest path itself (cloud runners when available, local fallback silent).
 The tool replies with either:
+- `{"ask": "...", "options": [...]}` — no game type matched; show the list (name + hook) to the human and relay their pick: `--answer '{"recipe": "<id>"}'` (a number also works). This never starts a build.
 - `{"ask": "...", "questions": [...]}` — ask the human, relay back with `--answer`
 - `{"status": "building", ...}` — the tool is building; go to step 3
-- `{"done": true, "game": "<url>", "video": "<url>", "images": [...]}` — show the human the links
+- `{"done": true, "game": "<path>", "video": "<path>", "images": [...], "note": "..."}` — tell the human the game, the video and the images are ready (local file paths, nothing is hosted); relay `note` if present (e.g. images could not be made)
 
 **3. Poll a build:**
 ```
@@ -61,5 +62,5 @@ $ gamepress run --job a1b2c3d4 --answer '{"style": 1, "hook": "CARS GO BOOM"}' -
 {"job": "a1b2c3d4", "status": "building", "step": "starting"}
 
 $ gamepress run --status a1b2c3d4 --json
-{"job": "a1b2c3d4", "state": "done", "done": true, "game": "games/run-a1b2c3d4/index.html", "video": "press/video/run-a1b2c3d4-hook.mp4", "images": []}
+{"job": "a1b2c3d4", "state": "done", "done": true, "game": "games/run-a1b2c3d4/index.html", "video": "press/video/run-a1b2c3d4-hook.mp4", "images": ["press/video/run-a1b2c3d4-hook.thumb.jpg", "publish/run-a1b2c3d4/press/out/steam/header_capsule.png", "..."]}
 ```
