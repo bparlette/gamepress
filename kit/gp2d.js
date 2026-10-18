@@ -6,9 +6,8 @@ import { sfx, setMuted, comboPitch } from './gpaudio.js';
 import { castEnd } from './gpcast.js';
 import { STY } from './gpsprites.js';
 // ?hold=1 (hub): run a few frames so the game shows, then freeze until the hub posts {gp:'start'}.
-if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { const raf = window.requestAnimationFrame.bind(window); let q = [], go = false, n = 0; window.requestAnimationFrame = f => (go || n++ < 1) ? raf(f) : (q.push(f), 0);
-  const hold = window.__gpHold = { onStart: null }; const start = () => { if (go) return; go = true; q.splice(0).forEach(raf); hold.onStart?.(); try { parent.postMessage({ gp: 'started' }, '*'); } catch {} };
-  for (const t of ['pointerdown', 'touchstart', 'mousedown', 'keydown']) addEventListener(t, e => { if (!go) { if (e.cancelable) e.preventDefault(); e.stopImmediatePropagation(); start(); } }, { capture: true, passive: false });
+if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { const hold = window.__gpHold = { onStart: null, go: false, n: 0 }; const start = () => { if (hold.go) return; hold.go = true; hold.onStart?.(); try { parent.postMessage({ gp: 'started' }, '*'); } catch {} };
+  for (const t of ['pointerdown', 'touchstart', 'mousedown', 'keydown']) addEventListener(t, () => start(), { capture: true, passive: true });
   addEventListener('message', e => { if (e.data && e.data.gp === 'start') start(); }); }
 export { sfx, comboPitch };
 export * from './gpmath.js';
@@ -93,6 +92,7 @@ export function createGame({ id = 'game', title = 'GAME', sub = 'Tap to start', 
     let last = 0, acc = 0;
     const frame = ts => {
       acc += Math.min(.1, (ts - last) / 1000 || .016); last = ts;
+      { const H = window.__gpHold; if (H && !H.go && ++H.n > 3) acc = 0; } // ?hold=1: draw the scene but freeze the simulation until the first touch
       while (acc >= 1 / 60) { acc -= 1 / 60; const dt0 = 1 / 60;
         if (g.mode !== 'pause') { for (let i = tw.length - 1; i >= 0; i--) { const q = tw[i]; q.t += dt0; const u = Math.min(1, q.t / q.d); q.o[q.k] = q.a + (q.to - q.a) * q.ez(u); if (u >= 1) { tw.splice(i, 1); q.then?.(); } }
           for (const p of g.fxl) { p.t += dt0; p.vy += p.g * dt0; p.x += p.vx * dt0; p.y += p.vy * dt0; } g.fxl = g.fxl.filter(p => p.t < p.life); for (const p of g.pops) p.t += dt0; g.pops = g.pops.filter(p => p.t < .9);

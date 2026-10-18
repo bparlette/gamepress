@@ -25,3 +25,4 @@ Flow, key scopes and pitfalls: `docs/ROBLOX.md` and `docs/tracks/roblox.md`. Shi
 
 Use case: a themed set of 30 games + 4 packs (`gamepress theme <hero> --world <w> --render --qc --publish`): see docs/VIRAL-SET.md.
 - Cast / character-roster arcade (e.g. Karen Arcade with voices): `docs/CAST.md`.
+- Rotation rules for packs/hubs (tap-to-start hold, stick anywhere, retry rule, endless loop): `docs/ROTATION.md`.

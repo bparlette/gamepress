@@ -29,28 +29,30 @@ const games = CFG.games, N = games.length, CAP = 45000, GAP = 1300;
 const a = Math.floor(Math.random() * 1e6);
 let idx = -1, loop = 0, frames = [document.createElement('iframe'), document.createElement('iframe')], cur = 0, timer = 0, locked = true, results = [];
 frames.forEach(f => { f.className = 'off'; f.allow = 'autoplay; fullscreen; gamepad'; document.body.prepend(f); });
-const url = (id, n) => `${CFG.base}${id}/index.html?pack=1&seed=${(a + n * 7) % 1e6}`;
+const url = (id, n) => `${CFG.base}${id}/index.html?pack=1&hold=1&seed=${(a + n * 7) % 1e6}`;
 const dots = $('dots'); games.forEach(() => dots.appendChild(document.createElement('i')));
 const buyHref = CFG.buyUrl || '#'; $('buy').href = buyHref; $('buy2').href = buyHref;
 function paint() { [...dots.children].forEach((d, i) => { d.className = i === idx ? 'on' : results[i] === true ? 'win' : results[i] === false ? 'lose' : ''; }); $('name').textContent = idx >= 0 ? `${idx + 1}/${N} ${CFG.names[games[idx]] || games[idx]}` : ''; }
 function preload(i) { const f = frames[1 - cur]; f.className = 'off'; f.src = url(games[i % N], i + loop * N); }
-function show(i) {
+let startedAt = 0, again = false, waitStart = null; // a game waits for the first touch; a second turn only after a loss inside 3 s or a score of 0
+function show(i, retry) {
   clearTimeout(timer); const f = frames[1 - cur]; frames[cur].className = 'off'; cur = 1 - cur;
-  if (!f.src || !f.src.includes('/' + games[i] + '/')) f.src = url(games[i], i + loop * N);
-  f.className = ''; idx = i; locked = false; paint(); try { f.contentWindow.focus(); } catch {}
+  if (!f.src || !f.src.includes('/' + games[i] + '/')) f.src = url(games[i], i + loop * N + (retry ? 500 : 0));
+  f.className = ''; idx = i; locked = true; paint(); try { f.contentWindow.focus(); } catch {}
   frames[1 - cur].removeAttribute('src'); setTimeout(() => preload((i + 1) % N), 600);
-  timer = setTimeout(() => next(null), CAP);
+  const my = idx; waitStart = () => { if (idx !== my) return; locked = false; startedAt = performance.now(); timer = setTimeout(() => next(null), CAP); };
 }
-function next(win) {
-  if (locked) return; locked = true; clearTimeout(timer);
-  if (win !== null) { results[idx] = win; const t = $('toast'); t.textContent = win ? 'NICE!' : 'TRY NEXT!'; t.style.color = win ? '#7dff7d' : '#ff6b6b'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), GAP - 200); }
+function next(win, score) {
+  if (locked) return; locked = true; clearTimeout(timer); if (win === null) again = false;
+  if (win !== null) { results[idx] = win; const quick = win === false && !again && (performance.now() - startedAt < 3000 || !(+score > 0)); again = quick; const t = $('toast'); t.textContent = win ? 'NICE!' : quick ? 'AGAIN!' : 'TRY NEXT!'; t.style.color = win ? '#7dff7d' : '#ff6b6b'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), GAP - 200); }
   paint();
   setTimeout(() => {
+    if (again) return show(idx, true);
     const n = idx + 1;
-    if (n >= N) { loop++; results = []; if (CFG.demo) { $('upsell').classList.add('show'); idx = -1; locked = true; paint(); frames[cur].className = 'off'; return; } show(0); } else show(n);
+    if (n >= N) { loop++; results = []; show(0); } else show(n); // endless loop; the demo keeps its GET THE FULL PACK button in the bar
   }, GAP);
 }
-addEventListener('message', e => { if (e.source !== frames[cur].contentWindow || !e.data || e.data.gp !== 'end') return; next(!!e.data.win); });
+addEventListener('message', e => { if (e.source !== frames[cur].contentWindow || !e.data) return; if (e.data.gp === 'started') waitStart?.(); else if (e.data.gp === 'end') next(!!e.data.win, e.data.score); });
 $('go').onclick = () => { $('start').classList.remove('show'); try { const ac = new (window.AudioContext || window.webkitAudioContext)(); ac.resume(); } catch {} show(0); };
 $('again').onclick = () => { $('upsell').classList.remove('show'); show(0); };
 addEventListener('keydown', e => { if (e.key === 'n' || e.key === 'N') next(null); });

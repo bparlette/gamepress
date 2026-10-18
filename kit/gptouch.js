@@ -2,7 +2,7 @@
  * kit/gptouch.js — Modern mobile touch standard for gamepress games.
  *
  * The industry-standard mobile layout (Brawl Stars / Genshin / Archero style):
- *   LEFT HALF  (x < innerWidth/2): floating virtual joystick. No fixed pad —
+ *   ANYWHERE (not on a button): floating virtual joystick. No fixed pad —
  *              touching anywhere anchors the stick under the thumb, drag gives
  *              a normalized vector clamped to maxRadius, release resets.
  *   RIGHT HALF: circular action buttons in a fixed bottom-right cluster
@@ -191,8 +191,8 @@ export class TouchController {
         e.preventDefault();
         return;
       }
-      // Left half: floating stick anchors under the thumb.
-      if (e.clientX < window.innerWidth / 2 && this._activeStickId === null && !b) {
+      // Floating stick anchors under the thumb wherever it lands (not only the left half), unless it is on a button.
+      if (this._activeStickId === null && !b) {
         this._activeStickId = e.pointerId;
         this._stickOrigin = { x: e.clientX, y: e.clientY };
         base.style.left = e.clientX + 'px'; base.style.top = e.clientY + 'px'; base.style.display = 'block';

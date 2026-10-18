@@ -4,7 +4,7 @@ import * as THREE from './three.module.min.js';
 import { castSfx, castEnd } from './gpcast.js';
 // ?hold=1 (hub): run a few frames so the game shows, then freeze until the hub posts {gp:'start'}.
 if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { let go = false; const hold = window.__gpHold = { onStart: null, is3d: true }; const start = () => { if (go) return; go = true; hold.onStart?.(); try { parent.postMessage({ gp: 'started' }, '*'); } catch {} };
-  for (const t of ['pointerdown', 'touchstart', 'mousedown', 'keydown']) addEventListener(t, e => { if (!go) { if (e.cancelable) e.preventDefault(); e.stopImmediatePropagation(); start(); } }, { capture: true, passive: false });
+  for (const t of ['pointerdown', 'touchstart', 'mousedown', 'keydown']) addEventListener(t, () => start(), { capture: true, passive: true });
   addEventListener('message', e => { if (e.data && e.data.gp === 'start') start(); }); }
 export { THREE };
 
