@@ -12,7 +12,7 @@ const cost = i => Math.ceil(MACH[i].base * 1.15 ** lv[i]), rate = () => MACH.red
 function init() { fish = 0; total = 0; lv = [0, 0, 0]; click = 2; lim = g.dumb() ? 7 : S.seconds; left = lim; tapT = 0; botT = .3; pulse = 0; accum = 0; g.score = 0; }
 g.onReset = init; init();
 const rect = i => ({ x: 24, y: 560 + i * 98, w: 492, h: 86 });
-function tap(x, y) { const dx = x - 270, dy = y - 330; if (dx * dx + dy * dy < 130 * 130) { fish += click; total += click; pulse = .15; sfx('pop', { pitch: 1 + Math.min(.6, tapT * .05), vol: .4 }); tapT = Math.min(12, tapT + 1); g.popup('+' + click, 270 + rnd(-60, 60), 230, '#fff', 34); g.burst(270 + rnd(-40, 40), 300, 3, { color: ['#7ad7ff', '#fff'], speed: 180, size: 7 }); return; }
+function tap(x, y) { const dx = x - 270, dy = y - 330; if (dx * dx + dy * dy < 130 * 130 || y < 545) { fish += click; total += click; pulse = .15; sfx('pop', { pitch: 1 + Math.min(.6, tapT * .05), vol: .4 }); tapT = Math.min(12, tapT + 1); g.popup('+' + click, 270 + rnd(-60, 60), 230, '#fff', 34); g.burst(270 + rnd(-40, 40), 300, 3, { color: ['#7ad7ff', '#fff'], speed: 180, size: 7 }); return; }
   for (let i = 0; i < 3; i++) { const r = rect(i); if (x > r.x && x < r.x + r.w && y > r.y && y < r.y + r.h) buy(i); } }
 function buy(i) { const c = cost(i); if (fish < c) return false; fish -= c; lv[i]++; sfx('powerup', { pitch: 1 + i * .15 }); g.flash(MACH[i].c, .25); g.burst(270, rect(i).y + 40, 14, { color: [MACH[i].c, '#fff'], speed: 320 }); g.popup(MACH[i].n + ' LV ' + lv[i], 270, rect(i).y, MACH[i].c, 32); if (i === 2 && lv[2] === 1) click += 4; return true; }
 function update(dt) {
@@ -31,6 +31,7 @@ function draw(c) {
   for (let i = 0; i < 3; i++) { const r = rect(i), m = MACH[i], can = fish >= cost(i); c.fillStyle = can ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.35)'; c.beginPath(); c.roundRect(r.x, r.y, r.w, r.h, 16); c.fill(); c.strokeStyle = can ? m.c : '#555'; c.lineWidth = 5; c.stroke();
     c.fillStyle = m.c; c.beginPath(); c.roundRect(r.x + 12, r.y + 12, 60, 62, 10); c.fill(); c.lineWidth = 3; c.strokeStyle = '#000'; c.stroke(); if (lv[i]) { c.fillStyle = '#fff'; for (let k = 0; k < Math.min(lv[i], 5); k++) c.fillRect(r.x + 18 + k * 10, r.y + 20 + ((g.t * 30 + k * 8) % 40), 6, 6); }
     g.text(m.n, r.x + 86, r.y + 38, { size: 30, color: '#1d2a3a', stroke: 0 }); g.text(`LV ${lv[i]}  +${m.rate}/s each`, r.x + 86, r.y + 70, { size: 22, color: '#4a5a70', stroke: 0 }); g.text(fmt(cost(i)), r.x + r.w - 16, r.y + 54, { size: 38, align: 'right', color: can ? '#1c8f4a' : '#999', stroke: 0 }); }
+  if (g.mode === 'play') { if (total < 20) g.text('TAP THE CAT!', 270, 480, { size: 44, align: 'center', color: '#ffd34d' }); else if (lv[0] === 0 && fish >= cost(0)) g.text('BUY A NET!', 270, 545, { size: 34, align: 'center', color: '#7dff7d' }); }
 }
 g.run(update, draw);
 </script></body></html>

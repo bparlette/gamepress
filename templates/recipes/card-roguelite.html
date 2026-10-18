@@ -40,6 +40,7 @@ function draw(c) {
     g.text(RANK(cd.r), p.x + 14, p.y + 42, { size: 40, color: s[1], stroke: 0 }); g.text(s[0], p.x + 14, p.y + 76, { size: 32, color: s[1], stroke: 0 }); face(c, S.hero, p.x + p.w / 2 + 8, p.y + p.h / 2 + 24, 22, ['#ff6a6a', '#ffb02a', '#9aa0aa', '#4a4f5a'][cd.s]); });
   if (sel.size && phase === 'pick') { const sc = scoreOf([...sel].map(i => hand[i])); g.text(`${sc.name}   ${sc.chips} x ${sc.mult}`, 270, 270, { size: 36, align: 'center', color: '#fff' }); }
   if (phase === 'tally' && tally.done) g.text(`${tally.sc.name}`, 270, 270, { size: 40, align: 'center', color: '#ffd34d' });
+  if (phase === 'pick' && !sel.size && g.mode === 'play') g.text(total ? 'PICK UP TO 5 CARDS' : 'TAP CARDS, THEN PLAY', 270, 270, { size: 32, align: 'center', color: '#fff' });
 }
 g.run(update, draw);
 </script></body></html>

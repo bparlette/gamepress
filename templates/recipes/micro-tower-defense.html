@@ -4,21 +4,21 @@
   DON'T BUILD: a tower tree, more than one map, hero units, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp, dist } from '../_vendor/gp2d.js';
 import { drawChar, heart, coin as coinS } from '../_vendor/gpsprites.js';
-const S = { title: 'CAT DEFENSE', sub: 'Tap grass to place a cat', hook: "Don't let the zombies through", hero: 'cat', foe: 'zombie', bg: '#6bbf59', lives: 5, cash: 120, cost: 50, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'CAT DEFENSE', sub: 'Tap grass to place a cat', hook: "Don't let the zombies through", hero: 'cat', foe: 'zombie', bg: '#6bbf59', lives: 5, cash: 120, cost: 40, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const T = 60, OY = 140, WP = [[-1, 1], [7, 1], [7, 4], [1, 4], [1, 7], [9, 7]];
 const onPath = (tx, ty) => { for (let i = 0; i < WP.length - 1; i++) { const [x0, y0] = WP[i], [x1, y1] = WP[i + 1]; if (tx >= Math.min(x0, x1) && tx <= Math.max(x0, x1) && ty >= Math.min(y0, y1) && ty <= Math.max(y0, y1)) return true; } return false; };
 const SPOTS = [[6, 2], [2, 3], [6, 3], [2, 5], [6, 6], [4, 5], [5, 0], [3, 6]];
 let tw, zs, bl, lives, cash, t0, spawnQ, botT, wave;
 const PATH = WP.map(([x, y]) => ({ x: x * T + T / 2, y: y * T + T / 2 + OY }));
-function init() { tw = []; zs = []; bl = []; lives = g.dumb() ? 1 : S.lives; cash = S.cash; t0 = 0; botT = .5; wave = 0; spawnQ = []; g.score = 0; for (const [at, n, hp] of [[.5, 6, 2], [4.5, 7, 2], [8.5, 6, 4]]) for (let i = 0; i < n; i++) spawnQ.push({ at: at + i * .55, hp }); }
+function init() { tw = []; zs = []; bl = []; lives = g.dumb() ? 1 : S.lives; cash = S.cash; t0 = 0; botT = .5; wave = 0; spawnQ = []; g.score = 0; for (const [at, n, hp] of [[.5, 6, 2], [3.5, 7, 2], [6.5, 6, 4]]) for (let i = 0; i < n; i++) spawnQ.push({ at: at + i * .55, hp }); }
 g.onReset = init; init();
 const place = (tx, ty) => { if (cash < S.cost || onPath(tx, ty) || tw.some(q => q.tx === tx && q.ty === ty) || tx < 0 || tx > 8 || ty < 0 || ty > 8) return false; cash -= S.cost; tw.push({ tx, ty, x: tx * T + T / 2, y: ty * T + T / 2 + OY, cd: 0, t: rnd(0, 5), lvl: 1 }); sfx('powerup'); g.burst(tw.at(-1).x, tw.at(-1).y, 12, { color: ['#ffd34d', '#fff'], speed: 220 }); return true; };
 function update(dt) {
   if (g.mode !== 'play') return; t0 += dt; botT -= dt;
   for (const tp of g.taps) place(Math.floor(tp.x / T), Math.floor((tp.y - OY) / T));
   if (g.auto && !g.dumb() && botT <= 0) { botT = .3; for (const [x, y] of SPOTS) if (place(x, y)) break; }
-  while (spawnQ.length && spawnQ[0].at <= t0) { const q = spawnQ.shift(); zs.push({ i: 0, x: PATH[0].x, y: PATH[0].y, hp: q.hp, max: q.hp, t: rnd(0, 5), fl: 0, sp: q.hp > 2 ? 90 : 120, d: 1 }); }
+  while (spawnQ.length && spawnQ[0].at <= t0) { const q = spawnQ.shift(); zs.push({ i: 0, x: PATH[0].x, y: PATH[0].y, hp: q.hp, max: q.hp, t: rnd(0, 5), fl: 0, sp: q.hp > 2 ? 110 : 145, d: 1 }); }
   for (const z of zs) { z.t += dt; z.fl -= dt; const tgt = PATH[z.i + 1]; if (!tgt) continue; const dx = tgt.x - z.x, dy = tgt.y - z.y, d = Math.hypot(dx, dy); if (d < 6) z.i++; else { z.x += dx / d * z.sp * dt; z.y += dy / d * z.sp * dt; z.d = dx >= 0 ? 1 : -1; } if (z.i >= PATH.length - 1) { z.dead = 1; lives--; sfx('hit'); g.shake(9); g.flash('#ff3b3b', .25); if (lives <= 0) g.end({ win: false, score: g.score, label: 'SCORE' }); } }
   for (const q of tw) { q.t += dt; q.cd -= dt; const tg = zs.filter(z => !z.dead && dist(z, q) < 190).sort((a, b) => b.i - a.i || dist(a, q) - dist(b, q))[0]; if (tg) { q.d = tg.x >= q.x ? 1 : -1; if (q.cd <= 0) { q.cd = .55; const a = Math.atan2(tg.y - q.y, tg.x - q.x); bl.push({ x: q.x, y: q.y - 20, vx: Math.cos(a) * 520, vy: Math.sin(a) * 520, life: .5 }); sfx('pop', { vol: .35, pitch: 1.2 }); } } }
   for (const b of bl) { b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt; for (const z of zs) if (!z.dead && z.hp > 0 && dist(z, { x: b.x, y: b.y + 20 }) < 26) { z.hp--; z.fl = .1; b.life = 0; g.burst(z.x, z.y - 20, 5, { color: ['#fff', '#8fcf7a'], speed: 180, size: 6, life: .3 }); if (z.hp <= 0) { z.dead = 1; cash += 15; g.score += 10; sfx('coin', { vol: .4, pitch: comboPitch((g.score / 10) % 12) }); g.popup('+$15', z.x, z.y - 50, '#ffd34d', 26); g.burst(z.x, z.y - 20, 12, { color: ['#8fcf7a', '#ffd34d'], speed: 260 }); } break; } }
@@ -35,6 +35,7 @@ function draw(c) {
   for (const z of [...zs].sort((a, b) => a.y - b.y)) { drawChar(S.foe, c, z.x, z.y + 22, z.max > 2 ? 78 : 56, { dir: z.d, t: z.t, anim: 'walk', hurt: z.fl > 0, color: z.max > 2 ? '#5a9a4a' : undefined }); if (z.hp < z.max) g.bar(z.x - 16, z.y - 40, 32, 5, z.hp / z.max, '#ff5a5a'); }
   c.fillStyle = '#ffd34d'; for (const b of bl) { c.beginPath(); c.ellipse(b.x, b.y, 10, 5, Math.atan2(b.vy, b.vx), 0, 7); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 2; c.stroke(); }
   for (let i = 0; i < lives; i++) heart(c, 40 + i * 44, 110, 34); if (g.mode === 'play' && cash >= S.cost && tw.length < 1) g.text('TAP GRASS TO PLACE A CAT', 270, 900, { size: 28, align: 'center' });
+  g.text(`WAVE ${t0 < 3.5 ? 1 : t0 < 6.5 ? 2 : 3}/3`, 500, 110, { size: 30, align: 'right', color: '#fff' });
 }
 g.run(update, draw);
 </script></body></html>

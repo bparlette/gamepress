@@ -73,7 +73,7 @@
         "99% fail the 3rd word",
         "The hardest word of the day"
       ],
-      "seconds": 27,
+      "seconds": 26,
       "engine": "2d",
       "colors": "css",
       "match": "wordle|connections|daily|word|guess|deduc|puzzle",
@@ -199,7 +199,7 @@
         "Harvest 20 before sunset",
         "My cats run this farm now"
       ],
-      "seconds": 30,
+      "seconds": 29,
       "engine": "2d",
       "colors": "css",
       "match": "farm|cozy|stardew|animal crossing|life sim|garden|isometric",
@@ -1159,7 +1159,7 @@
         "Bloons but cats",
         "Place 5 towers. Survive 5 waves"
       ],
-      "seconds": 35,
+      "seconds": 31,
       "engine": "2d",
       "colors": "css",
       "match": "tower defense|bloons|kingdom rush|defend|lane defense|td",

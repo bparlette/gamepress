@@ -4,7 +4,7 @@
   DON'T BUILD: inventory, shop, npcs, seasons. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, pick, clamp } from '../_vendor/gp2d.js';
 import { drawChar } from '../_vendor/gpsprites.js';
-const S = { title: 'COZY CAT FARM', sub: 'Tap tiles: till, plant, harvest', hook: 'Tiny farm, huge dopamine', hero: 'cat', crop: '#ff7a3c', bg: '#9ad7a0', quota: 12, day: 30, grow: 3, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'COZY CAT FARM', sub: 'Tap tiles: till, plant, harvest', hook: 'Tiny farm, huge dopamine', hero: 'cat', crop: '#ff7a3c', bg: '#9ad7a0', quota: 12, day: 30, grow: 2.4, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const N = 5, TW = 118, TH = 62, OX = 270, OY = 400, iso = (i, j) => ({ x: OX + (i - j) * TW / 2, y: OY + (i + j) * TH / 2 });
 let tiles, left, harvested, combo, comboT, bot, pets;
@@ -32,6 +32,7 @@ function draw(c) {
     if (t.s === 3) { c.fillStyle = '#2f8f3a'; c.fillRect(p.x - 3, p.y - 22 - bob, 6, 18); c.fillStyle = S.crop; c.beginPath(); c.arc(p.x, p.y - 14 - bob, 17, 0, 7); c.fill(); c.lineWidth = 3; c.strokeStyle = '#000'; c.stroke(); c.fillStyle = 'rgba(255,255,255,.5)'; c.beginPath(); c.arc(p.x - 6, p.y - 20 - bob, 5, 0, 7); c.fill(); if (Math.sin(g.t * 8 + t.i) > .6) { c.fillStyle = '#fff'; c.fillRect(p.x + 14, p.y - 34, 4, 10); c.fillRect(p.x + 11, p.y - 31, 10, 4); } } }
   for (const p of pets) drawChar(S.hero, c, p.x, p.y, 70, { color: p.c, dir: p.d, t: p.t, anim: 'walk' });
   c.fillStyle = `rgba(255,110,40,${k * .28})`; c.fillRect(0, 0, 540, 960); g.bar(150, 900, 240, 18, left / (g.dumb() ? S.day * .45 : S.day), '#ffd34d'); if (combo > 1) g.text(`x${combo}`, 270, 860, { size: 64, align: 'center', color: '#fff' });
+  if (g.mode === 'play' && harvested === 0 && g.t < 12) g.text(tiles.some(t => t.s === 3) ? 'TAP RIPE CROPS!' : 'TAP A TILE: TILL, PLANT, HARVEST', 270, 200, { size: 28, align: 'center', color: '#fff' });
 }
 g.run(update, draw);
 </script></body></html>
