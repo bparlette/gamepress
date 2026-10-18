@@ -94,7 +94,13 @@ export function crowd(scene, geo, count, tint = true, legs = 0) {
 export function hero(geo, color = 0xffffff, outline = .05) {
   const m = new T.Mesh(geo, toon(color, { vertexColors: true })); const h = new T.Mesh(geo, new T.MeshBasicMaterial({ color: 0x111111, side: T.BackSide })); h.scale.setScalar(1 + outline); m.add(h); return m;
 }
-/** Cheap particles: dust, goo, confetti, sparks. emit({x,y,z,vx,vy,vz,life,size,color,g,grow}); call update(dt) each step. */
+/** Cheap particles: dust, goo, confetti, sparks. emit({x,y,z,vx,vy,vz,life,size,color,g,grow}); call update(dt) each step.
+ * PERF NOTE (from LittleJS engineParticles.js): this allocates a new object per emit()
+ * and splice()s dead particles — both cause GC pressure at high counts. For >1000 particles,
+ * adopt LittleJS's approach: (1) module-level scratch objects reused per frame instead of
+ * per-particle allocations, (2) object pooling — reuse dead particle slots instead of
+ * push/splice. Their tile batching (one texture bind per emitter, particles write into
+ * the batch) is the model for any textured particle system. https://github.com/KilledByAPixel/LittleJS */
 export function particles(scene, max = 500, geo = new T.SphereGeometry(.5, 5, 4)) {
   const im = new T.InstancedMesh(geo, new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .9 }), max); im.frustumCulled = false; im.count = 0; scene.add(im);
   const P = [], o = new T.Object3D(), c = new T.Color();

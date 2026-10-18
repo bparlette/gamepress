@@ -84,6 +84,7 @@ Never write a generic caption. Use one of these proven patterns (bold sans-serif
 - **Mechanical Curiosity**: "What happens if you combine [X] with [Y]?"
 - **Perceived Incompetence** (comment driver): "My bot has been trying this jump for 4 hours..."
 - **Nostalgia Juxtaposition**: "Why modern games can't match 16-bit sound design."
+- **Collision Hook** (2026: gaming Shorts need 85%+ retention on first 100 impressions — oversupplied category): two contradictory facts in frame one. "This game has no jump button. You beat it by falling." "The boss is invincible. The floor is the weapon."
 
 ## The twelve demos and their videos
 Each plan is in `examples/<id>/hook.drive.json`. Suggested titles (edit freely):

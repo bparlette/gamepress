@@ -1562,6 +1562,111 @@ export class SquashStretch {
 }
 
 // ============================================================================
+// SPHERICAL GRAVITY (Super Mario Galaxy — clean-room reimplementation)
+// Sources:
+//  - MarioWiki "Gravity": Sphere gravity vectors point toward the sphere center.
+//    https://www.mariowiki.com/Gravity
+//  - gamedeveloper.com "Super Mario Galaxy Demystified": cast a ray down from
+//    Mario, grab the nearest surface normal; its inverse is the gravity direction.
+//    Orientation interpolates smoothly between adjacent surface normals.
+// Legal: math only — vector toward center, normal-based orientation. No assets.
+// ============================================================================
+
+/**
+ * Apply spherical gravity: "down" is the vector from entity toward planet center.
+ * Also returns the surface normal (pointing away from center) for orienting
+ * the entity's up-axis, with optional smoothing.
+ *
+ * @param {object} entity - {x,y,z, vx,vy,vz}
+ * @param {object} planetCenter - {x,y,z}
+ * @param {number} strength - gravity acceleration (units/s^2)
+ * @param {number} dt - timestep
+ * @param {number} smooth - 0..1 lerp factor for up-vector (default 0.15)
+ * @returns {object} {nx,ny,nz} — the surface normal (entity's new "up")
+ */
+export function sphericalGravity(entity, planetCenter, strength, dt, smooth = 0.15) {
+  // Direction from entity toward planet center = gravity direction
+  const dx = planetCenter.x - entity.x;
+  const dy = planetCenter.y - entity.y;
+  const dz = planetCenter.z - entity.z;
+  const dist = Math.hypot(dx, dy, dz) || 1;
+  const gx = dx / dist, gy = dy / dist, gz = dz / dist;
+
+  entity.vx += gx * strength * dt;
+  entity.vy += gy * strength * dt;
+  entity.vz += gz * strength * dt;
+
+  // Surface normal = opposite of gravity (points away from center).
+  // Smooth-interpolate the entity's up vector so orientation transitions
+  // are gradual across polygon boundaries (Galaxy's key smoothness trick).
+  const nx = -gx, ny = -gy, nz = -gz;
+  entity.ux = (entity.ux ?? nx) + (nx - (entity.ux ?? nx)) * smooth;
+  entity.uy = (entity.uy ?? ny) + (ny - (entity.uy ?? ny)) * smooth;
+  entity.uz = (entity.uz ?? nz) + (nz - (entity.uz ?? nz)) * smooth;
+  // Re-normalize
+  const ul = Math.hypot(entity.ux, entity.uy, entity.uz) || 1;
+  entity.ux /= ul; entity.uy /= ul; entity.uz /= ul;
+
+  return { nx, ny, nz };
+}
+
+/**
+ * Jump on a spherical planet: impulse along the surface normal.
+ * @param {object} entity
+ * @param {number} impulse - jump velocity
+ */
+export function sphericalJump(entity, impulse) {
+  const nx = entity.ux ?? 0, ny = entity.uy ?? 1, nz = entity.uz ?? 0;
+  entity.vx += nx * impulse;
+  entity.vy += ny * impulse;
+  entity.vz += nz * impulse;
+}
+
+// ============================================================================
+// MELEE KNOCKBACK (Super Smash Bros. Melee — clean-room reimplementation)
+// Sources:
+//  - SmashWiki "Knockback": Melee formula
+//    ((((p/10 + (p*d)/20) * (200/(w+100)) * 1.4) + 18) * s) + b) * r
+//    https://www.ssbwiki.com/Knockback
+//  - SuperCombo Wiki SSBM/Game Mechanics — variable definitions.
+//  - SmashWiki "Hitstun": Melee hitstun = knockback * 0.4 (frames per unit).
+// Legal: math formulas only. No assets, no character data.
+// ============================================================================
+
+/**
+ * Melee knockback formula.
+ * @param {number} percent - target's percent AFTER damage is added
+ * @param {number} damage - damage the attack dealt
+ * @param {number} weight - target's weight (100 = weight-independent)
+ * @param {number} scaling - knockback growth / 100 (e.g. 1.1 for 110)
+ * @param {number} base - base knockback
+ * @param {number} ratio - multiplier (1.0 standard; 0.667 crouch-cancel, 1.2 smash-charge-interrupt)
+ * @returns {number} knockback units
+ */
+export function meleeKnockback(percent, damage, weight = 100, scaling = 1.0, base = 0, ratio = 1.0) {
+  const p = percent, d = damage, w = weight, s = scaling, b = base, r = ratio;
+  return (((((p / 10 + (p * d) / 20) * (200 / (w + 100)) * 1.4) + 18) * s) + b) * r;
+}
+
+/**
+ * Melee hitstun in frames from knockback units.
+ * @param {number} knockback
+ * @returns {number} hitstun frames (floored, minus 1 per in-game convention)
+ */
+export function meleeHitstun(knockback) {
+  return Math.max(0, Math.floor(knockback * 0.4) - 1);
+}
+
+/**
+ * Melee launch velocity from knockback units.
+ * @param {number} knockback
+ * @returns {number} initial launch speed
+ */
+export function meleeLaunchSpeed(knockback) {
+  return knockback * 0.03;
+}
+
+// ============================================================================
 // CLEAN EXPORT SURFACE
 // ============================================================================
 
@@ -1572,6 +1677,13 @@ const gpfeel = {
   LAKITU_CAMERA,
   NES_AUDIO,
   FEEL_TIMING,
+  // spherical gravity (Galaxy)
+  sphericalGravity,
+  sphericalJump,
+  // melee combat
+  meleeKnockback,
+  meleeHitstun,
+  meleeLaunchSpeed,
   // execution
   applyMarioMovement,
   characterStep,

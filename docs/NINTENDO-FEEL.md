@@ -16,6 +16,10 @@ any gamepress recipe to get that "Nintendo feel" without guessing.
 | `nesPulse(ctx, opts)` | NES-style pulse wave SFX | NES APU docs |
 | `nesNoise(ctx, opts)` | NES-style noise burst SFX | NES APU docs |
 | `sfxJump/sfxStomp/sfxCoin(ctx)` | Ready-made retro SFX | — |
+| `sphericalGravity(e, center, s, dt)` | Planet-style gravity toward a point + smooth up-vector | Super Mario Galaxy |
+| `sphericalJump(e, impulse)` | Jump along surface normal | Super Mario Galaxy |
+| `meleeKnockback(p, d, w, s, b, r)` | Smash-style knockback formula | SSBM decomp |
+| `meleeHitstun(kb)` / `meleeLaunchSpeed(kb)` | Hitstun frames + launch velocity | SSBM decomp |
 
 ## Quick start
 
