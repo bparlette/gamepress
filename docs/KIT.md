@@ -18,4 +18,11 @@
 | `gbfixed.js` | ROM | 8.8 fixed-point math for homebrew: `f2x`/`x2f`/`fmul`/`fdiv`, `Fixed` sub-pixel accumulator class. Integer-only hot paths for SNES/Game Boy targets. See `docs/tracks/port.md`. |
 | `gpmonetize.js` | all | Day-1 monetization: `requestRewarded`/`requestInterstitial` (CrazyGames/Poki SDKs, graceful fallback), `showPaywall` (1-tap Stripe overlay), `generateShareText`/`copyShareText`/`shareScore` (Wordle-style emoji cards). See `docs/tracks/monetize.md`. |
 
+### Recommended external tools (not kit files — workflow integrations)
+
+| Tool | Use for | Integration |
+|---|---|---|
+| **img2threejs** ([github.com/img2threejs/img2threejs](https://github.com/img2threejs/img2threejs), Apache 2.0) | 2D image → procedural Three.js hero asset (pivots, sockets, <1,200 polys; no binary blobs) | `gamepress auto --prompt` asks "Start from an image?" first; `--from-image` skips the question. Templates in `lib/img2threejs.mjs`. Full pipeline: `docs/IMG2THREEJS-WORKFLOW.md`. |
+| **REA** ([github.com/morluto/rea](https://github.com/morluto/rea), MIT) | Agent-native reverse engineering: extract physics/logic from binaries, WASM, web games with an evidence trail for clean-room reimplementation | Install: `npx rea-agents setup`. See `docs/tracks/port.md`. |
+
 Rules for kit changes: keep it dependency-free, deterministic, and backward compatible; run `gamepress botcheck` on a few recipes after touching it.

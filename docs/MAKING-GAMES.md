@@ -53,6 +53,26 @@ Rules every demo follows (they are what make the videos reproducible; see `docs/
 5. Keys are the primary control (so the shell's on-screen pad and the scripted driver both work); pointer is the
    mobile control. The demo-page shell injects KeyboardEvents named by `code` (`KeyA`, `Space`, `ArrowUp`).
 
+## Starting from an image
+
+Instead of placeholder primitives, generate the hero asset from a 2D image with
+**img2threejs** ([github.com/img2threejs/img2threejs](https://github.com/img2threejs/img2threejs)):
+it rebuilds an isolated reference image as procedural Three.js code (pivots,
+sockets, <1,200 polygons) — diffable and animation-ready, no binary blobs.
+
+Critical rule: NEVER feed full-scene screenshots. Isolated orthographic hero
+assets on pure white `#FFFFFF` only — no shadows, no ground, no UI. One asset
+per image; assemble the level in code.
+
+Pipeline: Gemini generates the asset PNG → img2threejs extracts a
+`createModelInstance()` ES module → wire `mesh.position` to `gpfeel.js`
+physics → film with `?auto=1` bot choreography.
+
+`gamepress auto "<idea>" --prompt` asks "Start from an image?" first and prints
+the Gemini prompt template for the chosen recipe (kart-racer, arena-brawler,
+one-tap-reflex included; `--from-image` skips the question). Full pipeline,
+prompt templates, and verification checklist: `docs/IMG2THREEJS-WORKFLOW.md`.
+
 ## The twelve demos
 
 | Folder | Hook | Core technique | Controls |

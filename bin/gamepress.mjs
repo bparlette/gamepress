@@ -39,6 +39,15 @@ import { probeLocalAi, healGame, isLocalAiEnabled } from '../lib/local_ai.mjs';
 import { buildLegoGame } from '../lib/lego.mjs';
 import { gatherStats } from '../lib/stats.mjs';
 import { listPresets, loadPreset, savePreset, deletePreset, sanitizeAnswers, readAnswersFile, recordLastAnswers, readLastAnswers, promptAnswers } from '../lib/presets.mjs';
+import { printImageWorkflow } from '../lib/img2threejs.mjs';
+import { createInterface as _rl } from 'node:readline';
+
+/** One-off yes/no prompt (only called when --prompt already verified a TTY). */
+async function _askYesNo(q) {
+  const rl = _rl({ input: process.stdin, output: process.stdout });
+  try { const a = (await new Promise(r => rl.question(q + ' [y/N]: ', r))).trim().toLowerCase(); return a === 'y' || a === 'yes'; }
+  finally { rl.close(); }
+}
 
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -315,7 +324,7 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
   grade: async () => { const r = grade(need('grade'), CFG(), { threshold: +flag('threshold', 80) }); if (argv.includes('--vision') && r.stills) { r.vision = await vision(r.stills); if (r.vision.available && r.vision.score < 75) { r.pass = false; r.fixes.push(...r.vision.failed.map(q => 'vision: ' + q)); } } out(r, o => `${o.id}: ${o.score}/100 ${o.pass ? 'PASS' : 'FAIL'}${o.fixes.length ? '\n  fix: ' + o.fixes.join('\n  fix: ') : ''}`); process.exit(r.pass ? 0 : 1); },
   all: () => runAll(need('all --track hook|demo|web-store'), flag('track', 'demo'), CFG(), { force: argv.includes('--force'), heal: argv.includes('--heal'), localAi: LOCAL_AI, vo: flag('vo') || argv.includes('--vo'), log: m => !JSON_OUT && console.log(m) }).then(r => out(r, o => `${o.id}: ran [${o.ran}] skipped [${o.skipped}] -> next: ${o.status.next || 'done'}`)).catch(e => die(e.message)),
   auto: async () => {
-    const idea = positional.join(' ') || die('usage: gamepress auto "<game idea>" [--id x] [--track demo|web-store|hook] [--style comic] [--answers answers.json] [--preset name] [--prompt] [--lego] [--local-ai] [--heal] [--vo]');
+    const idea = positional.join(' ') || die('usage: gamepress auto "<game idea>" [--id x] [--track demo|web-store|hook] [--style comic] [--answers answers.json] [--preset name] [--prompt] [--from-image] [--lego] [--local-ai] [--heal] [--vo]');
     const br = ideate(idea, { live: !argv.includes('--offline') });
     const id = flag('id') || br.file.split('/').pop().replace('.json', '');
     let hookLine = flag('hook') || '';
@@ -326,6 +335,13 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
     if (flag('answers')) try { Object.assign(ans, sanitizeAnswers(readAnswersFile(flag('answers')), br.questions || [])); } catch (e) { die(e.message); }
     if (argv.includes('--prompt')) { if (JSON_OUT) die('--prompt cannot be combined with --json'); try { Object.assign(ans, await promptAnswers(br.questions || [], ans)); } catch (e) { die(e.message); } }
 
+    // Start-from-image: img2threejs workflow (docs/IMG2THREEJS-WORKFLOW.md).
+    // Asked first in --prompt mode; for scripted runs use --from-image.
+    let fromImage = argv.includes('--from-image');
+    if (argv.includes('--prompt') && !JSON_OUT && !fromImage) {
+      fromImage = await _askYesNo('\nDo you want to start from an image? (generates the hero asset via the img2threejs workflow)');
+    }
+
     let recipeName = br.recipe;
     if (recipeName && !argv.includes('--lego')) {
       if ((br.questions || []).some(q => q.id === 'hook') && ans.hook === undefined) ans.hook = 0;
@@ -333,6 +349,7 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
       hookLine = spec.hook;
       recordLastAnswers(CFG().state, { idea, id, recipe: recipeName, archetype: br.archetype, answers: ans, spec });
       make(id, { recipe: recipeName, spec, games: CFG().games, examples: CFG().examples, force: argv.includes('--force') });
+      if (fromImage) printImageWorkflow(recipeName);
     } else {
       const lg = await buildLegoGame(id, { idea, gamesDir: CFG().games, examples: CFG().examples, localAi: LOCAL_AI });
       hookLine = lg.spec.hookText;
@@ -370,7 +387,7 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
       die('usage: gamepress preset save <name> | list | show <name> | delete <name>');
     } catch (e) { die('preset: ' + e.message); } },
   make: () => { const base = flag('spec') ? JSON.parse(readFileSync(flag('spec'), 'utf8')) : {}; const sp = { ...(flag('answers') ? applyAnswers(flag('recipe'), JSON.parse(readFileSync(flag('answers'), 'utf8'))) : {}), ...base }; if (!flag('spec') && !flag('answers')) die(`usage: gamepress make <id> --recipe ${Object.keys(RECIPES).join('|')} --spec spec.json (see docs/RECIPES.md)`) ; out(make(need('make'), { recipe: flag('recipe'), spec: sp, games: CFG().games, examples: CFG().examples, force: argv.includes('--force') })); },
-  recipes: () => { const R = Object.values(REGISTRY); if (argv.includes('--md')) { const md = ['# Recipe catalog', '', 'Generated by `gamepress recipes --md` from `presets/recipes.json`. Rules: `docs/RECIPE-RULES.md`. Build one: `gamepress make <id> --recipe <recipe> [--answers a.json]`, or `gamepress auto "<idea>"`.', '', '| Recipe | Title | Hook | 3-second rule | Touch | Don\'t build |', '|---|---|---|---|---|---|', ...R.map(r => `| \`${r.id}\` (${r.engine}) | ${r.title} | ${r.hook} | ${r.threeSecond} | ${r.touch} | ${r.dontBuild.slice(0, 3).join('; ')} |`), '', 'Viral-format recipes built earlier (3D, in `templates/recipes/`): `hole-eater`, `crowd-runner`, `glass-drop`, `demolition`.'].join('\n'); writeFileSync('docs/RECIPES-CATALOG.md', md + '\n'); console.log('wrote docs/RECIPES-CATALOG.md'); } else out(R.map(r => ({ id: r.id, title: r.title, hook: r.hook, engine: r.engine, seconds: r.seconds, viral: r.viral })), o => o.map(r => `${r.id.padEnd(24)} ${r.engine}  ${String(r.seconds).padStart(2)}s  ${r.title}: ${r.hook}`).join('\n')); },
+  recipes: () => { const R = Object.values(REGISTRY); if (argv.includes('--md')) { const md = ['# Recipe catalog', '', 'Generated by `gamepress recipes --md` from `presets/recipes.json`. Rules: `docs/RECIPE-RULES.md`. Build one: `gamepress make <id> --recipe <recipe> [--answers a.json]`, or `gamepress auto "<idea>"`.', '', '| Recipe | Title | Hook | 3-second rule | Touch | Don\'t build |', '|---|---|---|---|---|---|', ...R.map(r => `| \`${r.id}\` (${r.engine}) | ${r.title} | ${r.hook} | ${r.threeSecond} | ${r.touch} | ${r.dontBuild.slice(0, 3).join('; ')} |`), '', 'Viral-format recipes built earlier (3D, in `templates/recipes/`): `hole-eater`, `crowd-runner`, `glass-drop`, `demolition`.'].join('\n'); writeFileSync('docs/RECIPES-CATALOG.md', md + '\n'); console.log('wrote docs/RECIPES-CATALOG.md'); } else out(R.map(r => ({ id: r.id, title: r.title, hook: r.hook, engine: r.engine, seconds: r.seconds, viral: r.viral, feel: r.feel })), o => o.map(r => `${r.id.padEnd(24)} ${r.engine}  ${String(r.seconds).padStart(2)}s  ${r.title}: ${r.hook}`).join('\n')); },
   doctor: () => { const r = doctor(); out(r, o => o.rows.map(x => `${x.ok ? '✓' : x.optional ? '·' : '✗'} ${x.name}${x.fix ? '  -> ' + x.fix : ''}`).join('\n')); process.exit(r.ok ? 0 : 1); },
   lint: () => { const r = lint(need('lint'), CFG().games); out(r, o => o.ok ? 'clean' : o.problems.join('\n')); process.exit(r.ok ? 0 : 1); },
   copy: () => copyDraft(need('copy'), { examples: CFG().examples, outDir: CFG().publish, localAi: LOCAL_AI }).then(c => out({ copy: c }, o => 'wrote ' + o.copy)).catch(e => die('copy: ' + e.message)),
