@@ -331,7 +331,7 @@
         "Stage 1 is a lie",
         "Only up. Don't look down"
       ],
-      "seconds": 18,
+      "seconds": 20,
       "engine": "3d",
       "colors": "num",
       "match": "obby|only up|parkour|gauntlet|platform gauntlet|roblox obby",
@@ -657,7 +657,7 @@
         "Don't let it overflow",
         "The watermelon game but cats"
       ],
-      "seconds": 28,
+      "seconds": 27,
       "engine": "2d",
       "colors": "css",
       "match": "suika|2048|merge|watermelon|combine|evolve",
