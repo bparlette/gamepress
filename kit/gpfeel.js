@@ -778,6 +778,126 @@ export function updateCamera(cam, target, colliders = [], opts = {}) {
 }
 
 // ============================================================================
+// SPECTATE / ATTRACT MODE
+//
+// The arcade attract-mode pattern, standardized (docs/SPECTATE.md):
+//   ?spectate=1  -> bots play themselves; the camera directs itself at the action
+//   ?autostart=1 -> skip menus, straight into gameplay
+//   ?seed=N      -> deterministic run (same seed, same match, every take)
+//
+// Why it exists: scripted input ("walk forward, click at t=3") produces dead
+// footage. A game playing itself with a heat-seeking camera produces real
+// kills, real drama, real juice — the game is its own stunt performer.
+// gamepress drive prefers spectate plans over scripted input (see DRIVING.md).
+// ============================================================================
+
+/**
+ * parseSpectateParams(search) — read the spectate contract from a URL query.
+ *
+ * Accepts a query string ('?spectate=1&seed=42'), a URLSearchParams, or
+ * nothing (reads location.search when available, else defaults).
+ * Returns { spectate, autostart, seed } — seed always a finite int >= 0.
+ */
+export function parseSpectateParams(search) {
+  let q;
+  if (typeof search === 'string') q = new URLSearchParams(search.startsWith('?') ? search : `?${search}`);
+  else if (search && typeof search.get === 'function') q = search;
+  else if (typeof location !== 'undefined' && location.search) q = new URLSearchParams(location.search);
+  else q = new URLSearchParams();
+  const rawSeed = parseInt(q.get('seed') ?? '1', 10);
+  return {
+    spectate: q.get('spectate') === '1',
+    autostart: q.get('autostart') === '1',
+    seed: Number.isFinite(rawSeed) && rawSeed >= 0 ? rawSeed : 1,
+  };
+}
+
+/**
+ * spectateCamera(cam, actors, events, opts) — attract-mode camera director.
+ *
+ * cam:    { x, y, z, lookX, lookY, lookZ } (mutated; keeps _spect* cache)
+ * actors: [{ id, x, y?, z, alive, target? }] — camera candidates; target is
+ *         the actor this one is fighting ({ x, y?, z, alive? }), optional
+ * events: [{ type: 'kill'|'hit'|'score', x, z }] — world events; each is
+ *         counted once (tracked via WeakSet on cam, no caller bookkeeping)
+ * opts:   { dt,
+ *           chaseDistance=140, chaseHeight=70,   // chase-cam framing
+ *           heatDecay=0.5, heatRadius=200,       // interest model
+ *           idleTimeout=4, orbitRadius=300,      // no-action fallback
+ *           centerX=0, centerY=0, centerZ=0 }    // orbit anchor
+ *
+ * Behavior:
+ *  1. Events add heat to the nearest alive actor (kill=3, hit=1, other=0.5);
+ *     heat decays per second.
+ *  2. The camera chases the hottest actor, positioned behind them relative
+ *     to their target, looking at the target (or the actor if none).
+ *  3. With no heat, it slow-orbits the arena center — never a dead frame.
+ */
+export function spectateCamera(cam, actors = [], events = [], opts = {}) {
+  const dt = opts.dt || 1 / 60;
+  const chaseDist = opts.chaseDistance ?? 140;
+  const chaseHeight = opts.chaseHeight ?? 70;
+  const heatDecay = opts.heatDecay ?? 0.5;
+  const heatRadius = opts.heatRadius ?? 200;
+  const orbitRadius = opts.orbitRadius ?? 300;
+
+  cam._spectHeat = cam._spectHeat || new Map();
+  cam._spectSeen = cam._spectSeen || new WeakSet();
+  const heat = cam._spectHeat, seen = cam._spectSeen;
+
+  // decay existing heat
+  for (const [id, h] of heat) {
+    const nh = h - heatDecay * dt;
+    if (nh <= 0) heat.delete(id); else heat.set(id, nh);
+  }
+  // attribute new events to the nearest alive actor (each counted once)
+  for (const e of events) {
+    if (!e || seen.has(e)) continue;
+    seen.add(e);
+    const w = e.type === 'kill' ? 3 : e.type === 'hit' ? 1 : 0.5;
+    let best = null, bestD = heatRadius;
+    for (const a of actors) {
+      if (!a || a.alive === false) continue;
+      const d = Math.hypot((a.x ?? 0) - (e.x ?? 0), (a.z ?? 0) - (e.z ?? 0));
+      if (d < bestD) { bestD = d; best = a; }
+    }
+    if (best) heat.set(best.id, (heat.get(best.id) || 0) + w);
+  }
+
+  // hottest alive actor is the star
+  let star = null, starHeat = 0;
+  for (const a of actors) {
+    if (!a || a.alive === false) continue;
+    const h = heat.get(a.id) || 0;
+    if (h > starHeat) { starHeat = h; star = a; }
+  }
+
+  const k = 1 - Math.pow(0.001, dt); // frame-rate-independent smoothing
+  if (star && starHeat > 0) {
+    const tgt = star.target && star.target.alive !== false ? star.target : null;
+    const lx = tgt ? (tgt.x ?? star.x) : star.x;
+    const ly = tgt ? (tgt.y ?? 0) : (star.y ?? 0);
+    const lz = tgt ? (tgt.z ?? star.z) : star.z;
+    const dx = lx - star.x, dz = lz - star.z;
+    const len = Math.hypot(dx, dz) || 1;
+    cam.x += (star.x - (dx / len) * chaseDist - cam.x) * k;
+    cam.y += ((star.y ?? 0) + chaseHeight - cam.y) * k;
+    cam.z += (star.z - (dz / len) * chaseDist - cam.z) * k;
+    cam.lookX = lx; cam.lookY = ly; cam.lookZ = lz;
+  } else {
+    // no action: slow cinematic orbit around the arena center
+    const cx = opts.centerX ?? 0, cy = opts.centerY ?? 0, cz = opts.centerZ ?? 0;
+    const ang = (cam._spectAng ?? 0) + dt * 0.15;
+    cam._spectAng = ang;
+    cam.x += (cx + Math.cos(ang) * orbitRadius - cam.x) * k;
+    cam.y += (cy + chaseHeight - cam.y) * k;
+    cam.z += (cz + Math.sin(ang) * orbitRadius - cam.z) * k;
+    cam.lookX = cx; cam.lookY = cy; cam.lookZ = cz;
+  }
+  return cam;
+}
+
+// ============================================================================
 // ENEMY FSM UPGRADES
 //
 // Two patterns from classic Nintendo enemy design:
@@ -1689,6 +1809,9 @@ const gpfeel = {
   characterStep,
   lakituCamera,
   updateCamera,
+  // spectate / attract mode
+  parseSpectateParams,
+  spectateCamera,
   threeAdapter,
   RetroController,
   // juice
