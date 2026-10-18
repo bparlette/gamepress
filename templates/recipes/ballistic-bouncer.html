@@ -38,6 +38,7 @@ function draw(c) {
   for (let i = 0; i < trail.length; i++) { c.globalAlpha = i / trail.length * .5; c.fillStyle = '#fff'; c.beginPath(); c.arc(trail[i].x, trail[i].y, 9 * i / trail.length + 2, 0, 7); c.fill(); } c.globalAlpha = 1;
   if (ball) { c.beginPath(); c.arc(ball.x, ball.y, 11, 0, 7); c.fillStyle = '#fff'; c.fill(); c.lineWidth = 3; c.strokeStyle = '#000'; c.stroke(); }
   c.fillStyle = '#ffd34d'; c.beginPath(); c.roundRect(bucket.x - 62, 925, 124, 28, 10); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 4; c.stroke(); for (let i = 0; i < ballsLeft && i < 8; i++) face(c, S.hero, 30 + i * 36, 150, 14);
+  if (g.mode === 'play' && !ball && ballsLeft === S.balls) { c.globalAlpha = .65 + Math.sin(g.t * 6) * .3; g.text('DRAG TO AIM, RELEASE TO FIRE', 270, 850, { size: 28, align: 'center', color: '#fff', stroke: 5 }); g.text('CLEAR THE ORANGE PEGS', 270, 810, { size: 26, align: 'center', color: '#ff9a3c', stroke: 5 }); c.globalAlpha = 1; }
 }
 g.run(update, draw);
 </script></body></html>

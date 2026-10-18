@@ -30,8 +30,10 @@ function draw(c) {
   c.setLineDash([14, 12]); c.strokeStyle = over > 0 ? `rgba(255,70,70,${.5 + Math.sin(g.t * 20) * .5})` : 'rgba(255,255,255,.35)'; c.lineWidth = 4; c.beginPath(); c.moveTo(X0, TOP); c.lineTo(X1, TOP); c.stroke(); c.setLineDash([]);
   for (const b of w.bodies) pet(c, b.x, b.y, b.data.tier, b.vx * .002);
   if (g.mode === 'play') { c.globalAlpha = .35; c.strokeStyle = '#fff'; c.lineWidth = 3; c.beginPath(); c.moveTo(dropX, TOP - 70); c.lineTo(dropX, Y1); c.stroke(); c.globalAlpha = 1; pet(c, clamp(dropX, X0 + TIERS[nextT][0], X1 - TIERS[nextT][0]), TOP - 80, nextT); }
-  g.text('NEXT', 24, 130, { size: 26 }); c.beginPath(); c.arc(60, 190, TIERS[nextT][0] * .8, 0, 7); c.fillStyle = TIERS[nextT][1]; c.fill(); c.strokeStyle = '#000'; c.lineWidth = 3; c.stroke();
+  g.text('NEXT', 485, 120, { size: 22 }); c.beginPath(); c.arc(510, 175, TIERS[nextT][0] * .7, 0, 7); c.fillStyle = TIERS[nextT][1]; c.fill(); c.strokeStyle = '#000'; c.lineWidth = 3; c.stroke();
   for (let i = 0; i <= S.winTier; i++) { c.beginPath(); c.arc(130 + i * 44, 100, 14, 0, 7); c.fillStyle = TIERS[i][1]; c.globalAlpha = i <= maxTier ? 1 : .35; c.fill(); c.strokeStyle = '#000'; c.lineWidth = 2; c.stroke(); c.globalAlpha = 1; }
+  g.text('= WIN', 384, 108, { size: 24, color: '#ffd34d', stroke: 4 });
+  if (g.mode === 'play' && left === S.drops) { c.globalAlpha = .6 + Math.sin(g.t * 6) * .3; g.text('DRAG TO AIM, RELEASE TO DROP', 270, 400, { size: 28, align: 'center', color: '#fff', stroke: 5 }); g.text('2 SAME PETS MERGE', 270, 440, { size: 24, align: 'center', color: '#ffd34d', stroke: 4 }); c.globalAlpha = 1; }
 }
 g.run(update, draw);
 </script></body></html>
