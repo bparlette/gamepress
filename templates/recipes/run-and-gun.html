@@ -4,6 +4,7 @@
   DON'T BUILD: weapon wheel, more than one level, co-op, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp } from '../_vendor/gp2d.js';
 import { drawChar, heart, heroKind, heroColor } from '../_vendor/gpsprites.js';
+import { drawEnemy, foeId } from '../_vendor/gpenemies.js';
 import { drawWorld, drawBackdrop, WORLDS } from '../_vendor/gpworld.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CONTRA CAT', sub: 'Run, jump, shoot', hook: 'Run. Jump. Shoot.', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#7fd4ff', length: 2100, style: 'toon', /*SPEC*/ ...{} /*END*/ };
@@ -40,8 +41,8 @@ function draw(c) {
   if (!W) for (let l = 0; l < 2; l++) { c.fillStyle = l ? '#3f8f4a' : '#6fb87a'; for (let i = -1; i < 8; i++) { const x = i * 120 - (cam * (.2 + l * .25)) % 120; c.beginPath(); c.moveTo(x, GY - 20); c.lineTo(x + 60, GY - 200 + l * 70 - (i * 31 % 40)); c.lineTo(x + 120, GY - 20); c.fill(); } }
   if (!W) { c.fillStyle = '#6b4a2e'; c.fillRect(0, GY, 540, 260); c.fillStyle = '#6bbf59'; c.fillRect(0, GY, 540, 20); c.strokeStyle = '#000'; c.lineWidth = 4; c.beginPath(); c.moveTo(0, GY); c.lineTo(540, GY); c.stroke(); }
   c.save(); c.translate(-cam, 0);
-  for (const e of en) { if (e.hp <= 0) continue; if (e.k === 'z') drawChar(S.foe, c, e.x, e.y, 96, { dir: -1, t: e.t, anim: 'walk', hurt: e.fl > 0 }); else if (W) drawWorld(W.hazard, c, e.x - 10, e.y - 32, 64, { t: g.t }); else { c.fillStyle = '#555'; c.fillRect(e.x - 26, e.y - 50, 52, 50); c.strokeStyle = '#000'; c.lineWidth = 4; c.strokeRect(e.x - 26, e.y - 50, 52, 50); c.fillStyle = e.fl > 0 ? '#fff' : '#e63946'; c.fillRect(e.x - 40, e.y - 66, 40, 16); c.strokeRect(e.x - 40, e.y - 66, 40, 16); } }
-  if (boss && boss.hp > 0) { drawChar(S.foe, c, boss.x, boss.y, 230, { dir: -1, t: boss.t, anim: 'walk', hurt: boss.fl > 0, color: '#5a9a4a' }); g.bar(boss.x - 70, boss.y - 250, 140, 12, boss.hp / boss.max, '#ff5a5a'); }
+  for (const e of en) { if (e.hp <= 0) continue; if (e.k === 'z') { if (S.enemies === 'viral') drawEnemy(foeId(S.foe, 0), c, e.x, e.y, 96, { dir: -1, t: e.t, flash: e.fl > 0 }); else drawChar(S.foe, c, e.x, e.y, 96, { dir: -1, t: e.t, anim: 'walk', hurt: e.fl > 0 }); } else if (W) drawWorld(W.hazard, c, e.x - 10, e.y - 32, 64, { t: g.t }); else { c.fillStyle = '#555'; c.fillRect(e.x - 26, e.y - 50, 52, 50); c.strokeStyle = '#000'; c.lineWidth = 4; c.strokeRect(e.x - 26, e.y - 50, 52, 50); c.fillStyle = e.fl > 0 ? '#fff' : '#e63946'; c.fillRect(e.x - 40, e.y - 66, 40, 16); c.strokeRect(e.x - 40, e.y - 66, 40, 16); } }
+  if (boss && boss.hp > 0) { if (S.enemies === 'viral') drawEnemy(foeId(S.foe, 2), c, boss.x, boss.y, 230, { dir: -1, t: boss.t, flash: boss.fl > 0 }); else drawChar(S.foe, c, boss.x, boss.y, 230, { dir: -1, t: boss.t, anim: 'walk', hurt: boss.fl > 0, color: '#5a9a4a' }); g.bar(boss.x - 70, boss.y - 250, 140, 12, boss.hp / boss.max, '#ff5a5a'); }
   if (p.inv <= 0 || Math.floor(g.t * 20) % 2) { drawChar(heroKind(S.hero), c, p.x, p.y, 92, { color: heroColor(S.heroColor), dir: p.d, t: p.t, anim: p.air ? 'idle' : 'walk', hurt: g.mode === 'over' }); c.fillStyle = '#333'; c.fillRect(p.x + p.d * 24 - 4, p.y - 60, p.d * 34, 10); }
   c.fillStyle = '#ffd34d'; for (const b of bl) c.fillRect(b.x - 10, b.y - 3, 20, 6); c.fillStyle = '#ff5a8a'; for (const b of eb) { c.beginPath(); c.arc(b.x, b.y, 8, 0, 7); c.fill(); c.strokeStyle = '#fff'; c.lineWidth = 2; c.stroke(); } c.restore();
   for (let i = 0; i < p.hp; i++) heart(c, 40 + i * 44, 110, 34);
