@@ -16,5 +16,6 @@
 | `gpfeel.js` | both | Nintendo-decomp-derived feel: `characterStep()` (4x sub-stepping, coyote time, jump buffering), `updateCamera()` (Lakitu occlusion), `VirtualAPU` (4-ch voice stealing), `DeterministicRNG` (LFSR). See `docs/NINTENDO-FEEL.md`. |
 | `gpretro.js` | 3D/2D | Retro rendering: `bayerDither` (RGB555 GLSL), `vertexSnap` (fixed-point jitter), `affineWarp` (PS1 texture swimming), `lowResTarget` (320x240 nearest-neighbor), `mode7Ground` (SNES pseudo-3D), `scanlines`. |
 | `gbfixed.js` | ROM | 8.8 fixed-point math for homebrew: `f2x`/`x2f`/`fmul`/`fdiv`, `Fixed` sub-pixel accumulator class. Integer-only hot paths for SNES/Game Boy targets. See `docs/tracks/port.md`. |
+| `gpmonetize.js` | all | Day-1 monetization: `requestRewarded`/`requestInterstitial` (CrazyGames/Poki SDKs, graceful fallback), `showPaywall` (1-tap Stripe overlay), `generateShareText`/`copyShareText`/`shareScore` (Wordle-style emoji cards). See `docs/tracks/monetize.md`. |
 
 Rules for kit changes: keep it dependency-free, deterministic, and backward compatible; run `gamepress botcheck` on a few recipes after touching it.

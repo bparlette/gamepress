@@ -101,5 +101,17 @@
     ],
     "needs": "target SDK (PVSnesLib for SNES, GBDK-2020 for Game Boy, cc65 for NES, SGDK for Genesis); emulator for testing; user must own source game",
     "purpose": "Convert games between retro platforms (e.g. NES->Virtual Boy). Clean-room reimplementation: mechanics and math ported, no copyrighted assets."
+  },
+  "monetize": {
+    "doc": "docs/tracks/monetize.md",
+    "tools": [
+      "new",
+      "make",
+      "test",
+      "drive",
+      "pack",
+      "host"
+    ],
+    "purpose": "Revenue-generating micro-games and micro-SaaS: day-1 paywall, ad SDKs, viral share loop."
   }
 }
