@@ -1,207 +1,340 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Pigskin Bowl</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#1a5c2a}canvas{display:block}</style></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Pigskin Bowl</title><style>
+html,body{margin:0;height:100%;overflow:hidden;background:#05070f}
+canvas{display:block}
+#hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;padding:2vmin 3vmin;pointer-events:none;font-family:'Courier New',monospace;font-weight:900;color:#fff;text-shadow:0 .4vmin 0 #000,0 0 2vmin #000;z-index:5}
+#hud .score{font-size:5vmin;color:#ffd34d}
+#hud .chain{font-size:5vmin;color:#ff5b4d}
+#hud .down{font-size:3.2vmin;color:#9fd8ff}
+#chainpop{position:fixed;top:38%;left:50%;transform:translate(-50%,-50%);font-family:'Courier New',monospace;font-weight:900;font-size:11vmin;color:#ffd34d;text-shadow:0 1vmin 0 #000,0 0 4vmin #ff8800;opacity:0;pointer-events:none;z-index:6;white-space:nowrap}
+#vig{position:fixed;inset:0;pointer-events:none;z-index:4;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,10,.55) 100%)}
+</style></head><body>
+<div id="vig"></div>
+<div id="hud"><div class="score">SCORE <span id="hscore">0</span></div><div class="down"><span id="hdown">0</span>/1000 BOWLED</div><div class="chain">CHAIN <span id="hchain">x0</span></div></div>
+<div id="chainpop"></div>
 <script type="module">
-// Pigskin Bowl: YOU are the fat running back. 1000 skinny defenders run at you.
-// Bowl through them — knocked defenders fly and domino into others. +1 per pancake,
-// chain bonuses, +7 for the touchdown. Next drive: faster, meaner.
-import { createStage, sfx, rand, clamp, THREE } from '../../kit/gp3d.js';
-import { toon, crowd, hero, particles, sky, groundTex, blobs, build, walkClock } from '../../kit/gpkit.js';
+// PIGSKIN BOWL — chunky retro arcade night game.
+// YOU are the fat white running back. 1000 skinny RED defenders swarm at you
+// like a school of fish. Bowl straight through them — they topple and domino
+// into each other. +1/+2/+3 chain points, +7 for the touchdown. Next drive: faster, meaner.
+import { createStage, sfx, clamp, THREE } from '../../kit/gp3d.js';
+import { toon, crowd, hero, particles, sky, groundTex, build, walkClock } from '../../kit/gpkit.js';
+import { parseSpectateParams, spectateCamera } from '../../kit/gpfeel.js';
+import { rnd, R } from '../../kit/gpmath.js';
+
+// ---- spectate contract (docs/SPECTATE.md): ?spectate=1 ?autostart=1 ?seed=N ----
+const { spectate: SPECTATE } = parseSpectateParams();
+// seeded RNG comes from gpmath.js (reads ?seed= at import); use rnd()/R(), never R()
 
 const FIELD_W = 36, FIELD_L = 120, EZ = 10, N_DEF = 1000;
-const st = createStage({ bg: 0x87b5e8, fitWidth: 14 });
-st.light(); sky(st.scene, 0x4a8cff, 0xcfe8ff, [50, 160]);
+const st = createStage({ bg: 0x05070f, fitWidth: 15, fov: 55 });
 
-// ---- field ----
-const grass = new THREE.Mesh(new THREE.PlaneGeometry(FIELD_W + 12, FIELD_L + EZ * 2 + 8),
-  toon(0x3f9e4d, { map: groundTex('grass', 60) }));
+// ---- NIGHT STADIUM ----
+sky(st.scene, 0x02030a, 0x0a1030, [80, 400]);           // night sky
+st.scene.fog = new THREE.Fog(0x05070f, 60, 260);
+// stadium bowl silhouette
+const bowlMat = new THREE.MeshBasicMaterial({ color: 0x0b0e1c });
+for (const sx of [-1, 1]) {
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(10, 26, FIELD_L + 60), bowlMat);
+  wall.position.set(sx * (FIELD_W / 2 + 12), 10, FIELD_L / 2); st.scene.add(wall);
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(14, 4, FIELD_L + 60), new THREE.MeshBasicMaterial({ color: 0x131a38 }));
+  deck.position.set(sx * (FIELD_W / 2 + 14), 28, FIELD_L / 2); st.scene.add(deck);
+}
+// crowd dots in the stands (tiny emissive boxes)
+{
+  const dotGeo = new THREE.BoxGeometry(.5, .5, .5);
+  const dotMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const dots = new THREE.InstancedMesh(dotGeo, dotMat, 800);
+  const o = new THREE.Object3D(), c = new THREE.Color();
+  for (let i = 0; i < 800; i++) {
+    const sx = i % 2 ? 1 : -1;
+    o.position.set(sx * (FIELD_W / 2 + 8 + rnd(0, 8)), rnd(2, 30), rnd(-20, FIELD_L + 40));
+    o.updateMatrix(); dots.setMatrixAt(i, o.matrix);
+    c.setHSL(rnd(), .7, rnd(.4, .75)); dots.setColorAt(i, c);
+  }
+  dots.instanceMatrix.needsUpdate = true; if (dots.instanceColor) dots.instanceColor.needsUpdate = true;
+  st.scene.add(dots);
+}
+// floodlight towers: pole + head + light cone + real spotlight
+const coneMat = new THREE.MeshBasicMaterial({ color: 0xfff6c8, transparent: true, opacity: .10, side: THREE.DoubleSide, depthWrite: false });
+for (const [tx, tz] of [[-30, -8], [30, -8], [-30, FIELD_L + 18], [30, FIELD_L + 18]]) {
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(.5, .7, 34, 6), new THREE.MeshBasicMaterial({ color: 0x222633 }));
+  pole.position.set(tx, 17, tz); st.scene.add(pole);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(7, 3, 1.5), new THREE.MeshBasicMaterial({ color: 0xfff2b0 }));
+  head.position.set(tx, 35, tz); head.lookAt(0, 0, FIELD_L / 2); st.scene.add(head);
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(16, 42, 12, 1, true), coneMat);
+  cone.position.set(tx * .55, 17, tz + (FIELD_L / 2 - tz) * .45);
+  cone.lookAt(0, 0, FIELD_L / 2); cone.rotateX(-Math.PI / 2);
+  st.scene.add(cone);
+  const spot = new THREE.SpotLight(0xfff2c8, 120, 220, .5, .45, 1.2);
+  spot.position.set(tx, 35, tz); spot.target.position.set(0, 0, FIELD_L / 2);
+  st.scene.add(spot, spot.target);
+}
+st.scene.add(new THREE.AmbientLight(0x8899ff, .55));
+
+// ---- FIELD (lit grass under the lights) ----
+const grass = new THREE.Mesh(new THREE.PlaneGeometry(FIELD_W + 14, FIELD_L + EZ * 2 + 10),
+  toon(0x2f8f3d, { map: groundTex('grass', 46) }));
 grass.rotation.x = -Math.PI / 2; grass.position.z = FIELD_L / 2; st.scene.add(grass);
 const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 for (let y = 0; y <= 100; y += 10) {
-  const w = new THREE.Mesh(new THREE.PlaneGeometry(FIELD_W, .35), lineMat);
+  const w = new THREE.Mesh(new THREE.PlaneGeometry(FIELD_W, .4), lineMat);
   w.rotation.x = -Math.PI / 2; w.position.set(0, .02, EZ + y); st.scene.add(w);
 }
-for (const ez of [0, 1]) {
-  const zone = new THREE.Mesh(new THREE.PlaneGeometry(FIELD_W, EZ), new THREE.MeshBasicMaterial({ color: 0xc23b2e }));
+for (const ez of [0, 1]) { // endzones glow red under the lights
+  const zone = new THREE.Mesh(new THREE.PlaneGeometry(FIELD_W, EZ), new THREE.MeshBasicMaterial({ color: 0xd23b2e }));
   zone.rotation.x = -Math.PI / 2; zone.position.set(0, .015, ez ? FIELD_L + EZ / 2 : EZ / 2); st.scene.add(zone);
+  const txt = document.createElement('canvas'); txt.width = 256; txt.height = 64;
+  const g2 = txt.getContext('2d'); g2.fillStyle = '#fff'; g2.font = '900 44px Courier New'; g2.textAlign = 'center'; g2.fillText('PIGSKIN', 128, 46);
+  const label = new THREE.Mesh(new THREE.PlaneGeometry(16, 4), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(txt), transparent: true }));
+  label.rotation.x = -Math.PI / 2; label.position.set(0, .02, ez ? FIELD_L + EZ / 2 : EZ / 2); st.scene.add(label);
 }
 
-// ---- player: THE FAT RUNNING BACK ----
+// ---- PLAYER: THE FAT WHITE RUNNING BACK (chunky!) ----
 const fatGeo = build([
-  { g: 'sphere', s: [2.7, 2.1, 2.2], p: [0, 1.05, 0], c: 0x8b4513 },   // big round belly, brown jersey
-  { g: 'sphere', s: [.9, .9, .9], p: [0, 2.45, .35], c: 0xd9a066 },     // head
-  { g: 'sphere', s: [1.0, .7, .6], p: [0, 2.5, .3], c: 0xeeeeee },      // helmet
-  { g: 'sphere', s: [.5, .9, .5], p: [-1.5, 1.0, 0], c: 0x8b4513 },     // arms
-  { g: 'sphere', s: [.5, .9, .5], p: [1.5, 1.0, 0], c: 0x8b4513 },
-  { g: 'sphere', s: [.55, .8, .55], p: [-.6, .35, 0], c: 0x5a2d0c },    // legs
-  { g: 'sphere', s: [.55, .8, .55], p: [.6, .35, 0], c: 0x5a2d0c },
+  { g: 'sphere', s: [2.9, 2.2, 2.3], p: [0, 1.1, 0], c: 0xffffff },   // big round belly, white jersey
+  { g: 'box', s: [3.4, .7, 1.2], p: [0, 1.9, 0], c: 0xcc2222 },        // red shoulder stripe
+  { g: 'sphere', s: [.95, .95, .95], p: [0, 2.6, .35], c: 0xd9a066 }, // head
+  { g: 'sphere', s: [1.05, .75, .65], p: [0, 2.65, .3], c: 0xffffff }, // white helmet
+  { g: 'box', s: [1.2, .25, .1], p: [0, 2.6, .95], c: 0xcc2222 },     // helmet stripe
+  { g: 'sphere', s: [.55, .95, .55], p: [-1.7, 1.0, 0], c: 0xffffff }, // arms
+  { g: 'sphere', s: [.55, .95, .55], p: [1.7, 1.0, 0], c: 0xffffff },
+  { g: 'sphere', s: [.6, .85, .6], p: [-.65, .35, 0], c: 0x333344 },  // legs
+  { g: 'sphere', s: [.6, .85, .6], p: [.65, .35, 0], c: 0x333344 },
+  { g: 'sphere', s: [.5, .5, .9], p: [0, 1.1, 1.9], c: 0x8b5a2b },     // the pigskin, tucked in
 ]);
 const player = hero(fatGeo, 0xffffff, .04);
 player.position.set(0, 0, EZ + 4); st.scene.add(player);
-const pShadow = blobs(st.scene, 1);
 
-// ---- defenders: 1000 skinny, instanced (vertex-colored white so instance tints show) ----
+// ---- DEFENDERS: 1000 SKINNY RED, instanced ----
 const skinnyGeo = build([
-  { g: 'cyl', s: [.55, 1.9, .55], p: [0, 1.0, 0], c: 0xffffff },
-  { g: 'sphere', s: [.5, .5, .5], p: [0, 2.15, 0], c: 0xffffff },
+  { g: 'cyl', s: [.5, 1.9, .5], p: [0, 1.0, 0], c: 0xffffff },   // white base, tinted red per-instance
+  { g: 'sphere', s: [.48, .48, .48], p: [0, 2.15, 0], c: 0xffd9b0 },
+  { g: 'sphere', s: [.52, .3, .52], p: [0, 2.2, 0], c: 0xffffff }, // helmet
 ]);
 const defs = crowd(st.scene, skinnyGeo, N_DEF, true, 0);
 const DX = new Float32Array(N_DEF), DZ = new Float32Array(N_DEF);
 const DVX = new Float32Array(N_DEF), DVZ = new Float32Array(N_DEF);
+const DST = new Uint8Array(N_DEF);    // 0 hidden, 1 swarming, 2 flying, 3 down
 const TUMBLE = new Float32Array(N_DEF);
-const DST = new Uint8Array(N_DEF);   // 0 hidden, 1 running, 2 flying, 3 down
-const jersey = [0x2244cc, 0xcc2222, 0x22aa44, 0xccaa22];
-for (let i = 0; i < N_DEF; i++) defs.color(i, jersey[i % 4]);
+const SEED = new Float32Array(N_DEF);
+const tmpC = new THREE.Color();
+for (let i = 0; i < N_DEF; i++) {
+  defs.color(i, tmpC.setHSL(0, rnd(.75, .95), rnd(.38, .52)).getHex()); // reds
+  SEED[i] = rnd(0, 6.28);
+}
 
-// ---- spatial grid for domino collisions ----
-const CELL = 3, COLS = 14, ROWS = 50, Z0 = -10;
+// ---- spatial hash for domino collisions ----
+const CELL = 3, COLS = 16, ROWS = 52, Z0 = -12;
 const grid = new Array(COLS * ROWS);
 for (let i = 0; i < grid.length; i++) grid[i] = [];
 const gcell = (x, z) => {
-  const c = clamp(((x + FIELD_W / 2 + 2) / CELL) | 0, 0, COLS - 1);
+  const c = clamp(((x + FIELD_W / 2 + 4) / CELL) | 0, 0, COLS - 1);
   const r = clamp(((z - Z0) / CELL) | 0, 0, ROWS - 1);
   return r * COLS + c;
 };
 
-const fx = particles(st.scene, 600);
-let score = 0, drive = 1, chain = 0, chainT = 0;
-let px = 0, pz = EZ + 4, pvx = 0, speed = 9;
-let spawned = 0, down = 0, shake = 0, steer = 0, touching = false, touchX = 0;
+const fx = particles(st.scene, 700);
+const specEvents = [];   // spectate camera event feed: {type:'kill'|'score', x, z}
+function specPush(type, x, z) {
+  specEvents.push({ type, x, z });
+  if (specEvents.length > 60) specEvents.splice(0, specEvents.length - 60);
+}
+let score = 0, drive = 1, chain = 0, chainT = 0, bestChain = 0;
+let px = 0, pz = EZ + 4, pvx = 0, speed = 9, defSpeed = 4.2;
+let down = 0, shake = 0, squash = 0, runT = 0;
+const hscore = document.getElementById('hscore'), hchain = document.getElementById('hchain'), hdown = document.getElementById('hdown');
+const chainpop = document.getElementById('chainpop');
+let popT = 0;
 
 function spawnAll() {
-  spawned = 0; down = 0;
-  for (let k = 0; k < N_DEF; k++) {
-    const i = spawned++;
-    DX[i] = (rand() - .5) * (FIELD_W - 4);
-    DZ[i] = EZ + 15 + rand() * (FIELD_L - 25);
+  down = 0;
+  for (let i = 0; i < N_DEF; i++) {
+    DX[i] = (rnd() - .5) * (FIELD_W - 4);
+    DZ[i] = EZ + 15 + rnd() * (FIELD_L - 25);
     DVX[i] = 0; DVZ[i] = 0; TUMBLE[i] = 0; DST[i] = 1;
   }
 }
 function reset(d) {
-  px = 0; pz = EZ + 4; pvx = 0; chain = 0; chainT = 0;
-  speed = 8 + d * 1.2;
+  px = 0; pz = EZ + 4; pvx = 0; chain = 0; chainT = 0; runT = 0;
+  speed = 8 + d * 1.1; defSpeed = 3.6 + d * .7;
   spawnAll();
+}
+
+function bigPop(text, color) {
+  chainpop.textContent = text; chainpop.style.color = color || '#ffd34d';
+  chainpop.style.opacity = 1; popT = 1.1;
 }
 
 function knockdown(i, vx, vz) {
   if (DST[i] !== 1) return false;
-  DST[i] = 2; DVX[i] = vx; DVZ[i] = vz; TUMBLE[i] = rand() * 6.28;
-  down++; chain++; chainT = 1.2;
+  DST[i] = 2; DVX[i] = vx; DVZ[i] = vz; TUMBLE[i] = rnd(0, 6.28);
+  down++; chain++; chainT = 1.4; bestChain = Math.max(bestChain, chain);
   const pts = chain >= 5 ? 3 : chain >= 3 ? 2 : 1;
   score += pts;
-  fx.burst(6, { x: DX[i], y: 1, z: DZ[i], size: .35, life: .7, color: 0xffd34d }, 3);
-  st.popup('+' + pts, { x: DX[i], y: 2.4, z: DZ[i] }, '#ffd34d', 6);
-  sfx('thud', .5);
-  if (chain === 10 || chain === 25 || chain === 50) { st.hitstop(.09); st.flash('#ffd34d', .25); st.kick(5); }
-  shake = Math.min(shake + .1, .7);
+  fx.burst(7, { x: DX[i], y: 1, z: DZ[i], size: .4, life: .8, color: 0xffd34d }, 3.5);
+  st.popup('+' + pts, { x: DX[i], y: 2.6, z: DZ[i] }, '#ffd34d', 6);
+  specPush('kill', DX[i], DZ[i]);
+  sfx('thud', .45);
+  squash = Math.min(squash + .12, .5);                       // runner squashes on impact
+  if (chain === 10 || chain === 25 || chain === 50 || chain === 100) {
+    st.hitstop(.09); st.flash('#ffd34d', .3); st.kick(6);
+    bigPop(chain + ' CHAIN!!');
+    sfx('power', .8);
+  }
+  shake = Math.min(shake + .08, .6);
   return true;
 }
 
-st.shell({ id: 'pigskin-bowl', title: 'Pigskin Bowl', sub: 'Bowl over 1000 defenders. TD = +7', onReset: () => { score = 0; drive = 1; reset(1); } });
+// ---- input: A/D, arrows, touch drag ----
+let steer = 0, touching = false, touchX = 0;
+addEventListener('keydown', e => {
+  if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') steer = -1;
+  if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') steer = 1;
+});
+addEventListener('keyup', e => {
+  if (['a', 'A', 'ArrowLeft', 'd', 'D', 'ArrowRight'].includes(e.key)) steer = 0;
+});
+addEventListener('touchstart', e => { touching = true; touchX = e.touches[0].clientX; }, { passive: true });
+addEventListener('touchmove', e => {
+  if (!touching) return;
+  const x = e.touches[0].clientX, dx = x - touchX;
+  px = clamp(px + dx * .045, -FIELD_W / 2 + 2, FIELD_W / 2 - 2); touchX = x;
+}, { passive: true });
+addEventListener('touchend', () => touching = false);
+
+st.shell({ id: 'pigskin-bowl', title: 'PIGSKIN BOWL', sub: 'Bowl over 1000 defenders. TD = +7. Steer: A/D or drag', onReset: () => { score = 0; drive = 1; bestChain = 0; reset(1); } });
 reset(1);
 
-addEventListener('pointerdown', e => { touching = true; touchX = e.clientX; });
-addEventListener('pointermove', e => { if (touching) steer = clamp((e.clientX - touchX) / 120, -1, 1); });
-addEventListener('pointerup', () => { touching = false; steer = 0; });
-
-function update(dt) {
-  fx.update(dt); walkClock.value = st.t;
-  chainT -= dt; if (chainT <= 0) chain = 0;
+// camera: human play = chase cam; spectate = spectateCamera() director (docs/SPECTATE.md)
+const specCam = { x: 0, y: 10, z: -3, lookX: 0, lookY: 1.5, lookZ: 20 };
+function placeCamera(dt) {
+  if (SPECTATE) {
+    spectateCamera(specCam,
+      [{ id: 'runner', x: px, y: 1.5, z: pz, alive: true, target: { x: px, y: 1, z: pz + 15, alive: true } }],
+      specEvents,
+      { dt, chaseDistance: 17, chaseHeight: 9, orbitRadius: 22, idleTimeout: 3, centerX: px, centerZ: pz + 4 });
+    st.camera.position.set(
+      specCam.x + (R() - .5) * shake, specCam.y + (R() - .5) * shake, specCam.z);
+    st.camera.lookAt(specCam.lookX, specCam.lookY, specCam.lookZ);
+  } else {
+    const cx = px, cy = 10, cz = pz - 17;
+    st.camera.position.set(cx + (R() - .5) * shake, cy + (R() - .5) * shake, cz);
+    st.camera.lookAt(px, 1.5, pz + 7);
+  }
   shake = Math.max(0, shake - dt * 2.2);
-  if (shake > 0) st.shake(shake * .5);
+}
 
-  // --- player: auto-run +z, steer x ---
-  const keys = st.keys;
-  let ax = steer;
-  if (keys['a'] || keys['ArrowLeft']) ax -= 1;
-  if (keys['d'] || keys['ArrowRight']) ax += 1;
-  pvx = clamp(pvx + ax * 42 * dt, -10, 10);
-  pvx *= (1 - 2.4 * dt);
-  px = clamp(px + pvx * dt, -FIELD_W / 2 + 1.6, FIELD_W / 2 - 1.6);
+// ---- spectate bot: steer toward the densest defender cluster ahead ----
+function botSteer() {
+  const LANES = 5, counts = [0, 0, 0, 0, 0];
+  const z0 = pz + 6, z1 = pz + 32;
+  for (let i = 0; i < N_DEF; i++) {
+    if (DST[i] !== 1 || DZ[i] < z0 || DZ[i] > z1) continue;
+    counts[clamp(((DX[i] + FIELD_W / 2) / FIELD_W * LANES) | 0, 0, LANES - 1)]++;
+  }
+  let best = 2, bestN = -1;
+  for (let l = 0; l < LANES; l++) {
+    const n = counts[l] + R() * 2;      // seeded tie-break
+    if (n > bestN) { bestN = n; best = l; }
+  }
+  const total = counts[0] + counts[1] + counts[2] + counts[3] + counts[4];
+  const tx = total > 0 ? (best + .5) / LANES * FIELD_W - FIELD_W / 2 : px * .4;
+  return clamp((tx - px) / 7, -1, 1);
+}
+
+st.run(dt => {
+  const t = st.t;
+  runT += dt;
+  walkClock.value = t;
+  if (SPECTATE) steer = botSteer();   // bot drives in spectate mode (overrides input)
+  // runner: auto-run downfield, steer sideways
+  pvx += (steer * 14 - pvx) * Math.min(1, dt * 8);
+  px = clamp(px + pvx * dt, -FIELD_W / 2 + 2, FIELD_W / 2 - 2);
   pz += speed * dt;
-  const sq = 1 + Math.min(Math.abs(pvx) / 16, .28);   // squash & stretch
-  player.position.set(px, 0, pz);
-  player.scale.set(sq, 1 / Math.sqrt(sq), 1);
-  player.rotation.y = -pvx * .05;
-  pShadow.set(0, px, pz, 3.2); pShadow.done(1);
+  player.position.set(px, Math.abs(Math.sin(runT * 9)) * .22, pz);
+  player.rotation.y = -pvx * .03;
+  // squash & stretch: squash on hits, stretch at speed
+  squash = Math.max(0, squash - dt * 1.6);
+  const stretch = 1 + Math.min(.12, speed * .008);
+  player.scale.set(1 + squash * .9, (1 - squash * .55) * stretch, 1 + squash * .9);
 
-  // --- rebuild spatial grid (standing defenders only) ---
-  for (let g = 0; g < grid.length; g++) grid[g].length = 0;
-  for (let i = 0; i < spawned; i++) if (DST[i] === 1) grid[gcell(DX[i], DZ[i])].push(i);
+  // rebuild spatial grid
+  for (let i = 0; i < grid.length; i++) grid[i].length = 0;
+  for (let i = 0; i < N_DEF; i++) if (DST[i] !== 0) grid[gcell(DX[i], DZ[i])].push(i);
 
-  // --- defenders ---
-  const defSpeed = 4 + drive * .8;
-  for (let i = 0; i < spawned; i++) {
-    const s = DST[i];
-    if (s === 1) {
-      DVZ[i] = -defSpeed; DVX[i] = clamp((px - DX[i]) * .6, -3, 3);
-      DX[i] += DVX[i] * dt; DZ[i] += DVZ[i] * dt;
-      if (DZ[i] < pz - 14) { DST[i] = 0; continue; }            // ran past
-      const ddx = DX[i] - px, ddz = DZ[i] - pz;                 // player bowl-over
-      if (ddx * ddx + ddz * ddz < 3.61) {
-        const a = Math.atan2(ddx, ddz) + (rand() - .5) * .6, pw = 14 + speed * .7;
-        knockdown(i, Math.sin(a) * pw + pvx * .8, Math.cos(a) * pw + 4);
+  // player bowls through defenders
+  const pc = gcell(px, pz);
+  for (let r = -1; r <= 1; r++) for (let c = -1; c <= 1; c++) {
+    const gi = pc + r * COLS + c; if (gi < 0 || gi >= grid.length) continue;
+    for (const i of grid[gi]) {
+      if (DST[i] !== 1) continue;
+      const dx = DX[i] - px, dz = DZ[i] - pz;
+      if (dx * dx + dz * dz < 4.6) {   // runner radius ~2.1
+        const a = Math.atan2(dx, dz);
+        knockdown(i, Math.sin(a) * rnd(7, 12) + pvx * .5, Math.cos(a) * rnd(7, 12) + speed * .55);
       }
-    } else if (s === 2) {
-      DX[i] += DVX[i] * dt; DZ[i] += DVZ[i] * dt;
-      DVX[i] *= (1 - 2.5 * dt); DVZ[i] *= (1 - 2.5 * dt);
-      TUMBLE[i] += dt * 9;
-      // domino: check grid neighbors for standing defenders
-      const cx = clamp(((DX[i] + FIELD_W / 2 + 2) / CELL) | 0, 0, COLS - 1);
-      const rz = clamp(((DZ[i] - Z0) / CELL) | 0, 0, ROWS - 1);
-      for (let gx = Math.max(0, cx - 1); gx <= Math.min(COLS - 1, cx + 1); gx++) {
-        for (let gz = Math.max(0, rz - 1); gz <= Math.min(ROWS - 1, rz + 1); gz++) {
-          const cell = grid[gz * COLS + gx];
-          for (let k = 0; k < cell.length; k++) {
-            const j = cell[k];
-            if (j === i || DST[j] !== 1) continue;
-            const ddx = DX[j] - DX[i], ddz = DZ[j] - DZ[i];
-            if (ddx * ddx + ddz * ddz < 1.44) {
-              const a2 = Math.atan2(ddx, ddz);
-              if (knockdown(j, Math.sin(a2) * 9 + DVX[i] * .5, Math.cos(a2) * 9 + DVZ[i] * .5)) {
-                DVX[i] *= .82; DVZ[i] *= .82;
-              }
-            }
-          }
+    }
+  }
+
+  // defenders: school-of-fish swarm at the runner, flying ones domino into the swarm
+  for (let i = 0; i < N_DEF; i++) {
+    if (DST[i] === 0) continue;
+    if (DST[i] === 2) {
+      // flying: physics + domino into others
+      DVZ[i] *= (1 - dt * 1.2); DVX[i] *= (1 - dt * 1.2);
+      DX[i] += DVX[i] * dt; DZ[i] += DVZ[i] * dt; TUMBLE[i] += dt * 9;
+      const gc = gcell(DX[i], DZ[i]);
+      for (let r = -1; r <= 1; r++) for (let c = -1; c <= 1; c++) {
+        const gi = gc + r * COLS + c; if (gi < 0 || gi >= grid.length) continue;
+        for (const j of grid[gi]) {
+          if (j === i || DST[j] !== 1) continue;
+          const dx = DX[j] - DX[i], dz = DZ[j] - DZ[i];
+          if (dx * dx + dz * dz < 2.6) knockdown(j, DVX[i] * .8 + rnd(-2, 2), DVZ[i] * .8 + rnd(-2, 2));
         }
       }
-      if (Math.abs(DVX[i]) + Math.abs(DVZ[i]) < 1.2) DST[i] = 3;
-      if (Math.abs(DX[i]) > FIELD_W / 2 + 4 || DZ[i] < Z0 || DZ[i] > FIELD_L + EZ + 10) DST[i] = 0;
+      if (Math.abs(DVX[i]) + Math.abs(DVZ[i]) < 1.2) DST[i] = 3;  // landed, stays down
+      defs.set(i, DX[i], .2, DZ[i], 1, TUMBLE[i], 1.35, TUMBLE[i] * .7);
+    } else if (DST[i] === 1) {
+      // swarming: seek the runner + separation + fish-school wobble
+      const dx = px - DX[i], dz = pz - DZ[i];
+      const d = Math.hypot(dx, dz) || 1;
+      let mx = dx / d * defSpeed, mz = dz / d * defSpeed;
+      // separation from nearby swarm-mates (cheap: same grid cell)
+      const gc = gcell(DX[i], DZ[i]);
+      let sx = 0, sz = 0, n = 0;
+      for (const j of grid[gc]) {
+        if (j === i || DST[j] !== 1) continue;
+        const ox = DX[i] - DX[j], oz = DZ[i] - DZ[j], od = ox * ox + oz * oz;
+        if (od < 4 && od > .001) { sx += ox / od; sz += oz / od; n++; }
+      }
+      if (n) { mx += sx / n * 6; mz += sz / n * 6; }
+      const wob = Math.sin(t * 3 + SEED[i]) * 1.4;   // school-of-fish shimmer
+      DX[i] = clamp(DX[i] + (mx + wob) * dt, -FIELD_W / 2 + 1, FIELD_W / 2 - 1);
+      DZ[i] += mz * dt;
+      defs.set(i, DX[i], Math.abs(Math.sin(t * 8 + SEED[i])) * .18, DZ[i], 1, Math.atan2(mx, mz), 0, 0);
+    } else {
+      defs.set(i, DX[i], .12, DZ[i], 1, TUMBLE[i], 1.5, 0);  // down, flat
     }
   }
+  defs.done();
 
-  // --- touchdown ---
-  if (pz >= FIELD_L + EZ - 2) {
-    score += 7;
-    st.hud.banner('TOUCHDOWN! +7', 1.6);
-    st.popup('TOUCHDOWN +7', { x: px, y: 4, z: pz }, '#7dff7d', 9);
-    sfx('fanfare', .8); st.hitstop(.15); st.flash('#fff', .4); st.kick(7);
-    fx.burst(40, { x: px, y: 2, z: pz, size: .4, life: 1.2, color: 0xffd34d }, 8);
+  // touchdown!
+  if (pz >= FIELD_L + EZ - 1) {
+    score += 7; bigPop('TOUCHDOWN +7', '#7dff7d'); sfx('power', 1);
+    specPush('score', px, pz);
+    st.flash('#7dff7d', .4); st.kick(8);
+    fx.burst(60, { x: px, y: 3, z: pz, size: .5, life: 1.6, color: 0x7dff7d }, 8);
     drive++; reset(drive);
   }
+  // chain decay
+  if (chainT > 0) { chainT -= dt; if (chainT <= 0) chain = 0; }
 
-  // --- HUD ---
-  st.hud.left(`SCORE<br>${score}`);
-  st.hud.right(`DRIVE ${drive}<br>${down}/${N_DEF} BOWLED`);
-  st.hud.hint('A/D or drag to steer');
-  if (chain >= 3) st.hud.banner(`x${chain} CHAIN!`, .12);
-  window.__game = { score, drive, down, chain, px: +px.toFixed(2), pz: +pz.toFixed(2) };
-}
+  // HUD
+  hscore.textContent = score; hchain.textContent = 'x' + chain; hdown.textContent = down;
+  if (popT > 0) { popT -= dt; chainpop.style.opacity = Math.max(0, popT); }
 
-function pre() {
-  for (let i = 0; i < spawned; i++) {
-    const s = DST[i];
-    if (s === 0) { defs.set(i, 0, -50, 0, .001); continue; }
-    if (s === 1) {
-      defs.set(i, DX[i], Math.abs(Math.sin(st.t * 9 + i * 1.7)) * .12, DZ[i], 1, Math.atan2(DVX[i], DVZ[i]));
-    } else if (s === 2) {
-      defs.set(i, DX[i], .9, DZ[i], 1, 0, TUMBLE[i], .5);
-    } else {
-      defs.set(i, DX[i], .28, DZ[i], 1, 0, 0, Math.PI / 2 - .12);
-    }
-  }
-  defs.done(spawned);
-  const shx = (rand() - .5) * shake, shy = (rand() - .5) * shake;
-  st.camera.position.set(px * .7 + shx, 9 + shy, pz - 11);
-  st.camera.lookAt(px * .7, 0, pz + 7);
-}
-st.run(update, pre);
+  placeCamera(dt);
+  // expose for the viral-video bot
+  window.__game = { score, chain, bestChain, down, drive, px, pz, speed, mode: SPECTATE ? 'spectate' : 'play' };
+});
 </script></body></html>
