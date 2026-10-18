@@ -383,7 +383,7 @@ const HELP = {
   init: ['create press/ with a starter capture plan', 'gamepress init [dir]', ['--dir press']],
   capture: ['drive a web game in headless Chrome: stills + clips -> press/raw', 'gamepress capture <plan.json>', ['--dir press']],
   drive: ['frame-locked playthrough of a web game -> captioned MP4 with audio (spectate-first: "spectate":true in plan lets the game perform itself)', 'gamepress drive <plan.json> [--out dir] [--quick N] [--vo "text"] [--dry-run] [--batch a.json,b.json] [--batch-dir plans/] [--horizontal-only] [--vertical-only]', ['--out press/video', '--quick 4 (smoke test: low-res, short)', '--vo "line" (voiceover)', '--dry-run (validate only)', '--batch (one Chrome session, N videos)', '--batch-dir (all *.json in dir)', '--horizontal-only / --vertical-only (default: both orientations)', 'plan "spectate":true -> ?spectate=1&autostart=1&seed=N, input ignored (docs/SPECTATE.md)', 'output: <name>.mp4 + <name>-horizontal.mp4 / <name>-vertical.mp4 (dual orientation default)']],
-  catalog: ['add/update a game on a demo page catalog and build its thumbnail', 'gamepress catalog <games.json> --id x --title "X" --path g/x/index.html', ['--id', '--title', '--category', '--path', '--still shot.jpg', '--orientation portrait', '--keys {}', '--labels {}']],
+  catalog: ['add/update a game on a demo page catalog and build its thumbnail', 'gamepress catalog <games.json> --id x --title "X" --path g/x/index.html', ['--id', '--title', '--category', '--path', '--still shot.jpg', '--video hook.mp4', '--orientation portrait', '--keys {}', '--labels {}']],
   scenes: ['pull the best stills and clips out of a screen recording', 'gamepress scenes <video> [--count 12]', ['--count 12', '--threshold 0.25']],
   pack: ['crop/scale/encode everything each store needs -> press/out/<platform>', 'gamepress pack [--platforms steam,itch] [--focus 0.5,0.4] [--title "Game"]', ['--platforms', '--focus x,y', '--title', '--no-logo']],
   check: ['verify press/out against each store\'s requirements', 'gamepress check', ['--dir press']],
@@ -456,7 +456,7 @@ const need = (what) => positional[0] || die(`usage: gamepress ${what} <game-id> 
 const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_OUT ? undefined : 1) : text(o));
 
 const _dispatch = { init, capture: () => capture(positional[0] || die('usage: gamepress capture <plan.json>')),
-  catalog: () => { const g = k => flag(k); catalogCommand({ catalogPath: positional[0] || die('usage: gamepress catalog <games.json> --id ...'), still: g('still'), thumbDir: g('thumbdir') || 'thumbs',
+  catalog: () => { const g = k => flag(k); catalogCommand({ catalogPath: positional[0] || die('usage: gamepress catalog <games.json> --id ...'), still: g('still'), thumbDir: g('thumbdir') || 'thumbs', video: g('video'),
     entry: { id: g('id') || die('--id required'), title: g('title') || g('id'), category: g('category') || 'Other', keys: JSON.parse(g('keys') || '{}'), labels: JSON.parse(g('labels') || '{}'), autostart: [], orientation: g('orientation') || 'any', path: g('path') || die('--path required'), ...(g('note') ? { note: g('note') } : {}) } }); console.log('catalog updated'); },
   research: () => console.log(JSON.stringify(research(positional[0] || die('usage: gamepress research <channel/shorts url>'), flag('out', 'research')), null, 1)),
   new: () => console.log('created', scaffold(positional[0] || die('usage: gamepress new <id> [--target web|roblox] [--games dir] [--title T]'), { games: CFG().games, title: flag('title'), target: flag('target', 'web') })),
