@@ -2,14 +2,8 @@
 // (deterministic under gamepress's virtual clock), input, HUD, synth sfx, event log for capture scripts.
 import * as THREE from './three.module.min.js';
 // ?hold=1 (hub): run a few frames so the game shows, then freeze until the hub posts {gp:'start'}.
-if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { const raf = window.requestAnimationFrame.bind(window); let q = [], go = false, n = 0; window.requestAnimationFrame = f => (go || n++ < 1) ? raf(f) : (q.push(f), 0);
-  const ov = document.createElement('div'); ov.textContent = 'TAP TO START'; ov.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:#0005;color:#fff;font:900 8vmin system-ui,sans-serif;text-shadow:0 2px 0 #000;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none';
-  const attach = () => { if (document.body && !ov.parentNode) document.body.appendChild(ov); };
-  if (document.body) attach(); else addEventListener('DOMContentLoaded', attach);
-  const start = () => { if (go) return; go = true; ov.remove(); q.splice(0).forEach(raf); try { parent.postMessage({ gp: 'started' }, '*'); } catch {} };
-  ov.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); start(); });
-  ov.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); start(); }, { passive: false });
-  addEventListener('keydown', e => { if (!go) { e.preventDefault(); e.stopImmediatePropagation(); start(); } }, true);
+if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { let go = false; const hold = window.__gpHold = { onStart: null, is3d: true }; const start = () => { if (go) return; go = true; hold.onStart?.(); try { parent.postMessage({ gp: 'started' }, '*'); } catch {} };
+  for (const t of ['pointerdown', 'touchstart', 'mousedown', 'keydown']) addEventListener(t, e => { if (!go) { if (e.cancelable) e.preventDefault(); e.stopImmediatePropagation(); start(); } }, { capture: true, passive: false });
   addEventListener('message', e => { if (e.data && e.data.gp === 'start') start(); }); }
 export { THREE };
 
@@ -133,6 +127,7 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
   const show = html => { ov.innerHTML = html; ov.style.display = 'flex'; }, hide = () => { ov.style.display = 'none'; };
   st.shell = ({ id, title, sub = 'Tap or press any key to start', onReset } = {}) => {
     stats.shell = true; shellId = id || 'game'; st.onReset = onReset; shellOn = true;
+    if (window.__gpHold) { st.paused = true; window.__gpHold.onStart = () => { st.paused = false; st.onStart?.(); }; }
     if (!CLEAN && !PACK) { st.paused = true; show(`<div style="font-size:12vmin;color:#ffd34d;line-height:1">${title}</div><div style="font-size:4vmin;margin-top:3vh;font-family:system-ui,sans-serif;font-weight:800">${sub}</div>`); }
     const go = () => { if (st.paused && !ended) { st.paused = false; hide(); st.onStart?.(); } else if (ended && endT > .8 && !PACK) { ended = false; hide(); st.onReset?.(); } };
     addEventListener('pointerdown', go); addEventListener('keydown', e => {
