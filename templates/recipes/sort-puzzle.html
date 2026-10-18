@@ -26,9 +26,9 @@ function update(dt) {
   g.hud.l = `MOVES ${moves}`; g.state = { moves, solved, sol: sol.length };
 }
 function draw(c) {
-  for (let i = 0; i < NT; i++) { const x = tx(i), y = ty(i), up = sel === i ? -26 : 0; c.fillStyle = 'rgba(255,255,255,.12)'; c.beginPath(); c.roundRect(x - TW / 2, y, TW, TH, 28); c.fill(); c.lineWidth = 6; c.strokeStyle = sel === i ? '#ffd34d' : '#fff'; c.stroke();
+  for (let i = 0; i < NT; i++) { const x = tx(i), y = ty(i), up = sel === i ? -26 : 0; c.fillStyle = 'rgba(255,255,255,.12)'; c.beginPath(); c.roundRect(x - TW / 2, y, TW, TH, 28); c.fill(); c.lineWidth = 6; c.strokeStyle = sel === i ? '#ffd34d' : (tubes[i].length === CAP && tubes[i].every(x => x === tubes[i][0]) ? '#7dff7d' : '#fff'); c.stroke();
     tubes[i].forEach((col, k) => { const lift = sel === i && k >= tubes[i].length - run(tubes[i]) ? up : 0, cy = y + TH - 42 - k * 66 + lift; c.beginPath(); c.arc(x, cy, 30, 0, 7); c.fillStyle = COL[col]; c.fill(); c.lineWidth = 4; c.strokeStyle = '#000'; c.stroke(); face(c, S.hero, x, cy + 2, 24, COL[col]); }); }
-  if (g.mode === 'play' && moves > 0) g.text(sel < 0 ? 'PICK A TUBE' : 'POUR WHERE?', 270, 880, { size: 34, align: 'center' });
+  if (g.mode === 'play' && moves > 0) g.text(sel < 0 ? 'PICK A TUBE' : 'POUR WHERE?', 270, 925, { size: 34, align: 'center' });
 }
 g.run(update, draw);
 </script></body></html>

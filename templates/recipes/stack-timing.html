@@ -12,7 +12,7 @@ const hue = n => `hsl(${(n * 28 + 190) % 360} 70% 58%)`;
 function init() { tower = [{ x: 270, w: 260, n: 0 }]; speed = 230; dir = 1; perfect = 0; fall = []; camY = 0; botT = 0; dropped = 0; g.score = 0; spawn(); }
 const spawn = () => { const top = tower.at(-1); mv = { x: dir > 0 ? 40 : 500, w: top.w, n: tower.length }; };
 g.onReset = init; init();
-function drop() { if (g.mode !== 'play') return; const top = tower.at(-1), dx = mv.x - top.x; dropped++; if (Math.abs(dx) < 8) { tower.push({ x: top.x, w: top.w, n: tower.length }); perfect++; g.score += 10 + perfect * 5; sfx('merge', { pitch: comboPitch(perfect * 2) }); g.flash('#fff', .25); g.popup(perfect > 1 ? `PERFECT x${perfect}` : 'PERFECT', 270, BASE_Y - tower.length * BH + camY - 40, '#ffd34d', 40); g.burst(top.x, BASE_Y - tower.length * BH + camY, 14, { color: ['#fff', '#ffd34d'], speed: 300 }); }
+function drop() { if (g.mode !== 'play') return; const top = tower.at(-1), dx = mv.x - top.x; dropped++; if (Math.abs(dx) < 12) { tower.push({ x: top.x, w: top.w, n: tower.length }); perfect++; g.score += 10 + perfect * 5; sfx('merge', { pitch: comboPitch(perfect * 2) }); g.flash('#fff', .25); g.popup(perfect > 1 ? `PERFECT x${perfect}` : 'PERFECT', 270, BASE_Y - tower.length * BH + camY - 40, '#ffd34d', 40); g.burst(top.x, BASE_Y - tower.length * BH + camY, 14, { color: ['#fff', '#ffd34d'], speed: 300 }); }
   else { const ov = top.w - Math.abs(dx); perfect = 0; if (ov <= 0) { fall.push({ x: mv.x, y: BASE_Y - tower.length * BH, w: mv.w, vy: 0, n: mv.n }); sfx('lose'); g.shake(12); g.hitstop(.1); g.end({ win: false, score: g.score, label: 'HEIGHT' }); mv = null; return; }
     const nx = (Math.max(mv.x - mv.w / 2, top.x - top.w / 2) + Math.min(mv.x + mv.w / 2, top.x + top.w / 2)) / 2; const cutW = mv.w - ov, side = Math.sign(dx); fall.push({ x: mv.x + side * (ov / 2 + cutW / 2) * 1, y: BASE_Y - tower.length * BH, w: cutW, vy: 0, n: mv.n }); tower.push({ x: nx, w: ov, n: tower.length }); g.score += 10; sfx('thud'); g.shake(4); }
   if (tower.length - 1 >= S.goal) { g.end({ win: true, score: g.score, label: 'HEIGHT' }); g.burst(270, 300, 50, { color: ['#ffd34d', '#fff', '#ff7ab6'], speed: 480 }); mv = null; sfx('win'); return; }
@@ -23,12 +23,13 @@ function update(dt) {
   if (g.taps.length || g.pressed.Space) drop();
   if (g.auto && mv && botT <= 0) { const top = tower.at(-1), d = mv.x - top.x; if (g.dumb() ? (tower.length >= 3 && Math.abs(d) > top.w * .9) || (tower.length < 3 && Math.abs(d) < 60 && Math.abs(d) > 20) : Math.abs(d) < 5 + speed * .012 && Math.sign(d) === -dir) { drop(); botT = .25; } }
   for (const f of fall) { f.vy += 1800 * dt; f.y += f.vy * dt; } fall = fall.filter(f => f.y < 1400); const target = Math.max(0, (tower.length - 9) * BH); camY += (target - camY) * Math.min(1, dt * 5);
-  g.hud.l = `${tower.length - 1}/${S.goal}`; g.state = { height: tower.length - 1, perfect, w: Math.round(tower.at(-1).w) };
+  g.hud.l = `${tower.length - 1}/${S.goal}`; g.hud.hint = tower.length < 4 ? 'TAP TO DROP. LINE IT UP' : ''; g.state = { height: tower.length - 1, perfect, w: Math.round(tower.at(-1).w) };
 }
 function draw(c) {
   const gr = c.createLinearGradient(0, 0, 0, 960); gr.addColorStop(0, '#3a2a70'); gr.addColorStop(1, '#1a1238'); c.fillStyle = gr; c.fillRect(0, 0, 540, 960); for (let i = 0; i < 30; i++) { c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect((i * 97) % 540, (i * 53 + camY * .2) % 960, 3, 3); }
   const blk = (x, y, w, n, a = 1) => { c.globalAlpha = a; c.fillStyle = hue(n); c.fillRect(x - w / 2, y, w, BH - 3); c.fillStyle = 'rgba(255,255,255,.3)'; c.fillRect(x - w / 2, y, w, 8); c.lineWidth = 4; c.strokeStyle = '#000'; c.strokeRect(x - w / 2, y, w, BH - 3); c.globalAlpha = 1; };
   c.save(); c.translate(0, camY); for (const [i, b] of tower.entries()) blk(b.x, BASE_Y - (i + 1) * BH + BH, b.w, b.n); if (mv) { blk(mv.x, BASE_Y - tower.length * BH - BH + BH, mv.w, mv.n); } for (const f of fall) blk(f.x, f.y, f.w, f.n, .8);
+  { const t0 = tower.at(-1); c.fillStyle = 'rgba(255,255,255,.14)'; c.fillRect(t0.x - t0.w / 2, -2000, t0.w, BASE_Y - tower.length * BH + 2000 + BH); }
   const top = tower.at(-1); drawChar('cat', c, top.x, BASE_Y - tower.length * BH + BH - BH * 0 - 0, 80, { color: S.heroColor, dir: 1, t: g.t, anim: 'idle', hurt: g.mode === 'over' && !g.result?.win }); c.restore();
   if (g.mode === 'play' && tower.length < 3) g.text('TAP!', 270, 560, { size: 60, align: 'center' });
 }

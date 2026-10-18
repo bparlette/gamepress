@@ -13,7 +13,7 @@ for (const x of LX) for (const s of [-.45, .45]) { const r = new THREE.Mesh(new 
 const grass = new THREE.Mesh(new THREE.PlaneGeometry(200, 600), toon(0xffffff, { map: groundTex('grass', 120) })); grass.rotation.x = -Math.PI / 2; grass.position.set(0, -.05, 250); st.scene.add(grass);
 const bld = Array.from({ length: 36 }, (_, i) => { const h = rand(4, 16), m = new THREE.Mesh(new THREE.BoxGeometry(rand(3, 6), h, rand(4, 8)), toon([0xff8a3c, 0x6ec6ff, 0xff6b9a, 0xb8e986][i % 4])); m.position.set((i % 2 ? 1 : -1) * rand(9, 16), h / 2, i * 9); st.scene.add(m); return m; });
 const cat = hero(catGeo(), S.catColor, .03); cat.scale.setScalar(1.2); st.scene.add(cat);
-const king = hero(zombieGeo(), 0x8fcf7a, .025); king.scale.setScalar(2.4); st.scene.add(king);
+const king = hero(zombieGeo(), 0x8fcf7a, .025); king.scale.setScalar(1.3); st.scene.add(king);
 let p, obs, nextZ, over, overT, attempt = 0, coinsN, botCd, swipeX, dumb, coins;
 const mkRow = z => { const r = Math.floor(rand(0, 4)); if (r === 0) return [{ z, lane: Math.floor(rand(0, 3)), k: 'train' }, { z, lane: (Math.floor(rand(0, 3)) + 1) % 3, k: 'train' }].filter((o, i, a) => i === 0 || o.lane !== a[0].lane); if (r === 1) return [0, 1, 2].map(l => ({ z, lane: l, k: 'barrier' })); if (r === 2) return [{ z, lane: Math.floor(rand(0, 3)), k: 'train' }]; return [{ z, lane: Math.floor(rand(0, 3)), k: 'barrier' }]; };
 function init() { st.rearm(); p = { lane: 1, x: 0, y: 0, vy: 0, z: 0, air: false, t: 0 }; obs = [{ z: 45, lane: 1, k: 'train' }]; nextZ = 62; for (const o of obs) o.m = null; coins = []; coinsN = 0; over = false; overT = 0; botCd = 0; swipeX = null; dumb = AUTO && attempt === 0 && FAILFIRST; st.score = 0;
@@ -36,6 +36,6 @@ function update(dt) {
   if (p.z >= S.goal) { over = true; overT = 0; sfx('win'); st.hud.banner('YOU ESCAPED!', 2); st.slowmo(.4, 1); st.flash('#fff', .5); fx.burst(40, { x: p.x, y: 2, z: p.z, size: .35, life: 1.2, color: 0xffd34d, g: 4 }, 9); st.end({ win: true, score: st.score, label: 'SCORE' }); }
   st.hud.left(`<span style="color:#ffd34d">${Math.round(p.z)}m</span>`); st.hud.right(`COINS ${coinsN}`); st.hud.hint('Swipe: lane · tap: jump'); window.__game = { z: Math.round(p.z), lane: p.lane, coins: coinsN, attempt, over };
 }
-function pre() { cat.position.set(p.x, p.y, p.z); cat.rotation.z = (LX[p.lane] - p.x) * -.08; cat.position.y += p.air ? 0 : Math.abs(Math.sin(p.t * 16)) * .1; king.position.set(p.x * .3, 0, p.z - 6 - Math.sin(p.t * 2) * .5); st.camera.position.set(p.x * .55, 4.6, p.z - 7.5); st.camera.lookAt(p.x * .5, 1.4, p.z + 8); for (const b of bld) if (b.position.z < p.z - 30) b.position.z += 330; }
+function pre() { cat.position.set(p.x, p.y, p.z); cat.rotation.z = (LX[p.lane] - p.x) * -.08; cat.position.y += p.air ? 0 : Math.abs(Math.sin(p.t * 16)) * .1; king.position.set(p.x * .5 + (p.lane === 2 ? -1.7 : 1.7), 0, p.z - 5.2 - Math.sin(p.t * 2) * .4); st.camera.position.set(p.x * .55, 6, p.z - 9.5); st.camera.lookAt(p.x * .5, 1.4, p.z + 8); for (const b of bld) if (b.position.z < p.z - 30) b.position.z += 330; }
 st.run(update, pre);
 </script></body></html>

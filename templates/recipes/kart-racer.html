@@ -4,9 +4,11 @@
   DON'T BUILD: an item roulette, more than one track, drift tutorials, menus. Edit the SPEC JSON (gamepress make).*/
 import { createStage, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
 import { toon, catGeo, dogGeo, zombieGeo, hero, particles, sky, groundTex, build } from '../_vendor/gpkit.js';
+import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CAT KART', sub: 'Hold left or right. Grab the pads.', hook: 'Win by a whisker', bg: 0x8fd3ff, skyTop: 0x3f8cff, skyBottom: 0xffe7b8, road: 0x474b57, catColor: 0xff9a3c, laps: 2, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const P = new URLSearchParams(location.search), AUTO = P.has('auto'), FAILFIRST = P.get('failfirst') !== '0';
 const st = createStage({ style: S.style, bg: S.bg, fitWidth: 9, fov: 60, fog: [60, 220] }); st.light(); sky(st.scene, S.skyTop, S.skyBottom, [120, 320]); const fx = particles(st.scene, 300);
+const TC = isTouchDevice() ? new TouchController({ buttons: [{ id: 'a', label: 'DRIFT', size: 84 }] }) : null; /* TOUCH: left-half stick steers, hold DRIFT for sharper turns (docs/TOUCH.md) */
 const A = 36, B = 24, HALF = 4.2, TAU = Math.PI * 2;
 const ctr = th => ({ x: Math.cos(th) * A, z: Math.sin(th) * B }), ds = th => Math.hypot(Math.sin(th) * A, Math.cos(th) * B), tan = th => { const d = ds(th); return { x: -Math.sin(th) * A / d, z: Math.cos(th) * B / d }; };
 const posAt = (th, l) => { const c = ctr(th), t = tan(th); return { x: c.x - t.z * l, z: c.z + t.x * l }; };
@@ -26,15 +28,15 @@ const ord = n => ['1ST', '2ND', '3RD', '4TH'][n - 1];
 function finish(k) { k.done = true; k.place = ++finished; if (k.me) { over = true; overT = 0; const win = k.place === 1; st.score = (5 - k.place) * 100; if (win) { sfx('win'); st.slowmo(.4, 1); st.flash('#fff', .5); fx.burst(40, { x: k.m.position.x, y: 2, z: k.m.position.z, size: .35, life: 1.2, color: 0xffd34d, g: 4 }, 9); } else { sfx('lose'); st.shake(8); } st.hud.banner(win ? '1ST PLACE!' : ord(k.place) + ' PLACE', 2.2); st.end({ win, score: st.score, label: 'PLACE ' + k.place }); } }
 function update(dt) {
   fx.update(dt); if (over) { overT += dt; if (AUTO && overT > 2.4 && !(window.__ends?.at(-1)?.win)) { attempt++; init(); st.hud.banner('GO!', .7); } return; } t0 += dt; const me = karts[0], kk = st.keys;
-  let steer = (kk.d || kk.arrowright ? 1 : 0) - (kk.a || kk.arrowleft ? 1 : 0); if (st.ptr.down) steer = st.ptr.x > 0 ? 1 : -1;
+  let steer = (kk.d || kk.arrowright ? 1 : 0) - (kk.a || kk.arrowleft ? 1 : 0); const ti = TC ? TC.getInput() : null; if (ti) { if (Math.abs(ti.x) > .12) steer = ti.x; } else if (st.ptr.down) steer = st.ptr.x > 0 ? 1 : -1; const turn = ti && ti.a ? 9 : 6;
   if (AUTO && !dumb) { const pad = PADS.map(q => ({ ...q, d: ((q.th - me.th) % TAU + TAU) % TAU })).sort((a, b) => a.d - b.d)[0]; steer = pad && pad.d < 1.2 ? clamp((pad.l - me.l) * 1.2, -1, 1) : clamp(-me.l, -1, 1); } if (AUTO && dumb) steer = 0;
-  steerL += (steer - steerL) * Math.min(1, dt * 8); me.l = clamp(me.l + steerL * 6 * dt, -HALF + .8, HALF - .8);
+  steerL += (steer - steerL) * Math.min(1, dt * 8); me.l = clamp(me.l + steerL * turn * dt, -HALF + .8, HALF - .8);
   for (const [i, k] of karts.entries()) { if (k.done) { k.v *= .98; } k.boost = Math.max(0, k.boost - dt); const base = k.me ? 40 : 36.5 + i * .5, rubber = k.me ? 0 : clamp((me.th + me.lap * TAU - (k.th + k.lap * TAU)) * 2.2, -1, 1.6), edge = Math.abs(k.l) > HALF - .9 ? .75 : 1; const tv = (k.done ? 0 : (base + rubber) * (k.boost > 0 ? 1.5 : 1)) * edge; k.v += (tv - k.v) * Math.min(1, dt * 2.2); const prev = k.th; k.th += k.v / ds(k.th) * dt;
     if (!k.me && !k.done) k.l += clamp(Math.sin(t0 * .7 + i * 2) * 3 - k.l, -2, 2) * dt;
     for (const [j, q] of PADS.entries()) { const d = Math.abs(((k.th - q.th + Math.PI) % TAU + TAU) % TAU - Math.PI); if (d < .06 && Math.abs(k.l - q.l) < 1.5 && !k.done) { const key = j + ':' + k.lap; if (!k.passed.has(key)) { k.passed.add(key); k.boost = 1.3; if (k.me) { sfx('powerup'); g2.kickBoost(); st.hud.banner('BOOST!', .5); } } } }
     if (Math.floor(prev / TAU) < Math.floor(k.th / TAU)) { k.lap++; if (k.me && k.lap < S.laps) { sfx('ding'); st.hud.banner('LAP ' + (k.lap + 1), .9); } if (k.lap >= S.laps && !k.done) finish(k); } }
   const rank = [...karts].sort((a, b) => (b.done ? 9e9 - b.place : b.lap * TAU + b.th) - (a.done ? 9e9 - a.place : a.lap * TAU + a.th)).indexOf(me) + 1; me.rank = rank;
-  st.hud.left(`<span style="color:#ffd34d">${ord(rank)}</span>`); st.hud.right(`LAP ${Math.min(S.laps, me.lap + 1)}/${S.laps}`); st.hud.hint('Hold left / right'); window.__game = { rank, lap: me.lap, th: +me.th.toFixed(2), l: +me.l.toFixed(1), boost: +me.boost.toFixed(1), attempt, over };
+  st.hud.left(`<span style="color:#ffd34d">${ord(rank)}</span>`); st.hud.right(`LAP ${Math.min(S.laps, me.lap + 1)}/${S.laps}`); st.hud.hint(TC ? 'Stick: steer · hold DRIFT to turn harder' : 'Hold left / right · hit green pads'); window.__game = { rank, lap: me.lap, th: +me.th.toFixed(2), l: +me.l.toFixed(1), boost: +me.boost.toFixed(1), attempt, over };
 }
 const g2 = { kickBoost: () => st.kick(6) };
 function pre() { for (const k of karts) { const q = posAt(k.th, k.l), t = tan(k.th); k.m.position.set(q.x, 0, q.z); k.m.rotation.y = Math.atan2(t.x, t.z); k.m.children[1].rotation.z = Math.sin(t0 * 14 + k.th) * .05; } const me = karts[0], q = posAt(me.th - .2, me.l * .6), t = tan(me.th), look = posAt(me.th + .1, me.l * .5); st.camera.position.set(q.x, 6.2, q.z); st.camera.lookAt(look.x, .5, look.z); }

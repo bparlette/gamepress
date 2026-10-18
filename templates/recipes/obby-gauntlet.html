@@ -4,9 +4,11 @@
   DON'T BUILD: checkpoint menus, shops, more than 8 platforms, menus. Edit the SPEC JSON (gamepress make).*/
 import { createStage, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
 import { toon, catGeo, hero, particles, sky, groundTex } from '../_vendor/gpkit.js';
+import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CAT OBBY', sub: 'Tap to jump. Drag to steer.', hook: 'Beat the obby or rage quit', bg: 0x8fd3ff, skyTop: 0x3f8cff, skyBottom: 0xffe7b8, lava: 0xff4a1a, pad: 0x4aa8ff, catColor: 0xff9a3c, speed: 8, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const P = new URLSearchParams(location.search), AUTO = P.has('auto'), FAILFIRST = P.get('failfirst') !== '0';
 const st = createStage({ style: S.style, bg: S.bg, fitWidth: 9, fov: 55, fog: [60, 160] }); st.light(); sky(st.scene, S.skyTop, S.skyBottom, [90, 240]); const fx = particles(st.scene, 300);
+const TC = isTouchDevice() ? new TouchController({ buttons: [{ id: 'a', label: '⤒' }] }) : null; /* TOUCH: left-half stick steers, right button jumps (docs/TOUCH.md) */
 const lava = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshBasicMaterial({ color: S.lava })); lava.rotation.x = -Math.PI / 2; lava.position.set(0, -9, 60); st.scene.add(lava);
 // course: [z start, length, width, kind]
 const COURSE = [[0, 10, 6, 'pad'], [13, 8, 6, 'pad'], [25, 6, 4.5, 'pad'], [34, 14, 6.5, 'spin'], [51, 7, 2.2, 'beam'], [62, 6, 6, 'pad'], [72, 12, 6, 'goal']];
@@ -23,7 +25,7 @@ st.shell({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: 
 function lose(why) { if (over) return; over = true; overT = 0; sfx('lose'); st.shake(10); st.hitstop(.08); st.flash('#ff3b3b', .35); st.hud.banner(why, 2); st.end({ win: false, score: Math.round(p.z), label: 'METERS' }); fx.burst(14, { x: p.x, y: p.y + .5, z: p.z, size: .3, life: .7, color: S.catColor, g: 8 }, 5); }
 function update(dt) {
   fx.update(dt); if (over) { overT += dt; if (AUTO && overT > 2.4 && !(window.__ends?.at(-1)?.win)) { attempt++; init(); st.hud.banner('GO!', .7); } return; } p.t += dt;
-  const k = st.keys; let steer = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0); if (st.ptr.down) steer = clamp(st.ptr.x * 2.2 - p.x * .5, -1, 1); if (k[' '] || k.arrowup || st.ptr.down && !p.held) jumpBuf = .12; p.held = st.ptr.down;
+  const ti = TC ? TC.getInput() : null, k = st.keys; let steer = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0); if (ti) { if (Math.abs(ti.x) > .15) steer = ti.x; if (ti.aPressed) jumpBuf = .12; } else { if (st.ptr.down) steer = clamp(st.ptr.x * 2.2 - p.x * .5, -1, 1); if (st.ptr.down && !p.held) jumpBuf = .12; p.held = st.ptr.down; } if (k[' '] || k.arrowup) jumpBuf = .12;
   if (AUTO) { botCd -= dt; const ax = p.z + 2.0, plat = platAt(0, p.z + .6), nextGap = !platAt(0, p.z + 1.5) , cur = COURSE.find(c => p.z >= c[0] && p.z <= c[0] + c[1]); steer = clamp(-p.x * 1.5, -1, 1);
     if (dumb) { steer = 0; if (!p.air && nextGap && botCd <= 0 && p.z < 22) { jumpBuf = .1; botCd = .5; } } else { if (!p.air && nextGap && botCd <= 0) { jumpBuf = .1; botCd = .5; }
       if (!p.air && botCd <= 0) for (let tt = .05; tt <= .5; tt += .05) { if (barHit(p.x, p.z + S.speed * tt, spinAng + 2.0 * tt)) { if (tt >= .1) { jumpBuf = .1; botCd = .9; } break; } } } }
@@ -33,7 +35,7 @@ function update(dt) {
   spinAng += dt * 2.0; bar.rotation.y = spinAng; bar.position.set(spinPivot.x + Math.cos(spinAng) * BL / 2, .35, spinPivot.z - Math.sin(spinAng) * BL / 2);
   if (barHit(p.x, p.z, spinAng) && p.y < .75) lose('BONK!'); if (p.y < -7) lose('SPLASH!');
   if (p.z >= END - 2) { over = true; overT = 0; st.score = 500; sfx('win'); st.hud.banner('FLAG!', 2); st.slowmo(.35, 1); st.flash('#fff', .5); fx.burst(40, { x: p.x, y: 2, z: p.z, size: .35, life: 1.2, color: 0xffd34d, g: 4 }, 9); st.end({ win: true, score: Math.round(p.z), label: 'METERS' }); }
-  st.hud.left(`<span style="color:#ffd34d">${Math.round(p.z)}m</span>`); st.hud.right(`${Math.max(0, END - Math.round(p.z))}m to go`); st.hud.hint('Tap: jump · drag: steer'); window.__game = { z: +p.z.toFixed(1), y: +p.y.toFixed(1), attempt, over };
+  st.hud.left(`<span style="color:#ffd34d">${Math.round(p.z)}m</span>`); st.hud.right(`${Math.max(0, END - Math.round(p.z))}m to go`); st.hud.hint(TC ? 'Stick: steer · ⤒: jump' : 'Tap: jump · drag: steer'); window.__game = { z: +p.z.toFixed(1), y: +p.y.toFixed(1), attempt, over };
 }
 function pre() { cat.position.set(p.x, p.y, p.z); cat.rotation.y = p.vx * .08; cat.rotation.x = p.air ? -p.vy * .02 : Math.sin(p.t * 16) * .05; cat.position.y += p.air ? 0 : Math.abs(Math.sin(p.t * 14)) * .08; st.camera.position.set(p.x * .5, 4.2, p.z - 7); st.camera.lookAt(p.x * .6, 1.2, p.z + 6); }
 st.run(update, pre);
