@@ -103,10 +103,10 @@ export class TouchController {
     this.enabled = false;
     this.vector = { x: 0, y: 0 };
     this._buttons = {};   // id -> { held, pressed, el, pointerId, def }
-    this._defs = (options.buttons && options.buttons.length ? options.buttons : [
+    this._defs = (Array.isArray(options.buttons) ? options.buttons : [
       { id: 'a', label: 'A' },
       { id: 'b', label: 'B' },
-    ]).slice(0, 4);
+    ]).slice(0, 4); // buttons: [] = stick only
     this._activeStickId = null;
     this._stickOrigin = { x: 0, y: 0 };
     this._els = null;
