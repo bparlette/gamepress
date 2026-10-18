@@ -87,6 +87,10 @@ document.body.innerHTML += '<pre id="gpfx-out">GPFX_DONE ' + JSON.stringify(resu
 </script></body></html>`;
 
 test('gpfx: effects render in headless Chrome (WebGL2)', async (t) => {
+  if (typeof WebSocket === 'undefined') {
+    t.skip('WebSocket not available (needs Node >=22 or --experimental-websocket)');
+    return;
+  }
   if (!(await chromeAvailable())) {
     t.skip('no Chrome available');
     return;

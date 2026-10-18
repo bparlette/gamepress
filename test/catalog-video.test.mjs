@@ -3,15 +3,16 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { catalogCommand, removeGame } from '../lib/catalog.mjs';
 
+const skip = spawnSync('ffmpeg', ['-version']).status === 0 ? false : 'ffmpeg not installed';
 const DIR = '/tmp/catalog-video-test';
 rmSync(DIR, { recursive: true, force: true });
 mkdirSync(join(DIR, 'thumbs'), { recursive: true });
 writeFileSync(join(DIR, 'games.json'), JSON.stringify({ categories: [], games: [] }));
 
-test('catalogCommand with video sets entry.video and writes preview mp4', () => {
+test('catalogCommand with video sets entry.video and writes preview mp4', { skip }, () => {
   // make a tiny source mp4
   const src = join(DIR, 'hook.mp4');
   execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'testsrc=duration=1:size=320x240:rate=10', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', src]);
