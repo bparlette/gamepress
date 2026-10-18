@@ -91,7 +91,7 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
   /** Scripted camera move: keys [{t, p:[dx,dy,dz], fov}] in game seconds; offsets are added to the camera after the game positions it. */
   st.cine = keys => { stats.cameraMoved = true; st.cineKeys = keys; };
   // ---- shell: title card, pause, results with best score, replay, mute. Skipped under ?auto / ?clean so capture stays clean.
-  const qs = new URLSearchParams(location.search), CLEAN = qs.has('clean') || qs.has('auto') || qs.get('autostart') === '1' || qs.get('spectate') === '1';
+  const qs = new URLSearchParams(location.search), PACK = qs.has('pack'), CLEAN = qs.has('clean') || qs.has('auto') || qs.get('autostart') === '1' || qs.get('spectate') === '1';
   // ---- bot contract (?auto=1): lose first, then win. Mirrors gp2d: attempt 0 plays badly
   // (st.dumb()), and a loss auto-restarts after 2.4 s. gamepress botcheck proves the timeline.
   const AUTO = qs.has('auto');
@@ -102,7 +102,7 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
   const show = html => { ov.innerHTML = html; ov.style.display = 'flex'; }, hide = () => { ov.style.display = 'none'; };
   st.shell = ({ id, title, sub = 'Tap or press any key to start', onReset } = {}) => {
     stats.shell = true; shellId = id || 'game'; st.onReset = onReset; shellOn = true;
-    if (!CLEAN) { st.paused = true; show(`<div style="font-size:12vmin;color:#ffd34d;line-height:1">${title}</div><div style="font-size:4vmin;margin-top:3vh;font-family:system-ui,sans-serif;font-weight:800">${sub}</div>`); }
+    if (!CLEAN && !PACK) { st.paused = true; show(`<div style="font-size:12vmin;color:#ffd34d;line-height:1">${title}</div><div style="font-size:4vmin;margin-top:3vh;font-family:system-ui,sans-serif;font-weight:800">${sub}</div>`); }
     const go = () => { if (st.paused && !ended) { st.paused = false; hide(); st.onStart?.(); } else if (ended && endT > .8) { ended = false; hide(); st.onReset?.(); } };
     addEventListener('pointerdown', go); addEventListener('keydown', e => {
       if (e.key === 'm' || e.key === 'M') { muted = !muted; } else if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && !ended && !st.paused) { st.paused = true; show('<div style="font-size:12vmin">PAUSED</div><div style="font-size:4vmin;font-family:system-ui,sans-serif">tap to resume · M mutes</div>'); }
@@ -111,8 +111,8 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
   /** Show the results panel. Best score is kept per game id in localStorage. */
   st.end = ({ win = false, score = 0, label = 'SCORE' } = {}) => {
     if (ended) return; stats.ends++; ended = true; endT = 0; let best = 0; try { best = +localStorage.getItem('gp-best-' + shellId) || 0; if (score > best) { best = score; localStorage.setItem('gp-best-' + shellId, best); } } catch {}
-    st.result = { win, score, best }; window.__result = st.result; (window.__ends = window.__ends || []).push({ t: +(performance.now() / 1000).toFixed(1), win, score: Math.round(score), attempt: st.attempt, state: JSON.stringify(window.__game || {}) });
-    if (shellOn && !CLEAN) show(`<div style="font-size:12vmin;color:${win ? '#7dff7d' : '#ff6b6b'}">${win ? 'YOU WIN' : 'GAME OVER'}</div><div style="margin-top:2vh">${label} <b style="color:#ffd34d">${score.toLocaleString()}</b></div><div style="font-size:3.6vmin;margin-top:1vh;font-family:system-ui,sans-serif">BEST ${best.toLocaleString()}</div><div style="font-size:3.6vmin;margin-top:4vh;font-family:system-ui,sans-serif;font-weight:800">tap or press any key to play again</div>`);
+    st.result = { win, score, best }; window.__result = st.result; if (PACK) try { parent.postMessage({ gp: 'end', id: shellId, win, score: Math.round(score) }, '*'); } catch {} (window.__ends = window.__ends || []).push({ t: +(performance.now() / 1000).toFixed(1), win, score: Math.round(score), attempt: st.attempt, state: JSON.stringify(window.__game || {}) });
+    if (shellOn && !CLEAN && !PACK) show(`<div style="font-size:12vmin;color:${win ? '#7dff7d' : '#ff6b6b'}">${win ? 'YOU WIN' : 'GAME OVER'}</div><div style="margin-top:2vh">${label} <b style="color:#ffd34d">${score.toLocaleString()}</b></div><div style="font-size:3.6vmin;margin-top:1vh;font-family:system-ui,sans-serif">BEST ${best.toLocaleString()}</div><div style="font-size:3.6vmin;margin-top:4vh;font-family:system-ui,sans-serif;font-weight:800">tap or press any key to play again</div>`);
   };
   st.rearm = () => { ended = false; }; st.isEnded = () => ended; st.endTick = dt => { if (ended) endT += dt; };
   /** update(dt) runs at a fixed 1/60 s (scaled by slow-mo); render happens once per animation frame. */
