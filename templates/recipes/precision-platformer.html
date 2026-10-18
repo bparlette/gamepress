@@ -5,8 +5,10 @@
 import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
 import { drawChar, coin as coinS } from '../_vendor/gpsprites.js';
 import { moveBox } from '../_vendor/gpphys.js';
+import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'CAT DASH', sub: 'Run, jump, reach the flag', hook: "Don't fall. Don't blink.", hero: 'cat', heroColor: '#ff9a3c', bg: '#7fd4ff', ground: '#6b4a2e', grass: '#6bbf59', spike: '#e63946', style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: '⤒' } ] }) : null; /* TOUCH: floating joystick (left half) + JUMP button (right). See docs/TOUCH.md */
 const T = 48, COLS = 64, ROWS = 12, OY = 140, map = Array.from({ length: ROWS }, () => Array(COLS).fill('.'));
 for (let x = 0; x < COLS; x++) for (const y of [10, 11]) map[y][x] = '#';
 for (const [a, b] of [[14, 15], [30, 31], [46, 47]]) for (let x = a; x <= b; x++) { map[10][x] = '.'; map[11][x] = '.'; }
@@ -20,7 +22,8 @@ g.onReset = init; init();
 function die() { sfx('hit'); g.hitstop(.1); g.burst(p.x + 15, p.y + 20, 20, { color: [S.heroColor, '#fff'], speed: 340 }); g.end({ win: false, score: Math.round(p.x / T), label: 'TILES' }); }
 function update(dt) {
   if (g.mode !== 'play') return; p.t += dt;
-  const L = g.btn('l', 20, 830, 120, 100, '◀', { key: 'ArrowLeft' }), Rb = g.btn('r', 150, 830, 120, 100, '▶', { key: 'ArrowRight' }), J = g.btn('j', 380, 830, 140, 100, 'JUMP', { key: 'Space' });
+  const ti = TC ? TC.getInput() : null; /* touch: read once per frame */
+  const L = ti ? { pressed: false, held: ti.x < -0.35 || g.keys.KeyA || g.keys.ArrowLeft } : g.btn('l', 20, 830, 120, 100, '◀', { key: 'ArrowLeft' }), Rb = ti ? { pressed: false, held: ti.x > 0.35 || g.keys.KeyD || g.keys.ArrowRight } : g.btn('r', 150, 830, 120, 100, '▶', { key: 'ArrowRight' }), J = ti ? { pressed: ti.aPressed || g.pressed.ArrowUp || g.pressed.Space, held: ti.a || g.keys.Space || g.keys.ArrowUp } : g.btn('j', 380, 830, 140, 100, 'JUMP', { key: 'Space' });
   let mv = (Rb.held || g.keys.KeyD ? 1 : 0) - (L.held || g.keys.KeyA ? 1 : 0), jp = J.pressed || g.pressed.ArrowUp; jumpHeld = J.held || g.keys.Space || g.keys.ArrowUp;
   if (g.auto) { mv = 1; g.sim.r = true; const ax = p.x + p.w + 44, gx = Math.floor(ax / T), fy = Math.floor((p.y + p.h) / T);
     const sx = Math.floor((p.x + p.w + 24) / T), spk = map[9]?.[sx] === '^';

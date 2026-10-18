@@ -4,8 +4,10 @@
   DON'T BUILD: weapon pickups, more than 3 waves, co-op, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp, dist } from '../_vendor/gp2d.js';
 import { drawChar, heart } from '../_vendor/gpsprites.js';
+import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
 const S = { title: 'ZOMBIE BRAWL', sub: 'Drag to move, punch the zombies', hook: '1 cat vs the whole street', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#ffb27a', waves: [2, 3, 1], style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
+const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: '👊' } ] }) : null; /* TOUCH: floating joystick (left half) + PUNCH button (right). See docs/TOUCH.md */
 const Y0 = 560, Y1 = 800;
 let p, en, wave, combo, comboT, botT, spawnT;
 function init() { p = { x: 120, y: 700, d: 1, hp: g.dumb() ? 2 : 5, atk: 0, cd: 0, t: 0, inv: 0, tx: 120, ty: 700 }; en = []; wave = -1; combo = 0; comboT = 0; botT = 0; spawnT = .5; g.score = 0; nextWave(); }
@@ -16,9 +18,11 @@ function punch() { if (p.cd > 0 || g.mode !== 'play') return; p.cd = .34; p.atk 
   if (!hit) combo = 0; }
 function update(dt) {
   if (g.mode !== 'play') return; p.t += dt; p.cd -= dt; p.atk -= dt; p.inv -= dt; comboT -= dt; if (comboT <= 0) combo = 0;
-  const P = g.btn('p', 360, 820, 160, 110, 'PUNCH', { key: 'Space' }); if (P.pressed) punch();
+  const ti = TC ? TC.getInput() : null; /* touch: read once per frame */
+  const P = ti ? { pressed: ti.aPressed || g.pressed.Space, held: ti.a || g.keys.Space } : g.btn('p', 360, 820, 160, 110, 'PUNCH', { key: 'Space' }); if (P.pressed) punch();
   let mx = (g.keys.ArrowRight ? 1 : 0) - (g.keys.ArrowLeft ? 1 : 0), my = (g.keys.ArrowDown ? 1 : 0) - (g.keys.ArrowUp ? 1 : 0);
-  if (g.ptr.down && g.ptr.x < 350) { const dx = g.ptr.x - p.x, dy = g.ptr.y - p.y; if (Math.hypot(dx, dy) > 20) { mx = Math.sign(dx); my = Math.sign(dy) * (Math.abs(dy) > 14 ? 1 : 0); } }
+  if (ti) { if (Math.abs(ti.x) > 0.2) mx = Math.sign(ti.x); if (Math.abs(ti.y) > 0.2) my = Math.sign(ti.y); }
+  else if (g.ptr.down && g.ptr.x < 350) { const dx = g.ptr.x - p.x, dy = g.ptr.y - p.y; if (Math.hypot(dx, dy) > 20) { mx = Math.sign(dx); my = Math.sign(dy) * (Math.abs(dy) > 14 ? 1 : 0); } }
   if (g.auto) { botT -= dt; const t = en.filter(e => e.hp > 0).sort((a, b) => dist(a, p) - dist(b, p))[0]; if (t && !g.dumb()) { mx = Math.abs(t.x - p.x) > 70 ? Math.sign(t.x - p.x) : 0; my = Math.abs(t.y - p.y) > 14 ? Math.sign(t.y - p.y) : 0; p.d = t.x >= p.x ? 1 : -1; if (Math.abs(t.x - p.x) < 90 && Math.abs(t.y - p.y) < 30 && botT <= 0) { punch(); botT = .1; } } else { mx = 0; my = 0; } }
   if (mx) p.d = mx; p.x = clamp(p.x + mx * 230 * dt, 40, 500); p.y = clamp(p.y + my * 170 * dt, Y0 + 20, Y1);
   for (const e of en) { if (e.hp <= 0) { e.dead = (e.dead || 0) + dt; continue; } e.t += dt; e.fl -= dt; e.cd -= dt; if (e.kb > 0) { e.kb -= dt; e.x += e.vx * dt; continue; } const dx = p.x - e.x, dy = p.y - e.y; e.d = dx > 0 ? 1 : -1;
