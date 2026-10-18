@@ -32,9 +32,19 @@ The 5-beat structure every viral game video follows:
 A core pattern: **Attempt 0 FAILS at 3–5s** (creates cognitive itch — "I could do better"). **Attempt 1 escalates to victory.** This doubles as a retention hook AND a comment driver ("bro just jump earlier"). Script the bot to deliberately flub the first run, then play it clean.
 
 ## Platform Drivers
-- **YouTube Shorts**: Optimize for APV >110% and swipe-away <25%. Use the fail-then-win loop. Captions top-center, NEVER bottom 30% (blocked by title/channel UI).
+- **YouTube Shorts**: Optimize for APV >110% and swipe-away <25%. Use the fail-then-win loop. Captions top-center in the 10–22% caption zone, NEVER bottom 28% (blocked by title/channel UI).
 - **TikTok**: Optimize for comment velocity and shares. Use rage bait / perceived incompetence — bot makes near-misses that make viewers comment corrections. POV/challenge framing: "Why is stage 4 actually impossible?"
 - **Twitter/X**: Optimize for silent autoplay pattern interrupt. Frame 1 must be high-density spectacle (explosions, massive combos, screen shake). Caption: short technical/dev punchline.
+
+## Safe Zones (9:16)
+Core gameplay elements, combo counters, and text overlays must never sit in the platform UI danger zones:
+- **Caption zone: 10–22% from top** — bold high-contrast hooks go here (`pos: "safe-top"` in drive plans)
+- **Core action band: 25–70% vertical** — keep the character and hazards inside this band; center-weighted action
+- **Right edge: 15% danger** — Like/Share/Remix buttons block it
+- **Bottom: 28% danger** — Shorts title, audio tag, channel name block it
+- **FOV compensation**: a 9:16 vertical viewport crops a 16:9 3D scene. Zoom the Three.js camera out ~1.35× or lock horizontal FOV so side obstacles don't clip off-screen.
+
+`kit/gpviewport.js` encodes these zones — use it for HUD placement and drive caption positions instead of hand-tuning.
 
 ## Juice Hierarchy
 When stacking effects, priority order:
@@ -62,6 +72,18 @@ Pure technical perfection feels sterile. Give the bot a light character:
 - Slightly overconfident (rushes in, almost fails, then god-mode saves it)
 - Slightly clumsy in a funny way (trips, recovers with style)
 - Never pure random, never pure perfect — the gap between "almost failed" and "nailed it" drives comments and shares
+
+## Bot Precision Spec
+Theatrical bot behavior is choreographed, not random. Direct the `?auto=1` bot with measurable specs:
+- **Near-miss grazing: 2–4px clearance.** Keep the collision box within 2–4 pixels of obstacles during Attempt 1. Barely-cleared hazards generate ~3× the retention of wide, safe clearances. Measure it — "close" is not a spec.
+- **BPM sync: 120 or 140.** Quantize obstacle-clear events to 120 or 140 BPM so gameplay naturally syncs with trending short-form background tracks.
+
+## Hook Templates
+Never write a generic caption. Use one of these proven patterns (bold sans-serif, black border, yellow/white fill, top-center in the 10–22% caption zone):
+- **Skill Challenge**: "Level 1 is easy. Level 3 broke me."
+- **Mechanical Curiosity**: "What happens if you combine [X] with [Y]?"
+- **Perceived Incompetence** (comment driver): "My bot has been trying this jump for 4 hours..."
+- **Nostalgia Juxtaposition**: "Why modern games can't match 16-bit sound design."
 
 ## The twelve demos and their videos
 Each plan is in `examples/<id>/hook.drive.json`. Suggested titles (edit freely):
