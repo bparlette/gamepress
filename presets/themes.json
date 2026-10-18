@@ -3,5 +3,13 @@
   "cats":    { "label": "Cat Arcade",    "hero": "cat",    "noun": "CAT",    "plural": "CATS",    "color": "#ff9a3c", "prefix": "",        "titles": {} },
   "dogs":    { "label": "Dog Arcade",    "hero": "dog",    "noun": "DOG",    "plural": "DOGS",    "color": "#c98a4b", "prefix": "dogs-",   "titles": { "card-roguelite": "CARD DOGS" } },
   "people":  { "label": "People Arcade", "hero": "person", "noun": "GUY",    "plural": "GUYS",    "color": "#e63946", "prefix": "people-", "titles": { "one-tap-reflex": "FLAP GUY", "card-roguelite": "CARD GUYS", "cozy-farm": "COZY FARM" } },
-  "cars":    { "label": "Car Arcade",    "hero": "car",    "noun": "CAR",    "plural": "CARS",    "color": "#e63946", "prefix": "cars-",   "titles": { "cozy-farm": "COZY GARAGE", "card-roguelite": "CARD CARS", "pet-battle": "CAR BATTLE" } }
+  "cars":    { "label": "Car Arcade",    "hero": "car",    "noun": "CAR",    "plural": "CARS",    "color": "#e63946", "prefix": "cars-",   "titles": { "cozy-farm": "COZY GARAGE", "card-roguelite": "CARD CARS", "pet-battle": "CAR BATTLE" } },
+  "ducks":   { "label": "Duck Arcade", "hero": "duck", "noun": "DUCK", "plural": "DUCKS", "color": "#ffd23c", "prefix": "ducks-", "titles": {} },
+  "penguins": { "label": "Penguin Arcade", "hero": "penguin", "noun": "PENGU", "plural": "PENGUINS", "color": "#2f3b52", "prefix": "penguins-", "titles": {} },
+  "capybaras": { "label": "Capybara Arcade", "hero": "capybara", "noun": "CAPY", "plural": "CAPYBARAS", "color": "#b9824f", "prefix": "capybaras-", "titles": {} },
+  "axolotls": { "label": "Axolotl Arcade", "hero": "axolotl", "noun": "AXO", "plural": "AXOS", "color": "#ffb3c7", "prefix": "axolotls-", "titles": {} },
+  "dinos":   { "label": "Dino Arcade", "hero": "dino", "noun": "DINO", "plural": "DINOS", "color": "#5fc46a", "prefix": "dinos-", "titles": {} },
+  "bunnies": { "label": "Bunny Arcade", "hero": "bunny", "noun": "BUNNY", "plural": "BUNNIES", "color": "#f2f2f7", "prefix": "bunnies-", "titles": {} },
+  "frogs":   { "label": "Frog Arcade", "hero": "frog", "noun": "FROG", "plural": "FROGS", "color": "#4cc36b", "prefix": "frogs-", "titles": {} },
+  "robots":  { "label": "Robot Arcade", "hero": "robot", "noun": "BOT", "plural": "BOTS", "color": "#7aa7d9", "prefix": "robots-", "titles": {} }
 }
