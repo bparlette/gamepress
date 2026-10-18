@@ -56,6 +56,7 @@ import { listTools, checkUpdates, downloadTool, loadManifest } from '../lib/tool
 import { approveDemo, getApproval, listApprovals, generateBlueprint, scaffoldExpansion } from '../lib/expand.mjs';
 import { cloudAvailable, cloudOrLocal } from '../lib/cloud.mjs';
 import { startRun, answerRun, statusRun } from '../lib/run.mjs';
+import { judgeGame } from '../lib/judge.mjs';
 import { createInterface as _rl } from 'node:readline';
 
 /** One-off free-text prompt (only called when --prompt already verified a TTY). */
@@ -434,6 +435,7 @@ const HELP = {
   context: ['~400-token AI cheat sheet (the token-saving entry point)', 'gamepress context [--2d|--3d|--lego|--recipe <name>]', ['--2d', '--3d', '--lego', '--recipe']],
   cloud: ['run a slow job on free GitHub runners, falling back to local automatically', 'gamepress cloud drive <plan.json> | voice <script.txt> | test', ['--out dir', '--quick N', '--voice narrator', '--speed 1.0', '--local (skip cloud)']],
   run: ['conversational orchestrator: the tool drives, the AI just relays (see ORCHESTRATOR.md). Cloud-first: slow steps try free GitHub runners, --local forces local.', 'gamepress run [--answer \'{...}\' --job <id>] [--status <id>] [--local]', ['--answer', '--job', '--status', '--local (skip cloud, run locally)']],
+  judge: ['multi-state visual inspection with faceted scoring (palette, camera, layout, readability)', 'gamepress judge <game-id|dir> [--json] [--shot-dir dir] [--vision]', ['--shot-dir dir (default .gp/judge)', '--vision (optional vision critique)']],
   help: ['this help (or per-command: gamepress <cmd> --help)', 'gamepress --help | gamepress <cmd> --help', []],
 };
 function printHelp() {
@@ -518,6 +520,18 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
   hooks: () => { try { const r = generateHooks(need('hooks'), { videoDir: CFG().videoDir, examples: CFG().examples }); out(r, o => `${o.id}: rendered ${o.count} A/B hooks -> ${o.variants.map(v => v.file).join(', ')}`); } catch (e) { die('hooks: ' + e.message); } },
   stats: () => gatherStats(positional[0] || null, { gamesDir: CFG().games, publishDir: CFG().publish, stateDir: CFG().state })
     .then(r => out(r, o => o.games.map(g => `${g.id.padEnd(20)} grade=${String(g.gradeScore ?? '-').padStart(3)} yt=${g.ytViews} itch=${g.itchViews} -> ${g.verdict}`).join('\n') || 'no games found')).catch(e => die('stats: ' + e.message)),
+  judge: async () => {
+    const target = positional[0] || die('usage: gamepress judge <game-id | game-path> [--json] [--shot-dir dir] [--vision]');
+    const root = join(HERE, '..');
+    const gamePath = existsSync(target) ? target
+      : (existsSync(join(CFG().games, target)) ? join(CFG().games, target)
+      : (existsSync(join(root, 'templates', 'recipes', `${target}.html`)) ? join(root, 'templates', 'recipes', `${target}.html`)
+      : (existsSync(join(CFG().examples, target)) ? join(CFG().examples, target) : target)));
+    const visionHook = argv.includes('--vision') ? vision : null;
+    const r = await judgeGame(gamePath, { shotDir: flag('shot-dir', '.gp/judge'), visionHook });
+    out(r, o => `${o.id}: ${o.score}/100 ${o.verdict}\n  facets:\n    palette:     ${String(o.facets.palette.score).padStart(3)}/100 (dominant ${o.facets.palette.dominant} ${o.facets.palette.flatPct}%, ${o.facets.palette.buckets} buckets)\n    camera:      ${String(o.facets.camera.score).padStart(3)}/100 (balance ${o.facets.camera.quadrantBalance})\n    layout:      ${String(o.facets.layout.score).padStart(3)}/100 (${o.facets.layout.canvasCount} canvas)\n    readability: ${String(o.facets.readability.score).padStart(3)}/100 (max contrast ${o.facets.readability.maxContrast}:1)\n  states:\n    boot:   ${o.states.boot.score}/100 (${o.states.boot.file})\n    action: ${o.states.action.score}/100 (${o.states.action.file})\n    over:   ${o.states.over.score}/100 (${o.states.over.file})${o.fixes.length ? '\n  fixes:\n    - ' + o.fixes.join('\n    - ') : ''}`);
+    process.exit(r.score >= 65 ? 0 : 1);
+  },
   'local-ai': () => probeLocalAi().then(r => out({ ...r, enabledByDefault: LOCAL_AI }, o => `local-ai: ${o.available ? `AVAILABLE (${o.model} at ${o.host})` : `NOT RUNNING (${o.reason}) — optional, all commands work without it`}`)),
   ideate: () => out(ideate(positional.join(' ') || die('usage: gamepress ideate "<game idea>" [--offline]'), { live: !argv.includes('--offline') }), o => `${o.live?.insights ? 'live: common words [' + o.live.insights.commonWords + '], numbers ' + o.live.insights.titlesWithNumber + ', vs ' + o.live.insights.titlesWithVs + '; inspiration (do not copy): ' + o.live.suggestedHooks.join(' | ') + '\n' : o.live?.error ? o.live.error + '\n' : ''}${o.archetype}${o.recipe ? ' (recipe ' + o.recipe + ')' : ''}\nreferences: ${o.references.join('; ')}\none-ups:\n - ${o.oneUps.join('\n - ')}\nassets: ${o.assets.map(a => a.id + (a.have ? '' : '*')).join(', ')} (*=build it)\nquestions:\n${o.questions.map(q => ' ? ' + q.ask + '\n' + q.options.map((x, i) => `    ${i}) ${x.label}`).join('\n')).join('\n')}\nsaved ${o.file}\nnext: ${o.next}`),
   viral: () => out(viralCommand(positional[0] || die('usage: gamepress viral <game-dir>')), o => `VIRAL BRIEF: ${o.title}\n${o.description ? o.description.slice(0, 300) + '\n' : ''}\n Hooks:\n - ${o.viralHooks.join('\n - ') || '(play the game to find them)'}\n Audio: ${o.audioCount || 0} files${o.audioAssets.length ? ' e.g. ' + o.audioAssets.slice(0, 3).join(', ') : ''}\n\n ANSWER THESE BEFORE WRITING THE DRIVE PLAN:\n${o.questions.map((q, i) => `${i + 1}. ${q.ask}\n   hint: ${q.hint}`).join('\n')}\n\nnext: ${o.next}`),
