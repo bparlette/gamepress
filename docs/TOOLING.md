@@ -65,6 +65,16 @@ test/                    npm test (node --test test/*.test.mjs)
 Hawk repo, `brad-demos/g/<id>/index.html` + `brad-demos/g/_vendor/{three.module.min.js,gp3d.js}`; catalog is
 `brad-demos/games.json`; thumbnails `brad-demos/thumbs/`; published at https://bparlette.github.io/Hawk/brad-demos/.
 
+## AI motion-design stack (for trailers/promos)
+AI agents can now do motion-design work directly — describe the video, the agent builds it. Useful for game trailers and promo clips:
+- **HyperFrames** (github.com/heygen-com/hyperframes) — write HTML, get MP4. Made by HeyGen for AI agents: ask for a 10-second product intro with fade-in title + background music, the agent plans, animates, renders.
+- **MCP for Blender** (github.com/ahujasid/mcp-blender) — connects Blender to Claude; the agent creates objects, builds 3D scenes, edits in real 3D.
+- **GSAP skills** (official greensock skills) — teach coding agents proper web animation: timelines, scroll effects, premium landing-page motion.
+
+Stack in one line: Blender for 3D, GSAP for motion, HyperFrames for final render.
+
+Source: [@thegreatest_sv](https://x.com/thegreatest_sv/status/2111520366791414136) (Oct 17, 2026).
+
 ## Publishing the videos
 YouTube Shorts / TikTok / Reels take the 1080x1920 MP4 directly (`press/video/*.mp4`, under 60 s). Upload by hand:
 tooling does not log in to accounts. Titles follow `docs/VIRAL-PLAYBOOK.md`.

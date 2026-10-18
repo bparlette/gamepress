@@ -86,6 +86,17 @@ Never write a generic caption. Use one of these proven patterns (bold sans-serif
 - **Nostalgia Juxtaposition**: "Why modern games can't match 16-bit sound design."
 - **Collision Hook** (2026: gaming Shorts need 85%+ retention on first 100 impressions — oversupplied category): two contradictory facts in frame one. "This game has no jump button. You beat it by falling." "The boss is invincible. The floor is the weapon."
 
+## "Why did humans start X?" origin explainers
+Underrated YouTube niche (Oct 2026): cartoon stickman explainers asking "why did humans start [everyday thing]?". One 8:15 video did 3.1M views in 10 days, est. $25k–30k. Why it works:
+- **Thumbnail tells the whole story**: before/after with red arrow. Brain needs to know how she got there.
+- **Zero competition, huge curiosity**: everyone wondered once, nobody searched for it.
+- **8 min = full watch-through + mid-roll ads**: short enough to finish, long enough to monetize.
+- **Collab credits** with other channels boost trust score.
+
+Repeatable pattern: pick an everyday thing → ask "why did humans start..." → draw the before and after. Applies to AiDiaries long-form as well as Shorts hooks.
+
+Source: [@ShaunYoung_YT](https://x.com/shaunyoung_yt/status/2111528539447087353) (Oct 17, 2026).
+
 ## Spectate-first capture: let the game perform
 Scripted input ("walk forward, click at t=3") produces dead footage — the failure mode behind two rejected HOA Warfare videos. The winning pattern: **the game plays itself, the camera directs itself.**
 

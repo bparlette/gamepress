@@ -102,3 +102,10 @@ When the human gives you a game idea in chat, **DO NOT jump straight to building
 `gamepress auto` exists for exactly this flow — use it. A game built on guessed preferences is rework waiting to happen. The 30 seconds of questions saves 30 minutes of rebuilding.
 
 **NEVER** skip this because the idea "seems clear enough." It isn't. Ask.
+
+## 12. Self-improvement direction (Harness²)
+Google open-sourced Harness² (Oct 2026): turns any agent harness into a self-improving system. The agent proposes edits to its own harness (system prompt, tools, memory, skills, subagents), runs candidate versions, compares behavior, keeps what works — learning across tasks without needing a grader. One round of edits beat original harnesses in their tests.
+
+gamepress already does the informal version: tests catch regressions, docs get corrected when reality disagrees, the kit evolves per game. Harness² is the formal version of that loop. Future direction: let `gamepress` runs propose their own harness edits (new recipes, better defaults, fixed prompts) and validate them against the test suite before keeping them.
+
+Source: [@akshay_pachaar](https://x.com/akshay_pachaar/status/2111753928031531232) (Oct 18, 2026).
