@@ -2,7 +2,11 @@
 // (deterministic under gamepress's virtual clock), input, HUD, synth sfx, event log for capture scripts.
 import * as THREE from './three.module.min.js';
 // ?hold=1 (hub): run a few frames so the game shows, then freeze until the hub posts {gp:'start'}.
-if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { const raf = window.requestAnimationFrame.bind(window); let q = [], go = false, n = 0; window.requestAnimationFrame = f => (go || n++ < 1) ? raf(f) : (q.push(f), 0); addEventListener('message', e => { if (e.data && e.data.gp === 'start' && !go) { go = true; q.splice(0).forEach(raf); } }); }
+if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { const raf = window.requestAnimationFrame.bind(window); let q = [], go = false, n = 0; window.requestAnimationFrame = f => (go || n++ < 1) ? raf(f) : (q.push(f), 0);
+  const ov = document.createElement('div'); ov.textContent = 'TAP TO START'; ov.style.cssText = 'position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;background:#0005;color:#fff;font:900 8vmin system-ui,sans-serif;text-shadow:0 2px 0 #000;touch-action:none;user-select:none'; addEventListener('DOMContentLoaded', () => document.body.appendChild(ov));
+  const start = () => { if (go) return; go = true; ov.remove(); q.splice(0).forEach(raf); try { parent.postMessage({ gp: 'started' }, '*'); } catch {} };
+  ov.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); start(); }); addEventListener('keydown', e => { if (!go) { e.preventDefault(); e.stopImmediatePropagation(); start(); } }, true);
+  addEventListener('message', e => { if (e.data && e.data.gp === 'start') start(); }); }
 export { THREE };
 
 export const rand = (a = 0, b = 1) => a + Math.random() * (b - a);
