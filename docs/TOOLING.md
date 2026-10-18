@@ -71,6 +71,12 @@ AI agents can now do motion-design work directly — describe the video, the age
 - **MCP for Blender** (github.com/ahujasid/mcp-blender) — connects Blender to Claude; the agent creates objects, builds 3D scenes, edits in real 3D.
 - **GSAP skills** (official greensock skills) — teach coding agents proper web animation: timelines, scroll effects, premium landing-page motion.
 
+
+### Video-to-3D-animation via Blender MCP
+From @rewind02: turn any movement video into 3D animation with Claude Opus 5.5 + Blender MCP. Workflow: (1) connect Opus to Blender via Blender MCP, max effort; (2) have Opus build + rig the character; (3) pick a short movement video; (4) Opus splits video into frames, reads the pose in each (hips, knees, feet, arms); (5) maps each pose onto the rig as keyframes; (6) check from all angles for sliding feet / clipping. Tip: start with one clean simple movement filmed from the side; use max effort only for the frame mapping, not the modeling. Beats paying for pro mocap rigs for simple game animations.
+
+Source: [@rewind02](https://x.com/rewind02/status/2111759900317520294) (Oct 18, 2026).
+
 Stack in one line: Blender for 3D, GSAP for motion, HyperFrames for final render.
 
 Source: [@thegreatest_sv](https://x.com/thegreatest_sv/status/2111520366791414136) (Oct 17, 2026).
