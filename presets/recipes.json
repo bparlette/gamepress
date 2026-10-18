@@ -1581,7 +1581,14 @@
       ],
       "threeSecond": "player=your finger slash, enemy=zombie bombs and missed fish, goal=slice them all",
       "touch": "swipe",
-      "category": "Viral Demos"
+      "category": "Viral Demos",
+      "feel": {
+        "use": [
+          "HitStopManager",
+          "squashStretch"
+        ],
+        "why": "Every slice needs a freeze-frame so the eye registers the cut; squashStretch squashes fruit on impact for the juicy pop. Bombs get a longer freeze so the mistake stings."
+      }
     },
     {
       "id": "stack-timing",
@@ -1630,7 +1637,13 @@
       ],
       "threeSecond": "player=the sliding block, enemy=the shrinking width, goal=stack 12 blocks",
       "touch": "tap",
-      "category": "Viral Demos"
+      "category": "Viral Demos",
+      "feel": {
+        "use": [
+          "HitStopManager"
+        ],
+        "why": "Timing games live on the freeze: a perfect drop freezes for 3 frames with a chime, a miss just thuds. That contrast is the whole dopamine loop."
+      }
     },
     {
       "id": "plinko-drop",
@@ -1674,7 +1687,14 @@
       ],
       "threeSecond": "player=the falling cat, enemy=the low-pay slots, goal=reach the coin target",
       "touch": "tap where to drop",
-      "category": "Viral Demos"
+      "category": "Viral Demos",
+      "feel": {
+        "use": [
+          "TraumaCamera",
+          "HitStopManager"
+        ],
+        "why": "Peg bounces want tiny camera kicks that grow as the ball falls; the jackpot slot freezes the frame so the win lands. Quiet drops stay calm so wins contrast."
+      }
     },
     {
       "id": "ragdoll-launch",
@@ -1721,7 +1741,14 @@
       ],
       "threeSecond": "player=the flying cat, enemy=the ground, goal=reach the target distance",
       "touch": "tap at full power",
-      "category": "Viral Demos"
+      "category": "Viral Demos",
+      "feel": {
+        "use": [
+          "TraumaCamera",
+          "squashStretch"
+        ],
+        "why": "The launch is a squash-and-release: squashStretch compresses the cat in the cannon, release kicks the camera. Bounces get small shakes scaled by impact speed."
+      }
     },
     {
       "id": "sort-puzzle",
@@ -1769,7 +1796,14 @@
       ],
       "threeSecond": "player=the tubes of cats, enemy=the move counter, goal=one colour per tube",
       "touch": "tap tube then tube",
-      "category": "Viral Demos"
+      "category": "Viral Demos",
+      "feel": {
+        "use": [
+          "squashStretch",
+          "HitStopManager"
+        ],
+        "why": "Pouring is the satisfaction: squashStretch wobbles the tube as cats flow. Completing a tube freezes briefly with a chime - the ASMR payoff."
+      }
     },
     {
       "id": "rope-cut",
@@ -1815,6 +1849,258 @@
       ],
       "threeSecond": "player=the swinging fish, enemy=a missed drop, goal=drop it in the cat's mouth",
       "touch": "swipe the rope",
+      "category": "Viral Demos",
+      "feel": {
+        "use": [
+          "squashStretch",
+          "TraumaCamera"
+        ],
+        "why": "The candy is a pendulum: squashStretch stretches it at swing apexes for cartoon physics. A clean catch gives a soft camera nudge; a miss gets silence so the player feels the drop."
+      }
+    },
+    {
+      "id": "hole-eater",
+      "title": "HOLE EATER",
+      "hook": "Swallow the whole city. 90 seconds.",
+      "hooks": [
+        "Swallow the whole city. 90 seconds.",
+        "It started with a coin. It ended with a skyscraper.",
+        "The hole is hungry. Everything fits eventually."
+      ],
+      "seconds": 30,
+      "engine": "3d",
+      "colors": "num",
+      "match": "hole|eat|swallow|devour|black hole|donut|vacuum|sinkhole",
+      "keywords": [
+        "hole io",
+        "hole eater",
+        "black hole",
+        "eat the city",
+        "swallow",
+        "donut county",
+        "hole game",
+        "devour",
+        "growing hole",
+        "eat everything"
+      ],
+      "refs": [
+        "Hole.io",
+        "Donut County",
+        "TikTok black-hole-eats-a-map clips"
+      ],
+      "oneUps": [
+        "Animals and people RUN AWAY screaming when the hole nears",
+        "Size tiers with named banners: coins to skyscrapers",
+        "Explosive barrels chain-blast everything nearby into the hole",
+        "Golden cats worth 14x that sprint away"
+      ],
+      "dontBuild": [
+        "no rival hole",
+        "no shop",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=the black hole, enemy=the fleeing city, goal=eat everything before time runs out",
+      "touch": "drag to steer the hole",
+      "viral": {
+        "hook": "A black hole swallowing a city, starting with coins",
+        "bot": "Attempt 0 steers away from food and starves; attempt 1 chains barrels and eats a skyscraper",
+        "escalation": "Size tiers unlock bigger prey with named banners",
+        "climax": "Skyscraper sinks in, slow-mo, 'CITY EATEN!'",
+        "personality": "Greedy and gleeful - chases the golden cat first, always"
+      },
+      "feel": {
+        "use": [
+          "TraumaCamera",
+          "HitStopManager"
+        ],
+        "why": "Eating is pure juice: every swallow pops, big prey shakes the camera, barrel chains freeze-frame. TraumaCamera scales shake with prey size; HitStopManager punctuates the gulp."
+      },
+      "category": "Viral Demos"
+    },
+    {
+      "id": "crowd-runner",
+      "title": "CROWD RUNNER",
+      "hook": "Steer the mob. Pick the right gate. Topple the boss.",
+      "hooks": [
+        "Steer the mob. Pick the right gate. Topple the boss.",
+        "x2 or -30? Choose wrong and the boss eats you.",
+        "700 zombies vs one giant cat"
+      ],
+      "seconds": 26,
+      "engine": "3d",
+      "colors": "num",
+      "match": "crowd|runner|gate|multiplier|army|horde|mob|swarm|count",
+      "keywords": [
+        "crowd runner",
+        "mob control",
+        "count masters",
+        "math gates",
+        "x2 gate",
+        "horde",
+        "swarm game",
+        "boss fight",
+        "zombie mob",
+        "gate runner"
+      ],
+      "refs": [
+        "Count Masters",
+        "Mob Control",
+        "Crowd City"
+      ],
+      "oneUps": [
+        "Gate labels pop with green/red flash on good/bad pick",
+        "Boss HP bar drains as the mob piles on",
+        "Boss topples in slow-mo with a confetti burst"
+      ],
+      "dontBuild": [
+        "no gate editor",
+        "no shop",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=the zombie mob, enemy=bad gates then the giant cat boss, goal=topple the boss",
+      "touch": "A/D or drag to steer",
+      "viral": {
+        "hook": "A 700-strong mob charging math gates toward a giant cat boss",
+        "bot": "Attempt 0 picks every bad gate and gets crushed; attempt 1 threads x2/x4 and topples the boss",
+        "escalation": "Gates multiply the mob, boss looms larger each gate",
+        "climax": "Boss topples in slow-mo, 'BOSS DOWN!'",
+        "personality": "Overconfident general - sacrifices half the mob on a -30, then wins anyway"
+      },
+      "feel": {
+        "use": [
+          "updateCamera",
+          "TraumaCamera"
+        ],
+        "why": "A 700-unit mob needs a chase cam that frames the crowd and the next gate; updateCamera keeps the horde composed. TraumaCamera sells gate picks and the boss topple."
+      },
+      "category": "Viral Demos"
+    },
+    {
+      "id": "glass-drop",
+      "title": "GLASS DROP",
+      "hook": "Which pane holds? Tap to drop.",
+      "hooks": [
+        "Which pane holds? Tap to drop.",
+        "One pane holds. One shatters. 50/50.",
+        "9 lives. 20 rows. No skill, all nerve."
+      ],
+      "seconds": 24,
+      "engine": "3d",
+      "colors": "num",
+      "match": "stair|bridge|glass|climb|stack|tower|jump|ramp|obby|parkour",
+      "keywords": [
+        "glass bridge",
+        "glass drop",
+        "squid game glass",
+        "which pane",
+        "drop game",
+        "shatter",
+        "lucky drop",
+        "pane game",
+        "falling game"
+      ],
+      "refs": [
+        "Squid Game glass bridge",
+        "Stack/jump timing games"
+      ],
+      "oneUps": [
+        "Shattering panes burst into 40 physical shards",
+        "Slow-mo on every crack, camera follows the fall",
+        "Lava glow from below raises the stakes"
+      ],
+      "dontBuild": [
+        "no pane preview",
+        "no shop",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=the falling cat, enemy=the weak pane, goal=reach row 20",
+      "touch": "tap to drop the next ball",
+      "viral": {
+        "hook": "A cat dropping through glass panes, one shattering",
+        "bot": "Attempt 0 cracks three panes fast and burns lives; attempt 1 threads 20 rows to 'CLEARED!'",
+        "escalation": "Each row deeper, lava closer, fewer lives",
+        "climax": "Final pane holds, 'CLEARED!' in slow-mo",
+        "personality": "Nervous gambler - hesitates, then commits"
+      },
+      "feel": {
+        "use": [
+          "HitStopManager",
+          "TraumaCamera"
+        ],
+        "why": "The crack is the whole game: HitStopManager freezes on shatter so the eye catches it, TraumaCamera kicks on the fall. Bounce landings stay soft so holds feel safe."
+      },
+      "category": "Viral Demos"
+    },
+    {
+      "id": "demolition",
+      "title": "VOXEL DEMOLITION",
+      "hook": "Aim, fire, bring the castle down.",
+      "hooks": [
+        "Aim, fire, bring the castle down.",
+        "9,000 voxels. 12 shells. 85% to win.",
+        "One good hit and the tower folds"
+      ],
+      "seconds": 26,
+      "engine": "3d",
+      "colors": "num",
+      "match": "demoli|destroy|smash|wreck|bulldoz|plow|wedge|crush|explod",
+      "keywords": [
+        "voxel demolition",
+        "destroy castle",
+        "artillery game",
+        "wrecking",
+        "smash building",
+        "voxel destruction",
+        "cannon game",
+        "bring it down"
+      ],
+      "refs": [
+        "Teardown",
+        "Voxel destruction Shorts",
+        "Bulldozer sandbox clips"
+      ],
+      "oneUps": [
+        "Blast wakes voxels in a radius; woken voxels topple the ones above",
+        "Bystander cats scatter and meow on every blast",
+        "Dust puffs linger where walls stood"
+      ],
+      "dontBuild": [
+        "no shell shop",
+        "no multiple castles",
+        "no inventory",
+        "no save system",
+        "no menus beyond start and restart",
+        "no settings screen",
+        "no second mechanic"
+      ],
+      "threeSecond": "player=the artillery, enemy=the voxel castle, goal=demolish 85%",
+      "touch": "tap to fire, drag to aim",
+      "viral": {
+        "hook": "Artillery shell arcs into a voxel castle",
+        "bot": "Attempt 0 fires at empty sky and runs dry; attempt 1 walks shells up the tower and folds it",
+        "escalation": "Blast radius grows with every hit, tower leans further",
+        "climax": "Castle collapses, 'GONE!' in slow-mo",
+        "personality": "Patient demolitions expert - ranges the first shot, then unloads"
+      },
+      "feel": {
+        "use": [
+          "TraumaCamera",
+          "HitStopManager"
+        ],
+        "why": "Demolition is impact theatre: TraumaCamera shakes scale with blast radius, HitStopManager freezes on direct hits so the collapse reads. The shell arc gets a clean camera, no shake, so hits contrast."
+      },
       "category": "Viral Demos"
     }
   ]
