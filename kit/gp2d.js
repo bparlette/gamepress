@@ -6,9 +6,13 @@ import { sfx, setMuted, comboPitch } from './gpaudio.js';
 import { STY } from './gpsprites.js';
 // ?hold=1 (hub): run a few frames so the game shows, then freeze until the hub posts {gp:'start'}.
 if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { const raf = window.requestAnimationFrame.bind(window); let q = [], go = false, n = 0; window.requestAnimationFrame = f => (go || n++ < 1) ? raf(f) : (q.push(f), 0);
-  const ov = document.createElement('div'); ov.textContent = 'TAP TO START'; ov.style.cssText = 'position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;background:#0005;color:#fff;font:900 8vmin system-ui,sans-serif;text-shadow:0 2px 0 #000;touch-action:none;user-select:none'; addEventListener('DOMContentLoaded', () => document.body.appendChild(ov));
+  const ov = document.createElement('div'); ov.textContent = 'TAP TO START'; ov.style.cssText = 'position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;background:#0005;color:#fff;font:900 8vmin system-ui,sans-serif;text-shadow:0 2px 0 #000;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none';
+  const attach = () => { if (document.body && !ov.parentNode) document.body.appendChild(ov); };
+  if (document.body) attach(); else addEventListener('DOMContentLoaded', attach);
   const start = () => { if (go) return; go = true; ov.remove(); q.splice(0).forEach(raf); try { parent.postMessage({ gp: 'started' }, '*'); } catch {} };
-  ov.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); start(); }); addEventListener('keydown', e => { if (!go) { e.preventDefault(); e.stopImmediatePropagation(); start(); } }, true);
+  ov.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); start(); });
+  ov.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); start(); }, { passive: false });
+  addEventListener('keydown', e => { if (!go) { e.preventDefault(); e.stopImmediatePropagation(); start(); } }, true);
   addEventListener('message', e => { if (e.data && e.data.gp === 'start') start(); }); }
 export { sfx, comboPitch };
 export * from './gpmath.js';
@@ -18,10 +22,11 @@ export function createGame({ id = 'game', title = 'GAME', sub = 'Tap to start', 
   const P = new URLSearchParams(location.search), STYLE = STYLES.includes(P.get('style')) ? P.get('style') : (STYLES.includes(style) ? style : 'toon');
   const AUTO = P.has('auto'), CLEAN = AUTO || P.has('clean'), PACK = P.has('pack'), DPR = +(P.get('dpr') || 2);
   window.__style = STYLE; STY.ow = { comic: 5, painted: 1, pixel8: 0, pixel16: 0 }[STYLE] ?? 3; STY.blocky = ['roblox', 'pixel8', 'pixel16'].includes(STYLE);
-  document.body.style.cssText = 'margin:0;overflow:hidden;background:#000;touch-action:none;user-select:none;-webkit-user-select:none;display:flex;align-items:center;justify-content:center;height:100vh';
+  document.documentElement.style.cssText = 'margin:0;height:100%;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none';
+  document.body.style.cssText = 'margin:0;overflow:hidden;background:#000;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;display:flex;align-items:center;justify-content:center;height:100vh;width:100vw';
   const cv = document.createElement('canvas'), ctx = cv.getContext('2d'); document.body.appendChild(cv);
   const FILT = { comic: 'contrast(1.2) saturate(1.45)', painted: 'saturate(.95) contrast(1.05) sepia(.16) blur(.45px)', pixel8: 'url(#gpq8) saturate(1.3)', pixel16: 'saturate(1.2) contrast(1.05)', roblox: 'saturate(1.2)', toon: 'saturate(1.1)' }[STYLE];
-  cv.style.cssText = `display:block;filter:${FILT};${STYLE.startsWith('pixel') ? 'image-rendering:pixelated;' : ''}`;
+  cv.style.cssText = `display:block;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;filter:${FILT};${STYLE.startsWith('pixel') ? 'image-rendering:pixelated;' : ''}`;
   if (STYLE === 'pixel8') document.body.insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute"><filter id="gpq8"><feComponentTransfer><feFuncR type="discrete" tableValues="0 .33 .66 1"/><feFuncG type="discrete" tableValues="0 .33 .66 1"/><feFuncB type="discrete" tableValues="0 .5 1"/></feComponentTransfer></filter></svg>');
   if (STYLE === 'comic') { const d = document.createElement('div'); d.style.cssText = 'position:fixed;inset:0;pointer-events:none;mix-blend-mode:multiply;background-image:radial-gradient(rgba(0,0,0,.3) 1px,transparent 1.6px);background-size:6px 6px'; document.body.appendChild(d); }
   const stats = (window.__gpStats = window.__gpStats || { shell: true, hitstops: 0, shakes: 0, popups: 0, flashes: 0, particles: 0, audioEvents: 0, cameraMoved: true, customGeo: true, walkAnimated: true, ends: 0 });
@@ -31,10 +36,37 @@ export function createGame({ id = 'game', title = 'GAME', sub = 'Tap to start', 
   const resize = () => { const k = Math.min(innerWidth / w, innerHeight / h), px = STYLE === 'pixel8' ? .25 : STYLE === 'pixel16' ? .5 : Math.min(devicePixelRatio || 1, DPR) * k;
     cv.style.width = w * k + 'px'; cv.style.height = h * k + 'px'; cv.width = Math.round(w * px); cv.height = Math.round(h * px); g.k = cv.width / w; };
   addEventListener('resize', resize); resize();
-  const toL = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * w, y: (e.clientY - r.top) / r.height * h }; };
-  addEventListener('pointerdown', e => { const p = toL(e); g.pointers.set(e.pointerId, { ...p, down: true }); Object.assign(g.ptr, p, { down: true }); g.taps.push(p); if (g.mode === 'title') g.start(); else if (g.mode === 'over' && g.overT > .8 && !AUTO && !PACK) g.reset(); });
-  addEventListener('pointermove', e => { const p = toL(e), q = g.pointers.get(e.pointerId); if (q) Object.assign(q, p); if (!g.pointers.size || q) Object.assign(g.ptr, p); });
-  const up = e => { g.pointers.delete(e.pointerId); g.ptr.down = g.pointers.size > 0; }; addEventListener('pointerup', up); addEventListener('pointercancel', up);
+  const toL = e => { const r = cv.getBoundingClientRect();
+    const cx = e.clientX !== undefined ? e.clientX : (e.touches?.[0]?.clientX ?? e.changedTouches?.[0]?.clientX ?? (r.left + r.width / 2));
+    const cy = e.clientY !== undefined ? e.clientY : (e.touches?.[0]?.clientY ?? e.changedTouches?.[0]?.clientY ?? (r.top + r.height / 2));
+    return { x: clamp((cx - r.left) / (r.width || 1) * w, 0, w), y: clamp((cy - r.top) / (r.height || 1) * h, 0, h) }; };
+  let lastDownT = 0;
+  const onDown = e => {
+    const now = performance.now(); if (now - lastDownT < 35) return; lastDownT = now;
+    if (e.cancelable) e.preventDefault();
+    const p = toL(e), pid = e.pointerId ?? (e.changedTouches?.[0]?.identifier ?? 0);
+    g.pointers.set(pid, { ...p, down: true }); Object.assign(g.ptr, p, { down: true }); g.taps.push(p);
+    if (g.mode === 'title') g.start(); else if (g.mode === 'over' && g.overT > .8 && !AUTO && !PACK) g.reset();
+  };
+  const onMove = e => {
+    if (e.cancelable && e.type.startsWith('touch')) e.preventDefault();
+    const p = toL(e), pid = e.pointerId ?? (e.changedTouches?.[0]?.identifier ?? 0), q = g.pointers.get(pid);
+    if (q) Object.assign(q, p); if (!g.pointers.size || q) Object.assign(g.ptr, p);
+  };
+  const onUp = e => {
+    const pid = e.pointerId ?? (e.changedTouches?.[0]?.identifier ?? 0);
+    g.pointers.delete(pid); g.ptr.down = g.pointers.size > 0;
+  };
+  [window, cv].forEach(target => {
+    target.addEventListener('pointerdown', onDown);
+    target.addEventListener('pointermove', onMove);
+    target.addEventListener('pointerup', onUp);
+    target.addEventListener('pointercancel', onUp);
+    target.addEventListener('touchstart', onDown, { passive: false });
+    target.addEventListener('touchmove', onMove, { passive: false });
+    target.addEventListener('touchend', onUp, { passive: false });
+    target.addEventListener('touchcancel', onUp, { passive: false });
+  });
   addEventListener('keydown', e => { g.keys[e.code] = true; if (!e.repeat) g.pressed[e.code] = true; if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
     if (e.code === 'KeyM') setMuted(g.muted = !g.muted); else if ((e.code === 'KeyP' || e.code === 'Escape') && g.mode === 'play') g.mode = 'pause'; else if (g.mode === 'pause') g.mode = 'play'; else if (g.mode === 'title') g.start(); else if (g.mode === 'over' && g.overT > .8 && !AUTO) g.reset(); });
   addEventListener('keyup', e => { g.keys[e.code] = false; });

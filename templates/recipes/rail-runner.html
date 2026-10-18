@@ -26,7 +26,15 @@ function lose() { if (over) return; over = true; overT = 0; sfx('lose'); st.shak
 function update(dt) {
   fx.update(dt); if (over) { overT += dt; if (AUTO && overT > 2.4 && !(window.__ends?.at(-1)?.win)) { attempt++; init(); st.hud.banner('GO!', .7); } return; } p.t += dt; ensure(); const sp = S.speed + p.z * .02; p.z += sp * dt;
   const k = st.keys; let go = 0, jump = false; if (k.arrowleft || k.a) { if (!p.kl) go = -1; p.kl = true; } else p.kl = false; if (k.arrowright || k.d) { if (!p.kr) go = 1; p.kr = true; } else p.kr = false; if (k.arrowup || k[' '] || k.w) { if (!p.ku) jump = true; p.ku = true; } else p.ku = false;
-  if (st.ptr.down && swipeX === null) swipeX = { x: st.ptr.x, y: st.ptr.y }; if (st.ptr.down && swipeX) { const dx = st.ptr.x - swipeX.x; if (Math.abs(dx) > .18) { go = Math.sign(dx); swipeX = { x: st.ptr.x, y: st.ptr.y }; } } else if (!st.ptr.down) { if (swipeX && !p.swiped && Math.abs(st.ptr.y - swipeX.y) < .1) jump = true; swipeX = null; }
+  if (st.ptr.down && swipeX === null) { swipeX = { x: st.ptr.x, y: st.ptr.y }; p.swiped = false; }
+  if (st.ptr.down && swipeX) {
+    const dx = st.ptr.x - swipeX.x, dy = st.ptr.y - swipeX.y;
+    if (Math.abs(dx) > .15) { go = Math.sign(dx); swipeX = { x: st.ptr.x, y: st.ptr.y }; p.swiped = true; }
+    else if (dy < -.18 && !p.air) { jump = true; swipeX = { x: st.ptr.x, y: st.ptr.y }; p.swiped = true; }
+  } else if (!st.ptr.down) {
+    if (swipeX && !p.swiped) jump = true;
+    swipeX = null; p.swiped = false;
+  }
   if (AUTO && !dumb) { botCd -= dt; const ahead = obs.filter(o => o.z + (o.k === 'train' ? 9 : 0) > p.z && o.z < p.z + 26), blocked = l => ahead.some(o => o.lane === l && o.k === 'train'), bar = ahead.find(o => o.lane === p.lane && o.k === 'barrier' && o.z - p.z < 5.5 + sp * .05 && o.z - p.z > 1), trainAhead = ahead.find(o => o.lane === p.lane && o.k === 'train' && o.z - p.z < 20);
     if (trainAhead && botCd <= 0) { const opts = [p.lane - 1, p.lane + 1].filter(l => l >= 0 && l <= 2 && !blocked(l) && !ahead.some(o => o.lane === l && o.k === 'barrier' && o.z - p.z < 8)); if (opts.length) { go = opts[0] - p.lane; botCd = .5; } } if (bar && !p.air) jump = true; }
   if (go) { const nl = clamp(p.lane + go, 0, 2); if (nl !== p.lane) { p.lane = nl; sfx('whoosh', { vol: .5 }); } } if (jump && !p.air) { p.vy = 9; p.air = true; sfx('jump'); }
@@ -35,7 +43,7 @@ function update(dt) {
   for (const c of coins) if (!c.got && Math.abs(c.z - p.z) < .8 && Math.abs(LX[c.lane] - p.x) < 1 && p.y < 1.6) { c.got = true; coinsN++; sfx('coin', { pitch: 1 + (coinsN % 12) / 12 }); fx.burst(4, { x: LX[c.lane], y: 1.2, z: c.z, size: .22, life: .4, color: 0xffd34d, g: 2 }, 2); }
   obs = obs.filter(o => { if (o.z < p.z - 30) { if (o.m) st.scene.remove(o.m); return false; } return true; }); st.score = Math.round(p.z) + coinsN * 5;
   if (p.z >= S.goal) { over = true; overT = 0; sfx('win'); st.hud.banner('YOU ESCAPED!', 2); st.slowmo(.4, 1); st.flash('#fff', .5); fx.burst(40, { x: p.x, y: 2, z: p.z, size: .35, life: 1.2, color: 0xffd34d, g: 4 }, 9); st.end({ win: true, score: st.score, label: 'SCORE' }); }
-  st.hud.left(`<span style="color:#ffd34d">${Math.round(p.z)}m</span>`); st.hud.right(`COINS ${coinsN}`); st.hud.hint('Swipe: lane · tap: jump'); window.__game = { z: Math.round(p.z), lane: p.lane, coins: coinsN, attempt, over };
+  st.hud.left(`<span style="color:#ffd34d">${Math.round(p.z)}m</span>`); st.hud.right(`COINS ${coinsN}`); st.hud.hint('Swipe: lane · tap: jump'); window.__game = { z: Math.round(p.z), lane: p.lane, coins: coinsN, attempt, over, air: p.air, y: +(p.y.toFixed(2)) };
 }
 function pre() { if (cat.userData.rig) animHero(cat, 1 / 60, p.air ? 'idle' : 'run'); cat.position.set(p.x, p.y, p.z); cat.rotation.z = (LX[p.lane] - p.x) * -.08; cat.position.y += p.air ? 0 : Math.abs(Math.sin(p.t * 16)) * .1; king.position.set(p.x * .5 + (p.lane === 2 ? -1.7 : 1.7), 0, p.z - 5.2 - Math.sin(p.t * 2) * .4); st.camera.position.set(p.x * .55, 6, p.z - 9.5); st.camera.lookAt(p.x * .5, 1.4, p.z + 8); for (const b of bld) if (b.position.z < p.z - 30) b.position.z += 330; }
 st.run(update, pre);

@@ -3,9 +3,13 @@
 import * as THREE from './three.module.min.js';
 // ?hold=1 (hub): run a few frames so the game shows, then freeze until the hub posts {gp:'start'}.
 if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { const raf = window.requestAnimationFrame.bind(window); let q = [], go = false, n = 0; window.requestAnimationFrame = f => (go || n++ < 1) ? raf(f) : (q.push(f), 0);
-  const ov = document.createElement('div'); ov.textContent = 'TAP TO START'; ov.style.cssText = 'position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;background:#0005;color:#fff;font:900 8vmin system-ui,sans-serif;text-shadow:0 2px 0 #000;touch-action:none;user-select:none'; addEventListener('DOMContentLoaded', () => document.body.appendChild(ov));
+  const ov = document.createElement('div'); ov.textContent = 'TAP TO START'; ov.style.cssText = 'position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;background:#0005;color:#fff;font:900 8vmin system-ui,sans-serif;text-shadow:0 2px 0 #000;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none';
+  const attach = () => { if (document.body && !ov.parentNode) document.body.appendChild(ov); };
+  if (document.body) attach(); else addEventListener('DOMContentLoaded', attach);
   const start = () => { if (go) return; go = true; ov.remove(); q.splice(0).forEach(raf); try { parent.postMessage({ gp: 'started' }, '*'); } catch {} };
-  ov.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); start(); }); addEventListener('keydown', e => { if (!go) { e.preventDefault(); e.stopImmediatePropagation(); start(); } }, true);
+  ov.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); start(); });
+  ov.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); start(); }, { passive: false });
+  addEventListener('keydown', e => { if (!go) { e.preventDefault(); e.stopImmediatePropagation(); start(); } }, true);
   addEventListener('message', e => { if (e.data && e.data.gp === 'start') start(); }); }
 export { THREE };
 
@@ -54,8 +58,9 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
   const dpr = Math.min(devicePixelRatio || 1, +(new URLSearchParams(location.search).get('dpr') || 2));
   renderer.setPixelRatio(dpr); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1;
-  document.body.style.cssText = 'margin:0;overflow:hidden;background:#000;touch-action:none;font-family:Impact,"Arial Black",system-ui,sans-serif';
-  document.body.appendChild(renderer.domElement); renderer.domElement.style.cssText = 'display:block;width:100vw;height:100vh;filter:saturate(1.25) contrast(1.07)';
+  document.documentElement.style.cssText = 'margin:0;height:100%;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none';
+  document.body.style.cssText = 'margin:0;overflow:hidden;background:#000;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font-family:Impact,"Arial Black",system-ui,sans-serif;width:100vw;height:100vh';
+  document.body.appendChild(renderer.domElement); renderer.domElement.style.cssText = 'display:block;width:100vw;height:100vh;filter:saturate(1.25) contrast(1.07);touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none';
   const vig = document.createElement('div'); vig.style.cssText = 'position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(0,0,0,.42) 100%)'; document.body.appendChild(vig);
   let st_render; const scene = new THREE.Scene(); scene.background = new THREE.Color(bg); if (fog) scene.fog = new THREE.Fog(bg, fog[0], fog[1]);
   const camera = new THREE.PerspectiveCamera(fov, 1, 0.1, 500);
@@ -70,9 +75,29 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
   addEventListener('resize', resize); resize(); st.resize = resize;
   addEventListener('keydown', e => { st.keys[e.key.toLowerCase()] = true; if (e.key === ' ' || e.key.startsWith('Arrow')) e.preventDefault(); });
   addEventListener('keyup', e => { st.keys[e.key.toLowerCase()] = false; });
-  const setPtr = e => { st.ptr.x = e.clientX / innerWidth * 2 - 1; st.ptr.y = e.clientY / innerHeight * 2 - 1; };
-  addEventListener('pointerdown', e => { st.ptr.down = true; setPtr(e); st.onPointerDown?.(e); }); addEventListener('pointermove', setPtr);
-  addEventListener('pointerup', () => { st.ptr.down = false; st.onPointerUp?.(); });
+  const setPtr = e => {
+    const cx = e.clientX !== undefined ? e.clientX : (e.touches?.[0]?.clientX ?? e.changedTouches?.[0]?.clientX ?? innerWidth / 2);
+    const cy = e.clientY !== undefined ? e.clientY : (e.touches?.[0]?.clientY ?? e.changedTouches?.[0]?.clientY ?? innerHeight / 2);
+    st.ptr.x = cx / innerWidth * 2 - 1; st.ptr.y = cy / innerHeight * 2 - 1;
+  };
+  let last3dDown = 0;
+  const onDown = e => {
+    const now = performance.now(); if (now - last3dDown < 35) return; last3dDown = now;
+    if (e.cancelable) e.preventDefault();
+    st.ptr.down = true; setPtr(e); st.onPointerDown?.(e);
+  };
+  const onMove = e => { if (e.cancelable && e.type.startsWith('touch')) e.preventDefault(); setPtr(e); };
+  const onUp = () => { st.ptr.down = false; st.onPointerUp?.(); };
+  [window, renderer.domElement].forEach(target => {
+    target.addEventListener('pointerdown', onDown);
+    target.addEventListener('pointermove', onMove);
+    target.addEventListener('pointerup', onUp);
+    target.addEventListener('pointercancel', onUp);
+    target.addEventListener('touchstart', onDown, { passive: false });
+    target.addEventListener('touchmove', onMove, { passive: false });
+    target.addEventListener('touchend', onUp, { passive: false });
+    target.addEventListener('touchcancel', onUp, { passive: false });
+  });
   // HUD
   const hud = document.createElement('div'); hud.style.cssText = 'position:fixed;inset:0;pointer-events:none;color:#fff;font-size:5vmin;text-shadow:0 .5vmin 0 #000,0 0 1.2vmin #000';
   hud.innerHTML = '<div id="h-l" style="position:absolute;left:4vw;top:2.5vh"></div><div id="h-r" style="position:absolute;right:4vw;top:2.5vh;text-align:right"></div>' +
