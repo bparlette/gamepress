@@ -7,7 +7,7 @@ Point an AI at this repo and a game idea. gamepress builds a small playable web 
 - **Humans:** [setup guide](https://bparlette.github.io/gamepress/setup/) (what to install, what is optional, what each tool enables).
 - **AI agents:** read [`ORCHESTRATOR.md`](ORCHESTRATOR.md), then run `gamepress run`. Command reference: [`AGENTS.md`](AGENTS.md).
 
-## Recipes (24)
+## Recipes (30)
 
 Generated from `presets/recipes.json` (full detail: [`docs/RECIPES-CATALOG.md`](docs/RECIPES-CATALOG.md)).
 
@@ -37,6 +37,12 @@ Generated from `presets/recipes.json` (full detail: [`docs/RECIPES-CATALOG.md`](
 | `idle-tycoon` | CAT FACTORY | 2d |
 | `hide-and-seek` | PROP CAT | 2d |
 | `trajectory-artillery` | CAT ARTILLERY | 2d |
+| `slice-swipe` | CAT NINJA | 2d |
+| `stack-timing` | CAT STACK | 2d |
+| `plinko-drop` | CAT PLINKO | 2d |
+| `ragdoll-launch` | CAT CANNON | 2d |
+| `sort-puzzle` | CAT SORT | 2d |
+| `rope-cut` | CAT ROPE | 2d |
 
 ## Docs
 
