@@ -1,6 +1,6 @@
 # Themes: one set of 30 games, any subject
 
-`gamepress theme <id>` re-skins every recipe game and builds that theme's four packs: the 2 full 15-game packs and the 2 free 5-game demo packs (`presets/packs.json`). Themes live in `presets/themes.json`: cats, dogs, people, cars, ducks, penguins, capybaras, axolotls, dinos, bunnies, frogs, robots. Adding a theme is one JSON entry (hero sprite from `kit/gpsprites.js`, colour, noun, optional per-recipe title overrides). Nothing else changes: recipes, bots, hook plans and packs are shared.
+`gamepress theme <id>` re-skins every recipe game and builds that theme's four packs: the 2 full 15-game packs and the 2 free 5-game demo packs (`presets/packs.json`). Themes live in `presets/themes.json`: cats, dogs, people, cars, ducks, penguins, capybaras, axolotls, dinos, bunnies, frogs, robots, plus 19 more (spuds, beans, jesters, vampires, jokers, ragdolls, noobs, hackers, melons, scrappers, reapers, raccoons, doges, slimes, phantoms, bananas, capyyuzus, duckknives, mushfrogs). Adding a theme is one JSON entry (hero sprite from `kit/gpsprites.js`, colour, noun, optional per-recipe title overrides). Nothing else changes: recipes, bots, hook plans and packs are shared.
 
 ```
 gamepress theme dogs                 # write the 30 games (seconds)
@@ -9,7 +9,7 @@ gamepress theme dogs --packs         # rebuild just the packs
 gamepress theme cars --only one-tap-reflex,kart-racer
 ```
 
-What a theme changes: the hero sprite and colour, and the noun in titles and hooks ("FLAP CAT" -> "FLAP CAR"). Games without a hero sprite (cards, tubes, blocks) change title and hook only. Game ids are prefixed (`dogs-one-tap-reflex`), the cat set keeps plain ids. Sprite kinds: cat, dog, person, zombie, car, duck, penguin, capybara, axolotl, dino, bunny, frog, robot.
+What a theme changes: the hero sprite and colour, and the noun in titles and hooks ("FLAP CAT" -> "FLAP CAR"). Games without a hero sprite (cards, tubes, blocks) change title and hook only. Game ids are prefixed (`dogs-one-tap-reflex`), the cat set keeps plain ids. Sprite kinds: cat, dog, person, zombie, car, duck, penguin, capybara, axolotl, dino, bunny, frog, robot, spud, bean, jester, vampire, joker, ragdoll, noob, hacker, melon, scrapper, reaper, raccoon, doge, slime, phantom, banana, capyyuzu, duckknife, mushfrog.
 
 | theme id | hero | noun |
 |---|---|---|
@@ -22,5 +22,24 @@ What a theme changes: the hero sprite and colour, and the noun in titles and hoo
 | bunnies | bunny | BUNNY |
 | frogs | frog | FROG |
 | robots | robot | BOT |
+| spuds | spud | SPUD |
+| beans | bean | BEAN |
+| jesters | jester | JESTER |
+| vampires | vampire | VAMP |
+| jokers | joker | JOKER |
+| ragdolls | ragdoll | RAGDOLL |
+| noobs | noob | NOOB |
+| hackers | hacker | HACKER |
+| melons | melon | MELON |
+| scrappers | scrapper | SCRAPPER |
+| reapers | reaper | REAPER |
+| raccoons | raccoon | COON |
+| doges | doge | DOGE |
+| slimes | slime | SLIME |
+| phantoms | phantom | PHANTOM |
+| bananas | banana | NANA |
+| capyyuzus | capyyuzu (capybara + orange) | CAPYUZU |
+| duckknives | duckknife (duck + chef knife) | DUCKNIFE |
+| mushfrogs | mushfrog (frog + toadstool cap) | MUSHFROG |
 
 Known limit: some 2D templates draw `drawChar('cat', ...)` literally instead of `S.hero`, so those games keep the cat sprite under any theme until the template is changed to use `S.hero`. Hooks keep a few cat-flavoured lines ("fish", "whisker").

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadThemes, themeRecipeIds, themeSpec, themedId } from '../lib/themes.mjs';
-import { CHAR } from '../kit/gpsprites.js';
+import { CHAR, face, STY } from '../kit/gpsprites.js';
 
 test('themes: 30 recipes per theme, valid hero sprite, noun swapped in every title and hook', () => {
   const T = loadThemes(), ids = themeRecipeIds();
@@ -23,4 +23,9 @@ test('themes: every theme title fits the HUD (<= 18 chars) and each new sprite d
   const calls = []; const ctx = new Proxy({}, { get: (_, k) => k === 'canvas' ? {} : (...a) => { calls.push(k); }, set: () => true });
   for (const k of Object.keys(CHAR)) for (const o of [{}, { anim: 'walk', t: .4, dir: -1 }, { hurt: true }]) CHAR[k](ctx, 50, 100, 90, o);
   assert.ok(calls.length > 100);
+});
+test('sprites: blocky mode and face() work for every kind', () => {
+  const ctx = new Proxy({}, { get: (_, k) => k === 'canvas' ? {} : k === 'createLinearGradient' ? () => ({ addColorStop() {} }) : () => {}, set: () => true });
+  for (const b of [false, true]) { STY.blocky = b; for (const k of Object.keys(CHAR)) { CHAR[k](ctx, 50, 100, 110, { anim: 'walk', t: .3 }); face(ctx, k, 10, 10, 12); } }
+  STY.blocky = false;
 });
