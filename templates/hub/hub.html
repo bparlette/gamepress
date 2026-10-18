@@ -189,7 +189,7 @@ function resume() { loop++; results = []; go('game'); show(0); }
 /** The rotation wrapped from the last game to the first. Demo: upsell, never unlocks. Full hub: choose one locked hero to unlock. */
 function finishLoop() {
   stop();
-  if (demoMode) { say('upmsg', `That was ${N} of ${CFG.fullGames}. Get the full game to play them all and unlock every hero.`); go('upsell'); return; }
+  if (demoMode) { say('upmsg', `That was ${N / 2} of ${CFG.fullGames}. Get the full game to play them all and unlock every hero.`); go('upsell'); return; }
   const left = lockedList();
   if (!left.length) { toast('ALL HEROES UNLOCKED', '#ffd34d', 1600); resume(); return; }
   chosen = null; lpick = left[0].id; go('loopscr'); paintLoop();
@@ -206,7 +206,7 @@ function paintLoop() {
 }
 function unlockChosen() { if (chosen || !lpick || owned(byId[lpick])) return; chosen = lpick; S.unlocked.push(chosen); save(); paintLoop(); }
 function start(demo) {
-  demoMode = demo; games = demo ? CFG.demoGames : (LOOPQ ? CFG.games.slice(0, 2) : CFG.games); N = games.length; loop = 0; results = []; idx = -1;
+  demoMode = demo; games = (demo ? CFG.demoGames : (LOOPQ ? CFG.games.slice(0, 2) : CFG.games)).flatMap(g => [g, g]); // each game plays twice in a row N = games.length; loop = 0; results = []; idx = -1;
   try { const ac = new (window.AudioContext || window.webkitAudioContext)(); ac.resume(); } catch {}
   go('game'); show(0);
 }
