@@ -1,20 +1,31 @@
 # gamepress Visual Standards
 
-The visual design bible. Extracted from Cherie's three favorite-looking games:
+The visual design bible. Extracted from Cherie's favorite-looking games:
 **Shell Shock 3D** (TMNT 3D brawler — her #1), **Cel City** (Jet Set Radio cel-shaded bakeoff winner),
-and **Roadkill Rig** (pending — could not locate source; send Cherie's link to add it).
+**HOA Warfare** (daytime suburban FPS), **Shell Shock Live** (2D painted TMNT brawler),
+**Shell Shock 16-bit** (2D pixel-art TMNT brawler),
+and **Roadkill Rig** (desert wasteland racer — warm toon + halftone + inverted-hull outlines).
 
 Every gamepress game must look like it belongs in this family. These are rules, not suggestions.
 
 ---
 
-## The Three Presets
+## The Presets
 
-`kit/gpstyle.js` implements all three. One call:
+`kit/gpstyle.js` implements all presets. One call:
 
 ```js
 import { applyVisualStandard } from './kit/gpstyle.js';
-applyVisualStandard(scene, camera, renderer, 'cel'); // 'cel' | 'shellshock' | 'roadkill'
+applyVisualStandard(scene, camera, renderer, 'cel'); // 'cel' | 'shellshock' | 'hoa' | 'roadkill' | 'shellshock-live' | 'shellshock-16bit'
+```
+
+`shellshock-live` and `shellshock-16bit` are the **2D presets** — no Three.js scene needed:
+
+```js
+const style = applyVisualStandard(null, null, null, 'shellshock-live', { w: 960, h: 540 });
+// or the pixel-art preset:
+const style16 = applyVisualStandard(null, null, null, 'shellshock-16bit'); // 384x224 internal res
+style.glow.boom(x, y, k); style.glow.spark(x, y, k, big, cyan); style.glow.draw(ctx);
 ```
 
 ---
@@ -205,9 +216,210 @@ Plus the PICO-8 32-color palette for retro mode (see `PALETTE` in render.js).
 
 ## PRESET 4: `roadkill` — Roadkill Rig
 
-**STATUS: source not found.** Searched `~/workspace`, memory, and the web — no match for a game by this name in Cherie's collection. The preset slot exists in `gpstyle.js` but falls back to `cel` until the source is studied.
+Source: `brad-demos/g/wasteland-van/index.html` ("ROADKILL RIG — Hark Original", spiked war-van stunt racer × zombie horde survival, Three.js r160).
 
-**Action for parent:** ask Cherie for the link. Once provided, study it and fill in this section.
+**Lighting rig**
+```
+HEMI  HemisphereLight('#ffe9cf', '#c9876a', 1.55)   (warm cream sky / dusty rose ground bounce)
+SUN   DirectionalLight('#fff1d6', 2.1) at (-0.55, 1.35, 0.5) normalized
+      castShadow: true, PCFShadowMap, 2048 (1024 on touch)
+      ortho shadow camera ±34, near 1, far 220
+      bias -0.0007, normalBias 0.05
+```
+
+**Fog + background**
+```
+FOG #f6c99a  linear, near 90, far 330
+scene.background = same #f6c99a  (horizon melts into fog — no hard line)
+```
+
+**Sky dome** — custom shader sphere (r=800, BackSide, no fog):
+```
+top     #47a7e0   (warm blue)
+horizon #ffd9a6   (peachy)
+sun glow: tight specular lobe + wide warm halo around sun dir
+uRed uniform: raise toward 1 for danger/boss tint
+  → top mixes to rgb(0.42, 0.12, 0.16), horizon to rgb(1.0, 0.45, 0.28)
+```
+Use `makeSkyDome(PALETTES.roadkill)` — returns `{ mesh, uniforms }`; animate `uniforms.uRed.value`.
+
+**Materials** — `MeshToonMaterial` with the same 3-band gradient `[0,0,0,0,120,120,255,255]` (NearestFilter) as cel, plus the halftone dot shader: 45°-rotated dot grid (`uDot = 5.0 × DPR`), dots darken the shadow band up to 32% with a cool-blue shift (`× vec3(0.84, 0.78, 1.08)`). Every toon material also carries `uFlash`/`uFlashC` uniforms — spike `uFlash` to 1 for hit flash. Use `makeToonMaterial()` (shared with cel).
+
+**Outlines** — inverted hull, BackSide, pushed along per-vertex mitred normal (`odir` attribute = average of distinct face normals). Ink is `#1a0f12` (warmer/darker than cel's `#14101f`):
+```
+char/vehicle  0.0036
+world         0.0030
+prop          0.0032
+```
+Use `withOutline(mesh, kind)` or `outlineMaterial(width, '#1a0f12')` directly.
+
+**Ground** — procedural vertex-colored desert (no texture). Paint per-vertex:
+```
+SAND  #ecb47c   base dunes
+SAND2 #dc9a66   dune variation
+FLAT  #f4cf98   cracked salt flats (patches where noise crosses threshold)
+RUST  #bd6644   scorched zones
+DEEP  #a4523b   deep scorch
+BERM  #d98557   raised berm ring (lerp by radius 148→175)
+```
+Plus painted road: dashed hazard stripes `#fff2c8` along the track line.
+
+**Vehicle/prop rust palette** (scrap, barrels, war-van armor):
+```
+#9c4b2e  #7d5a45  #b86b3c  #6f7d7a  #a3896a  #5d6b78
+```
+
+**Camera** — FOV 62, chase cam behind the vehicle.
+
+**UI** — Impact / "Arial Black", ink `#1a0f12` 3–4px borders, hard offset shadows (`box-shadow: 0 3px 0 #1a0f12`), cream text `#fff4dc`:
+```
+YELLOW #ffcf2e  (accents, active states)
+RED    #e8312a  (goals, danger)
+PINK   #ff4fd8  (evolution cards)
+GREEN  #7dffb0  (repair cards)
+```
+No floating un-stroked text, ever.
+
+**When to use it:** desert/wasteland/outdoor vehicle games, warm golden-hour action. Not for night, not for cities (use shellshock), not for cute (use cel).
+
+---
+
+## PRESET 5: `shellshock-live` — Shell Shock Live (2D painted brawler)
+
+For 2D canvas games. **Key insight: punchy exposure grade + additive glow lights on a dark base.** Everything pops because the backgrounds are hot (brightness 1.3) and every explosion, spark, and muzzle flash stamps a radial glow with `lighter` composite.
+
+### Exposure grade (exact — CSS filters)
+- Backgrounds: `brightness(1.3) contrast(1.05)` — applied to painted bg images
+- Sprites: `brightness(1.28) contrast(1.08)` — applied to character/enemy sheets
+- Expose via offscreen canvas, cache per-image (WeakMap), never re-filter per frame
+
+### Additive glow lights (exact)
+- Offscreen buffer at **1/4 resolution**, `globalCompositeOperation = 'lighter'`
+- Radial gradient sprites (32×32), stamped at light positions, buffer drawn back over scene with `lighter` composite
+- Light kinds (radius, color, alpha from source):
+  - `boom`: r=70, `#ff9a2a`, 0.95 — explosions
+  - `spark`: r=18 (big: 30), `#fff2c0` (cyan variant `#7fdcff`), 0.45–0.7 — hits
+  - `muzzle`: r=36, `#ffb050`, 0.6 — gunfire
+  - `ring`: r=50, `#fff0a0`, 0.5 — shockwaves
+  - `clink`: r=16, `#bfe4ff`, 0.5 — metal hits
+  - `neon`: r=70, `#ff7a1a`, 0.30 — static level glows (flicker animated)
+- Max 48 lights per frame (16 on low-power mode)
+
+### Bloom overlay (exact)
+- `filter: blur(2px)`, `opacity: .35`, `mix-blend-mode: screen` — glow sources only
+
+### Weather (exact)
+- Rain: 70 drops, `rgba(170,190,255,0.35)`, 1px lines
+- Snow: 60 flakes, `#eef4ff`, 1–2px squares
+
+### Backgrounds
+- Painted images, parallax-tiled horizontally, optional mirror flip per tile
+- Fallback (no art): vertical gradient `#141428` → `#2a2a3a`, ground `#2e2a30`
+- Optional color grade overlay (`S.grade`) on top
+
+### Characters
+- **Hand-painted sprite sheets** (webp) — NOT procedural. 4+ frame walk, attack frames
+- White flash silhouette on hit: 5 frames
+- Enemies: distinct silhouettes, color-coded by type
+
+### Hit feedback (mandatory)
+- White flash silhouette (5 frames)
+- Screen shake on heavy hits
+- Hit-stop: freeze on clash/kill
+- Particle burst: 6–12 sprites, gravity, fade
+- Every impact stamps a glow light (boom/spark) — light IS the juice
+
+### Palette (exact)
+```
+BOOM       #ff9a2a  (explosions)
+SPARK      #fff2c0  (hit sparks)
+SPARK_CYAN #7fdcff  (cyan sparks)
+MUZZLE     #ffb050  (gunfire)
+RING       #fff0a0  (shockwaves)
+CLINK      #bfe4ff  (metal hits)
+NEON       #ff7a1a  (static level glows)
+RAIN       rgba(170,190,255,0.35)
+SNOW       #eef4ff
+SKY_TOP    #141428
+SKY_BOTTOM #2a2a3a
+GROUND     #2e2a30
+BG_EXPOSE  brightness(1.3) contrast(1.05)
+SPRITE_EXPOSE brightness(1.28) contrast(1.08)
+```
+
+### 2D usage
+```js
+import { applyVisualStandard } from './kit/gpstyle.js';
+const style = applyVisualStandard(null, null, null, 'shellshock-live', { w: 960, h: 540 });
+// per frame: stamp lights, then composite
+style.glow.boom(x, y, k);      // k = 0..1 progress
+style.glow.spark(x, y, k, big, cyan);
+style.glow.muzzle(x, y, k);
+style.glow.draw(ctx);          // call after drawing sprites, before HUD
+```
+
+---
+
+## PRESET 6: `shellshock-16bit` — Shell Shock 16-bit (2D pixel art)
+
+For 2D pixel-art canvas games. **Key insight: authentic Genesis-era rendering — a tiny 384×224 internal canvas, chunky pixels, and a full CRT treatment on top.** The game never renders at display resolution; it renders small and lets the browser upscale with `image-rendering: pixelated`.
+
+### Internal resolution (exact)
+- Canvas element: **384 × 224** (Sega Genesis). Never change this.
+- CSS: `image-rendering: pixelated` — chunky crisp pixels, never smoothed
+- A second 384×224 canvas (`id="bloom"`) holds glow sources: `filter: blur(2px)`, `opacity: .35`, `mix-blend-mode: screen`
+
+### CRT overlay (exact — a positioned `::after` element)
+Four stacked layers, in this order:
+1. **Glass highlight:** `radial-gradient(120% 90% at 30% 18%, rgba(255,255,255,.10), rgba(255,255,255,.03) 35%, transparent 60%)`
+2. **Vignette:** `radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.25) 100%)`
+3. **Scanlines:** `repeating-linear-gradient(to bottom, transparent 0 3px, rgba(0,0,0,.09) 3px 6px)`
+4. **Aperture grille:** `repeating-linear-gradient(to right, rgba(255,40,40,.05) 0 1px, rgba(40,255,80,.05) 1px 2px, rgba(60,90,255,.05) 2px 3px)`
+- Plus: `box-shadow: inset 0 0 28px 8px rgba(0,0,0,.35), inset 0 0 10px 2px rgba(0,0,0,.3), inset 0 0 4px 1px rgba(0,0,0,.6)` and `border-radius: 6% / 9%` (barrel curvature)
+
+### Skyline (exact — procedural, two parallax layers)
+- **Far layer:** `#161a38`, baseline y=112, heights 30–80px, widths 18–40px
+- **Near layer:** `#0a0b18`, baseline y=136, heights 20–70px; **lit windows** `#ffd27a`, 2×3px, on a 6×7px grid wherever the hash > 0.8
+- Drawn as flat rects — no gradients on the buildings themselves
+
+### Additive glow lights (same engine as shellshock-live)
+- Offscreen buffer at 1/4 resolution, `globalCompositeOperation = 'lighter'`, gain 0.62
+- Static neon level glows: `#ff7a1a`, r=70, alpha 0.30, flicker ±0.25
+- Max 48 lights per frame; auto-degrade to 16 at 1/8 res, then off, on low-power devices
+
+### Hit feedback (exact)
+- **Screen shake** scaled by hit strength (max ~6px at 384×224 scale)
+- **Zoom punch:** scale 1.03× on big events
+- Camera shake toggleable: `?shake=off` / localStorage `ssla_shake`
+
+### Palette (exact — most-used colors from source)
+```
+YELLOW     #ffe060  (highlights, UI)
+YELLOW_WM  #ffd27a  (warm yellow, lit windows)
+RED        #e8302a  (damage, danger)
+RED_HOT    #ff4a3a  (hot red)
+ORANGE     #ff8c1a  (fire, neon)
+GREEN      #7fd85a  (turtle green)
+GREEN_DK   #3fae3a  (dark green)
+CYAN       #7fdcff  (cyan sparks)
+GREY       #c8ccd6  (concrete, steel)
+GREY_DK    #9aa3ad
+INK        #05040a  (near-black backgrounds)
+INK_BLUE   #10101c
+PURPLE_DK  #1a0e2c  (night purple)
+BROWN      #8a5a2a  (wood, dirt)
+```
+
+### 2D usage
+```js
+import { applyVisualStandard } from './kit/gpstyle.js';
+const style = applyVisualStandard(null, null, null, 'shellshock-16bit');
+// canvas: <canvas id="game" width="384" height="224"> with image-rendering: pixelated
+// overlay: apply style.crt.css to a ::after element on the screen wrapper
+// skyline: style.skyline.far / .near / .window drive procedural building drawing
+// per frame: style.glow.boom(x, y, k); ... style.glow.draw(ctx);
+style.glow.neon(x, y, r, flicker);  // static level glows
+```
 
 ---
 
