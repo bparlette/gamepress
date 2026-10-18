@@ -6,13 +6,18 @@
 //   gamepress drive <plan.json> [--out dir] frame-locked scripted playthrough of a web game -> captioned MP4 with audio
 //   gamepress catalog <games.json> --id x --title "X" --category "Y" --path g/x/index.html [--still shot.jpg] [--orientation portrait]
 //                                           add/update a game on a demo page catalog and build its thumbnail
-//   gamepress voices <script.json> [--dir press]  batch-synthesize voice lines for a game
+//   gamepress voices <script.json> [--dir press] [--engine edge|kokoro]  batch-synthesize voice lines for a game
+//                                           (Edge TTS = network/MP3; --engine kokoro = local/WAV, offline)
 //   gamepress voice "Your script here" [--voice trailer|character|narrator|VOICE_ID] [--speed 1.0] [--out out.wav]
-//                                           local Kokoro TTS (free, no API); run `gamepress setup --tts` once first
-//   gamepress setup --tts                   download the Kokoro TTS model (~340MB, one time, never committed)
+//                                           local Kokoro TTS (free, no API); run `gamepress setup` once first
+//   gamepress setup [--tts]                 full environment bootstrap (doctor + download all tools.json tools); --tts = Kokoro only
 //   gamepress tools [--check]               list external tools (sizes, install status); --check for upstream updates
+//   gamepress approve <id> [--notes ...]    approve a vertical-slice demo; define full-game expansion goals
+//   gamepress expand <id> [--blueprint]     token-saving AI blueprint, or scaffold a multi-level world (gplevels.js)
+//   gamepress --help | gamepress <cmd> --help   generated help for all commands
 //   gamepress roblox <file.rbxl> --universe N --place N [--type Published|Saved] [--rojo project.json] [--live]
 //                                           publish a Roblox place via Open Cloud (dry run unless --live)
+//   gamepress cloud drive <plan.json> | voice <script.txt> | test   free GitHub runners, auto-falls-back to local
 //   gamepress scenes <video> [--count 12]   any game: pull the best stills and clips out of a screen recording
 //   gamepress pack [--platforms steam,itch,crazygames,social] [--focus 0.5,0.4]
 //                                           crop/scale/encode everything each store needs -> press/out/<platform>
@@ -46,7 +51,9 @@ import { gatherStats } from '../lib/stats.mjs';
 import { listPresets, loadPreset, savePreset, deletePreset, sanitizeAnswers, readAnswersFile, recordLastAnswers, readLastAnswers, promptAnswers } from '../lib/presets.mjs';
 import { printImageWorkflow, printImageIntake, intakeQuestions, generateViewPrompts, answersToDescription } from '../lib/img2threejs.mjs';
 import { speak, setupTts, VOICE_PRESETS } from '../lib/tts.mjs';
-import { listTools, checkUpdates } from '../lib/tools.mjs';
+import { listTools, checkUpdates, downloadTool, loadManifest } from '../lib/tools.mjs';
+import { approveDemo, getApproval, listApprovals, generateBlueprint, scaffoldExpansion } from '../lib/expand.mjs';
+import { cloudAvailable, cloudOrLocal } from '../lib/cloud.mjs';
 import { createInterface as _rl } from 'node:readline';
 
 /** One-off free-text prompt (only called when --prompt already verified a TTY). */
@@ -64,6 +71,15 @@ async function _askChoice(q, options) {
     const a = (await new Promise(r => rl.question(`${q}\n${menu}\nchoice [1-${options.length}]: `, r))).trim();
     const n = parseInt(a, 10);
     return options[(isNaN(n) ? 1 : Math.min(Math.max(n, 1), options.length)) - 1].id;
+  } finally { rl.close(); }
+}
+
+/** One-off yes/no prompt: returns true for yes. */
+async function _askYesNo(q) {
+  const rl = _rl({ input: process.stdin, output: process.stdout });
+  try {
+    const a = (await new Promise(r => rl.question(`${q} [y/N] `, r))).trim().toLowerCase();
+    return a === 'y' || a === 'yes';
   } finally { rl.close(); }
 }
 
@@ -141,32 +157,20 @@ function fitFilter(w, h, fit = 'cover', focus = [0.5, 0.5]) {
 const parseFocus = s => (s ? s.split(',').map(Number) : [0.5, 0.5]);
 
 // ------------------------------------------------------------------ capture (web games, headless Chrome over CDP)
+// Unified on lib/cdp.mjs (F8): one Chrome driver, findChrome(), file:// fixes.
 async function capture(planFile) {
+  const { launchChrome } = await import('../lib/cdp.mjs');
   const plan = JSON.parse(readFileSync(planFile, 'utf8'));
   const [W, H] = plan.viewport || [1920, 1080];
-  const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
   ensure(join(RAW, 'shots')); ensure(join(RAW, 'clips'));
-  const profile = mkdtempSync(join(tmpdir(), 'gamepress-'));
-  const port = 9300 + Math.floor(Math.random() * 600);
-  const chrome = spawn(CHROME, ['--headless=new', `--remote-debugging-port=${port}`, `--window-size=${W},${H}`, '--use-angle=metal', '--hide-scrollbars',
-    '--autoplay-policy=no-user-gesture-required', '--mute-audio', `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
-  const finish = async code => {
-    if (chrome.exitCode === null) { const ex = new Promise(r => chrome.once('exit', r)); chrome.kill('SIGKILL'); await Promise.race([ex, sleep(3000)]); }
-    rmSync(profile, { recursive: true, force: true, maxRetries: 8, retryDelay: 250 });
-    process.exit(code);
-  };
+  let onFrame = null;
+  const chrome = await launchChrome({ width: W, height: H,
+    onEvent: (method, params, send) => { if (method === 'Page.screencastFrame') { send('Page.screencastFrameAck', { sessionId: params.sessionId }); onFrame?.(params); } } });
+  const { send } = chrome;
+  const finish = async code => { await chrome.close().catch(() => {}); process.exit(code); };
   const watchdog = setTimeout(() => { console.error('capture timed out'); finish(2); }, (plan.timeoutSec || 600) * 1000);
   watchdog.unref?.();
   try {
-    let wsUrl;
-    for (let i = 0; i < 60 && !wsUrl; i++) { await sleep(250); try { wsUrl = (await (await fetch(`http://127.0.0.1:${port}/json/list`)).json()).find(t => t.type === 'page')?.webSocketDebuggerUrl; } catch {} }
-    if (!wsUrl) throw new Error('Chrome did not start (set CHROME=/path/to/chrome)');
-    const ws = new WebSocket(wsUrl);
-    await new Promise((r, j) => { ws.onopen = r; ws.onerror = j; });
-    let id = 0; const pending = new Map();
-    let onFrame = null;
-    ws.onmessage = m => { const d = JSON.parse(m.data); if (d.id && pending.has(d.id)) { pending.get(d.id)(d); pending.delete(d.id); } else if (d.method === 'Page.screencastFrame') { send('Page.screencastFrameAck', { sessionId: d.params.sessionId }); onFrame?.(d.params); } };
-    const send = (method, params = {}) => new Promise(r => { const i = ++id; pending.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
     await send('Page.enable'); await send('Runtime.enable');
     await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
     await send('Page.navigate', { url: plan.url });
@@ -192,22 +196,23 @@ async function capture(planFile) {
     // record: Chrome's screencast pushes a frame whenever the page repaints (far faster than polling
     // screenshots); frames keep their real timestamps and are rebuilt into a constant-30fps MP4
     const record = async r => {
+      const profile = mkdtempSync(join(tmpdir(), 'gamepress-'));
       const frames = join(profile, `rec_${r.name}`); ensure(frames);
       const stamps = [];
       onFrame = f => { const n = stamps.length; writeFileSync(join(frames, `${String(n).padStart(6, '0')}.jpg`), Buffer.from(f.data, 'base64')); stamps.push(f.metadata.timestamp); };
       await send('Page.startScreencast', { format: 'jpeg', quality: 88, maxWidth: W, maxHeight: H, everyNthFrame: 1 });
       await Promise.all([run(r.steps || []), sleep((r.seconds ?? 6) * 1000)]);
       await send('Page.stopScreencast'); onFrame = null;
-      if (stamps.length < 2) { console.error(`  clip ${r.name}: Chrome sent ${stamps.length} frames (is the page animating?)`); return; }
+      if (stamps.length < 2) { console.error(`  clip ${r.name}: Chrome sent ${stamps.length} frames (is the page animating?)`); rmSync(profile, { recursive: true, force: true }); return; }
       const list = stamps.map((t, i) => `file '${join(frames, `${String(i).padStart(6, '0')}.jpg`)}'\nduration ${(i + 1 < stamps.length ? stamps[i + 1] - t : 0.04).toFixed(4)}`).join('\n');
       writeFileSync(join(frames, 'list.txt'), list);
       const out = join(RAW, 'clips', `${r.name}.mp4`);
       ffmpeg('-f', 'concat', '-safe', '0', '-i', join(frames, 'list.txt'), '-vf', 'fps=30,format=yuv420p', '-c:v', 'libx264', '-crf', '17', out);
       console.log(`  clip ${out} (${stamps.length} frames over ${(stamps.at(-1) - stamps[0]).toFixed(1)}s)`);
-      rmSync(frames, { recursive: true, force: true });
+      rmSync(profile, { recursive: true, force: true });
     };
     await run(plan.steps || []);
-    ws.close(); clearTimeout(watchdog);
+    clearTimeout(watchdog);
     await finish(0);
   } catch (err) { console.error('capture failed:', err.message); await finish(1); }
 }
@@ -370,11 +375,83 @@ function init() {
 const JSON_OUT = argv.includes('--json');
 const LOCAL_AI = isLocalAiEnabled({ localAi: argv.includes('--local-ai') ? true : argv.includes('--no-local-ai') ? false : undefined });
 function die(msg) { JSON_OUT ? console.log(JSON.stringify({ ok: false, error: String(msg).split('\n')[0] })) : console.error(String(msg).split('\n')[0]); process.exit(1); }
+
+// ------------------------------------------------------------------ help (A1: generated from command definitions)
+const HELP = {
+  init: ['create press/ with a starter capture plan', 'gamepress init [dir]', ['--dir press']],
+  capture: ['drive a web game in headless Chrome: stills + clips -> press/raw', 'gamepress capture <plan.json>', ['--dir press']],
+  drive: ['frame-locked scripted playthrough of a web game -> captioned MP4 with audio', 'gamepress drive <plan.json> [--out dir] [--quick N] [--vo "text"] [--dry-run]', ['--out press/video', '--quick 4 (smoke test: low-res, short)', '--vo "line" (voiceover)', '--dry-run (validate only)']],
+  catalog: ['add/update a game on a demo page catalog and build its thumbnail', 'gamepress catalog <games.json> --id x --title "X" --path g/x/index.html', ['--id', '--title', '--category', '--path', '--still shot.jpg', '--orientation portrait', '--keys {}', '--labels {}']],
+  scenes: ['pull the best stills and clips out of a screen recording', 'gamepress scenes <video> [--count 12]', ['--count 12', '--threshold 0.25']],
+  pack: ['crop/scale/encode everything each store needs -> press/out/<platform>', 'gamepress pack [--platforms steam,itch] [--focus 0.5,0.4] [--title "Game"]', ['--platforms', '--focus x,y', '--title', '--no-logo']],
+  check: ['verify press/out against each store\'s requirements', 'gamepress check', ['--dir press']],
+  auto: ['zero-AI path: idea -> playable game + video in one command', 'gamepress auto "<idea>" [--track demo] [--prompt] [--from-image] [--lego] [--preset name]', ['--id x', '--track demo|web-store|hook', '--style toon|comic|...', '--answers a.json', '--preset name', '--prompt (interactive)', '--from-image (img2threejs)', '--image-mode upload|describe|game|prompt-me', '--image-desc "..."', '--lego', '--local-ai', '--heal', '--vo']],
+  lego: ['build a composable gplego game from an idea', 'gamepress lego <id> --idea "<idea>" [--spec spec.json]', ['--idea', '--spec']],
+  make: ['build a whole game from a recipe + small JSON spec', 'gamepress make <id> --recipe <name> --spec spec.json', ['--recipe', '--spec', '--answers a.json', '--force']],
+  recipes: ['list the 24 game recipes (or regenerate docs/RECIPES-CATALOG.md)', 'gamepress recipes [--md]', ['--md (write docs)', '--json']],
+  new: ['scaffold a new game shell', 'gamepress new <id> [--games dir] [--title T] [--target web|roblox]', ['--games', '--title', '--target']],
+  test: ['headless playtest: must print "ok": true', 'gamepress test <game dir or url> [--root dir]', ['--root']],
+  botcheck: ['prove the demo loses then wins (bot playtest)', 'gamepress botcheck <game-id> [--seconds 40]', ['--seconds 40']],
+  status: ['what is done/stale, what is next (token-saving)', 'gamepress status <game-id> [--json]', ['--json', '--games', '--catalog']],
+  all: ['run every missing/stale step of a track in order', 'gamepress all <id> --track hook|demo|web-store [--heal] [--vo]', ['--track', '--force', '--heal', '--vo', '--local-ai']],
+  grade: ['score game + hook video against the quality bar', 'gamepress grade <id> [--vision] [--threshold 80]', ['--vision (Ollama)', '--threshold 80']],
+  heal: ['auto-repair lint/test bugs (optionally with local AI)', 'gamepress heal <id> [--no-local-ai]', ['--no-local-ai']],
+  hooks: ['render 3 opening A/B hook variants', 'gamepress hooks <id>', []],
+  stats: ['aggregate grade + YouTube/itch stats into a promotion verdict', 'gamepress stats [id]', []],
+  'local-ai': ['probe optional local Ollama coprocessor', 'gamepress local-ai', []],
+  ideate: ['research a game idea: archetype, one-ups, questions', 'gamepress ideate "<idea>" [--offline]', ['--offline']],
+  viral: ['scan a game for viral signals; outputs 4 questions to answer before the drive plan', 'gamepress viral <game-dir>', []],
+  preset: ['save/reuse named answer presets', 'gamepress preset save <name> | list | show <name> | delete <name>', []],
+  doctor: ['check every tool the pipeline needs', 'gamepress doctor', []],
+  lint: ['catch personal paths, secrets, external requests, huge bundles', 'gamepress lint <id>', ['--games']],
+  copy: ['write store copy (description, tags) for a game', 'gamepress copy <id>', []],
+  build: ['build a target bundle', 'gamepress build <id> --target web|steam|roblox', ['--target']],
+  host: ['publish to a host (dry run unless --live)', 'gamepress host <itch|crazygames|steam|youtube|cloudflare|github> <id> [--live]', ['--live', '--user', '--dir publish']],
+  deploy: ['DEPRECATED alias of `host` — use `gamepress host` instead', 'gamepress deploy <host> <id> [--live]', ['--live']],
+  repo: ['init git repo + layout (+ GitHub creation)', 'gamepress repo <id> [--github] [--private]', ['--github', '--private', '--examples']],
+  bundle: ['zip a game dir for distribution', 'gamepress bundle <game dir> [--out dist]', ['--out dist']],
+  'publish-demo': ['add game to the GitHub Pages demo catalog', 'gamepress publish-demo <id> --catalog <games.json> [--push]', ['--catalog', '--push', '--video']],
+  'publish-pack': ['package store deliverables + manifest', 'gamepress publish-pack <id> [--games dir]', ['--games', '--catalog', '--video']],
+  roblox: ['publish a Roblox place via Open Cloud (dry run unless --live)', 'gamepress roblox <file.rbxl> --universe N --place N [--live]', ['--universe', '--place', '--type Published|Saved', '--rojo project.json', '--live']],
+  'roblox-ship': ['save draft -> Luau test -> publish a Roblox place', 'gamepress roblox-ship <file.rbxl> --universe N --place N [--test t.luau]', ['--universe', '--place', '--test']],
+  'roblox-test': ['run a Luau test script against a place version', 'gamepress roblox-test <script.luau> [--version N]', ['--version']],
+  tracks: ['list tracks (or one track\'s tools)', 'gamepress tracks [name]', []],
+  research: ['research a YouTube Shorts channel for the playbook', 'gamepress research <channel/shorts url> [--out research]', ['--out']],
+  voices: ['batch-synthesize voice lines from JSON (Edge TTS, network; --engine kokoro for offline)', 'gamepress voices <script.json> [--dir press] [--engine edge|kokoro]', ['--dir press', '--engine edge']],
+  voice: ['one-liner local TTS via Kokoro (free, offline)', 'gamepress voice "Your script here" [--voice trailer|character|narrator|VOICE_ID]', ['--voice narrator', '--speed 1.0', '--out file.wav']],
+  setup: ['environment bootstrap: doctor + download all tools.json tools (or just --tts)', 'gamepress setup [--tts]', ['--tts (Kokoro only)']],
+  tools: ['list external tools (sizes, install status); --check for upstream updates', 'gamepress tools [--check]', ['--check']],
+  version: ['bump version + changelog template', 'gamepress version [major|minor|patch]', []],
+  icons: ['PWA icon set + manifest + OG snippet from one logo', 'gamepress icons --logo <logo.png> [--name Title]', ['--logo', '--name']],
+  approve: ['approve a vertical-slice demo; define full-game expansion goals', 'gamepress approve <id> [--notes "..."] [--levels N] [--worlds "a,b,c"]', ['--notes', '--levels 5', '--worlds']],
+  expand: ['token-saving AI blueprint (--blueprint) or scaffold multi-level world', 'gamepress expand <id> [--blueprint] [--levels N] [--worlds "a,b,c"]', ['--blueprint', '--levels', '--worlds']],
+  context: ['~400-token AI cheat sheet (the token-saving entry point)', 'gamepress context [--2d|--3d|--lego|--recipe <name>]', ['--2d', '--3d', '--lego', '--recipe']],
+  cloud: ['run a slow job on free GitHub runners, falling back to local automatically', 'gamepress cloud drive <plan.json> | voice <script.txt> | test', ['--out dir', '--quick N', '--voice narrator', '--speed 1.0', '--local (skip cloud)']],
+  help: ['this help (or per-command: gamepress <cmd> --help)', 'gamepress --help | gamepress <cmd> --help', []],
+};
+function printHelp() {
+  const cmds = Object.keys(HELP).filter(c => c !== 'help').sort();
+  console.log('gamepress — idea to hosted game, every step scriptable. No npm dependencies.\n');
+  console.log('Usage: gamepress <command> [options]   (add --json to any command for machine output)\n');
+  console.log('Commands:');
+  const w = Math.max(...cmds.map(c => c.length));
+  for (const c of cmds) console.log(`  ${c.padEnd(w)}  ${HELP[c][0]}`);
+  console.log('\nGlobal flags: --json, --local-ai, --no-local-ai, --heal, --vo, --answers, --preset, --prompt');
+  console.log('Docs: AGENTS.md (start here), docs/AI-CONTRACT.md (AI driver rules), docs/TOOLING.md');
+}
+function printCommandHelp(c) {
+  const h = HELP[c];
+  if (!h) die(`no help for "${c}"`);
+  console.log(`gamepress ${c} — ${h[0]}\n\nUsage:\n  ${h[1]}`);
+  if (h[2].length) console.log('\nFlags:\n' + h[2].map(f => `  ${f}`).join('\n'));
+}
+if (cmd === '--help' || cmd === '-h' || cmd === 'help') { printHelp(); process.exit(0); }
+if ((argv.includes('--help') || argv.includes('-h')) && cmd && HELP[cmd]) { printCommandHelp(cmd); process.exit(0); }
 const CFG = () => config({ games: flag('games'), catalog: flag('catalog'), video: flag('video'), publish: flag('publish'), localAi: LOCAL_AI });
 const need = (what) => positional[0] || die(`usage: gamepress ${what} <game-id> [--games dir] [--catalog games.json] [--json]`);
 const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_OUT ? undefined : 1) : text(o));
 
-({ init, capture: () => capture(positional[0] || die('usage: gamepress capture <plan.json>')),
+const _dispatch = { init, capture: () => capture(positional[0] || die('usage: gamepress capture <plan.json>')),
   catalog: () => { const g = k => flag(k); catalogCommand({ catalogPath: positional[0] || die('usage: gamepress catalog <games.json> --id ...'), still: g('still'), thumbDir: g('thumbdir') || 'thumbs',
     entry: { id: g('id') || die('--id required'), title: g('title') || g('id'), category: g('category') || 'Other', keys: JSON.parse(g('keys') || '{}'), labels: JSON.parse(g('labels') || '{}'), autostart: [], orientation: g('orientation') || 'any', path: g('path') || die('--path required'), ...(g('note') ? { note: g('note') } : {}) } }); console.log('catalog updated'); },
   research: () => console.log(JSON.stringify(research(positional[0] || die('usage: gamepress research <channel/shorts url>'), flag('out', 'research')), null, 1)),
@@ -451,27 +528,99 @@ const out = (o, text) => console.log(JSON_OUT || !text ? JSON.stringify(o, JSON_
   lint: () => { const r = lint(need('lint'), CFG().games); out(r, o => o.ok ? 'clean' : o.problems.join('\n')); process.exit(r.ok ? 0 : 1); },
   copy: () => copyDraft(need('copy'), { examples: CFG().examples, outDir: CFG().publish, localAi: LOCAL_AI }).then(c => out({ copy: c }, o => 'wrote ' + o.copy)).catch(e => die('copy: ' + e.message)),
   build: () => out(buildTarget(need('build --target web|steam|roblox'), flag('target', 'web'), { gamesDir: CFG().games }), o => JSON.stringify(o)),
-  deploy: () => hosts[positional[0]]?.upload(JSON.parse(readFileSync(join(flag('dir', 'publish'), positional[1] || die('usage: gamepress deploy <itch|crazygames|steam|youtube|cloudflare|github> <id> [--live]'), 'manifest.json'), 'utf8')), { dryRun: !argv.includes('--live'), user: flag('user') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die(e.message)) || die('unknown host'),
+  // deploy is a deprecated alias of host (C1/A8): one implementation, deprecation warning, removal next release.
+  _doHost: () => hosts[positional[0]]?.upload(JSON.parse(readFileSync(join(flag('dir', 'publish'), positional[1] || die('usage: gamepress host <itch|crazygames|steam|youtube|cloudflare|github> <id> [--live]'), 'manifest.json'), 'utf8')), { dryRun: !argv.includes('--live'), user: flag('user') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die(e.message)) || die('unknown host'),
+  deploy: function () { console.error('DEPRECATED: `gamepress deploy` is now `gamepress host` (same args). This alias will be removed in a future release.'); return this._doHost(); },
+  host: function () { return this._doHost(); },
   botcheck: () => botCheck(positional[0] ? resolve(CFG().games, positional[0]) : die('usage: gamepress botcheck <game-id> [--seconds 40]'), { root: CFG().games, seconds: +flag('seconds', 40) }).then(r => out(r, o => `${o.ok ? 'OK' : 'CHECK'}: ${o.ends.map(e => (e.win ? 'W' : 'L') + e.t).join(' ')}${o.errors.length ? ' errors ' + o.errors : ''}`)).catch(e => die('botcheck: ' + e.message)),
   test: () => testGame(positional[0] || die('usage: gamepress test <game dir or url> [--root dir]'), { root: flag('root') }).then(v => { console.log(JSON.stringify(v, null, 1)); process.exit(v.ok ? 0 : 1); }).catch(e => die('test failed: ' + e.message)),
   bundle: () => console.log(bundle(positional[0] || die('usage: gamepress bundle <game dir> [--out dist]'), flag('out', 'dist'))),
   'publish-demo': () => console.log(JSON.stringify(publishDemo(positional[0] || die('usage: gamepress tracks [name] | publish-demo <id> --catalog <games.json> [--push]'), { catalog: flag('catalog') || die('--catalog required'), videoDir: flag('video', 'press/video'), push: argv.includes('--push') }))),
   repo: () => out(repoInit(need('repo'), { games: CFG().games, examples: flag('examples', 'examples'), github: argv.includes('--github'), isPrivate: argv.includes('--private') }), o => `${o.id}: ${o.done.join('; ') || 'nothing new'}${o.skipped.length ? '\n  skipped: ' + o.skipped.join('; ') : ''}`),
   'publish-pack': () => console.log(JSON.stringify(publishPack(positional[0] || die('usage: gamepress publish-pack <id> --games <dir>'), { gamesDir: flag('games'), catalog: flag('catalog'), videoDir: flag('video', 'press/video') }), null, 1)),
-  host: () => hosts[positional[0]]?.upload(JSON.parse(readFileSync(join(flag('dir', 'publish'), positional[1] || die('usage: gamepress host <itch|crazygames|steam|youtube|cloudflare|github> <id> [--live]'), 'manifest.json'), 'utf8')), { dryRun: !argv.includes('--live'), user: flag('user') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die(e.message)) || die('unknown host'),
   'roblox-ship': () => shipRoblox({ file: positional[0], universeId: flag('universe'), placeId: flag('place'), testScript: flag('test') }).then(r => { console.log(JSON.stringify(r, null, 1)); process.exit(r.ok ? 0 : 1); }).catch(e => die('roblox-ship: ' + e.message)),
   'roblox-test': () => runLuau({ script: readFileSync(positional[0] || die('usage: gamepress roblox-test <script.luau> [--version N]'), 'utf8'), version: flag('version') }).then(r => { console.log(JSON.stringify(r, null, 1)); process.exit(r.ok ? 0 : 1); }).catch(e => die('roblox-test: ' + e.message)),
   roblox: () => publishRoblox({ file: positional[0], universeId: flag('universe'), placeId: flag('place'), versionType: flag('type', 'Published'), rojoProject: flag('rojo'), live: argv.includes('--live') }).then(r => console.log(JSON.stringify(r, null, 1))).catch(e => die('roblox: ' + e.message)),
   tracks: () => { const t = JSON.parse(readFileSync(join(HERE, '..', 'tracks.json'), 'utf8')); const k = positional[0]; console.log(JSON.stringify(k ? t[k] || die('tracks: shared | demo | web-store | roblox') : t, null, 1)); },
   drive: () => argv.includes('--dry-run') ? out(dryRun(positional[0] || die('usage: gamepress drive <plan.json> [--dry-run]'))) : drive(positional[0] || die('usage: gamepress drive <plan.json>'), { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false, vo: flag('vo') || argv.includes('--vo') }).catch(e => die('drive failed: ' + e.message)), scenes: () => scenes(positional[0]), pack, check,
-  voices: () => voices(positional[0] || die('usage: gamepress voices <script.json> [--dir press]'), { dir: flag('dir', 'press') }).then(r => out({ command: 'voices', ...r }, o => `voices: ${o.synthesized} synthesized, ${o.skipped} skipped, ${o.failed} failed → ${o.manifest}`)).catch(e => die('voices: ' + e.message)),
+  voices: () => voices(positional[0] || die('usage: gamepress voices <script.json> [--dir press] [--engine edge|kokoro]'), { dir: flag('dir', 'press'), engine: flag('engine', 'kokoro') }).then(r => out({ command: 'voices', ...r }, o => `voices: ${o.synthesized} synthesized, ${o.skipped} skipped, ${o.failed} failed → ${o.manifest}`)).catch(e => die('voices: ' + e.message)),
   voice: () => { try { const r = speak(positional.join(' ') || die(`usage: gamepress voice "Your script here" [--voice ${Object.keys(VOICE_PRESETS).join('|')}|VOICE_ID] [--speed 1.0] [--out file.wav]`), { voice: flag('voice', 'narrator'), speed: flag('speed') ? Number(flag('speed')) : undefined, output: flag('out') }); out(r, o => `voice → ${o.file} (${o.seconds}s, voice=${o.voice}, speed=${o.speed})`); } catch (e) { die('voice: ' + e.message); } },
-  setup: () => { if (!argv.includes('--tts')) die('usage: gamepress setup --tts'); try { const r = setupTts(); out(r, o => `tts ready → ${o.dir}/ (${o.files.join(', ')})`); } catch (e) { die('setup: ' + e.message); } },
+  setup: () => {
+    if (argv.includes('--tts')) { try { const r = setupTts(); out(r, o => `tts ready → ${o.dir}/ (${o.files.join(', ')})`); } catch (e) { die('setup: ' + e.message); } return; }
+    // Full environment bootstrap (A3): doctor + download every tools.json tool + next steps.
+    const d = doctor();
+    console.log('doctor:');
+    d.rows.forEach(x => console.log(`  ${x.ok ? '✓' : x.optional ? '·' : '✗'} ${x.name}${x.fix && !x.ok ? '  -> ' + x.fix : ''}`));
+    const manifest = loadManifest();
+    for (const name of Object.keys(manifest)) {
+      try { const r = downloadTool(name); console.log(`${name}: ${r.files.map(f => f.file + ' ' + (f.verified || f.action)).join(', ')}`); }
+      catch (e) { console.log(`${name}: FAILED — ${e.message.split('\n')[0]}`); }
+    }
+    console.log('\nnext: gamepress auto "<idea>" --track demo   (or: gamepress context for the 400-token cheat sheet)');
+  },
   tools: () => { try {
     if (argv.includes('--check')) { const r = checkUpdates(); out({ command: 'tools --check', updates: r }, o => o.updates.map(u => `${u.tool}: ${u.current} → ${u.latest}${u.update ? '  UPDATE AVAILABLE' : ''}`).join('\n')); }
-    else { const r = listTools(); out({ command: 'tools', tools: r }, o => o.tools.map(t => `${t.tool} ${t.version} — ${t.total_mb}MB ${t.installed ? '[installed]' : '[missing]'} — ${t.description}`).join('\n')); }
+    else { const r = listTools(); out({ command: 'tools', tools: r }, o => o.tools.map(t => `${t.tool} ${t.version} — ${t.network ? 'network service' : t.total_mb + 'MB'} ${t.installed === null ? '[service]' : t.installed ? '[installed]' : '[missing]'} — ${t.description}`).join('\n')); }
   } catch (e) { die('tools: ' + e.message); } },
   version: () => { try { const r = bumpVersion(positional[0] || 'patch', { dir: flag('dir', '.') }); out({ command: 'version', ...r }, o => `${o.from} → ${o.to} (${o.file}); changelog template added to ${o.changelog}`); } catch (e) { die('version: ' + e.message); } },
-  icons: () => { try { const r = makeIcons(flag('logo') || die('usage: gamepress icons --logo <logo.png> [--name Title]'), { dir: flag('dir', 'press'), name: flag('name', 'Game') }); out({ command: 'icons', ...r }, o => `icons → ${o.dir}/ (${o.files.join(', ')})`); } catch (e) { die('icons: ' + e.message); } } }[cmd] ||
-  (() => die('usage: gamepress auto | lego | context | heal | hooks | stats | local-ai | recipes | preset | ideate | make | doctor | lint | status | all | grade | copy | build | deploy | host | repo | botcheck | research | new | test | bundle | publish-pack | roblox | init | capture | drive | catalog | scenes | pack | check | voices | voice | setup | tools | version | icons   (options: --json, --local-ai, --no-local-ai, --heal, --vo, --answers, --preset, --prompt)')))();
+  icons: () => { try { const r = makeIcons(flag('logo') || die('usage: gamepress icons --logo <logo.png> [--name Title]'), { dir: flag('dir', 'press'), name: flag('name', 'Game') }); out({ command: 'icons', ...r }, o => `icons → ${o.dir}/ (${o.files.join(', ')})`); } catch (e) { die('icons: ' + e.message); } },
+  approve: () => { try {
+    const r = approveDemo(need('approve'), { notes: flag('notes', ''), levels: flag('levels') ? Number(flag('levels')) : 5,
+      worlds: flag('worlds') ? flag('worlds').split(',').map(s => s.trim()) : [], gamesDir: CFG().games, stateDir: CFG().state });
+    out(r, o => `${o.id}: APPROVED — ${o.approval.expansion.levels} levels${o.approval.expansion.worlds.length ? ' across ' + o.approval.expansion.worlds.join(', ') : ''}${o.notes ? '\n  notes: ' + o.notes : ''}\n  next: gamepress expand ${o.id} --blueprint`);
+  } catch (e) { die('approve: ' + e.message); } },
+  expand: () => { try {
+    const id = need('expand');
+    const opts = { gamesDir: CFG().games, stateDir: CFG().state, levels: flag('levels') ? Number(flag('levels')) : undefined,
+      worlds: flag('worlds') ? flag('worlds').split(',').map(s => s.trim()) : [] };
+    if (argv.includes('--blueprint')) { const b = generateBlueprint(id, opts); out(b, o => JSON.stringify(o, null, 1)); return; }
+    const r = scaffoldExpansion(id, { ...opts, levels: opts.levels || 5 });
+    out(r, o => `${o.id}: scaffolded ${o.levels} levels → ${o.gameFile} (demo backed up to ${o.backup})\n  kit: ../_vendor/gplevels.js synced\n  next: build each level per the blueprint, then: gamepress all ${o.id} --track web-store`);
+  } catch (e) { die('expand: ' + e.message); } },
+  cloud: () => {
+    // gamepress cloud <drive|voice|test> — cloud-first, local-fallback (Cherie's rule:
+    // never error on cloud unavailability, just run it locally).
+    const sub = positional[0] || die('usage: gamepress cloud drive <plan.json> | voice <script.txt> | test [--local]');
+    if (argv.includes('--local')) process.stderr.write('cloud: --local flag — skipping cloud\n');
+    const localDrive = () => drive(positional[1] || die('usage: gamepress cloud drive <plan.json>'),
+      { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false,
+        vo: flag('vo') || argv.includes('--vo') }).catch(e => die('drive failed: ' + e.message));
+    const localVoice = () => {
+      const scriptFile = positional[1] || die('usage: gamepress cloud voice <script.txt> [--voice x] [--speed N] [--out dir]');
+      const lines = readFileSync(scriptFile, 'utf8').split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#'));
+      const outDir = flag('out', join(DIR, 'vo')); mkdirSync(outDir, { recursive: true });
+      const voice = flag('voice', 'narrator'), speed = flag('speed') ? Number(flag('speed')) : undefined;
+      const files = lines.map((line, i) => {
+        const f = join(outDir, `line-${String(i + 1).padStart(3, '0')}.wav`);
+        return speak(line, { voice, speed, output: f }).file;
+      });
+      return { files, count: files.length };
+    };
+    const localTest = () => { execFileSync('npm', ['test'], { stdio: 'inherit', cwd: join(HERE, '..') }); return { ok: true }; };
+    if (sub === 'drive') {
+      const plan = positional[1] || die('usage: gamepress cloud drive <plan.json> [--out dir] [--quick N]');
+      if (argv.includes('--local')) return localDrive();
+      return cloudOrLocal('drive', localDrive, {
+        inputs: { plan, out: flag('out', 'press/video'), quick: argv.includes('--quick') ? String(flag('quick', 4)) : '0' },
+        artifact: 'video', outDir: flag('out', join(DIR, 'video')),
+      }).then(r => out(r, o => o.cloud ? `cloud drive → ${o.outDir}/ (run #${o.runId})` : JSON.stringify(o, null, 1)));
+    }
+    if (sub === 'voice') {
+      const script = positional[1] || die('usage: gamepress cloud voice <script.txt> [--voice x] [--speed N] [--out dir]');
+      if (argv.includes('--local')) return out(localVoice(), o => `voice → ${o.count} lines → ${flag('out', join(DIR, 'vo'))}/`);
+      return cloudOrLocal('voice', localVoice, {
+        inputs: { script, voice: flag('voice', 'narrator'), speed: flag('speed', '1.0'), out: flag('out', 'press/vo') },
+        artifact: 'vo-lines', outDir: flag('out', join(DIR, 'vo')),
+      }).then(r => out(r, o => o.cloud ? `cloud voice → ${o.outDir}/ (run #${o.runId})` : `${o.count} lines → ${flag('out', join(DIR, 'vo'))}/`));
+    }
+    if (sub === 'test') {
+      if (argv.includes('--local')) return localTest();
+      return cloudOrLocal('test', localTest, { outDir: '.' })
+        .then(r => { if (!r.cloud) return; console.log(`cloud test passed (run #${r.runId})`); });
+    }
+    die('usage: gamepress cloud drive <plan.json> | voice <script.txt> | test [--local]');
+  } };
+const _handler = _dispatch[cmd];
+if (!_handler) die('usage: gamepress --help  (lists all commands; per-command: gamepress <cmd> --help)');
+_handler.call(_dispatch);
 
