@@ -34,12 +34,20 @@
   <div class="tc-btn" id="tc-atk">⚔</div>
   <div class="tc-btn" id="tc-stc">M</div>
 </div>
+<script>
+window.addEventListener('error', function(e) {
+  var d = document.createElement('div');
+  d.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;background:#cc0000;color:#fff;padding:12px;z-index:99999;font:14px monospace;white-space:pre-wrap;border-radius:8px;';
+  d.textContent = 'LOAD ERROR: ' + (e.message || 'unknown') + '\n' + (e.filename || '');
+  document.body.appendChild(d);
+});
+</script>
 <script type="module">
-import { THREE, createStage, sfx, rand, clamp } from './_vendor/gp3d.js';
-import { toon, build, hero, particles, sky } from './_vendor/gpkit.js';
-import { buildHumanoid, HIPS_Y } from './_vendor/gpchar.js';
+import { THREE, createStage, sfx, rand, clamp } from './_vendor/gp3d.js?v=2';
+import { toon, build, hero, particles, sky } from './_vendor/gpkit.js?v=2';
+import { buildHumanoid, HIPS_Y } from './_vendor/gpchar.js?v=2';
 import { STANCE, STANCE_NAMES, WEAPONS, WEAPON_IDS, ZONE, CLASH_DIST, FSTATE,
-         segmentDistance, stanceAdvantage, BladeFighter, resolveExchange } from './_vendor/gpblade.js';
+         segmentDistance, stanceAdvantage, BladeFighter, resolveExchange } from './_vendor/gpblade.js?v=2';
 
 // ---------------------------------------------------------------- params
 const QS = new URLSearchParams(location.search);
