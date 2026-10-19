@@ -1,0 +1,45 @@
+# gamepress use cases
+
+gamepress builds games for four different jobs. Know which one you're doing before you start — each one changes what "done" looks like.
+
+## 1. Viral video demo ("gamepress youtube")
+
+**The game exists to be filmed.** The video is the product; the game is the set.
+
+- Shorthand: when Cherie says "gamepress youtube," this is what she means.
+- Optimize for: spectate/auto-play modes, juicy readable moments, vertical 9:16, action in the first second.
+- The demo only needs to look amazing for ~30 seconds and play itself.
+- "Done" = a playable URL + a filmed clip that follows the VIRAL-PLAYBOOK.md retention timeline.
+- Examples: Steal the Treat, Catfishin' (Oct 2026).
+
+## 2. Store assets
+
+Captures, capsules, covers, banners, screenshots, GIFs for Steam / itch.io / CrazyGames listings.
+
+- The game exists; gamepress captures and packages it.
+- One command per asset type, no npm deps.
+- "Done" = upload-ready files meeting each store's spec.
+
+## 3. Trailer production
+
+Cinematic trailers and vertical clips cut from gameplay. Overlaps with videopress territory — gamepress handles the capture, videopress handles the edit.
+
+- "Done" = a trailer file ready to upload.
+
+## 4. Playable game
+
+The actual game people play start to finish. The end of the funnel: 24 demos → viral signals → 3–4 real games.
+
+- Full game feel, balance, progression, polish.
+- "Done" = a game a stranger would actually play (see ORCHESTRATOR.md QC gate).
+
+## Choosing
+
+| She says | She means |
+|---|---|
+| "gamepress youtube" | Use case 1: viral video demo |
+| "gamepress assets" / "store assets" | Use case 2: store assets |
+| "gamepress trailer" | Use case 3: trailer |
+| "gamepress game" / just "make [game]" | Use case 4: playable game (default) |
+
+When in doubt, ask which use case — building a full game when she wanted a 30-second demo (or vice versa) wastes the whole build.
