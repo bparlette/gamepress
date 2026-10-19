@@ -136,11 +136,37 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
       if (e.key === 'm' || e.key === 'M') { muted = !muted; } else if ((e.key === 'p' || e.key === 'P' || e.key === 'Escape') && !ended && !st.paused) { st.paused = true; show('<div style="font-size:12vmin">PAUSED</div><div style="font-size:4vmin;font-family:system-ui,sans-serif">tap to resume · M mutes</div>'); }
       else if (!e.repeat) go(); });
   };
+  st.fever = 0;
+  st.triggerFever = (dur = 4.5) => { st.fever = dur; sfx('fever'); st.hud.banner('🔥 FEVER MODE! 🔥', 1.2); };
+  st.checkGraze = (pPos, hPos, radius = 1.4) => {
+    if (!hPos || hPos._grazed) return false;
+    const dx = (pPos.x ?? 0) - (hPos.x ?? 0), dy = (pPos.y ?? 0) - (hPos.y ?? 0), dz = (pPos.z ?? 0) - (hPos.z ?? 0);
+    const d = Math.hypot(dx, dy, dz);
+    if (d > 0 && d <= radius) {
+      hPos._grazed = true;
+      st.slowmo(0.35, 0.18);
+      sfx('nearMiss');
+      st.flash('rgba(255,215,0,0.35)', 0.15);
+      st.popup('+25 CLOSE!', pPos, '#ffd34d', 5);
+      return true;
+    }
+    return false;
+  };
   /** Show the results panel. Best score is kept per game id in localStorage. */
-  st.end = ({ win = false, score = 0, label = 'SCORE' } = {}) => {
+  st.end = ({ win = false, score = 0, label = 'SCORE', progress = null } = {}) => {
     if (ended) return; stats.ends++; ended = true; endT = 0; let best = 0; try { best = +localStorage.getItem('gp-best-' + shellId) || 0; if (score > best) { best = score; localStorage.setItem('gp-best-' + shellId, best); } } catch {}
-    st.result = { win, score, best }; castEnd(win); window.__result = st.result; if (PACK) try { parent.postMessage({ gp: 'end', id: shellId, win, score: Math.round(score) }, '*'); } catch {} (window.__ends = window.__ends || []).push({ t: +(performance.now() / 1000).toFixed(1), win, score: Math.round(score), attempt: st.attempt, state: JSON.stringify(window.__game || {}) });
-    if (shellOn && !CLEAN && !PACK) show(`<div style="font-size:12vmin;color:${win ? '#7dff7d' : '#ff6b6b'}">${win ? 'YOU WIN' : 'GAME OVER'}</div><div style="margin-top:2vh">${label} <b style="color:#ffd34d">${score.toLocaleString()}</b></div><div style="font-size:3.6vmin;margin-top:1vh;font-family:system-ui,sans-serif">BEST ${best.toLocaleString()}</div><div style="font-size:3.6vmin;margin-top:4vh;font-family:system-ui,sans-serif;font-weight:800">tap or press any key to play again</div>`);
+    st.result = { win, score, best, progress }; castEnd(win); window.__result = st.result; if (PACK) try { parent.postMessage({ gp: 'end', id: shellId, win, score: Math.round(score) }, '*'); } catch {} (window.__ends = window.__ends || []).push({ t: +(performance.now() / 1000).toFixed(1), win, score: Math.round(score), attempt: st.attempt, state: JSON.stringify(window.__game || {}) });
+    const isClose = !win && ((progress && progress >= 0.7) || (best > 0 && score >= best * 0.7));
+    const pct = progress ? Math.round(progress * 100) : (best > 0 ? Math.min(99, Math.round(score / best * 100)) : 0);
+    if (shellOn && !CLEAN && !PACK) {
+      if (win) {
+        show(`<div style="font-size:12vmin;color:#7dff7d">YOU WIN</div><div style="margin-top:2vh">${label} <b style="color:#ffd34d">${score.toLocaleString()}</b></div><div style="font-size:3.6vmin;margin-top:1vh;font-family:system-ui,sans-serif">BEST ${best.toLocaleString()}</div><div style="font-size:3.6vmin;margin-top:4vh;font-family:system-ui,sans-serif;font-weight:800">tap or press any key to play again</div>`);
+      } else if (isClose) {
+        show(`<div style="font-size:11vmin;color:#ff9a3c">SO CLOSE!</div><div style="font-size:4.2vmin;color:#ffd34d;margin-top:1vh">💥 ${pct}% COMPLETED! 💥</div><div style="margin-top:2vh">${label} <b style="color:#ffd34d">${score.toLocaleString()}</b></div><div style="font-size:3.6vmin;margin-top:1vh;font-family:system-ui,sans-serif">BEST ${best.toLocaleString()}</div><div style="font-size:3.6vmin;margin-top:4vh;font-family:system-ui,sans-serif;font-weight:800;color:#ff9a3c">👉 tap for 1 more run! 👈</div>`);
+      } else {
+        show(`<div style="font-size:12vmin;color:#ff6b6b">${win ? 'YOU WIN' : 'GAME OVER'}</div><div style="margin-top:2vh">${label} <b style="color:#ffd34d">${score.toLocaleString()}</b></div><div style="font-size:3.6vmin;margin-top:1vh;font-family:system-ui,sans-serif">BEST ${best.toLocaleString()}</div><div style="font-size:3.6vmin;margin-top:4vh;font-family:system-ui,sans-serif;font-weight:800">tap or press any key to play again</div>`);
+      }
+    }
   };
   st.rearm = () => { ended = false; }; st.isEnded = () => ended; st.endTick = dt => { if (ended) endT += dt; };
   /** update(dt) runs at a fixed 1/60 s (scaled by slow-mo); render happens once per animation frame. */
@@ -154,6 +180,7 @@ export function createStage({ bg = 0x101820, fov = 50, fitWidth = 10, fog, style
         if (ended && AUTO && endT > 2.4 && !st.result?.win) { st.attempt++; ended = false; endT = 0; st.result = null; hide(); st.onReset?.(); }
         if (st.freeze > 0) { st.freeze -= 1 / 60; continue; }
         if (st.slowT > 0 && (st.slowT -= 1 / 60) <= 0) st.timeScale = 1;
+        if (st.fever > 0) st.fever = Math.max(0, st.fever - 1 / 60);
         const dt = 1 / 60 * st.timeScale; st.t += dt; update(dt); st.hud._tick(dt); st.shakeAmt = Math.max(0, st.shakeAmt - 1.2 / 60 * 10);
         for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt; pops[i].p.y += dt * 2; if (pops[i].t > .9) { pops[i].el.remove(); pops.splice(i, 1); } }
         st.kickFov *= .9; flashA *= .88;

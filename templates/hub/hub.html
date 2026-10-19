@@ -67,21 +67,23 @@ td,th{padding:6px 8px;border-bottom:1px solid #fff2;text-align:left}th{color:var
 <div class="scr" id="loopscr">
   <h2>LOOP COMPLETE!</h2>
   <p>CHOOSE A HERO TO UNLOCK</p>
+  <div id="gacha-box" style="position:relative;width:min(44vmin,180px);height:min(44vmin,180px);margin:0 auto 1vh"><canvas id="gacha-cv" width="220" height="220" style="width:100%;height:100%;display:block"></canvas></div>
   <div id="lcards"></div>
   <p id="linfo"></p>
-  <div class="col"><button class="btn wide" id="lact">UNLOCK</button><button class="btn wide alt" id="luse" style="display:none">USE NOW</button><button class="btn wide alt" id="lgo" style="display:none">KEEP PLAYING</button></div>
+  <div class="col"><button class="btn wide" id="lact">UNLOCK</button><button class="btn wide alt" id="luse" style="display:none">USE NOW</button><button class="btn wide alt" id="lgo" style="display:none">KEEP PLAYING</button><button class="btn wide alt" id="lshare">📋 SHARE SCORECARD</button></div>
 </div>
 
 <div class="scr" id="scorescr">
   <h2>BEST SCORES</h2>
   <p>Heroes unlocked: <span id="unlockedn">0</span> / 20</p>
   <div class="scroll"><table id="tbl"></table></div>
-  <button class="btn wide alt" id="back3">BACK</button>
+  <div class="col" style="margin-top:1.5vh"><button class="btn wide alt" id="scoreshare">📋 SHARE SCORECARD</button><button class="btn wide alt" id="back3">BACK</button></div>
 </div>
 
 <div class="scr" id="upsell">
   <div class="col" style="margin:auto"><h1>LOVED IT?</h1><p id="upmsg"></p>
   <a class="btn wide" id="buy" href="#" target="_blank" rel="noopener">GET THE FULL ARCADE</a>
+  <button class="btn wide alt" id="upshare">📋 SHARE SCORECARD</button>
   <button class="btn wide alt" id="again">PLAY THE FREE 5 AGAIN</button>
   <button class="btn wide alt" id="back4">MENU</button></div>
 </div>
@@ -199,6 +201,25 @@ function finishLoop() {
   chosen = null; lpick = left[0].id; go('loopscr'); paintLoop();
 }
 let chosen = null, lpick = null;
+function drawGacha(cv, p = 0, color = '#ffd34d') {
+  const c = cv.getContext('2d'), w = cv.width, h = cv.height; c.clearRect(0, 0, w, h);
+  c.fillStyle = 'rgba(255,255,255,.15)'; c.beginPath(); c.arc(w/2, h*.42, 65, Math.PI, 0, false); c.lineTo(w/2 + 65, h*.62); c.lineTo(w/2 - 65, h*.62); c.closePath(); c.fill();
+  c.strokeStyle = '#fff6'; c.lineWidth = 4; c.stroke();
+  ['#ff5252', '#448aff', '#ffd740', '#69f0ae', '#e040fb'].forEach((col, i) => {
+    const a = i * 1.25 + (p > 0 ? p * 10 : 0), bx = w/2 + Math.cos(a) * 32, by = h*.44 + Math.sin(a) * 18;
+    c.fillStyle = col; c.beginPath(); c.arc(bx, by, 14, 0, 7); c.fill();
+    c.fillStyle = '#ffffffbb'; c.beginPath(); c.arc(bx - 3, by - 4, 4, 0, 7); c.fill();
+  });
+  c.fillStyle = '#d32f2f'; c.beginPath(); c.roundRect(w/2 - 75, h*.62, 150, 60, [8, 8, 16, 16]); c.fill();
+  c.strokeStyle = '#ff8a80'; c.lineWidth = 3; c.stroke();
+  c.save(); c.translate(w/2, h*.75); c.rotate(p * Math.PI * 4); c.fillStyle = '#ffd740'; c.fillRect(-22, -6, 44, 12); c.beginPath(); c.arc(0, 0, 9, 0, 7); c.fill(); c.restore();
+  c.fillStyle = '#212121'; c.beginPath(); c.roundRect(w/2 - 24, h*.84, 48, 22, 6); c.fill();
+  if (p > 0) {
+    const dropY = h*.72 + Math.min(1, p * 2) * 36, crack = Math.max(0, (p - .5) * 40);
+    c.fillStyle = color; c.beginPath(); c.arc(w/2 - crack, dropY, 16, Math.PI, 0, false); c.closePath(); c.fill();
+    c.fillStyle = '#ffffff'; c.beginPath(); c.arc(w/2 + crack, dropY, 16, 0, Math.PI, false); c.closePath(); c.fill();
+  }
+}
 function paintLoop() {
   const box = $('lcards'); box.innerHTML = '';
   (chosen ? [byId[chosen]] : lockedList()).forEach(h => box.appendChild(card(h, chosen ? ['UNLOCKED', 'free'] : ['LOCKED', 'locked'], (chosen ? 'sel' : 'locked ') + (h.id === lpick ? 'sel' : ''), () => { if (!chosen) { lpick = h.id; paintLoop(); } })));
@@ -206,9 +227,41 @@ function paintLoop() {
   say('linfo', chosen ? `${h.name} unlocked for good!` : h.blurb);
   $('lact').style.display = chosen ? 'none' : ''; $('lact').textContent = 'UNLOCK ' + h.name.toUpperCase();
   $('luse').style.display = $('lgo').style.display = chosen ? '' : 'none';
+  const cv = $('gacha-cv'); if (cv) drawGacha(cv, chosen ? 1 : 0, h?.color);
   document.querySelector('#lcards .sel')?.scrollIntoView({ inline: 'center', block: 'nearest' });
 }
-function unlockChosen() { if (chosen || !lpick || owned(byId[lpick])) return; chosen = lpick; S.unlocked.push(chosen); save(); paintLoop(); }
+function unlockChosen() {
+  if (chosen || !lpick || owned(byId[lpick])) return;
+  chosen = lpick; S.unlocked.push(chosen); save();
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = ac.currentTime, osc = ac.createOscillator(), g = ac.createGain();
+    osc.type = 'triangle'; osc.frequency.setValueAtTime(523, t0); osc.frequency.exponentialRampToValueAtTime(1046, t0 + .3);
+    g.gain.setValueAtTime(.3, t0); g.gain.exponentialRampToValueAtTime(.001, t0 + .32);
+    osc.connect(g); g.connect(ac.destination); osc.start(t0); osc.stop(t0 + .35);
+  } catch {}
+  let startP = performance.now();
+  const anim = now => {
+    const p = Math.min(1, (now - startP) / 600);
+    const cv = $('gacha-cv'); if (cv) drawGacha(cv, p, byId[chosen]?.color);
+    if (p < 1) requestAnimationFrame(anim);
+    else paintLoop();
+  };
+  requestAnimationFrame(anim);
+}
+function shareScoreCard() {
+  const gList = CFG.games || [];
+  const wonCount = Object.keys(S.won || {}).length;
+  const totalScore = Object.values(S.best || {}).filter(v => typeof v === 'number').reduce((a, b) => a + b, 0);
+  const squares = gList.map(g => S.won?.[g] ? '🟩' : ((S.best?.[g] ?? -1) >= 0 ? '🟨' : '⬜'));
+  let rows = []; for (let i = 0; i < squares.length; i += 5) rows.push(squares.slice(i, i + 5).join(''));
+  const cardText = `🐱 CAT ARCADE HUB\n${rows.join('\n')}\n🏆 ${wonCount}/${gList.length} Won · Best: ${totalScore.toLocaleString()} pts\n👉 https://bparlette.github.io/Hawk/brad-demos/g/arcade/index.html`;
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(cardText).then(() => {
+      toast('SCORECARD COPIED!', '#7dff7d', 1200);
+    }).catch(() => prompt('Scorecard:', cardText));
+  } else prompt('Scorecard:', cardText);
+}
 function start(demo) {
   again = false; demoMode = demo; games = shuf(demo ? CFG.demoGames : (LOOPQ ? CFG.games.slice(0, 2) : CFG.games)); N = games.length; loop = 0; results = []; idx = -1;
   try { const ac = new (window.AudioContext || window.webkitAudioContext)(); ac.resume(); } catch {}
@@ -225,6 +278,7 @@ $('act').onclick = act;
 $('lact').onclick = unlockChosen;
 $('luse').onclick = () => { if (chosen) { S.hero = chosen; save(); } resume(); };
 $('lgo').onclick = resume;
+$('scoreshare').onclick = $('lshare').onclick = $('upshare').onclick = shareScoreCard;
 ['back1', 'back3', 'back4'].forEach(b => $(b).onclick = () => { demoMode = CFG.demo; go('menu'); });
 $('quit').onclick = () => { stop(); demoMode = CFG.demo; go('menu'); };
 $('again').onclick = () => start(true);
