@@ -97,6 +97,9 @@
    "kit/gbfixed.js",
    "kit/gpfeel.js",
    "kit/gpretro.js",
+   "lib/nesextract.mjs",
+   "nesextract",
+   "another6502",
    "viral"
   ],
   "needs": "target SDK (PVSnesLib for SNES, GBDK-2020 for Game Boy, cc65 for NES, SGDK for Genesis); emulator for testing; user must own source game",

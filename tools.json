@@ -43,5 +43,19 @@
   ],
   "release_note": "No download — a live network service (wss://speech.platform.bing.com). May be blocked from datacenter IPs; prefer kokoro-tts (offline). `pip install edge-tts` CLI improves reliability.",
   "files": []
+ },
+ "another6502": {
+  "description": "Python 6502 CPU emulator (PyPI) — runs a game's own sound driver offline to capture APU register writes per frame for the port track's sound conversion",
+  "version": "0.1",
+  "license": "MIT",
+  "install_dir": "~/.gamepress/another6502",
+  "python_deps": [
+   "another6502"
+  ],
+  "used_by": [
+   "port track: offline sound-driver capture (6502 interpreter + APU register log → target sound format)"
+  ],
+  "release_note": "Instruction-stepped, NOT cycle-accurate — fine for offline per-frame APU register-log capture of a sound driver, not for cycle-timed audio tricks. Installs via pip (no files to download); requires Python >= 3.10. https://github.com/florianehmann/another6502",
+  "files": []
  }
 }

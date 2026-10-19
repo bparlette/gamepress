@@ -37,3 +37,16 @@ test('listTools returns machine-readable rows', () => {
   assert.ok(k.version && k.description && k.license);
   assert.ok(Array.isArray(k.used_by));
 });
+
+test('another6502 is a pip tool with boolean install state', () => {
+  const m = loadManifest();
+  assert.ok(m['another6502'], 'another6502 registered');
+  assert.deepEqual(m['another6502'].python_deps, ['another6502']);
+  assert.equal(m['another6502'].files.length, 0, 'no files to download — pip install');
+  const s = toolStatus();
+  assert.equal(s['another6502'].network, false, 'not a network service');
+  assert.equal(typeof s['another6502'].installed, 'boolean', 'installed is a real boolean');
+  const r = listTools().find(x => x.tool === 'another6502');
+  assert.equal(r.pip, true);
+  assert.equal(typeof r.installed, 'boolean');
+});
