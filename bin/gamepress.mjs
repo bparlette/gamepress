@@ -54,6 +54,7 @@ import { listPresets, loadPreset, savePreset, deletePreset, sanitizeAnswers, rea
 import { printImageWorkflow, printImageIntake, intakeQuestions, generateViewPrompts, answersToDescription } from '../lib/img2threejs.mjs';
 import { speak, setupTts, VOICE_PRESETS } from '../lib/tts.mjs';
 import { listTools, checkUpdates, downloadTool, loadManifest } from '../lib/tools.mjs';
+import { nesextractCommand } from '../lib/nesextract.mjs';
 import { approveDemo, getApproval, listApprovals, generateBlueprint, scaffoldExpansion } from '../lib/expand.mjs';
 import { cloudAvailable, cloudOrLocal } from '../lib/cloud.mjs';
 import { startRun, answerRun, statusRun } from '../lib/run.mjs';
@@ -426,6 +427,7 @@ const HELP = {
   voice: ['one-liner local TTS via Kokoro (free, offline)', 'gamepress voice "Your script here" [--voice trailer|character|narrator|VOICE_ID]', ['--voice narrator', '--speed 1.0', '--out file.wav']],
   setup: ['environment bootstrap: doctor + download all tools.json tools (or just --tts)', 'gamepress setup [--tts]', ['--tts (Kokoro only)']],
   tools: ['list external tools (sizes, install status); --check for upstream updates', 'gamepress tools [--check]', ['--check']],
+  nesextract: ['parse a user-supplied NES ROM: iNES header, MD5 assert, CHR tiles, OAM sprites, palettes (port track Part A)', 'gamepress nesextract <rom.nes> [--md5 <hex>] [--chr-png <out.png>]', ['--md5 <hex> (assert dump checksum)', '--chr-png <out.png> (CHR tile-sheet preview)']],
   version: ['bump version + changelog template', 'gamepress version [major|minor|patch]', []],
   icons: ['PWA icon set + manifest + OG snippet from one logo', 'gamepress icons --logo <logo.png> [--name Title]', ['--logo', '--name']],
   approve: ['approve a vertical-slice demo; define full-game expansion goals', 'gamepress approve <id> [--notes "..."] [--levels N] [--worlds "a,b,c"]', ['--notes', '--levels 5', '--worlds']],
@@ -607,8 +609,13 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
   },
   tools: () => { try {
     if (argv.includes('--check')) { const r = checkUpdates(); out({ command: 'tools --check', updates: r }, o => o.updates.map(u => `${u.tool}: ${u.current} → ${u.latest}${u.update ? '  UPDATE AVAILABLE' : ''}`).join('\n')); }
-    else { const r = listTools(); out({ command: 'tools', tools: r }, o => o.tools.map(t => `${t.tool} ${t.version} — ${t.network ? 'network service' : t.total_mb + 'MB'} ${t.installed === null ? '[service]' : t.installed ? '[installed]' : '[missing]'} — ${t.description}`).join('\n')); }
+    else { const r = listTools(); out({ command: 'tools', tools: r }, o => o.tools.map(t => `${t.tool} ${t.version} — ${t.network ? 'network service' : t.pip ? 'pip package' : t.total_mb + 'MB'} ${t.installed === null ? '[service]' : t.installed ? '[installed]' : '[missing]'} — ${t.description}`).join('\n')); }
   } catch (e) { die('tools: ' + e.message); } },
+  nesextract: () => { try {
+    const rom = positional[0] || die('usage: gamepress nesextract <rom.nes> [--md5 <hex>] [--chr-png <out.png>]');
+    const r = nesextractCommand(rom, { md5: flag('md5'), chrPng: flag('chr-png') });
+    out(r, o => o.lines.join('\n'));
+  } catch (e) { die('nesextract: ' + e.message); } },
   version: () => { try { const r = bumpVersion(positional[0] || 'patch', { dir: flag('dir', '.') }); out({ command: 'version', ...r }, o => `${o.from} → ${o.to} (${o.file}); changelog template added to ${o.changelog}`); } catch (e) { die('version: ' + e.message); } },
   icons: () => { try { const r = makeIcons(flag('logo') || die('usage: gamepress icons --logo <logo.png> [--name Title]'), { dir: flag('dir', 'press'), name: flag('name', 'Game') }); out({ command: 'icons', ...r }, o => `icons → ${o.dir}/ (${o.files.join(', ')})`); } catch (e) { die('icons: ' + e.message); } },
   approve: () => { try {

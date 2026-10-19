@@ -32,10 +32,13 @@ conflate them.
 Python scripts read the user's ROM and produce target-format assets:
 tiles, maps, sprite frames, collision grids, enemy tables, palettes.
 This part is reproducible and can be tooled once per source platform
-(mapper handling, tile decoders, OAM parsers). Steps: obtain the ROM,
-assert its checksum, decode graphics (RLE/decompression as the game does
-it), decode sprite pointer tables into per-frame bitmaps, extract
-collision and enemy placement tables, capture palettes.
+(mapper handling, tile decoders, OAM parsers). `gamepress nesextract <rom>`
+(`lib/nesextract.mjs`) covers the platform-generic layer: iNES header parse,
+MD5 assert, CHR tile decode to pixel arrays, OAM sprite parse, palette
+handling — no game-specific searches, so it works for any NES ROM. Steps:
+obtain the ROM, assert its checksum, decode graphics (RLE/decompression as
+the game does it), decode sprite pointer tables into per-frame bitmaps,
+extract collision and enemy placement tables, capture palettes.
 
 **Part B — manual logic reimplementation (game-specific, not mechanical).**
 All gameplay — player physics, enemy state machines, weapons, bosses,
@@ -53,7 +56,10 @@ platform (for NES: 6502, official opcodes only — no decimal mode, no
 undocumented opcodes needed for most sound drivers), execute the game's
 own sound driver **offline at build time**, record what it writes to the
 audio registers per frame, and convert that recording to the target's
-sound format. Map channels one-to-one where possible (pulse→wave,
+sound format. The `another6502` entry in tools.json (PyPI 6502 emulator,
+MIT) is the ready-made interpreter for this step: instruction-stepped, not
+cycle-accurate — sufficient for offline per-frame register-log capture.
+Map channels one-to-one where possible (pulse→wave,
 triangle→wave, noise→noise), bake pitch/volume envelopes as keyframes,
 and accept documented losses (DMC samples have no equivalent on most
 targets — replace with noise bursts or drop; duty-cycle changes mid-sound
@@ -73,6 +79,9 @@ Source and target rarely share a refresh rate (NES 60.1 Hz vs Virtual Boy
 - Exception: reproduce exact check ordering where it decides gameplay
   (e.g. jump-landing probe windows that determine which ledges are
   climbable).
+
+Implemented as `rateRatio`, `convVelocity`, `convAccel`, `convFrames` in
+`kit/gbfixed.js` (K = 60.1/50 = 1.202 for the Contra NES→VB example).
 
 Use `kit/gbfixed.js` 8.8 fixed-point for positions — it maps 1:1 to
 retro hardware integer math. Prototype feel on web first with
@@ -147,10 +156,12 @@ mGBA (GB/GBC/GBA), mednafen / beetle-vb-libretro (Virtual Boy).
 1. **Obtain and assert.** User supplies their ROM. Assert checksum
    (MD5) before any tool touches it. Record the exact disassembly commit
    used as the behavior reference.
-2. **Extract (Part A).** Build the extraction scripts: graphics decoder
-   (run the game's own decompressor offline), sprite tables → atlases,
-   collision grids, enemy placement, palettes. Output preview images and
-   overlays; check them by eye against the source.
+2. **Extract (Part A).** Start from `gamepress nesextract <rom>` for the
+   generic layer (header, MD5 assert, CHR tiles, OAM sprites, palettes,
+   CHR preview PNG), then build the game-specific extraction scripts:
+   graphics decoder (run the game's own decompressor offline), sprite
+   tables → atlases, collision grids, enemy placement. Output preview
+   images and overlays; check them by eye against the source.
 3. **Reimplement (Part B).** Rewrite game logic routine by routine from
    the disassembly, in the target SDK's language. Constants, tables, and
    state machines come from the ROM. Prototype feel on web with
@@ -205,7 +216,15 @@ mGBA (GB/GBC/GBA), mednafen / beetle-vb-libretro (Virtual Boy).
 
 ## What gamepress provides
 
-- `kit/gbfixed.js` — 8.8 fixed-point math, sub-pixel accumulators.
+- `gamepress nesextract <rom>` / `lib/nesextract.mjs` — generic NES ROM
+  asset extraction: iNES header parse, MD5 assert, CHR tile decode to
+  pixel arrays, OAM sprite parse, NES palette handling, CHR tile-sheet
+  PNG previews. The Part A starting point — no game-specific searches.
+- `kit/gbfixed.js` — 8.8 fixed-point math, sub-pixel accumulators,
+  frame-rate conversion helpers (`rateRatio`, `convVelocity`,
+  `convAccel`, `convFrames`).
+- `tools.json` `another6502` — PyPI 6502 emulator (MIT) for offline
+  sound-driver capture (interpreter + APU register log → target format).
 - `kit/gpfeel.js` — the same mechanics in float for fast web prototyping
   (then convert to fixed-point for the ROM target).
 - `kit/gpretro.js` — retro shaders if you also want a web preview that
