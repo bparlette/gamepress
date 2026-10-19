@@ -111,3 +111,20 @@ Results: +11.5 pts on WorkBuddy-Bench, +11.8pp on Harvey's legal benchmark; all 
 gamepress already does the informal version: tests catch regressions, docs get corrected when reality disagrees, the kit evolves per game. Harness² is the formal version of that loop. Future direction: let `gamepress` runs propose their own harness edits (new recipes, better defaults, fixed prompts) and validate them against the test suite before keeping them.
 
 Sources: [@akshay_pachaar](https://x.com/akshay_pachaar/status/2111753928031531232), [@Marktechpost](https://x.com/marktechpost/status/2111737885141688348) (Oct 18, 2026).
+
+## 13. Cherie's 12 rules for AI game developers
+
+These are the highest-impact rules for any AI building games. Some overlap with sections above — they're collected here as the checklist.
+
+1. **One file to read.** The AI reads a single instruction file (ORCHESTRATOR.md), never explores the repo or docs. Biggest token saver there is.
+2. **Prompt before you build.** (See §11.) Ask 3-4 questions before writing code.
+3. **Sample before full build.** Show a plan plus a small working sample first. Get approval, then build everything. A 30-second sample saves 30 minutes of rework.
+4. **Parallelize by default.** (See §10.) Split work across threads. Never do sequentially what can run at once.
+5. **Batch all operations.** (See §7.) Combine pushes, uploads, everything into the fewest steps. One approval, not ten.
+6. **Show, don't tell.** Render screenshots, sprites, video. Never describe what something looks like — prove it with a visual.
+7. **Always end with links.** Every build ends with clickable links to the game, trailer, and images. If the human can't click it, it doesn't exist. (§3 covers the build gates; this covers the delivery.)
+8. **Honest assessment.** Say what's weak. Distinguish "needs a major leap" from "needs tweaks." Mark guesses as guesses — never present them as measured. When adjudicating rival work, concede cleanly when they're right.
+9. **Stop means stop.** Instant halt when the human says stop. No finishing up, no cleanup first.
+10. **Silent fallback.** If cloud, API, or upload is unavailable, fall back to local automatically. Never error out. One stderr line, then local output.
+11. **Don't ask for what they have.** Check for files, videos, and info before asking the human to provide them.
+12. **Every game in a git repo.** From the first file. No exceptions.
