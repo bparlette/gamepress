@@ -1,10 +1,10 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>BLOCK CATS</title></head><body>
 <script type="module">
 /*RECIPE falling-blocks. ONE screen, ONE mechanic: rotate and place falling pieces to clear lines. 3-SECOND RULE: the falling piece = player, the top of the board = enemy, goal = clear lines.
   DON'T BUILD: hold queue, marathon modes, multiple piece sets, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, pick, shuffle } from '../_vendor/gp2d.js';
 import { face, heroKind, heroColor } from '../_vendor/gpsprites.js';
-const S = { title: 'BLOCK CATS', sub: 'Stack it or lose it', hook: 'Stack it or lose it', hero: 'cat', bg: '#14183a', lines: 8, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'BLOCK CATS', sub: 'Stack it or lose it', hook: 'Stack it or lose it', hero: 'cat', bg: '#14183a', lines: 16, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const CW = 10, CH = 20, CS = 36, OX = 90, OY = 120;
 const SH = { I: [[0, 1], [1, 1], [2, 1], [3, 1]], O: [[1, 0], [2, 0], [1, 1], [2, 1]], T: [[1, 0], [0, 1], [1, 1], [2, 1]], L: [[2, 0], [0, 1], [1, 1], [2, 1]], J: [[0, 0], [0, 1], [1, 1], [2, 1]], S: [[1, 0], [2, 0], [0, 1], [1, 1]], Z: [[0, 0], [1, 0], [1, 1], [2, 1]] };

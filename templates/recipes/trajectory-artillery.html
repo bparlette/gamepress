@@ -1,16 +1,16 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>CAT ARTILLERY</title></head><body>
 <script type="module">
 /*RECIPE trajectory-artillery. ONE screen, ONE mechanic: drag back to aim, release to fire a fish bomb across the wind; craters change the ground. 3-SECOND RULE: left cat = player, right zombie = enemy, goal = land a bomb on the zombie.
   DON'T BUILD: a weapon menu, more than one weapon, teams, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp, dist } from '../_vendor/gp2d.js';
 import { drawChar, heart, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { Terrain } from '../_vendor/gpphys.js';
-const S = { title: 'CAT ARTILLERY', sub: 'Drag back to aim, release to fire', hook: 'Aim. Fire. Dig a crater.', hero: 'cat', foe: 'zombie', bg: '#8fd8ff', heroColor: '#ff9a3c', hp: 4, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'CAT ARTILLERY', sub: 'Drag back to aim, release to fire', hook: 'Aim. Fire. Dig a crater.', hero: 'cat', foe: 'zombie', bg: '#8fd8ff', heroColor: '#ff9a3c', hp: 6, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const G = 900;
 let lastD, ter, a, b, shot, turn, wind, drag, botT, phaseT, foeErr, flights;
 const height = x => 650 + Math.sin(x * .012) * 40 + Math.sin(x * .031 + 1) * 24;
-function init() { ter = Terrain({ w: 540, h: 960, height }); a = { x: 90, hp: g.dumb() ? 1 : S.hp, t: 0 }; b = { x: 450, hp: 2, t: 0 }; shot = null; turn = 0; wind = rnd(-60, 60); drag = null; botT = .8; phaseT = 0; foeErr = g.dumb() ? 6 : 140; flights = 0; g.score = 0; }
+function init() { ter = Terrain({ w: 540, h: 960, height }); a = { x: 90, hp: g.dumb() ? 1 : S.hp, t: 0 }; b = { x: 450, hp: 4, t: 0 }; shot = null; turn = 0; wind = rnd(-60, 60); drag = null; botT = .8; phaseT = 0; foeErr = g.dumb() ? 6 : 140; flights = 0; g.score = 0; }
 g.onReset = init; init();
 const gy = x => ter.y(x);
 function fire(who, vx, vy) {  shot = { x: (who ? b.x : a.x), y: gy(who ? b.x : a.x) - 60, vx, vy, who, t: 0, trail: [] }; sfx('shoot', { pitch: .6 }); g.shake(4); g.burst(shot.x, shot.y, 8, { color: ['#fff', '#ffd34d'], speed: 180 }); flights++; }

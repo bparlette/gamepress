@@ -1,18 +1,18 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>CAT DEFENSE</title></head><body>
 <script type="module">
 /*RECIPE micro-tower-defense. ONE screen, ONE mechanic: tap grass to place a cat tower; zombies walk the path to your base. 3-SECOND RULE: cat towers = player, zombie wave = enemy, goal = stop them reaching the base.
   DON'T BUILD: a tower tree, more than one map, hero units, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp, dist } from '../_vendor/gp2d.js';
 import { drawChar, heart, coin as coinS, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { drawEnemy, foeId } from '../_vendor/gpenemies.js';
-const S = { title: 'CAT DEFENSE', sub: 'Tap grass to place a cat', hook: "Don't let the zombies through", hero: 'cat', foe: 'zombie', bg: '#6bbf59', lives: 5, cash: 120, cost: 40, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'CAT DEFENSE', sub: 'Tap grass to place a cat', hook: "Don't let the zombies through", hero: 'cat', foe: 'zombie', bg: '#6bbf59', lives: 8, cash: 180, cost: 40, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const T = 60, OY = 140, WP = [[-1, 1], [7, 1], [7, 4], [1, 4], [1, 7], [9, 7]];
 const onPath = (tx, ty) => { for (let i = 0; i < WP.length - 1; i++) { const [x0, y0] = WP[i], [x1, y1] = WP[i + 1]; if (tx >= Math.min(x0, x1) && tx <= Math.max(x0, x1) && ty >= Math.min(y0, y1) && ty <= Math.max(y0, y1)) return true; } return false; };
 const SPOTS = [[6, 2], [2, 3], [6, 3], [2, 5], [6, 6], [4, 5], [5, 0], [3, 6]];
 let tw, zs, bl, lives, cash, t0, spawnQ, botT, wave;
 const PATH = WP.map(([x, y]) => ({ x: x * T + T / 2, y: y * T + T / 2 + OY }));
-function init() { tw = []; zs = []; bl = []; lives = g.dumb() ? 1 : S.lives; cash = S.cash; t0 = 0; botT = .5; wave = 0; spawnQ = []; g.score = 0; for (const [at, n, hp] of [[.5, 6, 2], [3.5, 7, 2], [6.5, 6, 4]]) for (let i = 0; i < n; i++) spawnQ.push({ at: at + i * .55, hp }); }
+function init() { tw = []; zs = []; bl = []; lives = g.dumb() ? 1 : S.lives; cash = S.cash; t0 = 0; botT = .5; wave = 0; spawnQ = []; g.score = 0; for (const [at, n, hp] of [[.5, 6, 2], [4.5, 7, 2], [8.5, 7, 3], [12.5, 8, 3], [16.5, 8, 4], [21.0, 6, 6]]) for (let i = 0; i < n; i++) spawnQ.push({ at: at + i * .55, hp }); }
 g.onReset = init; init();
 const place = (tx, ty) => { if (cash < S.cost || onPath(tx, ty) || tw.some(q => q.tx === tx && q.ty === ty) || tx < 0 || tx > 8 || ty < 0 || ty > 8) return false; cash -= S.cost; tw.push({ tx, ty, x: tx * T + T / 2, y: ty * T + T / 2 + OY, cd: 0, t: rnd(0, 5), lvl: 1 }); sfx('powerup'); g.burst(tw.at(-1).x, tw.at(-1).y, 12, { color: ['#ffd34d', '#fff'], speed: 220 }); return true; };
 function update(dt) {
@@ -36,7 +36,7 @@ function draw(c) {
   for (const z of [...zs].sort((a, b) => a.y - b.y)) { if (S.enemies === 'viral') drawEnemy(foeId(S.foe, z.max > 2 ? 1 : 0), c, z.x, z.y + 22, z.max > 2 ? 78 : 56, { dir: z.d, t: z.t, flash: z.fl > 0 }); else drawChar(S.foe, c, z.x, z.y + 22, z.max > 2 ? 78 : 56, { dir: z.d, t: z.t, anim: 'walk', hurt: z.fl > 0, color: z.max > 2 ? '#5a9a4a' : undefined }); if (z.hp < z.max) g.bar(z.x - 16, z.y - 40, 32, 5, z.hp / z.max, '#ff5a5a'); }
   c.fillStyle = '#ffd34d'; for (const b of bl) { c.beginPath(); c.ellipse(b.x, b.y, 10, 5, Math.atan2(b.vy, b.vx), 0, 7); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 2; c.stroke(); }
   for (let i = 0; i < lives; i++) heart(c, 40 + i * 44, 110, 34); if (g.mode === 'play' && cash >= S.cost && tw.length < 1) g.text('TAP GRASS TO PLACE A CAT', 270, 900, { size: 28, align: 'center' });
-  g.text(`WAVE ${t0 < 3.5 ? 1 : t0 < 6.5 ? 2 : 3}/3`, 500, 110, { size: 30, align: 'right', color: '#fff' });
+  g.text(`WAVE ${t0 < 4.5 ? 1 : t0 < 8.5 ? 2 : t0 < 12.5 ? 3 : t0 < 16.5 ? 4 : t0 < 21 ? 5 : 6}/6`, 500, 110, { size: 30, align: 'right', color: '#fff' });
 }
 g.run(update, draw);
 </script></body></html>

@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>CONTRA CAT</title></head><body>
 <script type="module">
 /*RECIPE run-and-gun. ONE screen of mechanic: run right, jump, shoot the zombies, beat the boss at the end. 3-SECOND RULE: orange cat with a gun = player, zombies and turrets = enemy, goal = reach and beat the boss.
   DON'T BUILD: weapon wheel, more than one level, co-op, menus. Edit the SPEC JSON (gamepress make).*/
@@ -7,14 +7,14 @@ import { drawChar, heart, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { drawEnemy, foeId } from '../_vendor/gpenemies.js';
 import { drawWorld, drawBackdrop, WORLDS } from '../_vendor/gpworld.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
-const S = { title: 'CONTRA CAT', sub: 'Run, jump, shoot', hook: 'Run. Jump. Shoot.', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#7fd4ff', length: 2100, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'CONTRA CAT', sub: 'Run, jump, shoot', hook: 'Run. Jump. Shoot.', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#7fd4ff', length: 4200, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const W = S.world ? WORLDS[S.world] : null; /* optional world skin (docs/WORLDS.md): drawing + bg only */
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: W ? W.bg : S.bg, style: S.style });
 const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: '⤒' }, { id: 'b', label: '🔫' } ] }) : null; /* TOUCH: floating joystick (left half) + JUMP (A) / FIRE (B). See docs/TOUCH.md */
 const GY = 700;
 let p, bl, eb, en, cam, boss, kills, botT, fireT, streak, streakT;
 function init() { p = { x: 80, y: GY, vy: 0, d: 1, hp: g.dumb() ? 1 : 3, inv: 0, t: 0, air: false }; bl = []; eb = []; cam = 0; boss = null; kills = 0; botT = 0; fireT = 0; streak = 0; streakT = 0; g.score = 0; en = [];
-  for (let i = 0; i < 12; i++) en.push({ k: i % 4 === 3 ? 'turret' : 'z', x: 420 + i * 150 + ri(-30, 30), y: GY, hp: 1, t: rnd(0, 6), fl: 0, sh: rnd(.5, 1.5), d: -1 }); }
+  for (let i = 0; i < 24; i++) en.push({ k: i % 4 === 3 ? 'turret' : 'z', x: 420 + i * 150 + ri(-30, 30), y: GY, hp: 1, t: rnd(0, 6), fl: 0, sh: rnd(.5, 1.5), d: -1 }); }
 g.onReset = init; init();
 function hurt() { if (p.inv > 0) return; p.hp--; p.inv = 1.3; sfx('hit'); g.shake(10); g.hitstop(.07); g.flash('#ff3b3b', .3); streak = 0; if (p.hp <= 0) { g.burst(p.x, p.y - 40, 26, { color: [S.heroColor, '#fff'], speed: 400 }); g.end({ win: false, score: g.score, label: 'SCORE' }); } }
 function shoot() { if (fireT > 0) return; fireT = .17; bl.push({ x: p.x + p.d * 40, y: p.y - 56, vx: p.d * 720, life: .7 }); sfx('shoot', { vol: .4 }); g.burst(p.x + p.d * 46, p.y - 56, 3, { color: '#ffd34d', speed: 120, size: 6, life: .2 }); }

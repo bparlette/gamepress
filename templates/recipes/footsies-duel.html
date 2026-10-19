@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>CAT DUEL</title></head><body>
 <script type="module">
 /*RECIPE footsies-duel. ONE screen, ONE mechanic: strike, parry and step on a single line; every hit pushes the other fighter toward the cliff. 3-SECOND RULE: orange cat = player, green zombie = enemy, goal = push the zombie off the edge.
   DON'T BUILD: character select, more than three moves, online play, menus. Edit the SPEC JSON (gamepress make).*/
@@ -9,9 +9,10 @@ const S = { title: 'CAT DUEL', sub: 'Strike, parry, step. Push them off.', hook:
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: '⚔' }, { id: 'b', label: '🛡' } ] }) : null; /* TOUCH: floating joystick (left half) + STRIKE/PARRY buttons (right). See docs/TOUCH.md */
 const FY = 700, L = 20, Rr = 520;
-let a, b, streak, botT, aiT;
+let a, b, streak, botT, aiT, wins = 0, losses = 0, roundsToWin = 2;
 const fighter = (x, d) => ({ x, d, st: 'idle', t: 0, vx: 0, fl: 0 });
-function init() { a = fighter(200, 1); b = fighter(340, -1); streak = 0; botT = 0; aiT = .5; g.score = 0; }
+function init() { wins = 0; losses = 0; resetRound(); }
+function resetRound() { a = fighter(200, 1); b = fighter(340, -1); streak = 0; botT = 0; aiT = .5; g.score = wins * 500; }
 g.onReset = init; init();
 const dst = () => Math.abs(a.x - b.x);
 function start(f, st) { if (f.st !== 'idle') return; f.st = st; f.t = 0; if (st === 'strike') sfx('whoosh', { vol: .5 }); if (st === 'parry') sfx('click', { pitch: 1.4 }); }
@@ -26,8 +27,8 @@ function update(dt) {
   if (g.auto) { botT -= dt; const near = dst() < 150; if (g.dumb()) { if (botT <= 0) { botT = .5; if (near) start(a, 'strike'); else a.x += 60; } if (!near && a.st === 'idle') a.x += 130 * dt; } else { if (b.st === 'strike' && b.t < .1 && near && a.st === 'idle') start(a, 'parry'); else if (a.st === 'idle' && near && (b.st === 'stagger' || b.st === 'parry' && b.t > .3 || (b.st === 'idle' && botT <= 0 && R() < .5))) { start(a, 'strike'); botT = .5; } else if (a.st === 'idle' && dst() > 140) a.x += 120 * dt; else if (a.st === 'idle' && dst() < 100 && b.st === 'idle') a.x -= 100 * dt; } }
   aiT -= dt; if (b.st === 'idle') { if (a.st === 'strike' && a.t < .1 && dst() < 150 && R() < .25) start(b, 'parry'); else if (dst() > 112) b.x -= 80 * dt; else if (aiT <= 0) { aiT = rnd(.9, 1.6); start(b, 'strike'); } }
   tick(a, b, dt); tick(b, a, dt); if (a.st !== 'strike' && a.x > b.x - 70) a.x = b.x - 70; if (b.x < a.x + 70) b.x = a.x + 70;
-  if (b.x > Rr) { g.score += 500; g.burst(b.x, FY - 60, 30, { color: ['#8fcf7a', '#fff'], speed: 460 }); sfx('boom', { vol: .6 }); g.end({ win: true, score: g.score, label: 'SCORE' }); } else if (a.x < L) { sfx('hit'); g.burst(a.x, FY - 60, 30, { color: [S.heroColor, '#fff'], speed: 460 }); g.end({ win: false, score: g.score, label: 'SCORE' }); }
-  g.hud.l = `${g.score}`; g.hud.r = streak > 1 ? `x${streak}` : ''; g.state = { a: Math.round(a.x), b: Math.round(b.x), streak };
+  if (b.x > Rr) { wins++; g.score += 500; g.burst(b.x, FY - 60, 30, { color: ['#8fcf7a', '#fff'], speed: 460 }); sfx('boom', { vol: .6 }); if (wins >= roundsToWin) { g.end({ win: true, score: g.score, label: 'SCORE' }); } else { sfx('win'); g.showBanner('ROUND ' + (wins + losses + 1), 1.0); resetRound(); } } else if (a.x < L) { losses++; sfx('hit'); g.burst(a.x, FY - 60, 30, { color: [S.heroColor, '#fff'], speed: 460 }); if (losses >= roundsToWin) { g.end({ win: false, score: g.score, label: 'SCORE' }); } else { g.showBanner('ROUND ' + (wins + losses + 1), 1.0); resetRound(); } }
+  g.hud.l = `${g.score}`; g.hud.r = `${wins}-${losses} (FIRST TO 2)`; g.state = { a: Math.round(a.x), b: Math.round(b.x), streak };
 }
 function draw(c) {
   const gr = c.createLinearGradient(0, 0, 0, 700); gr.addColorStop(0, '#ff7a4a'); gr.addColorStop(1, '#ffd9a8'); c.fillStyle = gr; c.fillRect(0, 0, 540, 780); c.fillStyle = '#ffeaa8'; c.beginPath(); c.arc(270, 520, 90, 0, 7); c.fill();

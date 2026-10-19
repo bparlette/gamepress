@@ -1,15 +1,15 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>CAT FACTORY</title></head><body>
 <script type="module">
 /*RECIPE idle-tycoon. ONE screen, ONE mechanic: tap the cat for fish, buy machines that make fish for you, hit the quota before the clock ends. 3-SECOND RULE: the big cat button = player, the clock = enemy, goal = reach the fish quota.
   DON'T BUILD: prestige, more than 3 machines, offline progress, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp } from '../_vendor/gp2d.js';
 import { face, coin as coinS, heroKind, heroColor } from '../_vendor/gpsprites.js';
-const S = { title: 'CAT FACTORY', sub: 'Tap the cat. Buy machines.', hook: 'Make 1,000,000 fish', hero: 'cat', bg: '#1d3b5e', goal: 900, seconds: 24, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'CAT FACTORY', sub: 'Tap the cat. Buy machines.', hook: 'Make 1,000,000 fish', hero: 'cat', bg: '#1d3b5e', goal: 1800, seconds: 48, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const MACH = [{ n: 'FISHING NET', base: 10, rate: 4, c: '#7ad7ff' }, { n: 'BOAT', base: 80, rate: 24, c: '#ffd34d' }, { n: 'FACTORY', base: 450, rate: 120, c: '#ff8a1f' }];
 let fish, total, lv, click, left, tapT, botT, lim, pulse, accum;
 const cost = i => Math.ceil(MACH[i].base * 1.15 ** lv[i]), rate = () => MACH.reduce((a, m, i) => a + m.rate * lv[i], 0), fmt = n => (n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e4 ? (n / 1e3).toFixed(1) + 'K' : Math.floor(n).toLocaleString());
-function init() { fish = 0; total = 0; lv = [0, 0, 0]; click = 2; lim = g.dumb() ? 7 : S.seconds; left = lim; tapT = 0; botT = .3; pulse = 0; accum = 0; g.score = 0; }
+function init() { fish = 0; total = 0; lv = [0, 0, 0]; click = 2; lim = g.dumb() ? 14 : S.seconds; left = lim; tapT = 0; botT = .3; pulse = 0; accum = 0; g.score = 0; }
 g.onReset = init; init();
 const rect = i => ({ x: 24, y: 560 + i * 98, w: 492, h: 86 });
 function tap(x, y) { const dx = x - 270, dy = y - 330; if (dx * dx + dy * dy < 130 * 130 || y < 545) { fish += click; total += click; pulse = .15; sfx('pop', { pitch: 1 + Math.min(.6, tapT * .05), vol: .4 }); tapT = Math.min(12, tapT + 1); g.popup('+' + click, 270 + rnd(-60, 60), 230, '#fff', 34); g.burst(270 + rnd(-40, 40), 300, 3, { color: ['#7ad7ff', '#fff'], speed: 180, size: 7 }); return; }

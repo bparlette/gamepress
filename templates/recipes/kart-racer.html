@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>CAT KART</title></head><body>
 <script type="module">
 /*RECIPE kart-racer. ONE oval track: hold left/right to slide across the road, grab boost pads, beat three rival karts over two laps. 3-SECOND RULE: your cat kart = player, rival karts = enemy, goal = finish first.
   DON'T BUILD: an item roulette, more than one track, drift tutorials, menus. Edit the SPEC JSON (gamepress make).*/
@@ -6,7 +6,7 @@ import { createStage, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
 import { toon, catGeo, dogGeo, zombieGeo, hero, particles, sky, groundTex, build } from '../_vendor/gpkit.js';
 import { urlHero, urlHeroColor, buildHero } from '../_vendor/gphero3d.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
-const S = { title: 'CAT KART', sub: 'Hold left or right. Grab the pads.', hook: 'Win by a whisker', bg: 0x8fd3ff, skyTop: 0x3f8cff, skyBottom: 0xffe7b8, road: 0x474b57, catColor: 0xff9a3c, hero: 'cat', laps: 2, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'CAT KART', sub: 'Hold left or right. Grab the pads.', hook: 'Win by a whisker', bg: 0x8fd3ff, skyTop: 0x3f8cff, skyBottom: 0xffe7b8, road: 0x474b57, catColor: 0xff9a3c, hero: 'cat', laps: 4, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const P = new URLSearchParams(location.search), AUTO = P.has('auto'), FAILFIRST = P.get('failfirst') !== '0';
 const st = createStage({ style: S.style, bg: S.bg, fitWidth: 9, fov: 60, fog: [60, 220] }); st.light(); sky(st.scene, S.skyTop, S.skyBottom, [120, 320]); const fx = particles(st.scene, 300);
 const TC = isTouchDevice() ? new TouchController({ buttons: [{ id: 'a', label: 'DRIFT', size: 84 }] }) : null; /* TOUCH: left-half stick steers, hold DRIFT for sharper turns (docs/TOUCH.md) */

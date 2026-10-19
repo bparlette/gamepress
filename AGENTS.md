@@ -19,6 +19,7 @@ Quality bar: `docs/QUALITY.md`; control contract: `docs/DRIVING.md`. Token saver
 - Tests: `node --test test/*.test.mjs`. Commit small; `git pull --rebase` before push.
 - Public repo: no secrets, no personal paths or names. Credentials live in the OS keychain / `~/.config/gamepress/` only.
 - Other agents share checkouts: check `git status` for foreign uncommitted work; never stage it.
+- **Best Game Quality First**: Never downgrade game feel, physics fidelity, audio, or visuals for artificial constraints. Use the best tools (Matter.js, Rapier, GSAP/spring easing via `gptween.js`, Howler/Tone.js, Three.js postprocessing) via standard ESM imports (`_vendor/` or fast CDNs) so games load instantly (<200ms) with zero bundler friction.
 
 ## Roblox
 Flow, key scopes and pitfalls: `docs/ROBLOX.md` and `docs/tracks/roblox.md`. Ship with `gamepress roblox-ship <file.rbxl> --test templates/roblox-smoke.luau` (needs the owner's Open Cloud key).

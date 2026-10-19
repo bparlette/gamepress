@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>ZOMBIE BRAWL</title></head><body>
 <script type="module">
 /*RECIPE arena-brawler. ONE screen, ONE mechanic: walk the street and punch zombie waves; hit streaks climb in pitch. 3-SECOND RULE: orange cat = player, green zombies = enemy, goal = knock them all out.
   DON'T BUILD: weapon pickups, more than 3 waves, co-op, menus. Edit the SPEC JSON (gamepress make).*/
@@ -6,7 +6,7 @@ import { createGame, sfx, comboPitch, R, rnd, ri, clamp, dist } from '../_vendor
 import { drawChar, heart, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { drawEnemy, foeId } from '../_vendor/gpenemies.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
-const S = { title: 'ZOMBIE BRAWL', sub: 'Drag to move, punch the zombies', hook: '1 cat vs the whole street', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#ffb27a', waves: [2, 3, 1], style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'ZOMBIE BRAWL', sub: 'Drag to move, punch the zombies', hook: '1 cat vs the whole street', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#ffb27a', waves: [2, 3, 3, 3, 1], style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: '👊' } ] }) : null; /* TOUCH: floating joystick (left half) + PUNCH button (right). See docs/TOUCH.md */
 const Y0 = 560, Y1 = 800;

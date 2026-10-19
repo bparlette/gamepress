@@ -1,10 +1,10 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>COZY CAT FARM</title></head><body>
 <script type="module">
 /*RECIPE cozy-farm. ONE screen, ONE mechanic: tap an isometric tile to till, plant, then harvest it before sunset. 3-SECOND RULE: you tap tiles = player, the sunset timer = enemy, goal = harvest the quota.
   DON'T BUILD: inventory, shop, npcs, seasons. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, pick, clamp } from '../_vendor/gp2d.js';
 import { drawChar } from '../_vendor/gpsprites.js';
-const S = { title: 'COZY CAT FARM', sub: 'Tap tiles: till, plant, harvest', hook: 'Tiny farm, huge dopamine', hero: 'cat', crop: '#ff7a3c', bg: '#9ad7a0', quota: 12, day: 30, grow: 2.4, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'COZY CAT FARM', sub: 'Tap tiles: till, plant, harvest', hook: 'Tiny farm, huge dopamine', hero: 'cat', crop: '#ff7a3c', bg: '#9ad7a0', quota: 24, day: 60, grow: 2.4, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const N = 5, TW = 118, TH = 62, OX = 270, OY = 400, iso = (i, j) => ({ x: OX + (i - j) * TW / 2, y: OY + (i + j) * TH / 2 });
 let tiles, left, harvested, combo, comboT, bot, pets;

@@ -1,11 +1,11 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>FLAP CAT</title></head><body>
 <script type="module">
 /*RECIPE one-tap-reflex. ONE screen, ONE mechanic: tap to flap through gaps. 3-SECOND RULE: orange jetpack cat = player, green pipes = enemy, goal = pass the gaps.
   DON'T BUILD: skins/shop, levels, leaderboards, menus beyond start/restart. Edit the SPEC JSON, not the code (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp, lerp } from '../_vendor/gp2d.js';
 import { drawChar, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { drawWorld, drawBackdrop, WORLDS } from '../_vendor/gpworld.js';
-const S = { title: 'FLAP CAT', sub: 'Tap to flap', hook: 'One tap. One cat. Impossible?', hero: 'cat', heroColor: '#ff9a3c', bg: '#59c9ff', pipe: '#4caf50', gap: 260, speed: 210, winScore: 8, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'FLAP CAT', sub: 'Tap to flap', hook: 'One tap. One cat. Impossible?', hero: 'cat', heroColor: '#ff9a3c', bg: '#59c9ff', pipe: '#4caf50', gap: 260, speed: 210, winScore: 16, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const W = S.world ? WORLDS[S.world] : null; /* optional world skin (docs/WORLDS.md): drawing + bg only */
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: W ? W.bg : S.bg, style: S.style });
 let flaps = 0, cat, pipes, streak, speed, cd, clouds = Array.from({ length: 6 }, (_, i) => ({ x: i * 110, y: rnd(80, 420), s: rnd(.6, 1.4) }));

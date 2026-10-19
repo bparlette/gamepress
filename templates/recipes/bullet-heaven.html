@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>ZOMBIE SURVIVORS</title></head><body>
 <script type="module">
 /*RECIPE bullet-heaven. ONE screen, ONE mechanic: drag to move, the cat auto-fires at the nearest zombie, gems level you up automatically. 3-SECOND RULE: cat in the middle = player, green swarm = enemy, goal = survive the timer.
   DON'T BUILD: an upgrade menu (auto-pick), meta progression, maps. Edit the SPEC JSON (gamepress make).*/
@@ -7,7 +7,7 @@ import { drawChar, heart, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { drawEnemy, foeId } from '../_vendor/gpenemies.js';
 import { drawWorld, drawBackdrop, WORLDS } from '../_vendor/gpworld.js';
 import { TouchController, isTouchDevice } from '../_vendor/gptouch.js';
-const S = { title: 'ZOMBIE SURVIVORS', sub: 'Drag to move. Survive.', hook: '10,000 zombies vs one cat', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#5aa84a', seconds: 16, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'ZOMBIE SURVIVORS', sub: 'Drag to move. Survive.', hook: '10,000 zombies vs one cat', hero: 'cat', heroColor: '#ff9a3c', foe: 'zombie', bg: '#5aa84a', seconds: 32, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const W = S.world ? WORLDS[S.world] : null; /* optional world skin (docs/WORLDS.md): drawing + bg only */
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: W ? W.bg : S.bg, style: S.style });
 const TC = isTouchDevice() ? new TouchController({ buttons: [ { id: 'a', label: 'NOVA', size: 92 } ] }) : null; /* TOUCH: floating stick (left) moves, NOVA blast (right). docs/TOUCH.md */

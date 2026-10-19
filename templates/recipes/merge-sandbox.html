@@ -1,11 +1,11 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>MERGE PETS</title></head><body>
 <script type="module">
 /*RECIPE merge-sandbox. ONE screen, ONE mechanic: drop pets into the jar; two of the same tier merge into the next. 3-SECOND RULE: the pet you drop = player, the overflow line = enemy, goal = merge up to the big pet.
   DON'T BUILD: daily rewards, shop, more than 8 tiers, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp, shade } from '../_vendor/gp2d.js';
 import { face, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { World } from '../_vendor/gpphys.js';
-const S = { title: 'MERGE PETS', sub: 'Drag, release to drop', hook: 'Merge to a MEGA cat', hero: 'cat', bg: '#3b2a5e', winTier: 5, drops: 26, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'MERGE PETS', sub: 'Drag, release to drop', hook: 'Merge to a MEGA cat', hero: 'cat', bg: '#3b2a5e', winTier: 6, drops: 52, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const X0 = 60, X1 = 480, Y1 = 880, TOP = 250, TIERS = [[18, '#ff9a3c'], [26, '#f4efe4'], [34, '#9aa0aa'], [44, '#ffd34d'], [56, '#ff7ab6'], [70, '#7ad7ff'], [86, '#8fcf7a'], [104, '#c06bff']];
 let outT, w, dropX, left, dflip, nextT, cd, over, combo, comboT, botT, maxTier;

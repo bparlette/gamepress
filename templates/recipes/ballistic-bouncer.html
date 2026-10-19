@@ -1,11 +1,11 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>CAT PEGGLE</title></head><body>
 <script type="module">
 /*RECIPE ballistic-bouncer. ONE screen, ONE mechanic: aim and fire one ball, it bounces through pegs, clear every orange peg. 3-SECOND RULE: cannon + ball = player, gravity and the drain = enemy, goal = clear the orange pegs.
   DON'T BUILD: powerup menu, 20 levels, character picks. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, clamp, shuffle } from '../_vendor/gp2d.js';
 import { face, heroKind, heroColor } from '../_vendor/gpsprites.js';
 import { World } from '../_vendor/gpphys.js';
-const S = { title: 'CAT PEGGLE', sub: 'Aim and tap to fire', hook: 'One shot. 50 pegs.', hero: 'cat', bg: '#2a1650', peg: '#4aa8ff', target: '#ff8a1f', balls: 6, orange: 6, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'CAT PEGGLE', sub: 'Aim and tap to fire', hook: 'One shot. 50 pegs.', hero: 'cat', bg: '#2a1650', peg: '#4aa8ff', target: '#ff8a1f', balls: 10, orange: 12, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const CX = 270, CY = 100;
 let w, pegs, ball, aim, ballsLeft, streak, bucket, botT, shotT, trail, orange;

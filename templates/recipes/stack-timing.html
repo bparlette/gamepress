@@ -1,10 +1,10 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>CAT STACK</title></head><body>
 <script type="module">
 /*RECIPE stack-timing. ONE screen, ONE mechanic: tap to drop the sliding block; only the overlap stays, so mistimed blocks shrink the tower. 3-SECOND RULE: sliding block = player, shrinking width = enemy, goal = stack it high.
   DON'T BUILD: themes shop, power-ups, modes, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, clamp, shade } from '../_vendor/gp2d.js';
 import { drawChar, heroKind, heroColor } from '../_vendor/gpsprites.js';
-const S = { title: 'CAT STACK', sub: 'Tap to drop the block', hook: 'One mistimed tap and it shrinks', hero: 'cat', heroColor: '#ff9a3c', bg: '#2a1f4e', goal: 12, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'CAT STACK', sub: 'Tap to drop the block', hook: 'One mistimed tap and it shrinks', hero: 'cat', heroColor: '#ff9a3c', bg: '#2a1f4e', goal: 24, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const BH = 46, BASE_Y = 820;
 let tower, mv, dir, speed, perfect, fall, camY, botT, dropped;
@@ -16,7 +16,7 @@ function drop() { if (g.mode !== 'play') return; const top = tower.at(-1), dx = 
   else { const ov = top.w - Math.abs(dx); perfect = 0; if (ov <= 0) { fall.push({ x: mv.x, y: BASE_Y - tower.length * BH, w: mv.w, vy: 0, n: mv.n }); sfx('lose'); g.shake(12); g.hitstop(.1); g.end({ win: false, score: g.score, label: 'HEIGHT' }); mv = null; return; }
     const nx = (Math.max(mv.x - mv.w / 2, top.x - top.w / 2) + Math.min(mv.x + mv.w / 2, top.x + top.w / 2)) / 2; const cutW = mv.w - ov, side = Math.sign(dx); fall.push({ x: mv.x + side * (ov / 2 + cutW / 2) * 1, y: BASE_Y - tower.length * BH, w: cutW, vy: 0, n: mv.n }); tower.push({ x: nx, w: ov, n: tower.length }); g.score += 10; sfx('thud'); g.shake(4); }
   if (tower.length - 1 >= S.goal) { g.end({ win: true, score: g.score, label: 'HEIGHT' }); g.burst(270, 300, 50, { color: ['#ffd34d', '#fff', '#ff7ab6'], speed: 480 }); mv = null; sfx('win'); return; }
-  speed += 14; dir *= -1; spawn(); }
+  speed += 7; dir *= -1; spawn(); }
 function update(dt) {
   if (g.mode === 'over') { for (const f of fall) { f.vy += 1800 * dt; f.y += f.vy * dt; } return; }
   if (g.mode !== 'play') return; botT -= dt; if (mv) { mv.x += dir * speed * dt; if (mv.x > 520 - mv.w / 2 + 40) dir = -1; if (mv.x < 20 + mv.w / 2 - 40) dir = 1; }

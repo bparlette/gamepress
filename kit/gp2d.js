@@ -2,14 +2,15 @@
 // touch + keys + on-screen buttons, juice (hit-stop, slow-mo, shake, flash, popups, particles), title/pause/results/replay, best score,
 // art styles, seeded RNG, an auto-pilot hook (?auto=1: bot plays, fails once on purpose, restarts, then wins) and window.__game for tests.
 import { R, SEED, clamp } from './gpmath.js';
-import { sfx, setMuted, comboPitch } from './gpaudio.js';
+import { sfx, setMuted, comboPitch, resumeAudio, playTone, playChord, startBgm, stopBgm } from './gpaudio.js';
 import { castEnd } from './gpcast.js';
 import { STY } from './gpsprites.js';
+import { tweens, tween, punch, Easing } from './gptween.js';
 // ?hold=1 (hub): run a few frames so the game shows, then freeze until the hub posts {gp:'start'}.
 if (typeof location !== 'undefined' && typeof window !== 'undefined' && new URLSearchParams(location.search).has('hold')) { const hold = window.__gpHold = { onStart: null, go: false, n: 0 }; const start = () => { if (hold.go) return; hold.go = true; hold.onStart?.(); try { parent.postMessage({ gp: 'started' }, '*'); } catch {} };
   for (const t of ['pointerdown', 'touchstart', 'mousedown', 'keydown']) addEventListener(t, () => start(), { capture: true, passive: true });
   addEventListener('message', e => { if (e.data && e.data.gp === 'start') start(); }); }
-export { sfx, comboPitch };
+export { sfx, comboPitch, resumeAudio, playTone, playChord, startBgm, stopBgm, tweens, tween, punch, Easing };
 export * from './gpmath.js';
 export const STYLES = ['toon', 'roblox', 'comic', 'painted', 'pixel16', 'pixel8'];
 
@@ -67,6 +68,8 @@ export function createGame({ id = 'game', title = 'GAME', sub = 'Tap to start', 
   addEventListener('keyup', e => { g.keys[e.code] = false; });
   document.addEventListener('visibilitychange', () => { if (document.hidden && g.mode === 'play' && !AUTO) g.mode = 'pause'; });
   const tw = []; g.tween = (o, k, to, d = .3, ez = t => 1 - (1 - t) ** 3, then) => tw.push({ o, k, a: o[k], to, d, t: 0, ez, then });
+  g.punch = (o, k, amount, d = .25) => punch(o, k, amount, d);
+  g.bgm = opts => startBgm(opts); g.stopBgm = () => stopBgm();
   g.shake = a => { stats.shakes++; g.shakeA = Math.max(g.shakeA, a); }; g.hitstop = (s = .06) => { stats.hitstops++; g.freeze = Math.max(g.freeze, s); }; g.slowmo = (f = .3, s = 1) => { stats.hitstops++; g.timeScale = f; g.slowT = s; };
   g.flash = (c = '#fff', a = .5) => { stats.flashes++; g.flashC = c; g.flashA = a; }; g.showBanner = (t, s = 1.2) => { g.banner = t; g.bannerT = s; };
   g.popup = (text, x, y, color = '#ffd34d', size = 34) => { stats.popups++; g.pops.push({ text, x, y, color, size, t: 0 }); if (g.pops.length > 30) g.pops.shift(); };
@@ -94,7 +97,7 @@ export function createGame({ id = 'game', title = 'GAME', sub = 'Tap to start', 
       acc += Math.min(.1, (ts - last) / 1000 || .016); last = ts;
       { const H = window.__gpHold; if (H && !H.go && ++H.n > 3) acc = 0; } // ?hold=1: draw the scene but freeze the simulation until the first touch
       while (acc >= 1 / 60) { acc -= 1 / 60; const dt0 = 1 / 60;
-        if (g.mode !== 'pause') { for (let i = tw.length - 1; i >= 0; i--) { const q = tw[i]; q.t += dt0; const u = Math.min(1, q.t / q.d); q.o[q.k] = q.a + (q.to - q.a) * q.ez(u); if (u >= 1) { tw.splice(i, 1); q.then?.(); } }
+        if (g.mode !== 'pause') { tweens.step(dt0 * g.timeScale); for (let i = tw.length - 1; i >= 0; i--) { const q = tw[i]; q.t += dt0; const u = Math.min(1, q.t / q.d); q.o[q.k] = q.a + (q.to - q.a) * q.ez(u); if (u >= 1) { tw.splice(i, 1); q.then?.(); } }
           for (const p of g.fxl) { p.t += dt0; p.vy += p.g * dt0; p.x += p.vx * dt0; p.y += p.vy * dt0; } g.fxl = g.fxl.filter(p => p.t < p.life); for (const p of g.pops) p.t += dt0; g.pops = g.pops.filter(p => p.t < .9);
           g.shakeA = Math.max(0, g.shakeA - dt0 * 40); g.flashA *= .88; if (g.bannerT > 0) g.bannerT -= dt0; if (g.mode === 'over') { g.overT += dt0; if (AUTO && g.overT > 2.4 && !g.result?.win) g.reset(); } }
         if (g.mode === 'play' || (g.mode === 'title' && AUTO)) { if (g.freeze > 0) g.freeze -= dt0; else { if (g.slowT > 0 && (g.slowT -= dt0) <= 0) g.timeScale = 1; const dt = dt0 * g.timeScale; g.t += dt; g.btns.length = 0; update(dt); } }

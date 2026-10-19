@@ -43,5 +43,57 @@ export function sfx(type, { pitch = 1, vol = 1 } = {}) {
     }
   } catch {}
 }
-/** Pitch for the nth hit of a streak: one semitone per step, capped at an octave. */
 export const comboPitch = n => 2 ** (Math.min(Math.max(n, 0), 12) / 12);
+
+export function resumeAudio() {
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
+  } catch {}
+}
+
+export function playTone(freq, { type = 'sine', dur = 0.2, vol = 0.25, decay = true } = {}) {
+  if (muted) return;
+  try {
+    resumeAudio();
+    const t0 = ac.currentTime;
+    const osc = ac.createOscillator();
+    const g = ac.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(vol, t0);
+    if (decay) g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+    else g.gain.setValueAtTime(vol, t0 + dur);
+    osc.connect(g);
+    g.connect(ac.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.05);
+  } catch {}
+}
+
+export function playChord(freqs, { dur = 0.6, vol = 0.2, type = 'triangle' } = {}) {
+  if (!Array.isArray(freqs)) freqs = [freqs];
+  freqs.forEach(f => playTone(f, { dur, vol: vol / freqs.length, type }));
+}
+
+let activeBgm = null;
+export function startBgm({ bpm = 128, pattern = [261.63, 293.66, 329.63, 392.00], vol = 0.15 } = {}) {
+  stopBgm();
+  if (muted) return;
+  resumeAudio();
+  let step = 0;
+  const interval = (60 / bpm) * 1000 * 0.5;
+  activeBgm = setInterval(() => {
+    if (muted) return;
+    const freq = pattern[step % pattern.length];
+    if (freq > 0) playTone(freq, { type: 'sine', dur: 0.18, vol });
+    step++;
+  }, interval);
+}
+
+export function stopBgm() {
+  if (activeBgm) {
+    clearInterval(activeBgm);
+    activeBgm = null;
+  }
+}

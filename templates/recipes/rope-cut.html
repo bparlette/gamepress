@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>CAT ROPE</title></head><body>
 <script type="module">
 /*RECIPE rope-cut. ONE screen, ONE mechanic: swipe to cut the rope at the right moment so the swinging fish drops into the cat's mouth. 3-SECOND RULE: the swinging fish = player, the hungry cat's mouth = goal, a missed fish = enemy.
   DON'T BUILD: more than 3 rope gadgets, stars shop, level packs, menus. Edit the SPEC JSON (gamepress make).*/
@@ -7,8 +7,9 @@ import { drawChar, star, heroKind, heroColor } from '../_vendor/gpsprites.js';
 const S = { title: 'CAT ROPE', sub: 'Swipe the rope to cut it', hook: 'Feed the cat. Cut at the right time.', hero: 'cat', heroColor: '#ff9a3c', bg: '#7fd4ff', tries: 3, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const AX = 120, AY = 150, N = 14, SEG = 22, MX = 410, MY = 770, GRAV = 1500;
-let pts, fish, cut, tries, botT, stars, sparkT, out;
-function init() { pts = Array.from({ length: N + 1 }, (_, i) => ({ x: AX + i * SEG * .6, y: AY + i * SEG * .8, px: AX + i * SEG * .6, py: AY + i * SEG * .8 })); fish = { free: false, vx: 0, vy: 0 }; cut = false; tries = g.dumb() ? 1 : S.tries; botT = 1.2; sparkT = 0; out = 0; g.score = 0; const f = pts.at(-1); f.x = f.px = 420; f.y = f.py = 330; }
+let pts, fish, cut, tries, botT, stars, sparkT, out, fedCount = 0, goalFish = 2;
+function init() { fedCount = 0; resetFish(); }
+function resetFish() { pts = Array.from({ length: N + 1 }, (_, i) => ({ x: AX + i * SEG * .6, y: AY + i * SEG * .8, px: AX + i * SEG * .6, py: AY + i * SEG * .8 })); fish = { free: false, vx: 0, vy: 0 }; cut = false; tries = g.dumb() ? 1 : S.tries; botT = 1.2; sparkT = 0; out = 0; g.score = 0; const f = pts.at(-1); f.x = f.px = 420; f.y = f.py = 330; }
 g.onReset = init; init();
 const mouth = () => ({ x: MX, y: MY - 60 });
 function slashRope(x0, y0, x1, y1) { if (cut) return; for (let i = 0; i < N; i++) { const a = pts[i], b = pts[i + 1]; if (segHit(a, b, x0, y0, x1, y1)) { cut = true; fish.free = true; const f = pts.at(-1); fish.vx = (f.x - f.px) * 60; fish.vy = (f.y - f.py) * 60; sfx('snap' in {} ? 'snap' : 'click', { pitch: 1.5 }); sfx('whoosh', { vol: .5 }); g.burst((a.x + b.x) / 2, (a.y + b.y) / 2, 8, { color: ['#c9a56a', '#fff'], speed: 200, size: 6 }); g.slowmo(.6, .25); return; } } }
@@ -23,7 +24,7 @@ function update(dt) {
   else { fish.vy += GRAV * dt; const f = pts.at(-1); f.x += fish.vx * dt; f.y += fish.vy * dt; for (const p of pts) { p.y += 0; } const m = mouth(); if (Math.hypot(f.x - m.x, f.y - m.y) < 58) { fed(); } else if (f.y > 1000 || f.x < -40 || f.x > 580) { out += 1; miss(); } }
   g.hud.hint = !cut && tries >= S.tries ? 'SWIPE THE ROPE. FEED THE CAT' : ''; g.state = { cut, tries, fx: Math.round(pts.at(-1).x), fy: Math.round(pts.at(-1).y) };
 }
-function fed() { if (g.mode !== 'play') return; g.score = 100 + tries * 50; sfx('win'); sfx('coin', { pitch: 1.2 }); g.flash('#fff', .4); g.burst(MX, MY - 60, 30, { color: ['#ff9a3c', '#ffd34d', '#fff'], speed: 420 }); g.popup('YUM!', MX, MY - 140, '#7dff7d', 60); g.end({ win: true, score: g.score, label: 'SCORE' }); }
+function fed() { if (g.mode !== 'play') return; fedCount++; g.score += 100 + tries * 50; sfx('win'); sfx('coin', { pitch: 1.2 }); g.flash('#fff', .4); g.burst(MX, MY - 60, 30, { color: ['#ff9a3c', '#ffd34d', '#fff'], speed: 420 }); g.popup('YUM!', MX, MY - 140, '#7dff7d', 60); if (fedCount >= goalFish) { g.end({ win: true, score: g.score, label: 'SCORE' }); } else { g.showBanner('FISH 2!', 1.0); resetFish(); } }
 function miss() { if (g.mode !== 'play') return; tries--; sfx('hit'); g.shake(8); g.flash('#ff3b3b', .3); if (tries <= 0) { g.end({ win: false, score: 0, label: 'SCORE' }); } else { const keep = tries; init(); tries = keep; g.showBanner('TRY AGAIN', .8); } }
 function draw(c) {
   const gr = c.createLinearGradient(0, 0, 0, 960); gr.addColorStop(0, '#7fd4ff'); gr.addColorStop(1, '#d8f1ff'); c.fillStyle = gr; c.fillRect(0, 0, 540, 960); c.fillStyle = '#6bbf59'; c.fillRect(0, MY, 540, 200);
@@ -32,7 +33,7 @@ function draw(c) {
   const f = pts.at(-1); c.save(); c.translate(f.x, f.y); c.rotate(cut ? g.t * 6 : 0); c.fillStyle = '#7ad7ff'; c.beginPath(); c.ellipse(0, 0, 34, 20, 0, 0, 7); c.fill(); c.lineWidth = 4; c.strokeStyle = '#000'; c.stroke(); c.beginPath(); c.moveTo(28, 0); c.lineTo(48, -14); c.lineTo(48, 14); c.closePath(); c.fill(); c.stroke(); c.fillStyle = '#fff'; c.beginPath(); c.arc(-14, -5, 5, 0, 7); c.fill(); c.restore();
   const near = Math.hypot(f.x - MX, f.y - (MY - 60)) < 200; drawChar(heroKind(S.hero), c, MX, MY + 30, 170, { color: heroColor(S.heroColor), dir: -1, t: g.t, anim: 'idle', hurt: false }); if (near) { c.fillStyle = '#2a1010'; c.beginPath(); c.ellipse(MX - 26, MY - 62, 18, 24, 0, 0, 7); c.fill(); }
   c.strokeStyle = '#ffd34d'; c.lineWidth = 6; c.globalAlpha = .5 + Math.sin(g.t * 6) * .3; c.beginPath(); c.arc(MX, MY - 60, 58, 0, 7); c.stroke(); c.globalAlpha = 1;
-  g.text(`TRIES ${tries}`, 270, 110, { size: 34, align: 'center' });
+  g.text(`FISH ${fedCount}/${goalFish} · TRIES ${tries}`, 270, 110, { size: 34, align: 'center' });
 }
 g.run(update, draw);
 </script></body></html>

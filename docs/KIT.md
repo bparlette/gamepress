@@ -26,6 +26,8 @@ Feel constants and their sources: `docs/NINTENDO-FEEL.md`. Recipe wiring: `docs/
 | `gpstyle.js` | 3D (+2D) | Visual standards from Cherie's favorite games: `applyVisualStandard(scene, camera, renderer, preset)` sets up lighting/fog/materials in one call. Presets: `cel` (Cel City toon + outlines + halftone), `shellshock` (Shell Shock 3D night city), `hoa` (HOA Warfare daytime + shadows), `roadkill` (Roadkill Rig desert toon + sky dome), `blox-fruits` (tropical anime archipelago + fruit-power particles + chunky UI), `shellshock-live` (2D painted brawler glow), `shellshock-16bit` (2D pixel art), `crystal-cave` (2.5D emissive crystals). Includes `PALETTES`, `makeToonMaterial()`, `withOutline()`, `portraitFov()`, `makeBloxParticles()`, `bloxHUD`, `makeSkyDome()`. See `docs/VISUAL-STANDARDS.md`. |
 | `gplevels.js` | both | Multi-level progression for full-game expansions: `createLevelManager()` (unlock/star/save schema), `createCamera()` (follow + world-bounds clamp). Injected by `gamepress expand`. |
 | `gpchar.js` | 3D | Procedural characters — zero model files: `buildHumanoid()` (real ~7.5-head proportions, sphere head with face, tapered torso, jointed limbs, hair/headband variants), `buildBunny()`/`buildCat()`/`buildDog()` (silhouette-first animals), `setPose()`/`update()` (damped procedural animation: idle/guard/walk/crouch/weapon-aware attacks/hit/dead/victory). See Character Design Rules in `docs/VISUAL-STANDARDS.md`. |
+| `gptween.js` | all | GSAP/Anime-grade juicy animation & spring physics: `tweens.to()`, `punch(obj, prop, amount)`, `spring()`, `Easing` (elastic, bounce, back, cubic). Built-in to `createGame`. |
+| `gpmatter.js` | 2D | Matter.js physics bridge: rigid body dynamics, ragdoll composites, pinball bumpers, spring constraints, and compound shapes. |
 | `three.module.min.js` | 3D | Vendored three.js r160 (single file, no npm). Imported by `gp3d.js`/`gpkit.js`. |
 | `slashido/` | 3D | Painted-illustration rendering ported from SLASHIDO: custom toon shader (noise-broken band edges, hue-shifted shadows, dual rim lights, ink outlines), Kuwahara paint-filter post pipeline, `toonMat()` material builder. Turns primitive characters into painted game art. See `docs/SLASHIDO-SHADER.md`. |
 
@@ -67,4 +69,4 @@ Presets: `trailer` (deep, slow — `am_adam` @ 0.85x), `character` (energetic �
 `narrator` (neutral — `af_sarah` @ 1.0x). Long text is auto-chunked on sentence
 boundaries and concatenated. Model dir override: `GAMEPRESS_TTS_DIR`.
 
-Rules for kit changes: keep it dependency-free, deterministic, and backward compatible; run `gamepress botcheck` on a few recipes after touching it.
+Rules for kit changes: prioritize top-tier game feel, high-fidelity physics, and juicy animation; keep imports ESM-compatible, deterministic, and backward compatible; run `gamepress botcheck` on a few recipes after touching it.

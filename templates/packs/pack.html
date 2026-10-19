@@ -25,7 +25,7 @@ iframe.off{display:none}
 <script>
 const CFG = __CONFIG__;
 const $ = id => document.getElementById(id);
-const games = CFG.games, N = games.length, CAP = 45000, GAP = 1300;
+const games = CFG.games, N = games.length, CAP = 90000, GAP = 1300;
 const a = Math.floor(Math.random() * 1e6);
 let idx = -1, loop = 0, frames = [document.createElement('iframe'), document.createElement('iframe')], cur = 0, timer = 0, locked = true, results = [];
 frames.forEach(f => { f.className = 'off'; f.allow = 'autoplay; fullscreen; gamepad'; document.body.prepend(f); });

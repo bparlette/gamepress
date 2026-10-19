@@ -8,8 +8,9 @@ Plain spheres, boxes and flat colours do not go viral. Every demo needs these, a
 | Characters, not primitives | `catGeo()`, `zombieGeo()`, `carGeo()` merged low-poly models; `crowd()` for instanced hordes; `hero()` for one outlined character. Add a new `build([...])` model for each new creature |
 | Cel look | `toon(color)` (3-step ramp) everywhere; outline hero objects (`hero()`); renderer already uses ACES tone mapping, saturation and vignette |
 | Place, not a void | `sky()` gradient + fog, `groundTex()` texture, props (trees, buildings with window textures), `blobs()` contact shadows |
-| Juice | `particles()` burst on every hit/eat/land; `st.shake()`; hit-stop/slow-mo in the drive plan; FOV kick on speed |
-| Sound | `sfx('boom'|'meow'|'groan'|'goo'|'crash'|'pop'|'win'...)` on every event (also feeds video audio) |
+| Physics, not flat boxes | `gpmatter.js` / Matter.js / Rapier for realistic rigid bodies, ragdoll tumbles, pinball bumpers, spring constraints; `gpphys.js` for lightweight circles/craters |
+| Juice & Spring Physics | `gptween.js` `punch(obj, prop, amount)`, `tween()`, `spring()`, `Easing.easeOutElastic` for squashes, stretches, camera zooms; `particles()` burst on hits; `g.shake()` / `st.shake()`; hit-stop/slow-mo |
+| Sound & Adaptive Music | `sfx()` for multi-oscillator hits/coins; `startBgm()` / `playChord()` in `gpaudio.js` for adaptive background synth loops that speed up during combos |
 | Readable numbers | big HUD counters that climb; milestone `st.hud.banner('4,000 CATS!')` |
 | Payoff in 15 s | pacing knobs (`?speed`, `?grow`, `?auto`) so the video shows the satisfying part fast |
 

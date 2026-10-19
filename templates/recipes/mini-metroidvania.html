@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>CAT CAVE</title></head><body>
 <script type="module">
 /*RECIPE mini-metroidvania. THREE rooms, ONE ability: grab the double-jump orb, then climb the ledge that was out of reach. 3-SECOND RULE: orange cat = player, red spikes = enemy, goal = get the orb, then reach the flag.
   DON'T BUILD: a map screen, more than 3 rooms, bosses, menus. Edit the SPEC JSON (gamepress make).*/
@@ -19,8 +19,9 @@ const room = [
 const map = Array.from({ length: ROWS }, (_, y) => room.map(r => r[y]).join('').split(''));
 for (let y = 0; y < ROWS; y++) map[y][0] = map[y][0] === '.' && y < 11 ? '#' : map[y][0];
 const solid = (tx, ty) => tx < 0 || tx >= COLS ? true : ty >= ROWS ? false : map[ty]?.[tx] === '#';
-let p, cam, coy, buf, jumps, hasDouble, botT, flash;
-function init() { p = { x: 70, y: 10 * T - 42, w: 30, h: 42, vx: 0, vy: 0, dir: 1, t: 0, air: false }; cam = 0; coy = 0; buf = 0; jumps = 0; hasDouble = false; botT = 0; g.score = 0; for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (map[y][x] === 'x') map[y][x] = 'D'; }
+let p, cam, coy, buf, jumps, hasDouble, botT, flash, stage = 1, maxStages = 2;
+function init() { stage = 1; resetStage(); }
+function resetStage() { p = { x: 70, y: 10 * T - 42, w: 30, h: 42, vx: 0, vy: 0, dir: 1, t: 0, air: false }; cam = 0; coy = 0; buf = 0; jumps = 0; hasDouble = false; botT = 0; g.score = 0; for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (map[y][x] === 'x') map[y][x] = 'D'; }
 g.onReset = init; init();
 function die() { sfx('hit'); g.hitstop(.1); g.burst(p.x + 15, p.y + 20, 20, { color: [S.heroColor, '#fff'], speed: 340 }); g.end({ win: false, score: g.score, label: 'POINTS' }); }
 function update(dt) {
@@ -39,7 +40,7 @@ function update(dt) {
   const cx = Math.floor((p.x + 15) / T), cy = Math.floor((p.y + 24) / T), t = map[cy]?.[cx];
   if (t === 'D') { map[cy][cx] = 'x'; hasDouble = true; g.score += 200; sfx('powerup'); g.flash('#7ad7ff', .6); g.showBanner('DOUBLE JUMP!', 1.4); g.slowmo(.4, .6); g.burst(p.x, p.y, 40, { color: ['#7ad7ff', '#fff'], speed: 460 }); }
   if (map[Math.floor((p.y + p.h - 6) / T)]?.[cx] === '^' || p.y > OY + ROWS * T + 80) die();
-  if (t === 'F') { g.score += 500; g.burst(p.x, p.y, 40, { color: ['#ffd34d', '#fff', '#ff6b6b'], speed: 420 }); g.end({ win: true, score: g.score, label: 'POINTS' }); }
+  if (t === 'F') { if (stage < maxStages) { stage++; g.score += 500; sfx('win'); g.showBanner('CAVE 2!', 1.2); g.burst(p.x, p.y, 30, { color: ['#7ad7ff', '#fff'], speed: 400 }); resetStage(); } else { g.score += 1000; g.burst(p.x, p.y, 40, { color: ['#ffd34d', '#fff', '#ff6b6b'], speed: 420 }); g.end({ win: true, score: g.score, label: 'POINTS' }); } }
   cam += (Math.floor(p.x / (RW * T)) * RW * T - cam) * Math.min(1, dt * 8); g.state = { x: Math.round(p.x), y: Math.round(p.y), double: hasDouble, room: Math.floor(p.x / (RW * T)) };
 }
 function draw(c) {
@@ -55,7 +56,7 @@ function draw(c) {
     else if (t === 'F') { c.fillStyle = '#ddd'; c.fillRect(px + 18, py - 60, 6, 105); c.fillStyle = '#ffd34d'; c.beginPath(); c.moveTo(px + 24, py - 60); c.lineTo(px + 70, py - 42 + Math.sin(g.t * 6) * 4); c.lineTo(px + 24, py - 24); c.fill(); } }
   if (hasDouble) { c.fillStyle = 'rgba(122,215,255,.25)'; c.beginPath(); c.arc(p.x + 15, p.y + 24, 34 + Math.sin(g.t * 6) * 3, 0, 7); c.fill(); }
   drawChar(heroKind(S.hero), c, p.x + 15, p.y + 46, 62, { color: heroColor(S.heroColor), dir: p.dir, t: p.t, anim: p.air ? 'idle' : (Math.abs(p.vx) > 1 ? 'walk' : 'idle'), hurt: g.mode === 'over' }); c.restore();
-  for (let i = 0; i < 3; i++) { c.fillStyle = Math.floor(p.x / (RW * T)) === i ? '#ffd34d' : '#555'; c.fillRect(200 + i * 44, 100, 36, 12); } g.text(hasDouble ? 'DOUBLE JUMP: FLY TO THE FLAG' : 'FIND THE BLUE ORB', 270, 150, { size: 26, align: 'center', color: hasDouble ? '#7ad7ff' : '#999' });
+  for (let i = 0; i < 3; i++) { c.fillStyle = Math.floor(p.x / (RW * T)) === i ? '#ffd34d' : '#555'; c.fillRect(200 + i * 44, 100, 36, 12); } g.text(`CAVE ${stage}/${maxStages} · ` + (hasDouble ? 'FLY TO THE FLAG' : 'FIND THE BLUE ORB'), 270, 150, { size: 26, align: 'center', color: hasDouble ? '#7ad7ff' : '#999' });
 }
 g.run(update, draw);
 </script></body></html>

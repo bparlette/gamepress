@@ -1,10 +1,10 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>__TITLE__</title></head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>CARD CATS</title></head><body>
 <script type="module">
 /*RECIPE card-roguelite. ONE screen, ONE mechanic: pick up to 5 cards, play a poker hand, chips x mult beats the blind. 3-SECOND RULE: your hand of cards = player, the target score and 3 hands = enemy, goal = beat the blind.
   DON'T BUILD: a shop, more than a few jokers, a run map, menus. Edit the SPEC JSON (gamepress make).*/
 import { createGame, sfx, comboPitch, R, rnd, ri, shuffle, clamp } from '../_vendor/gp2d.js';
 import { face, heroKind, heroColor } from '../_vendor/gpsprites.js';
-const S = { title: 'CARD CATS', sub: 'Tap cards, then PLAY', hook: 'Beat the blind with 5 cards', hero: 'cat', bg: '#0f5a3a', target: 240, hands: 3, style: 'toon', /*SPEC*/ ...{} /*END*/ };
+const S = { title: 'CARD CATS', sub: 'Tap cards, then PLAY', hook: 'Beat the blind with 5 cards', hero: 'cat', bg: '#0f5a3a', target: 480, hands: 6, style: 'toon', /*SPEC*/ ...{} /*END*/ };
 const g = createGame({ id: S.title.toLowerCase().replace(/\W+/g, '-'), title: S.title, sub: S.sub, hook: S.hook, bg: S.bg, style: S.style });
 const SUITS = [['♥', '#e63946'], ['♦', '#ff8a1f'], ['♣', '#2a2f3a'], ['♠', '#2a2f3a']], RANK = r => (r === 14 ? 'A' : r === 13 ? 'K' : r === 12 ? 'Q' : r === 11 ? 'J' : String(r)), CH = r => (r === 14 ? 11 : Math.min(10, r));
 const HANDS = [['High Card', 5, 1], ['Pair', 10, 2], ['Two Pair', 20, 2], ['Three of a Kind', 30, 3], ['Straight', 30, 4], ['Flush', 35, 4], ['Full House', 40, 4], ['Four of a Kind', 60, 7], ['Straight Flush', 100, 8]];
