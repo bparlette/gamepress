@@ -9,7 +9,11 @@ gamepress builds games for four different jobs. Know which one you're doing befo
 - Shorthand: when Cherie says "gamepress youtube," this is what she means.
 - Optimize for: spectate/auto-play modes, juicy readable moments, vertical 9:16, action in the first second.
 - The demo only needs to look amazing for ~30 seconds and play itself.
-- "Done" = a playable URL + a filmed clip that follows the VIRAL-PLAYBOOK.md retention timeline.
+- **Always delivers three things:**
+  1. **Playable link** — the game URL, verified loading (not blank).
+  2. **Downloadable video** — a filmed clip of the demo (bot/spectate capture), hosted as a permanent direct link she can download.
+  3. **Viral title for the YT Short** — a hook title following VIRAL-PLAYBOOK.md rules (surprising claim or payoff, never "trailer," one gag visible in the first second).
+- "Done" = all three delivered. A demo without the video and title is incomplete.
 - Examples: Steal the Treat, Catfishin' (Oct 2026).
 
 ## 2. Store assets
