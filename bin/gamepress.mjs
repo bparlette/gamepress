@@ -43,6 +43,7 @@ import { config, status, grade, runAll } from '../lib/pipeline.mjs';
 import { catalogCommand } from '../lib/catalog.mjs';
 import { research, scaffold, testGame, botCheck, bundle, publishPack, publishDemo, copyDraft, buildTarget, repoInit } from '../lib/tasks.mjs';
 import { visualSmokeTest } from '../lib/visual.mjs';
+import { resolveTarget, judgeGame, judgeAll, PASS_THRESHOLD } from '../lib/judge.mjs';
 import { publishRoblox, shipRoblox, runLuau } from '../lib/roblox.mjs';
 import * as hosts from '../lib/hosts/index.mjs';
 import { voices, bumpVersion, makeIcons, compositeCapsuleLogo } from '../lib/studio.mjs';
@@ -56,7 +57,6 @@ import { listTools, checkUpdates, downloadTool, loadManifest } from '../lib/tool
 import { approveDemo, getApproval, listApprovals, generateBlueprint, scaffoldExpansion } from '../lib/expand.mjs';
 import { cloudAvailable, cloudOrLocal } from '../lib/cloud.mjs';
 import { startRun, answerRun, statusRun } from '../lib/run.mjs';
-import { judgeGame } from '../lib/judge.mjs';
 import { createInterface as _rl } from 'node:readline';
 
 /** One-off free-text prompt (only called when --prompt already verified a TTY). */
@@ -391,14 +391,11 @@ const HELP = {
   auto: ['zero-AI path: idea -> playable game + video in one command', 'gamepress auto "<idea>" [--track demo] [--prompt] [--from-image] [--lego] [--preset name]', ['--id x', '--track demo|web-store|hook', '--style toon|comic|...', '--answers a.json', '--preset name', '--prompt (interactive)', '--from-image (img2threejs)', '--image-mode upload|describe|game|prompt-me', '--image-desc "..."', '--lego', '--local-ai', '--heal', '--vo']],
   lego: ['build a composable gplego game from an idea', 'gamepress lego <id> --idea "<idea>" [--spec spec.json]', ['--idea', '--spec']],
   make: ['build a whole game from a recipe + small JSON spec', 'gamepress make <id> --recipe <name> --spec spec.json', ['--recipe', '--spec', '--answers a.json', '--force']],
-  theme: ['the viral 30 use case: re-skin all 30 recipe games as a hero (cats|dogs|ducks|...) in a world (grassland|dungeon|cyber|cosmic), render them, build the 4 packs (2x15 + 2x5 free), QC, publish. See docs/VIRAL-SET.md', 'gamepress theme <hero> [--world w] [--render] [--qc] [--publish] [--packs] [--only a,b] [--budget minutes] [--force]', ['--world', '--render (hook video + thumb + catalog per game, ~3 min each; resumable)', '--budget (stop after N minutes, rerun to resume; default 100)', '--force (re-render all)', '--packs (rebuild packs only)', '--qc (contact sheet + headless pack smoke test)', '--publish (commit + push the demo-page repo)', '--only', '--games', '--catalog']],
-  cast: ['copy a cast (characters + voice barks, e.g. karen) into <games>/_cast/<id>/; then gamepress theme <id> --only ... and gamepress hub <name> --cast <id> [--demo] (docs/CAST.md)', 'gamepress cast <id> [--source <dir or $HOA_WARFARE_DIR>] [--factions a,b]'],
-  hub: ['build the Arcade Hub: all mini-games in one app with hero select, coin wallet and shop (docs/HUB.md)', 'gamepress hub <name> [--demo] [--games ids] [--world w] [--no-catalog]', ['--demo (5-game free taster that ends each cycle on an upsell)', '--games a,b,c (ids; a directory path sets the games dir instead)', '--only a,b,c', '--world', '--catalog', '--no-catalog']],
-  packs: ['build the rotating multi-game packs (presets/packs.json) from built recipe games', 'gamepress packs [packId] [--no-catalog]', ['--games', '--catalog', '--no-catalog']],
   recipes: ['list the 24 game recipes (or regenerate docs/RECIPES-CATALOG.md)', 'gamepress recipes [--md]', ['--md (write docs)', '--json']],
   new: ['scaffold a new game shell', 'gamepress new <id> [--games dir] [--title T] [--target web|roblox]', ['--games', '--title', '--target']],
   test: ['headless playtest + visual smoke test: must print "ok": true', 'gamepress test <game dir or url> [--root dir]', ['--root']],
   visual: ['visual smoke test: screenshot + pixel-variance render check', 'gamepress visual <game dir or url> [--seconds 10]', ['--seconds 10']],
+  judge: ['score a REMOTE web game (Hawk catalog id or URL) against the quality bar', 'gamepress judge <url-or-hawk-id> [--landscape|--portrait] [--timeout 30] [--json] | gamepress judge --all', ['--all (whole Hawk catalog)', '--landscape / --portrait', '--timeout 30', '--json']],
   botcheck: ['prove the demo loses then wins (bot playtest)', 'gamepress botcheck <game-id> [--seconds 40]', ['--seconds 40']],
   status: ['what is done/stale, what is next (token-saving)', 'gamepress status <game-id> [--json]', ['--json', '--games', '--catalog']],
   all: ['run every missing/stale step of a track in order', 'gamepress all <id> --track hook|demo|web-store [--heal] [--vo] [--horizontal-only] [--vertical-only]', ['--track', '--force', '--heal', '--vo', '--local (skip cloud)', '--local-ai', '--horizontal-only / --vertical-only (default: both orientations)']],
@@ -436,7 +433,6 @@ const HELP = {
   context: ['~400-token AI cheat sheet (the token-saving entry point)', 'gamepress context [--2d|--3d|--lego|--recipe <name>]', ['--2d', '--3d', '--lego', '--recipe']],
   cloud: ['run a slow job on free GitHub runners, falling back to local automatically', 'gamepress cloud drive <plan.json> | voice <script.txt> | test', ['--out dir', '--quick N', '--voice narrator', '--speed 1.0', '--local (skip cloud)']],
   run: ['conversational orchestrator: the tool drives, the AI just relays (see ORCHESTRATOR.md). Cloud-first: slow steps try free GitHub runners, --local forces local.', 'gamepress run [--answer \'{...}\' --job <id>] [--status <id>] [--local]', ['--answer', '--job', '--status', '--local (skip cloud, run locally)']],
-  judge: ['multi-state visual inspection with faceted scoring (palette, camera, layout, readability)', 'gamepress judge <game-id|dir> [--json] [--shot-dir dir] [--vision]', ['--shot-dir dir (default .gp/judge)', '--vision (optional vision critique)']],
   help: ['this help (or per-command: gamepress <cmd> --help)', 'gamepress --help | gamepress <cmd> --help', []],
 };
 function printHelp() {
@@ -521,29 +517,6 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
   hooks: () => { try { const r = generateHooks(need('hooks'), { videoDir: CFG().videoDir, examples: CFG().examples }); out(r, o => `${o.id}: rendered ${o.count} A/B hooks -> ${o.variants.map(v => v.file).join(', ')}`); } catch (e) { die('hooks: ' + e.message); } },
   stats: () => gatherStats(positional[0] || null, { gamesDir: CFG().games, publishDir: CFG().publish, stateDir: CFG().state })
     .then(r => out(r, o => o.games.map(g => `${g.id.padEnd(20)} grade=${String(g.gradeScore ?? '-').padStart(3)} yt=${g.ytViews} itch=${g.itchViews} -> ${g.verdict}`).join('\n') || 'no games found')).catch(e => die('stats: ' + e.message)),
-  judge: async () => {
-    const target = positional[0] || die('usage: gamepress judge <game-id | game-path> [--json] [--shot-dir dir] [--vision] [--landscape]');
-    const root = join(HERE, '..');
-    const scratch = '/Users/braidpairlette/.gemini/antigravity/scratch';
-    let gamePath = target;
-    if (!/^https?:/.test(target)) {
-      if (existsSync(target)) gamePath = target;
-      else if (existsSync(join(scratch, target))) gamePath = join(scratch, target);
-      else if (target === 'karen' || target === 'hoa-karen' || target === 'hoa' || target === 'hoa-warfare') {
-        if (existsSync(join(scratch, 'hoa-warfare'))) gamePath = join(scratch, 'hoa-warfare');
-      }
-      else if (existsSync(join(CFG().games, target))) gamePath = join(CFG().games, target);
-      else if (existsSync(join(root, 'templates', 'recipes', `${target}.html`))) gamePath = join(root, 'templates', 'recipes', `${target}.html`);
-      else if (existsSync(join(CFG().examples, target))) gamePath = join(CFG().examples, target);
-    }
-    const visionHook = argv.includes('--vision') ? vision : null;
-    const isLandscape = argv.includes('--landscape') || flag('landscape');
-    const width = flag('width') ? Number(flag('width')) : (isLandscape ? 960 : 540);
-    const height = flag('height') ? Number(flag('height')) : (isLandscape ? 540 : 960);
-    const r = await judgeGame(gamePath, { shotDir: flag('shot-dir', '.gp/judge'), visionHook, width, height });
-    out(r, o => `${o.id}: ${o.score}/100 ${o.verdict}\n  facets:\n    palette:     ${String(o.facets.palette.score).padStart(3)}/100 (dominant ${o.facets.palette.dominant} ${o.facets.palette.flatPct}%, ${o.facets.palette.buckets} buckets)\n    camera:      ${String(o.facets.camera.score).padStart(3)}/100 (balance ${o.facets.camera.quadrantBalance})\n    layout:      ${String(o.facets.layout.score).padStart(3)}/100 (${o.facets.layout.canvasCount} canvas)\n    readability: ${String(o.facets.readability.score).padStart(3)}/100 (max contrast ${o.facets.readability.maxContrast}:1)\n  states:\n    boot:   ${o.states.boot.score}/100 (${o.states.boot.file})\n    action: ${o.states.action.score}/100 (${o.states.action.file})\n    over:   ${o.states.over.score}/100 (${o.states.over.file})${o.fixes.length ? '\n  fixes:\n    - ' + o.fixes.join('\n    - ') : ''}`);
-    process.exit(r.score >= 65 ? 0 : 1);
-  },
   'local-ai': () => probeLocalAi().then(r => out({ ...r, enabledByDefault: LOCAL_AI }, o => `local-ai: ${o.available ? `AVAILABLE (${o.model} at ${o.host})` : `NOT RUNNING (${o.reason}) — optional, all commands work without it`}`)),
   ideate: () => out(ideate(positional.join(' ') || die('usage: gamepress ideate "<game idea>" [--offline]'), { live: !argv.includes('--offline') }), o => `${o.live?.insights ? 'live: common words [' + o.live.insights.commonWords + '], numbers ' + o.live.insights.titlesWithNumber + ', vs ' + o.live.insights.titlesWithVs + '; inspiration (do not copy): ' + o.live.suggestedHooks.join(' | ') + '\n' : o.live?.error ? o.live.error + '\n' : ''}${o.archetype}${o.recipe ? ' (recipe ' + o.recipe + ')' : ''}\nreferences: ${o.references.join('; ')}\none-ups:\n - ${o.oneUps.join('\n - ')}\nassets: ${o.assets.map(a => a.id + (a.have ? '' : '*')).join(', ')} (*=build it)\nquestions:\n${o.questions.map(q => ' ? ' + q.ask + '\n' + q.options.map((x, i) => `    ${i}) ${x.label}`).join('\n')).join('\n')}\nsaved ${o.file}\nnext: ${o.next}`),
   viral: () => out(viralCommand(positional[0] || die('usage: gamepress viral <game-dir>')), o => `VIRAL BRIEF: ${o.title}\n${o.description ? o.description.slice(0, 300) + '\n' : ''}\n Hooks:\n - ${o.viralHooks.join('\n - ') || '(play the game to find them)'}\n Audio: ${o.audioCount || 0} files${o.audioAssets.length ? ' e.g. ' + o.audioAssets.slice(0, 3).join(', ') : ''}\n\n ANSWER THESE BEFORE WRITING THE DRIVE PLAN:\n${o.questions.map((q, i) => `${i + 1}. ${q.ask}\n   hint: ${q.hint}`).join('\n')}\n\nnext: ${o.next}`),
@@ -556,18 +529,6 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
       die('usage: gamepress preset save <name> | list | show <name> | delete <name>');
     } catch (e) { die('preset: ' + e.message); } },
   make: () => { const base = flag('spec') ? JSON.parse(readFileSync(flag('spec'), 'utf8')) : {}; const sp = { ...(flag('answers') ? applyAnswers(flag('recipe'), JSON.parse(readFileSync(flag('answers'), 'utf8'))) : {}), ...base }; if (!flag('spec') && !flag('answers')) die(`usage: gamepress make <id> --recipe ${Object.keys(RECIPES).join('|')} --spec spec.json (see docs/RECIPES.md)`) ; out(make(need('make'), { recipe: flag('recipe'), spec: sp, games: CFG().games, examples: CFG().examples, force: argv.includes('--force') })); },
-  theme: async () => { const T = await import('../lib/themes.mjs'), V = await import('../lib/viralset.mjs'); const c = CFG(), id = positional[0] || die('usage: gamepress theme <' + Object.keys(T.loadThemes()).join('|') + '> [--world grassland|dungeon|cyber|cosmic] [--render] [--qc] [--publish]'), world = flag('world'), name = V.setName(id, world), log = m => !JSON_OUT && console.log(m);
-    try {
-      if (argv.includes('--packs')) return out(T.buildThemePacks(id, { games: c.games, catalog: c.catalog, world }), o => o.map(x => `${x.id}: ${x.games} games${x.demo ? ' (demo)' : ''}`).join('\n'));
-      const only = flag('only') ? flag('only').split(',') : undefined, r = await V.renderSet(id, { world, c, make, runAll, render: argv.includes('--render'), force: argv.includes('--force'), only, budgetMin: +flag('budget', 100), log });
-      if (argv.includes('--qc') || argv.includes('--publish')) { const ids = T.themeRecipeIds().map(x => T.themedId(x, id, world));
-        r.qc = { sheet: V.contactSheet(ids, c.catalog, join(HERE, '..', 'publish', name, 'qc-sheet.jpg')) }; if (r.packs?.length) r.qc.packs = await V.packSmoke(c.games, r.packs); }
-      if (argv.includes('--publish')) { if (r.failed && Object.keys(r.failed).length || r.pending?.length) die('not publishing: some games failed or are pending (see output); fix or rerun'); if (r.qc?.packs?.some(p => !p.ok)) die('not publishing: pack smoke test failed: ' + JSON.stringify(r.qc.packs.filter(p => !p.ok))); r.publish = V.publishSet(c, name); }
-      out(r, o => `${o.set}: ${o.games} games, rendered ${o.rendered.length}, failed ${Object.keys(o.failed).length}, pending ${o.pending.length}${o.packs ? '\npacks: ' + o.packs.join(', ') : ''}${o.qc ? '\nQC sheet: ' + o.qc.sheet.out + (o.qc.packs ? '\npack smoke: ' + o.qc.packs.map(p => p.pack + (p.ok ? ' ok' : ' FAIL')).join(', ') : '') : ''}${o.publish ? '\npublished: ' + o.publish.published : ''}${o.next ? '\n' + o.next : ''}${Object.keys(o.failed).length ? '\nfailed: ' + JSON.stringify(o.failed) : ''}`);
-    } catch (e) { die(e.message); } },
-  cast: async () => { const { buildCast } = await import('../lib/cast.mjs'); const c = CFG(); try { out(buildCast(positional[0] || die('usage: gamepress cast <id> [--source dir] [--factions a,b]'), { games: c.games, source: flag('source') || process.env.HOA_WARFARE_DIR, factions: flag('factions')?.split(',') }), o => `${o.cast}: ${o.factions} characters, ${o.clips} voice clips -> ${o.path}${o.silent.length ? '\nnote: ' + o.silent.join(', ') : ''}`); } catch (e) { die(e.message); } },
-  hub: async () => { const { buildHub } = await import('../lib/hub.mjs'); const g = flag('games'), ids = flag('only') || (g && !existsSync(g) ? g : undefined); const c = config({ games: ids === g ? undefined : g, catalog: flag('catalog'), video: flag('video'), publish: flag('publish'), localAi: LOCAL_AI }); try { out(buildHub({ name: positional[0], games: c.games, catalog: argv.includes('--no-catalog') ? undefined : c.catalog, demo: argv.includes('--demo'), only: ids?.split(','), world: flag('world'), cast: flag('cast') }), o => `${o.id}: ${o.games} games, ${o.heroes} heroes${o.demo ? ' (demo)' : ''} -> ${o.path}`); } catch (e) { die(e.message); } },
-  packs: async () => { const { buildPacks } = await import('../lib/packs.mjs'); const c = CFG(); try { out(buildPacks({ games: c.games, catalog: argv.includes('--no-catalog') ? undefined : c.catalog, only: positional[0] }), o => o.map(x => `${x.id}: ${x.games} games${x.demo ? ' (demo)' : ''} -> ${x.path}`).join('\n')); } catch (e) { die(e.message); } },
   recipes: () => { const R = Object.values(REGISTRY); if (argv.includes('--md')) { const md = ['# Recipe catalog', '', 'Generated by `gamepress recipes --md` from `presets/recipes.json`. Rules: `docs/RECIPE-RULES.md`. Build one: `gamepress make <id> --recipe <recipe> [--answers a.json]`, or `gamepress auto "<idea>"`.', '', '| Recipe | Title | Hook | 3-second rule | Touch | Don\'t build |', '|---|---|---|---|---|---|', ...R.map(r => `| \`${r.id}\` (${r.engine}) | ${r.title} | ${r.hook} | ${r.threeSecond} | ${r.touch} | ${r.dontBuild.slice(0, 3).join('; ')} |`), '', 'Viral-format recipes built earlier (3D, in `templates/recipes/`): `hole-eater`, `crowd-runner`, `glass-drop`, `demolition`.'].join('\n'); writeFileSync('docs/RECIPES-CATALOG.md', md + '\n'); console.log('wrote docs/RECIPES-CATALOG.md'); } else out(R.map(r => ({ id: r.id, title: r.title, hook: r.hook, engine: r.engine, seconds: r.seconds, viral: r.viral, feel: r.feel })), o => o.map(r => `${r.id.padEnd(24)} ${r.engine}  ${String(r.seconds).padStart(2)}s  ${r.title}: ${r.hook}`).join('\n')); },
   doctor: () => { const r = doctor(); out(r, o => o.rows.map(x => `${x.ok ? '✓' : x.optional ? '·' : '✗'} ${x.name}${x.fix ? '  -> ' + x.fix : ''}`).join('\n')); process.exit(r.ok ? 0 : 1); },
   lint: () => { const r = lint(need('lint'), CFG().games); out(r, o => o.ok ? 'clean' : o.problems.join('\n')); process.exit(r.ok ? 0 : 1); },
@@ -580,6 +541,27 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
   botcheck: () => botCheck(positional[0] ? resolve(CFG().games, positional[0]) : die('usage: gamepress botcheck <game-id> [--seconds 40]'), { root: CFG().games, seconds: +flag('seconds', 40) }).then(r => out(r, o => `${o.ok ? 'OK' : 'CHECK'}: ${o.ends.map(e => (e.win ? 'W' : 'L') + e.t).join(' ')}${o.errors.length ? ' errors ' + o.errors : ''}`)).catch(e => die('botcheck: ' + e.message)),
   test: () => testGame(positional[0] || die('usage: gamepress test <game dir or url> [--root dir]'), { root: flag('root') }).then(v => { console.log(JSON.stringify(v, null, 1)); process.exit(v.ok ? 0 : 1); }).catch(e => die('test failed: ' + e.message)),
   visual: () => visualSmokeTest(positional[0] || die('usage: gamepress visual <game dir or url> [--seconds 10]'), { seconds: +flag('seconds', 10) }).then(v => { console.log(JSON.stringify(v, null, 1)); process.exit(v.ok ? 0 : 1); }).catch(e => die('visual failed: ' + e.message)),
+  judge: () => {
+    const o = { landscape: argv.includes('--landscape'), portrait: argv.includes('--portrait'), timeout: +flag('timeout', 30) };
+    const fmt1 = r => `${r.id || r.url}: ${r.score}/100 ${r.pass ? 'PASS' : 'FAIL'}` + (r.error ? ` (${r.error})` : '') +
+      Object.entries(r.checks || {}).map(([k, c]) => `\n  ${k.padEnd(10)} ${c.pts}/${c.max} ${c.detail}`).join('');
+    if (argv.includes('--all')) {
+      const date = new Date().toISOString().slice(0, 10);
+      return judgeAll({ ...o, onGame: (r, i, n) => { if (!JSON_OUT) console.error(`[${i}/${n}] ${r.id}: ${r.score} ${r.pass ? 'PASS' : 'FAIL'}`); } })
+        .then(rs => {
+          const report = `judge-report-${date}.json`;
+          writeFileSync(report, JSON.stringify(rs, null, 1));
+          const pass = rs.filter(r => r.pass).length;
+          out({ report, total: rs.length, pass, fail: rs.length - pass, results: rs },
+            o => `${o.pass}/${o.total} PASS -> ${o.report}\n` + o.results.map(r => `  ${String(r.score).padStart(3)} ${r.pass ? 'PASS' : 'FAIL'} ${r.id}`).join('\n'));
+          process.exit(0);
+        }).catch(e => die('judge --all: ' + e.message));
+    }
+    const target = positional[0] || die('usage: gamepress judge <url-or-hawk-id> [--landscape|--portrait] [--timeout 30] [--json]');
+    return resolveTarget(target).then(t =>
+      judgeGame(t.url, o).then(r => { r.id = t.id; r.title = t.title; out(r, fmt1); process.exit(r.pass ? 0 : 1); })
+    ).catch(e => die('judge: ' + e.message));
+  },
   bundle: () => console.log(bundle(positional[0] || die('usage: gamepress bundle <game dir> [--out dist]'), flag('out', 'dist'))),
   'publish-demo': () => console.log(JSON.stringify(publishDemo(positional[0] || die('usage: gamepress tracks [name] | publish-demo <id> --catalog <games.json> [--push]'), { catalog: flag('catalog') || die('--catalog required'), videoDir: flag('video', 'press/video'), push: argv.includes('--push') }))),
   repo: () => out(repoInit(need('repo'), { games: CFG().games, examples: flag('examples', 'examples'), github: argv.includes('--github'), isPrivate: argv.includes('--private') }), o => `${o.id}: ${o.done.join('; ') || 'nothing new'}${o.skipped.length ? '\n  skipped: ' + o.skipped.join('; ') : ''}`),
