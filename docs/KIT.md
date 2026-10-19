@@ -27,6 +27,7 @@ Feel constants and their sources: `docs/NINTENDO-FEEL.md`. Recipe wiring: `docs/
 | `gplevels.js` | both | Multi-level progression for full-game expansions: `createLevelManager()` (unlock/star/save schema), `createCamera()` (follow + world-bounds clamp). Injected by `gamepress expand`. |
 | `gpchar.js` | 3D | Procedural characters — zero model files: `buildHumanoid()` (real ~7.5-head proportions, sphere head with face, tapered torso, jointed limbs, hair/headband variants), `buildBunny()`/`buildCat()`/`buildDog()` (silhouette-first animals), `setPose()`/`update()` (damped procedural animation: idle/guard/walk/crouch/weapon-aware attacks/hit/dead/victory). See Character Design Rules in `docs/VISUAL-STANDARDS.md`. |
 | `three.module.min.js` | 3D | Vendored three.js r160 (single file, no npm). Imported by `gp3d.js`/`gpkit.js`. |
+| `slashido/` | 3D | Painted-illustration rendering ported from SLASHIDO: custom toon shader (noise-broken band edges, hue-shifted shadows, dual rim lights, ink outlines), Kuwahara paint-filter post pipeline, `toonMat()` material builder. Turns primitive characters into painted game art. See `docs/SLASHIDO-SHADER.md`. |
 
 ### Recommended external tools (not kit files — workflow integrations)
 
