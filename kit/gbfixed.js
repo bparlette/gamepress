@@ -161,6 +161,48 @@ export const FIXED = {
   BUFFER_FRAMES: 5,
 };
 
+// Frame-rate conversion -------------------------------------------------------
+// Ports between platforms with different refresh rates need their per-frame
+// physics rescaled, or the game plays faster/slower on the target. From the
+// Contra NES -> Virtual Boy port (see docs/tracks/port.md):
+//
+//   K  = source_hz / target_hz
+//   v' = v * K        velocities scale linearly with the ratio
+//   a' = a * K * K    accelerations scale with the square of the ratio
+//   T' = round(T * K) frame-count durations rescale proportionally
+//
+// Contra example: NES 60.1 Hz -> Virtual Boy ~50 Hz, so K = 60.1 / 50 = 1.202.
+// A 2.5 px/frame run speed becomes 2.5 * 1.202 = 3.005 px/frame — same
+// distance per second, fewer frames. A 0.4 px/frame^2 gravity becomes
+// 0.4 * 1.202^2 = 0.578 px/frame^2. A 30-frame jump-hold window becomes
+// round(30 * 1.202) = 36 frames.
+//
+// These are design-constant (float) helpers — apply BEFORE converting to
+// 8.8 fixed with f2x(). The rescale is an approximation, not cycle-accurate:
+// prefer matching durations and distances over per-frame positions; do not
+// model source lag frames, sprite flicker, or OAM limits.
+
+/** frame-rate ratio K = source_hz / target_hz (e.g. 60.1/50 = 1.202 for NES->VB) */
+export function rateRatio(sourceHz, targetHz) {
+  if (!targetHz) throw new Error('rateRatio: targetHz must be nonzero');
+  return sourceHz / targetHz;
+}
+
+/** rescale a velocity (px/frame) from source to target frame rate: v * K */
+export function convVelocity(v, k) {
+  return v * k;
+}
+
+/** rescale an acceleration (px/frame^2) from source to target frame rate: a * K^2 */
+export function convAccel(a, k) {
+  return a * k * k;
+}
+
+/** rescale a frame-count duration (coyote time, jump buffer, anim timers): round(frames * K) */
+export function convFrames(frames, k) {
+  return Math.round(frames * k);
+}
+
 export default {
   f2x,
   x2f,
@@ -179,4 +221,8 @@ export default {
   Fixed,
   FixedVec2,
   FIXED,
+  rateRatio,
+  convVelocity,
+  convAccel,
+  convFrames,
 };
