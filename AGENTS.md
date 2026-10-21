@@ -19,7 +19,10 @@ Quality bar: `docs/QUALITY.md`; control contract: `docs/DRIVING.md`. Token saver
 - Tests: `node --test test/*.test.mjs`. Commit small; `git pull --rebase` before push.
 - Public repo: no secrets, no personal paths or names. Credentials live in the OS keychain / `~/.config/gamepress/` only.
 - Other agents share checkouts: check `git status` for foreign uncommitted work; never stage it.
-- **Best Game Quality First**: Never downgrade game feel, physics fidelity, audio, or visuals for artificial constraints. Use the best tools (Matter.js, Rapier, GSAP/spring easing via `gptween.js`, Howler/Tone.js, Three.js postprocessing) via standard ESM imports (`_vendor/` or fast CDNs) so games load instantly (<200ms) with zero bundler friction.
+- **Top Commercial Quality Only (No Minimalist Web Toys)**:
+  - Gamepress games are **NOT** low-budget minimalist canvas toys or stick-figure tech demos. They are the **most enjoyable, highest-octane, visually authentic vertical-slice representations** of the requested game genre or franchise.
+  - Use genuine high-resolution sprites, detailed multi-layer parallax arenas, CRT/bloom visual shaders, screen shake, hit-stop, and authentic sound design.
+  - Gameplay must be continuous, high-tempo, and engaging from frame 1—no dead time, idle waiting, or boring pauses, especially when driving demos for YouTube Shorts / TikTok.
 
 ## Roblox
 Flow, key scopes and pitfalls: `docs/ROBLOX.md` and `docs/tracks/roblox.md`. Ship with `gamepress roblox-ship <file.rbxl> --test templates/roblox-smoke.luau` (needs the owner's Open Cloud key).
