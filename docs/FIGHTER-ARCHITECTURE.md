@@ -14,27 +14,14 @@ Based on the verified architecture of **Neon Alley Brawl** (the golden standard 
 
 ---
 
-## 2. Skeletal Pixel-Sprite Pipeline (`kit/gpfighter.js`)
-Sprites are NOT stick figures. They are rasterized dynamically from joint coordinates into shaded volumetric 2D character sprites:
-
-### Joint Hierarchy:
-```
-Hip -> Chest -> Head (with chin, hair, bandana)
-Chest -> Shoulder -> Front Elbow -> Front Hand (Glove)
-Chest -> Shoulder -> Back Elbow -> Back Hand
-Hip -> Front Knee -> Front Foot (Shoe)
-Hip -> Back Knee -> Back Foot
-```
-
-### Rasterization Pipeline:
-1. **Limb Volume**: `lineR(a, b, width, color)` rasterizes dense stacked pixel squares along the vector between joint positions.
-2. **Layering & Outline**: Back limbs -> Back leg -> Front leg -> Torso -> Head -> Front arm.
-   - Run a 1px black outline expansion pass around every primitive block before color fill.
-3. **Directional Shading Pass (`shadeCanvas`)**:
-   - Empty top/right pixel neighbor -> 133% light boost (directional rim highlight).
-   - Empty bottom/left pixel neighbor -> 68% shadow multiplier (depth occlusion).
-4. **Hit Flash Silhouettes (`whitenCanvas`)**:
-   - Pre-rendered white mask cached for instantaneous 1-frame impact flashes on hit connect.
+## 2. Sprite Method: Real Sprite Sheets vs Procedural Rasterizer
+**The resolution, palette, and sprite method are the user's explicit choice.**
+- **Real Sprite Sheets (Default / Preferred First Replacement)**:
+  - When real sprite sheets (PNG atlases with idle, walk, punch, kick, hadouken, shoryuken, hurt, ko frames) are available or requested, **replace the procedural code-rasterizer first**.
+  - Frame mapping uses clean atlas rectangles `[x, y, w, h]` or texture slices directly into `SP[fighter][poseName]`.
+  - Enables authentic arcade fidelity (e.g. authentic Street Fighter, Darkstalkers, or custom pixel sheets) without compromising the game loop, combat logic, hitboxes, or audio.
+- **Code-Driven Fallback (`kit/gpfighter.js`)**:
+  - When no sprite sheet assets exist on disk, use the procedural skeletal pipeline (joint poses -> `lineR` limb segments -> black outline pass -> 3D directional light shading -> hit flash white mask) to build a standalone self-contained fighter with zero dependencies.
 
 ---
 

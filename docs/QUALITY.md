@@ -4,9 +4,11 @@ Gamepress builds the **most enjoyable, visually authentic, commercial-grade form
 Nothing in Gamepress is a minimalist web toy, stick-figure prototype, or barebones demo. Whether building a full game or an automated YouTube Short:
 
 ## Core Quality Mandate (Ignore Artificial Constraints)
-1. **Never Compromise on Assets or Fidelity**:
-   - **Ignore artificial constraints** (such as "must be under 20KB", "no external images", or "vanilla canvas only") unless explicitly requested by the user.
-   - Use the highest quality assets available: genuine sprite sheets, high-resolution layered parallax stages, CRT scanline & bloom post-processing, and multi-layer sound.
+1. **User Choice on Resolution, Palette & Sprites (Real Sprite Sheets First)**:
+   - The **resolution, color palette, and sprite pipeline are always the user's choice**.
+   - **If real sprite sheets are provided or available, replace the code-driven sprite rasterizer first.** Map PNG atlas frames directly to the fighter poses (`SP[char][poseName]`).
+   - Only fall back to code-generated procedural sprites when completely offline or when zero image assets exist.
+   - Ignore artificial constraints (like "under 20KB" or "no images allowed"). High fidelity and authentic visual appeal always take priority.
 2. **Instant, High-Tempo Gameplay (Zero Dead Time)**:
    - Characters must never stand still waiting. In demos and videos, aggressive action begins from frame 1.
    - Scripted high-octane flow: immediate projectile clashes, rush-down combos, parries, anti-air counters, and dramatic K.O. finishes.
