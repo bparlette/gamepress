@@ -585,8 +585,8 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
     }
     return drive(positional[0] || die('usage: gamepress drive <plan.json>'), opts).catch(e => die('drive failed: ' + e.message));
   }, scenes: () => scenes(positional[0]), pack, check,
-  voices: () => voices(positional[0] || die('usage: gamepress voices <script.json> [--dir press] [--engine edge|kokoro]'), { dir: flag('dir', 'press'), engine: flag('engine', 'kokoro') }).then(r => out({ command: 'voices', ...r }, o => `voices: ${o.synthesized} synthesized, ${o.skipped} skipped, ${o.failed} failed → ${o.manifest}`)).catch(e => die('voices: ' + e.message)),
-  voice: () => { try { const r = speak(positional.join(' ') || die(`usage: gamepress voice "Your script here" [--voice ${Object.keys(VOICE_PRESETS).join('|')}|VOICE_ID] [--speed 1.0] [--out file.wav]`), { voice: flag('voice', 'narrator'), speed: flag('speed') ? Number(flag('speed')) : undefined, output: flag('out') }); out(r, o => `voice → ${o.file} (${o.seconds}s, voice=${o.voice}, speed=${o.speed})`); } catch (e) { die('voice: ' + e.message); } },
+  voices: () => voices(positional[0] || die('usage: gamepress voices <script.json> [--dir press] [--engine edge|kokoro|phonon]'), { dir: flag('dir', 'press'), engine: flag('engine', 'kokoro') }).then(r => out({ command: 'voices', ...r }, o => `voices: ${o.synthesized} synthesized, ${o.skipped} skipped, ${o.failed} failed → ${o.manifest}`)).catch(e => die('voices: ' + e.message)),
+  voice: () => { const engine = flag('engine', 'kokoro'); speak(positional.join(' ') || die(`usage: gamepress voice "Your script here" [--voice ${Object.keys(VOICE_PRESETS).join('|')}|VOICE_ID] [--speed 1.0] [--out file.wav] [--engine kokoro|phonon]`), { voice: flag('voice', 'narrator'), speed: flag('speed') ? Number(flag('speed')) : undefined, output: flag('out'), engine }).then(r => out(r, o => `voice → ${o.file} (${o.seconds}s, voice=${o.voice}, speed=${o.speed}, engine=${o.engine || engine})`)).catch(e => die('voice: ' + e.message)); },
   setup: () => {
     if (argv.includes('--tts')) { try { const r = setupTts(); out(r, o => `tts ready → ${o.dir}/ (${o.files.join(', ')})`); } catch (e) { die('setup: ' + e.message); } return; }
     // Full environment bootstrap (A3): doctor + download every tools.json tool + next steps.
@@ -639,15 +639,18 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
     const localDrive = () => drive(positional[1] || die('usage: gamepress cloud drive <plan.json>'),
       { outDir: flag('out', join(DIR, 'video')), quick: argv.includes('--quick') ? Number(flag('quick', 4)) || 4 : false,
         vo: flag('vo') || argv.includes('--vo'), orientation: argv.includes('--horizontal-only') ? 'horizontal-only' : argv.includes('--vertical-only') ? 'vertical-only' : 'both' }).catch(e => die('drive failed: ' + e.message));
-    const localVoice = () => {
-      const scriptFile = positional[1] || die('usage: gamepress cloud voice <script.txt> [--voice x] [--speed N] [--out dir]');
+    const localVoice = async () => {
+      const scriptFile = positional[1] || die('usage: gamepress cloud voice <script.txt> [--voice x] [--speed N] [--out dir] [--engine kokoro|phonon]');
       const lines = readFileSync(scriptFile, 'utf8').split('\n').map(s => s.trim()).filter(s => s && !s.startsWith('#'));
       const outDir = flag('out', join(DIR, 'vo')); mkdirSync(outDir, { recursive: true });
       const voice = flag('voice', 'narrator'), speed = flag('speed') ? Number(flag('speed')) : undefined;
-      const files = lines.map((line, i) => {
+      const engine = flag('engine', 'kokoro');
+      const files = [];
+      for (const [i, line] of lines.entries()) {
         const f = join(outDir, `line-${String(i + 1).padStart(3, '0')}.wav`);
-        return speak(line, { voice, speed, output: f }).file;
-      });
+        const r = await speak(line, { voice, speed, output: f, engine });
+        files.push(r.file);
+      }
       return { files, count: files.length };
     };
     const localTest = () => { execFileSync('npm', ['test'], { stdio: 'inherit', cwd: join(HERE, '..') }); return { ok: true }; };
@@ -661,7 +664,7 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
     }
     if (sub === 'voice') {
       const script = positional[1] || die('usage: gamepress cloud voice <script.txt> [--voice x] [--speed N] [--out dir]');
-      if (argv.includes('--local')) return out(localVoice(), o => `voice → ${o.count} lines → ${flag('out', join(DIR, 'vo'))}/`);
+      if (argv.includes('--local')) return localVoice().then(o => out(o, o => `voice → ${o.count} lines → ${flag('out', join(DIR, 'vo'))}/`)).catch(e => die('voice: ' + e.message));
       return cloudOrLocal('voice', localVoice, {
         inputs: { script, voice: flag('voice', 'narrator'), speed: flag('speed', '1.0'), out: flag('out', 'press/vo') },
         artifact: 'vo-lines', outDir: flag('out', join(DIR, 'vo')),

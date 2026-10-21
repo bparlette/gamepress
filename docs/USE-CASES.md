@@ -14,6 +14,7 @@ gamepress builds games for four different jobs. Know which one you're doing befo
   2. **Downloadable video** — a filmed clip of the demo (bot/spectate capture), hosted as a permanent direct link she can download.
   3. **Viral title for the YT Short** — a hook title following VIRAL-PLAYBOOK.md rules (surprising claim or payoff, never "trailer," one gag visible in the first second).
 - "Done" = all three delivered. A demo without the video and title is incomplete.
+- **5-PLAY RULE (Cherie 2026-10-21): the video is NOT one continuous playthrough.** Record the bot playing 5 separate runs, then edit the best clips from each round into one highlight reel. Pick the juiciest moments — biggest combos, closest calls, funniest glitches, best payoffs. A single run is boring; 5 runs gives you 5x the chances for a viral moment.
 - Examples: Steal the Treat, Catfishin' (Oct 2026).
 
 ## 2. Store assets
