@@ -1,6 +1,24 @@
 # Quality bar
 
-Reference showpieces (Hawk repo, `brad-demos/g/`): **wasteland-van** (Roadkill Rig: cel + outline look, vehicle vs horde), **cinema-city**, **shell-shock-3d**.
+Gamepress builds the **most enjoyable, visually authentic, commercial-grade forms of every game**.
+Nothing in Gamepress is a minimalist web toy, stick-figure prototype, or barebones demo. Whether building a full game or an automated YouTube Short:
+
+## Core Quality Mandate (Ignore Artificial Constraints)
+1. **Never Compromise on Assets or Fidelity**:
+   - **Ignore artificial constraints** (such as "must be under 20KB", "no external images", or "vanilla canvas only") unless explicitly requested by the user.
+   - Use the highest quality assets available: genuine sprite sheets, high-resolution layered parallax stages, CRT scanline & bloom post-processing, and multi-layer sound.
+2. **Instant, High-Tempo Gameplay (Zero Dead Time)**:
+   - Characters must never stand still waiting. In demos and videos, aggressive action begins from frame 1.
+   - Scripted high-octane flow: immediate projectile clashes, rush-down combos, parries, anti-air counters, and dramatic K.O. finishes.
+3. **Professional Combat & Physics Architecture**:
+   - Active frame windows, hit invulnerability buffers, spatial hurtbox checks (ducking under highs, jumping over sweeps).
+   - Hitstop freezes (100–350ms), directional camera shake, spark bursts, and slow-mo zoom.
+4. **Authentic Audio**:
+   - Dynamic synth chords, FM bass grooves, impactful hit thuds, and voice announcer calls.
+5. **Native 9:16 Short & 16:9 Landscape Dual Support**:
+   - Always format clips cleanly for vertical YouTube Shorts / TikTok with high-contrast text banners, combo counters, and K.O. callouts.
+
+Reference showpieces (Hawk repo, `brad-demos/g/`): **wasteland-van** (Roadkill Rig: cel + outline look, vehicle vs horde), **cinema-city**, **shell-shock-3d**, **street-fighter-arcade**.
 Plain spheres, boxes and flat colours do not go viral. Every demo needs these, all available in `_vendor/gpkit.js`:
 
 | Need | Use |
