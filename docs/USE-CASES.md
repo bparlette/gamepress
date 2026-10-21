@@ -39,11 +39,11 @@ The actual game people play start to finish. The end of the funnel: 24 demos →
 
 ## Choosing
 
+**DEFAULT RULE (Cherie 2026-10-21): every game request is Use case 1 (viral video demo) unless she explicitly names another use case.** "Make [game]", "build [game]", or any game idea without a qualifier = viral demo: playable link + downloadable video + viral title. Never ask which use case — just build the demo. She specifies otherwise only with explicit words like "full game", "assets", "trailer", or "playable game".
+
 | She says | She means |
 |---|---|
-| "gamepress youtube" | Use case 1: viral video demo |
+| "gamepress youtube" / "make [game]" / "build [game]" (no qualifier) | Use case 1: viral video demo (DEFAULT) |
 | "gamepress assets" / "store assets" | Use case 2: store assets |
 | "gamepress trailer" | Use case 3: trailer |
-| "gamepress game" / just "make [game]" | Use case 4: playable game (default) |
-
-When in doubt, ask which use case — building a full game when she wanted a 30-second demo (or vice versa) wastes the whole build.
+| "full game" / "playable game" (explicit) | Use case 4: playable game |
