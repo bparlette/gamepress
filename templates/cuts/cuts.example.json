@@ -1,0 +1,597 @@
+{
+  "title": "Call of Karen: HOA Warfare",
+  "cta": "CALL OF KAREN: HOA WARFARE\nFREE DEMO ON ITCH.IO",
+  "paths": {
+    "manifest": "web/vo/manifest.json",
+    "content": "data/hoa_content.json",
+    "weapons": "data/weapons.json"
+  },
+  "defaultLoadout": "allowance",
+  "shorts": [
+    "hero",
+    "factions-1",
+    "factions-2",
+    "karen",
+    "headshots",
+    "rivalries",
+    "weapons"
+  ],
+  "joined": {
+    "maps": [
+      "maps-culdesac",
+      "maps-pickleball",
+      "maps-stripmall"
+    ]
+  },
+  "long": [
+    "hero",
+    "factions-1",
+    "factions-2",
+    "karen",
+    "rivalries",
+    "headshots",
+    "weapons",
+    "maps-culdesac",
+    "maps-pickleball",
+    "maps-stripmall",
+    "features"
+  ],
+  "chapters": {
+    "hero": {
+      "seed": 7,
+      "hook": {
+        "short": "WAIT FOR THE LAST ONE",
+        "long": "CALL OF KAREN\nHOA WARFARE"
+      },
+      "outro": {
+        "short": "cta",
+        "long": null
+      },
+      "scenes": [
+        {
+          "killer": "brainRot",
+          "victim": "karens",
+          "line": "brainRot.kill.c.1"
+        },
+        {
+          "killer": "wallstreetBets",
+          "victim": "gymRats",
+          "line": "wallstreetBets.kill.c.1"
+        },
+        {
+          "killer": "animeWeebs",
+          "victim": "furries",
+          "line": "animeWeebs.kill.c.0"
+        },
+        {
+          "killer": "rednecks",
+          "victim": "hoaDads",
+          "line": "rednecks.kill.c.2"
+        },
+        {
+          "killer": "tradwives",
+          "victim": "valleyGirls",
+          "line": "tradwives.kill.c.2"
+        },
+        {
+          "killer": "pickleballRetirees",
+          "victim": "gymRats",
+          "line": "pickleballRetirees.kill.c.0"
+        },
+        {
+          "killer": "hoaDads",
+          "victim": "karens",
+          "line": "hoaDads.kill.c.2"
+        },
+        {
+          "killer": "karens",
+          "victim": "hoaDads",
+          "line": "karens.kill.c.0"
+        },
+        {
+          "killer": "karens",
+          "victim": "brainRot",
+          "line": "karens.headshot.c.0",
+          "head": true
+        },
+        {
+          "killer": "karens",
+          "victim": "pickleballRetirees",
+          "line": "karens.rampage.c.0",
+          "caption": "KAREN RAMPAGE"
+        }
+      ]
+    },
+    "factions-1": {
+      "hook": {
+        "short": "EVERY FACTION\nBEST ONE-LINER (1/2)",
+        "long": "16 FACTIONS\n16 ONE-LINERS"
+      },
+      "outro": {
+        "short": "PART 2 NEXT",
+        "long": null
+      },
+      "scenes": [
+        {
+          "killer": "karens",
+          "victim": "hoaDads",
+          "line": "karens.kill.c.2"
+        },
+        {
+          "killer": "hoaDads",
+          "victim": "karens",
+          "line": "hoaDads.kill.c.2"
+        },
+        {
+          "killer": "fratHouse",
+          "victim": "brainRot",
+          "line": "fratHouse.kill.c.1"
+        },
+        {
+          "killer": "brainRot",
+          "victim": "karens",
+          "line": "brainRot.kill.c.1"
+        },
+        {
+          "killer": "valleyGirls",
+          "victim": "cloutStreamers",
+          "line": "valleyGirls.kill.c.0"
+        },
+        {
+          "killer": "rednecks",
+          "victim": "hoaDads",
+          "line": "rednecks.kill.c.2"
+        },
+        {
+          "killer": "gymRats",
+          "victim": "wallstreetBets",
+          "line": "gymRats.kill.c.1"
+        },
+        {
+          "killer": "cloutStreamers",
+          "victim": "fratHouse",
+          "line": "cloutStreamers.kill.c.2"
+        }
+      ]
+    },
+    "factions-2": {
+      "seed": 11,
+      "hook": {
+        "short": "EVERY FACTION\nBEST ONE-LINER (2/2)",
+        "long": null
+      },
+      "outro": {
+        "short": "cta",
+        "long": null
+      },
+      "scenes": [
+        {
+          "killer": "wallstreetBets",
+          "victim": "gymRats",
+          "line": "wallstreetBets.kill.c.1"
+        },
+        {
+          "killer": "fabulous",
+          "victim": "karens",
+          "line": "fabulous.kill.c.2"
+        },
+        {
+          "killer": "trumpers",
+          "victim": "wokeLibs",
+          "line": "trumpers.kill.c.0"
+        },
+        {
+          "killer": "wokeLibs",
+          "victim": "trumpers",
+          "line": "wokeLibs.kill.c.3"
+        },
+        {
+          "killer": "furries",
+          "victim": "animeWeebs",
+          "line": "furries.headshot.c.1",
+          "head": true
+        },
+        {
+          "killer": "animeWeebs",
+          "victim": "furries",
+          "line": "animeWeebs.kill.c.0"
+        },
+        {
+          "killer": "tradwives",
+          "victim": "valleyGirls",
+          "line": "tradwives.kill.c.2"
+        },
+        {
+          "killer": "pickleballRetirees",
+          "victim": "gymRats",
+          "line": "pickleballRetirees.kill.c.0"
+        }
+      ]
+    },
+    "karen": {
+      "seed": 5,
+      "hook": {
+        "short": "KAREN HAS\nNO MANAGER",
+        "long": "KAREN\nGREATEST HITS"
+      },
+      "outro": {
+        "short": "cta",
+        "long": null
+      },
+      "scenes": [
+        {
+          "killer": "karens",
+          "victim": "hoaDads",
+          "line": "karens.kill.c.0",
+          "caption": "KAREN: THE MANAGER"
+        },
+        {
+          "killer": "karens",
+          "victim": "rednecks",
+          "line": "karens.kill.c.1",
+          "caption": "KAREN: REPORTED"
+        },
+        {
+          "killer": "karens",
+          "victim": "brainRot",
+          "line": "karens.kill.c.2",
+          "caption": "KAREN: ONE STAR"
+        },
+        {
+          "killer": "karens",
+          "victim": "pickleballRetirees",
+          "line": "rivalry.karens-pickleballRetirees.c.0",
+          "caption": "KAREN VS PICKLEBALL"
+        },
+        {
+          "killer": "karens",
+          "victim": "hoaDads",
+          "line": "rivalry.karens-hoaDads.c.0",
+          "caption": "KAREN VS THE HOA"
+        },
+        {
+          "killer": "karens",
+          "victim": "brainRot",
+          "line": "rivalry.karens-brainRot.c.0",
+          "caption": "KAREN VS BRAIN ROT"
+        },
+        {
+          "killer": "karens",
+          "victim": "cloutStreamers",
+          "line": "karens.double.c.0",
+          "caption": "KAREN: DOUBLE KILL"
+        },
+        {
+          "killer": "karens",
+          "victim": "fratHouse",
+          "line": "karens.rampage.c.0",
+          "caption": "KAREN: RAMPAGE"
+        }
+      ]
+    },
+    "headshots": {
+      "seed": 3,
+      "hook": {
+        "short": "HEADSHOTS ONLY",
+        "long": "HEADSHOT HALL OF FAME"
+      },
+      "outro": {
+        "short": "cta",
+        "long": null
+      },
+      "scenes": [
+        {
+          "killer": "fratHouse",
+          "victim": "brainRot",
+          "line": "fratHouse.headshot.c.0",
+          "head": true,
+          "loadout": "sniper"
+        },
+        {
+          "killer": "brainRot",
+          "victim": "hoaDads",
+          "line": "brainRot.headshot.c.0",
+          "head": true,
+          "loadout": "sniper"
+        },
+        {
+          "killer": "valleyGirls",
+          "victim": "karens",
+          "line": "valleyGirls.headshot.c.0",
+          "head": true,
+          "loadout": "sniper"
+        },
+        {
+          "killer": "rednecks",
+          "victim": "fabulous",
+          "line": "rednecks.headshot.c.1",
+          "head": true,
+          "loadout": "sniper"
+        },
+        {
+          "killer": "wallstreetBets",
+          "victim": "gymRats",
+          "line": "wallstreetBets.headshot.c.0",
+          "head": true,
+          "loadout": "sniper"
+        },
+        {
+          "killer": "hoaDads",
+          "victim": "karens",
+          "line": "hoaDads.headshot.c.0",
+          "head": true,
+          "loadout": "sniper"
+        },
+        {
+          "killer": "pickleballRetirees",
+          "victim": "trumpers",
+          "line": "pickleballRetirees.headshot.c.2",
+          "head": true,
+          "loadout": "sniper"
+        },
+        {
+          "killer": "tradwives",
+          "victim": "wokeLibs",
+          "line": "tradwives.headshot.c.1",
+          "head": true,
+          "loadout": "sniper"
+        },
+        {
+          "killer": "wokeLibs",
+          "victim": "trumpers",
+          "line": "wokeLibs.headshot.c.1",
+          "head": true,
+          "loadout": "sniper"
+        }
+      ]
+    },
+    "rivalries": {
+      "seed": 9,
+      "hook": {
+        "short": "FACTIONS HATE\nEACH OTHER",
+        "long": "RIVALRIES\nTHAT TALK BACK"
+      },
+      "outro": {
+        "short": "cta",
+        "long": null
+      },
+      "scenes": [
+        {
+          "killer": "brainRot",
+          "victim": "karens",
+          "line": "rivalry.brainRot-karens.c.0",
+          "caption": "BRAIN ROT VS KARENS"
+        },
+        {
+          "killer": "hoaDads",
+          "victim": "karens",
+          "line": "rivalry.hoaDads-karens.c.0",
+          "caption": "HOA DADS VS KARENS"
+        },
+        {
+          "killer": "pickleballRetirees",
+          "victim": "karens",
+          "line": "rivalry.pickleballRetirees-karens.c.0",
+          "caption": "PICKLEBALL RETIREES VS KARENS"
+        },
+        {
+          "killer": "rednecks",
+          "victim": "karens",
+          "line": "rivalry.rednecks-karens.c.0",
+          "caption": "REDNECKS VS KARENS"
+        },
+        {
+          "killer": "brainRot",
+          "victim": "hoaDads",
+          "line": "rivalry.brainRot-hoaDads.c.0",
+          "caption": "BRAIN ROT VS HOA DADS"
+        },
+        {
+          "killer": "rednecks",
+          "victim": "hoaDads",
+          "line": "rivalry.rednecks-hoaDads.c.1",
+          "caption": "REDNECKS VS HOA DADS"
+        },
+        {
+          "killer": "hoaDads",
+          "victim": "pickleballRetirees",
+          "line": "rivalry.hoaDads-pickleballRetirees.c.1",
+          "caption": "HOA DADS VS PICKLEBALL RETIREES"
+        },
+        {
+          "killer": "pickleballRetirees",
+          "victim": "gymRats",
+          "line": "rivalry.pickleballRetirees-gymRats.c.1",
+          "caption": "PICKLEBALL RETIREES VS GYM RATS"
+        },
+        {
+          "killer": "gymRats",
+          "victim": "animeWeebs",
+          "line": "rivalry.gymRats-animeWeebs.c.1",
+          "caption": "GYM RATS VS ANIME WEEBS"
+        },
+        {
+          "killer": "tradwives",
+          "victim": "wokeLibs",
+          "line": "rivalry.tradwives-wokeLibs.c.1",
+          "caption": "TRADWIVES VS WOKE LIBS"
+        },
+        {
+          "killer": "trumpers",
+          "victim": "wokeLibs",
+          "line": "rivalry.trumpers-wokeLibs.c.0",
+          "caption": "TRUMPERS VS WOKE LIBS"
+        },
+        {
+          "killer": "wokeLibs",
+          "victim": "rednecks",
+          "line": "rivalry.wokeLibs-rednecks.c.0",
+          "caption": "WOKE LIBS VS REDNECKS"
+        }
+      ]
+    },
+    "weapons": {
+      "seed": 4,
+      "hook": {
+        "short": "THESE GUNS\nARE LEGALLY BINDING",
+        "long": "THE ARSENAL"
+      },
+      "outro": {
+        "short": "cta",
+        "long": null
+      },
+      "scenes": [
+        {
+          "killer": "karens",
+          "victim": "hoaDads",
+          "line": "karens.kill.c.1",
+          "loadout": "allowance",
+          "caption": "THE ALLOWANCE\nassault rifle"
+        },
+        {
+          "killer": "cloutStreamers",
+          "victim": "fratHouse",
+          "line": "cloutStreamers.kill.c.0",
+          "loadout": "sideHustle",
+          "caption": "THE SIDE HUSTLE\nSMG"
+        },
+        {
+          "killer": "karens",
+          "victim": "rednecks",
+          "line": "karens.kill.s.1",
+          "loadout": "divorceSettlement",
+          "caption": "THE DIVORCE SETTLEMENT\nshotgun"
+        },
+        {
+          "killer": "fratHouse",
+          "victim": "wokeLibs",
+          "line": "fratHouse.headshot.c.0",
+          "head": true,
+          "loadout": "trustFund",
+          "caption": "THE TRUST FUND\nsniper"
+        },
+        {
+          "killer": "hoaDads",
+          "victim": "brainRot",
+          "line": "hoaDads.kill.c.1",
+          "loadout": "subdivision",
+          "caption": "THE SUBDIVISION\nLMG"
+        },
+        {
+          "killer": "hoaDads",
+          "victim": "karens",
+          "line": "hoaDads.kill.c.0",
+          "loadout": "permit",
+          "caption": "THE BUILDING PERMIT\npistol"
+        },
+        {
+          "killer": "wallstreetBets",
+          "victim": "trumpers",
+          "line": "wallstreetBets.kill.c.0",
+          "loadout": "allowance",
+          "caption": "THE LAWSUIT\nbriefcase grenade",
+          "grenade": true,
+          "victimHp": 25
+        }
+      ]
+    },
+    "maps-culdesac": {
+      "map": "culdesac",
+      "seed": 6,
+      "hook": "OAKRIDGE CUL-DE-SAC",
+      "hookFor": 1.8,
+      "outro": null,
+      "scenes": [
+        {
+          "killer": "karens",
+          "victim": "hoaDads",
+          "line": "karens.kill.c.2"
+        },
+        {
+          "killer": "hoaDads",
+          "victim": "karens",
+          "line": "hoaDads.kill.c.2"
+        },
+        {
+          "killer": "brainRot",
+          "victim": "karens",
+          "line": "brainRot.kill.c.1"
+        }
+      ]
+    },
+    "maps-pickleball": {
+      "map": "pickleball",
+      "seed": 6,
+      "hook": "SHADY PINES PICKLEBALL CLUB",
+      "hookFor": 1.8,
+      "outro": null,
+      "scenes": [
+        {
+          "killer": "pickleballRetirees",
+          "victim": "gymRats",
+          "line": "pickleballRetirees.kill.c.0"
+        },
+        {
+          "killer": "karens",
+          "victim": "pickleballRetirees",
+          "line": "rivalry.karens-pickleballRetirees.c.1"
+        },
+        {
+          "killer": "cloutStreamers",
+          "victim": "fratHouse",
+          "line": "cloutStreamers.kill.c.2"
+        }
+      ]
+    },
+    "maps-stripmall": {
+      "map": "stripmall",
+      "seed": 6,
+      "hook": "SUNSET STRIP MALL PARKING LOT",
+      "hookFor": 1.8,
+      "outro": {
+        "short": "cta",
+        "long": null
+      },
+      "scenes": [
+        {
+          "killer": "rednecks",
+          "victim": "hoaDads",
+          "line": "rednecks.kill.c.2"
+        },
+        {
+          "killer": "fabulous",
+          "victim": "karens",
+          "line": "fabulous.kill.c.2"
+        },
+        {
+          "killer": "animeWeebs",
+          "victim": "furries",
+          "line": "animeWeebs.kill.c.0"
+        }
+      ]
+    },
+    "features": {
+      "type": "features",
+      "hook": {
+        "short": "WHAT IS THIS GAME?",
+        "long": "ALL OF THIS IS ONE GAME"
+      },
+      "items": [
+        "16 FACTIONS",
+        "1,000+ VOICED LINES",
+        "3 MAPS",
+        "9 GAME MODES",
+        "STEAL THE CASSEROLE\nKING OF THE LAWN\nEVICT THE BLOCK",
+        "RIVALRIES THAT TALK BACK"
+      ],
+      "stage": [
+        "karens",
+        "hoaDads"
+      ],
+      "outro": {
+        "short": "cta",
+        "long": "cta"
+      }
+    }
+  }
+}

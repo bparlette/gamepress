@@ -1,0 +1,16 @@
+{
+  "title": "My Game",
+  "cta": "MY GAME\nFREE DEMO ON ITCH.IO",
+  "paths": { "manifest": "web/vo/manifest.json", "content": "data/content.json", "weapons": "data/weapons.json" },
+  "defaultLoadout": "default",
+  "shorts": ["hero"],
+  "joined": {},
+  "long": ["hero"],
+  "chapters": {
+    "hero": {
+      "hook": { "short": "WAIT FOR THE LAST ONE", "long": "MY GAME" },
+      "outro": { "short": "cta", "long": null },
+      "scenes": []
+    }
+  }
+}

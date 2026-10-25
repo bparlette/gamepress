@@ -1,41 +1,59 @@
-# Viral "best of" cuts for a finished game (Shorts + one long YouTube video)
+# Best-of cuts: YouTube Shorts + one long video from a game's recorded lines
 
-Worked example: *Call of Karen: HOA Warfare* (repo `hoa-warfare`). Another AI can repeat this for any game
-that has (a) a deterministic sim you can script, (b) recorded voice/sfx lines with a manifest. Kit lives in the
-game repo at `tools/director/scripts/viral/` (README there has the commands); this page is the method.
+For ANY AI, including a small one: you edit ONE JSON file (`cuts.json`) and run `gamepress cuts ...`.
+You never write JS or director scripts. Worked example: *Call of Karen: HOA Warfare* (8 Shorts + a ~4.5 min cut).
 
-## What was asked and what was built
-Ask: "viral Short from the best one-liners of each faction, best kill shots, best levels and features; may need
-several Shorts and one long video." Result: 8 vertical Shorts (hero best-of, 16 faction one-liners in 2 parts,
-Karen greatest hits, headshots, rivalry call-outs, weapons, 3 maps) + a ~5 min landscape cut that reuses the same
-chapters. All rendered from the real game sim/renderer, not screen recordings.
+Needs a game with (a) a scripted-clip director at `tools/director/direct.mjs` (frame-locked headless render of the
+real game: actors, cues, camera, captions, voice lines) and (b) a voice manifest (`id -> text, duration`).
+Needs Google Chrome + ffmpeg. Never commit the MP4s.
 
-## Method (do it in this order)
-1. **Find the game and its tooling.** `~/Games/hoa-warfare`: read `AGENTS.md`, `TASKS.md`, `tools/director/README.md`.
-   The game already had a scripted-clip director (`tools/director/direct.mjs`): a shot script (actors, cues, camera,
-   captions, voice line ids) -> frame-locked headless-Chrome render -> mixed audio -> 1080x1920 MP4. Owner rule:
-   video code stays OUT of the shipped game.
-2. **Curate from what was RECORDED.** Read `web/vo/manifest.json` (id, text, duration), not only the content JSON;
-   59 of 1315 lines differ (stale recordings). Rank each faction's kill/headshot/rivalry/streak lines by humour and
-   by duration (short punchy lines keep a Short fast). Skip anything that only works as hate; roast every group equally.
-3. **Don't hand-write 100 scripts: generate them.** `_kit.mjs` `build(scenes)` makes one script from
-   `{killer, victim, line}` scenes: finds an open duel spot per scene on the map (box overlap + `segmentClear`),
-   places two scripted actors, camera behind shooter, aim -> fire -> say(line) after the kill, caption with the
-   faction name, hook text at 0 s, CTA card at the end. One sim per chapter keeps it deterministic.
-4. **Dry-run before rendering.** `direct.mjs <script> --dry` prints every hit/kill/say with timestamps in ~1 s;
-   it must show one `kill` per scene and no `no recorded line` errors.
-5. **Look at stills before the batch.** Render one chapter (~30 s), `ffmpeg -ss T -i x.mp4 -frames:v 1`, view a
-   contact sheet. First framing had the victim a dot in the distance; fixed by raising/pulling the camera back.
-6. **Render everything with `make.sh`** (`dry | shorts | long`), cached per chapter; landscape via
-   `HOA_LANDSCAPE=1` (the only director change: `script.size` -> `const [W,H] = script.size || [1080,1920]`).
-   Join with ffmpeg concat (video copy, audio re-encode). Each clip is loudness-normalised to -14 LUFS.
+## The loop (follow in order, do not skip steps)
+```
+gamepress cuts init  --game <repo>                 # once: installs tools/director/scripts/viral/ + a skeleton cuts.json
+# edit <repo>/tools/director/scripts/viral/cuts.json  (paths first, then scenes)
+gamepress cuts lines --game <repo> --faction karens --event kill     # find REAL recorded lines (shortest first)
+gamepress cuts lint  --game <repo>                 # fix every ERROR it prints, rerun until "OK"
+gamepress cuts dry   --game <repo>                 # every chapter must say N kill(s) for N scenes
+gamepress cuts still hero --game <repo>            # renders one chapter -> dist/director/viral/still/hero.sheet.png; LOOK at it
+gamepress cuts shorts --game <repo>                # all vertical 1080x1920 Shorts  -> dist/director/viral/shorts/
+gamepress cuts long   --game <repo>                # landscape 1920x1080 cut        -> dist/director/viral/long/best-of.mp4
+```
+Rendering is quick (~1 min per 40 s of video). After the game's voice manifest changes, delete
+`dist/director/viral/parts/` first (re-recorded lines change durations and audio, cached parts are stale).
 
-## Things that bit us
-- Lawsuit grenade overshoots (flies ~12.4 u, fuse 1.6 s): put the victim at the landing point, low `victimHp`.
-- Director has no melee cue, so no scripted melee kills.
-- Some factions' recordings are outdated (e.g. wallstreetBets = old VC-bro audio): flag it, re-record, re-render.
-- Shared checkout: edit targeted, stage only your own files, never the owner's untracked work; dist/director is gitignored.
+## cuts.json
+```json
+{ "cta": "GAME NAME\nFREE DEMO ON ITCH.IO",
+  "paths": { "manifest": "web/vo/manifest.json", "content": "data/content.json", "weapons": "data/weapons.json" },
+  "defaultLoadout": "default",
+  "shorts": ["hero"], "joined": { "maps": ["maps-a", "maps-b"] }, "long": ["hero", "maps-a", "maps-b"],
+  "chapters": { "hero": { "map": "culdesac", "seed": 7,
+      "hook":  { "short": "WAIT FOR THE LAST ONE", "long": "GAME NAME" },
+      "outro": { "short": "cta", "long": null },
+      "scenes": [ { "killer": "karens", "victim": "hoaDads", "line": "karens.kill.c.2", "head": false, "loadout": "sniper", "caption": "KAREN" } ] } } }
+```
+- `killer`/`victim` are faction ids from the content file; `line` is a recorded line id the killer says right after the kill.
+- Hook and outro are a string or `{short, long}`; `"cta"` = the CTA card; `null` = none. Shorts need both.
+- Chapter `type: "features"` = caption cards (`items[]`, `stage[2 factions]`) over an orbit shot.
+- Optional per scene: `head` (headshot), `loadout`, `caption` (default is the faction name), `grenade` + `victimHp: 25`.
 
-## Re-doing it for another game
-Copy `_kit.mjs`/`chapters.mjs`/`make.sh`, swap the content arrays and map/actor assumptions, keep steps 2-6.
-The upload itself (titles, thumbnails, posting) stays a human decision; the CTA card points to the demo page.
+## How to pick content (this is what makes it viral)
+1. Use RECORDED lines (`cuts lines`), not the content file: they can differ (stale recordings).
+2. Funniest and shortest: under ~2 s each; 8-10 scenes per Short (lint enforces <= 58 s).
+3. Hook in the first 2 s ("WAIT FOR THE LAST ONE", "EVERY FACTION'S BEST ONE-LINER"), CTA card last.
+4. Series ideas that worked: one best line per faction (split 8/8), the mascot's greatest hits, headshots only
+   (sniper loadout), rivalry call-outs, one scene per weapon, one clip per map; the long video = all chapters
+   in order with landscape hooks + a features/CTA outro.
+5. Content rules: every group roasted equally, nothing that only works as hate; `lint` warns on mature "steam" variants.
+
+## Things that bit us (already handled, know why)
+- Grenade flies ~12.4 units (fuse 1.6 s): the kit puts the victim at the landing point; needs `victimHp`.
+- No melee cue exists in the director: no scripted melee kills.
+- Low follow cameras hide the victim: the kit uses back 5.6 / up 3.3 (landscape 6.5 / 3.4). Always view a `still` sheet.
+- Voices get re-recorded: durations move, so re-run `dry`/`lint` and clear cached parts.
+- Shared checkout: stage only your own files; `dist/director/` is gitignored.
+
+## Where things live
+Kit templates: `templates/cuts/` (`_kit.mjs` scene builder, `chapters.mjs`, `chapter.mjs`, `make.sh`, `cuts.example.json`
+= the full HOA example). CLI: `lib/cuts.mjs`, tests: `test/cuts.test.mjs`. For another game, `cuts init` installs the kit;
+only `paths`, factions, lines and loadouts change. Upload (titles, thumbnails, posting) is a human decision.

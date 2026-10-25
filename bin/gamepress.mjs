@@ -41,6 +41,7 @@ import { viralCommand } from '../lib/viral.mjs';
 import { make, doctor, lint, vision, contextDigest, RECIPES, REGISTRY } from '../lib/extras.mjs';
 import { config, status, grade, runAll } from '../lib/pipeline.mjs';
 import { catalogCommand } from '../lib/catalog.mjs';
+import { findLines, lintCuts, initCuts, runMake } from '../lib/cuts.mjs';
 import { research, scaffold, testGame, botCheck, bundle, publishPack, publishDemo, copyDraft, buildTarget, repoInit } from '../lib/tasks.mjs';
 import { visualSmokeTest } from '../lib/visual.mjs';
 import { resolveTarget, judgeGame, judgeAll, PASS_THRESHOLD } from '../lib/judge.mjs';
@@ -435,6 +436,7 @@ const HELP = {
   context: ['~400-token AI cheat sheet (the token-saving entry point)', 'gamepress context [--2d|--3d|--lego|--recipe <name>]', ['--2d', '--3d', '--lego', '--recipe']],
   cloud: ['run a slow job on free GitHub runners, falling back to local automatically', 'gamepress cloud drive <plan.json> | voice <script.txt> | test', ['--out dir', '--quick N', '--voice narrator', '--speed 1.0', '--local (skip cloud)']],
   run: ['conversational orchestrator: the tool drives, the AI just relays (see ORCHESTRATOR.md). Cloud-first: slow steps try free GitHub runners, --local forces local.', 'gamepress run [--answer \'{...}\' --job <id>] [--status <id>] [--local]', ['--answer', '--job', '--status', '--local (skip cloud, run locally)']],
+  cuts: ['best-of YouTube Shorts + a long video from a game\'s recorded lines (edit cuts.json only)', 'gamepress cuts init|lines|lint|dry|still <chapter>|shorts|long [--game dir]', ['--game dir (default .)', '--q words', '--faction id', '--event kill|headshot|rivalry|...', '--max 40', '--variant c|s|any']],
   help: ['this help (or per-command: gamepress <cmd> --help)', 'gamepress --help | gamepress <cmd> --help', []],
 };
 function printHelp() {
@@ -677,6 +679,18 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
     }
     die('usage: gamepress cloud drive <plan.json> | voice <script.txt> | test [--local]');
   },
+  cuts: () => { try {
+    const sub = positional[0] || die('usage: gamepress cuts init|lines|lint|dry|still <chapter>|shorts|long [--game dir]'), game = flag('game', '.');
+    if (sub === 'init') { const r = initCuts(game); return out({ command: 'cuts init', ...r }, o => `kit → ${o.dir} (${o.wrote.join(', ')})\nnext: ${o.next}`); }
+    if (sub === 'lines') { const r = findLines(game, { q: flag('q'), faction: flag('faction'), event: flag('event'), max: Number(flag('max', 40)), variant: flag('variant', 'c') });
+      return out({ command: 'cuts lines', ...r }, o => `${o.shown}/${o.total} recorded lines (shortest first)\n` + o.lines.map(l => `${l.id}  ${l.duration}s  ${l.text}`).join('\n')); }
+    if (sub === 'lint') { const r = lintCuts(game);
+      out({ command: 'cuts lint', ...r }, o => [...o.errors.map(e => 'ERROR ' + e), ...o.warnings.map(w => 'warn  ' + w), ...o.chapters.map(c => `  ${c.name}: ${c.scenes} scenes ~${c.seconds}s`), o.ok ? 'OK: now run dry, then still <chapter>' : 'FIX THE ERRORS ABOVE, then lint again'].join('\n'));
+      if (!r.ok) process.exit(1); return; }
+    if (['dry', 'shorts', 'long'].includes(sub)) return out({ command: 'cuts ' + sub, ...runMake(game, sub) });
+    if (sub === 'still') return out({ command: 'cuts still', ...runMake(game, 'still', positional[1] || die('usage: gamepress cuts still <chapter>')) });
+    die('usage: gamepress cuts init|lines|lint|dry|still <chapter>|shorts|long [--game dir]');
+  } catch (e) { die('cuts: ' + e.message); } },
   run: async () => {
     // Conversational orchestrator (ORCHESTRATOR.md): the tool drives, the AI relays.
     const statusId = flag('status') || (positional[0] === '--status' ? positional[1] : null);
