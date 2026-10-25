@@ -29,7 +29,7 @@ case "${1:-}" in
       join $OUT/shorts/$j.mp4 $(for c in $parts; do echo $OUT/parts/v-$c.mp4; done); done ;;
   long)
     mkdir -p $OUT/long $OUT/parts
-    for c in $LONG; do [ -f $OUT/parts/h-$c.mp4 ] || HOA_LANDSCAPE=1 CUT=$c node $D $V/chapter.mjs $OUT/parts/h-$c.mp4; done
+    for c in $LONG; do [ -f $OUT/parts/h-$c.mp4 ] || CUTS_LANDSCAPE=1 CUT=$c node $D $V/chapter.mjs $OUT/parts/h-$c.mp4; done
     join $OUT/long/best-of.mp4 $(for c in $LONG; do echo $OUT/parts/h-$c.mp4; done) ;;
   *) echo "usage: make.sh dry|still <chapter>|shorts|long"; exit 1 ;;
 esac

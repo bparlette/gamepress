@@ -5,7 +5,7 @@
 //   killer / victim: faction ids   line: voice line id the killer says after the kill
 // Each scene gets its own open duel spot on the map so a whole compilation runs in ONE sim.
 //
-// HOA_LANDSCAPE=1 renders 1920x1080 (long YouTube cut); default is vertical 1080x1920 (Shorts).
+// CUTS_LANDSCAPE=1 renders 1920x1080 (long YouTube cut); default is vertical 1080x1920 (Shorts).
 import { readFileSync } from 'node:fs';
 import { buildMap, segmentClear } from '../../../../web/src/engine/map.js';
 
@@ -14,7 +14,7 @@ export const spec = JSON.parse(readFileSync(new URL('cuts.json', import.meta.url
 const manifest = JSON.parse(readFileSync(new URL(spec.paths.manifest, root))).lines;
 const content = JSON.parse(readFileSync(new URL(spec.paths.content, root)));
 export const FACTION_NAME = Object.fromEntries(Object.entries(content.factions).map(([k, f]) => [k, f.name]));
-export const landscape = !!process.env.HOA_LANDSCAPE;
+export const landscape = !!(process.env.CUTS_LANDSCAPE || process.env.HOA_LANDSCAPE);
 export const CTA = spec.cta;
 
 const lineDur = id => manifest[id]?.duration ?? 1.6;
