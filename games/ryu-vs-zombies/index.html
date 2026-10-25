@@ -9,27 +9,25 @@
   html, body {
     margin: 0;
     padding: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     overflow: hidden;
-    background: #08080d;
+    background: #000;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     user-select: none;
     -webkit-user-select: none;
-    font-family: Impact, "Arial Black", -apple-system, sans-serif;
+    font-family: Impact, "Arial Black", sans-serif;
   }
-  #container {
+  #view {
     position: relative;
     width: min(100vw, 540px);
     height: min(100vh, 960px);
     aspect-ratio: 9/16;
     background: #050508;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.9), 0 0 0 2px #ffaa0033;
+    box-shadow: 0 0 50px rgba(0,0,0,0.9);
     overflow: hidden;
-    border-radius: 8px;
   }
   canvas {
     display: block;
@@ -44,9 +42,10 @@
     background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%),
                 radial-gradient(circle at center, transparent 65%, rgba(0, 0, 0, 0.75) 100%);
     background-size: 100% 4px, 100% 100%;
+    box-shadow: inset 0 0 25px rgba(0,0,0,0.85);
   }
 
-  /* Interactive Controls HUD */
+  /* Virtual Touch Controls */
   #touch-controls {
     position: absolute;
     bottom: 24px;
@@ -54,7 +53,7 @@
     right: 0;
     display: flex;
     justify-content: space-between;
-    padding: 0 24px;
+    padding: 0 20px;
     pointer-events: none;
     z-index: 10;
   }
@@ -67,7 +66,7 @@
     border: 3px solid #ffea70;
     color: #fff;
     font-family: Impact;
-    font-size: 16px;
+    font-size: 15px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -88,8 +87,8 @@
 
   #joystick-area {
     pointer-events: auto;
-    width: 120px;
-    height: 120px;
+    width: 124px;
+    height: 124px;
     border-radius: 50%;
     background: rgba(255,255,255,0.08);
     border: 2px dashed rgba(255,255,255,0.25);
@@ -109,51 +108,6 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.5);
   }
 
-  /* Start / Instruction Banner */
-  #overlay-msg {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(10, 5, 20, 0.92);
-    border: 3px solid #ffd700;
-    border-radius: 12px;
-    padding: 24px 32px;
-    text-align: center;
-    color: #fff;
-    z-index: 20;
-    box-shadow: 0 0 35px rgba(255, 215, 0, 0.5);
-    cursor: pointer;
-  }
-  #overlay-msg h1 {
-    margin: 0 0 10px 0;
-    font-size: 34px;
-    color: #ffd700;
-    letter-spacing: 2px;
-    text-shadow: 0 2px 8px #000;
-  }
-  #overlay-msg p {
-    margin: 6px 0;
-    font-size: 16px;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    color: #ddd;
-  }
-  #overlay-msg .play-badge {
-    margin-top: 14px;
-    display: inline-block;
-    padding: 10px 24px;
-    background: #ff0055;
-    border: 2px solid #fff;
-    border-radius: 30px;
-    font-size: 20px;
-    font-family: Impact;
-    animation: pulse 1s infinite alternate;
-  }
-  @keyframes pulse {
-    from { transform: scale(0.96); }
-    to { transform: scale(1.04); }
-  }
-
   #assets {
     display: none;
   }
@@ -161,353 +115,342 @@
 </head>
 <body>
 
-<div id="container">
-  <canvas id="game" width="720" height="1280"></canvas>
+<div id="view">
+  <canvas id="game" width="540" height="960"></canvas>
   <div id="crt-overlay"></div>
 
-  <!-- Touch & Mobile Controls -->
   <div id="touch-controls">
     <div id="joystick-area">
       <div id="joystick-knob"></div>
     </div>
     <div style="display: flex; gap: 14px; align-items: flex-end;">
       <button class="hud-btn" id="btn-fire">
-        <span>🔥</span>BLAST
+        <span>🔥</span>HADOU
       </button>
       <button class="hud-btn" id="btn-power" style="background: radial-gradient(circle, #ffaa00 0%, #bb6600 100%);">
-        <span>⚡</span>LVL UP
+        <span>⚡</span>LEVEL UP
       </button>
     </div>
-  </div>
-
-  <div id="overlay-msg">
-    <h1>RYU VS 1000 ZOMBIES</h1>
-    <p>Move: <b>WASD / Arrow Keys</b> or <b>Touch Joystick</b></p>
-    <p>Blast: <b>SPACE / Click / Tap</b> (Auto-fires too!)</p>
-    <p>Power-Up: Collect or tap <b>⚡ LVL UP</b></p>
-    <div class="play-badge">TAP TO START FIGHTING! 🥊</div>
   </div>
 </div>
 
 <div id="assets">
   <img id="bg-dojo" src="assets/level1_dojo.jpg">
   <img id="atlas-ryu" src="assets/atlas_ryu.png">
-  <img id="atlas-ken" src="assets/atlas_ken.png">
   <img id="atlas-sp-ryu" src="assets/atlas_sp_ryu.png">
   <img id="atlas-fx" src="assets/atlas_fx.png">
-  <img id="title-logo" src="assets/title_logo.png">
 </div>
 
 <script type="module">
 // -------------------------------------------------------------
-// PLAYABLE RYU VS 1000 ZOMBIES — 6-WAY HADOUKEN BULLET HELL
+// RYU VS 1000 ZOMBIES — TOP-DOWN ARCADE SURVIVOR (GAMEPRESS ENGINE)
 // -------------------------------------------------------------
 const cv = document.getElementById('game');
 const c = cv.getContext('2d');
-const W = 720;
-const H = 1280;
+const W = 540;
+const H = 960;
 
+// Load Authentic Capcom Sprites
 const imgDojo = document.getElementById('bg-dojo');
 const imgRyu = document.getElementById('atlas-ryu');
+const imgSpRyu = document.getElementById('atlas-sp-ryu');
+const imgFx = document.getElementById('atlas-fx');
 
-// Audio Synthesizer
-class SoundFX {
-  constructor() {
-    this.ctx = null;
+// Authentic Street Fighter II Sprite Slices
+const ATLAS = {
+  ryu: {
+    idle:   [0, 3, 84, 150],
+    walk:   [86, 0, 69, 153],
+    attack: [157, 5, 126, 148],
+    hurt:   [441, 21, 126, 132],
+  },
+  sp_ryu: {
+    sp1: [0, 5, 106, 150],
+    sp2: [108, 0, 113, 155],
+    sp3: [223, 3, 129, 152],
+  },
+  fx: {
+    hadou: [0, 0, 150, 90],
   }
-  init() {
-    if (!this.ctx) {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (AC) this.ctx = new AC();
-    }
-  }
-  hadouken() {
-    if (!this.ctx) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(450, now);
-    osc.frequency.exponentialRampToValueAtTime(140, now + 0.28);
-    gain.gain.setValueAtTime(0.35, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.3);
-  }
-  splat() {
-    if (!this.ctx) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(180, now);
-    osc.frequency.exponentialRampToValueAtTime(40, now + 0.12);
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.12);
-  }
-  powerUp() {
-    if (!this.ctx) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(260, now);
-    osc.frequency.linearRampToValueAtTime(520, now + 0.1);
-    osc.frequency.linearRampToValueAtTime(880, now + 0.25);
-    gain.gain.setValueAtTime(0.4, now);
-    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.3);
-  }
+};
+
+// FM Synthesizer / Audio Effects
+let ac = null;
+function initAudio() {
+  if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
 }
-const sfx = new SoundFX();
+window.addEventListener('pointerdown', initAudio, { once: true });
+window.addEventListener('keydown', initAudio, { once: true });
+
+function playSfx(type, pitch = 1.0) {
+  try {
+    initAudio();
+    if (!ac) return;
+    const t = ac.currentTime;
+
+    if (type === 'hadouken') {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(420 * pitch, t);
+      osc.frequency.exponentialRampToValueAtTime(120, t + 0.32);
+      gain.gain.setValueAtTime(0.4, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(t);
+      osc.stop(t + 0.36);
+    } else if (type === 'splat') {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(140 * pitch, t);
+      osc.frequency.exponentialRampToValueAtTime(32, t + 0.16);
+      gain.gain.setValueAtTime(0.35, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(t);
+      osc.stop(t + 0.2);
+    } else if (type === 'powerup') {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(260, t);
+      osc.frequency.linearRampToValueAtTime(520, t + 0.1);
+      osc.frequency.linearRampToValueAtTime(880, t + 0.24);
+      gain.gain.setValueAtTime(0.45, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(t);
+      osc.stop(t + 0.32);
+    }
+  } catch {}
+}
+
+// Universal Outlined Viral Zombie Renderer (From Gamepress gpenemies engine)
+const INK = '#151515';
+const C = { crim: '#c1121f', crimHi: '#ff2d4f', acid: '#9be000', acidD: '#4f8a0f', acidDD: '#2f5a0a', pur: '#4a1a6b', purD: '#2a1040', neon: '#c026d3', bone: '#e9e3cf' };
+
+const rct = (ctx, x, y, w, h, fill) => {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, Math.min(w, h) / 3);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = INK;
+  ctx.stroke();
+};
+
+const poly = (ctx, pts, fill) => {
+  ctx.beginPath();
+  pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = INK;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+};
+
+function drawGamepressZombie(ctx, x, y, size, o = {}) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale((o.dir || 1) * size / 100, size / 100);
+
+  const t = o.t || 0;
+  const w = Math.sin(t * 8) * 5;
+  const b = Math.abs(Math.sin(t * 8)) * 2;
+
+  // Legs & Tattered pants
+  rct(ctx, -15 + w * 0.5, -30, 13, 30, C.purD);
+  rct(ctx, 2 - w * 0.5, -30, 13, 30, C.purD);
+
+  // Torso / Rags
+  rct(ctx, -20, -76 - b, 40, 48, C.acidD);
+  rct(ctx, -20, -42 - b, 40, 8, C.purD);
+  poly(ctx, [[-20, -34 - b], [-12, -24 - b], [-4, -34 - b], [4, -22 - b], [12, -34 - b], [20, -26 - b], [20, -34 - b]], C.pur);
+
+  // Outstretched Arms
+  rct(ctx, 12, -72 - b + w * 0.3, 40, 11, C.acid);
+  rct(ctx, 8, -56 - b - w * 0.3, 38, 11, C.acid);
+
+  // Head
+  rct(ctx, -17, -104 - b, 34, 30, C.acid);
+
+  // Glowing evil eyes
+  rct(ctx, -10, -94 - b, 8, 7, o.fl ? '#fff' : C.crimHi);
+  rct(ctx, 4, -94 - b, 8, 7, o.fl ? '#fff' : C.crimHi);
+  ctx.fillStyle = INK;
+  ctx.fillRect(-9, -91 - b, 4, 3);
+  ctx.fillRect(5, -91 - b, 4, 3);
+
+  // Teeth
+  ctx.fillStyle = INK;
+  ctx.fillRect(-9, -80 - b, 20, 5);
+  ctx.fillStyle = C.bone;
+  for (let i = 0; i < 4; i++) ctx.fillRect(-8 + i * 5, -80 - b, 3, 3);
+
+  ctx.restore();
+}
 
 // Game State
-export const state = {
-  started: false,
+const state = {
   frame: 0,
+  t: 0,
+  cam: { x: 0, y: 0 },
+  shake: 0,
+  hitstop: 0,
+  flash: 0,
   ryu: {
-    x: W / 2,
-    y: H * 0.55,
-    speed: 5.5,
-    facing: 1, // 1: right, -1: left
-    anim: 'idle',
-    animTimer: 0,
+    x: 0,
+    y: 0,
+    vx: 0,
+    vy: 0,
+    speed: 240,
+    facing: 1,
+    state: 'idle', // 'idle', 'walk', 'hadouken'
+    stateT: 0,
     powerLevel: 1, // 1 to 6
     killCount: 0,
     combo: 0,
     maxCombo: 0,
-    screenShake: 0,
     hp: 100,
     maxHp: 100,
   },
-  hadoukens: [],
+  projectiles: [],
   zombies: [],
+  gems: [],
   particles: [],
   floatingTexts: [],
-  orbs: [], // collectible power-up orbs
-  targetZombies: 1000,
-  remainingZombies: 1000,
-  keys: { up: false, down: false, left: false, right: false, fire: false },
+  totalHorde: 1000,
+  keys: { up: false, down: false, left: false, right: false },
   joy: { dx: 0, dy: 0 },
 };
 
-// Zombie class
-class Zombie {
-  constructor(x, y, speed, type = 'walker') {
-    this.x = x;
-    this.y = y;
-    this.speed = speed;
-    this.hp = type === 'brute' ? 4 : 1;
-    this.type = type;
-    this.size = type === 'brute' ? 36 : 24;
-    this.wobble = Math.random() * Math.PI * 2;
-    this.color = type === 'brute' ? '#3d6332' : '#578345';
-  }
-  update(targetX, targetY) {
-    const dx = targetX - this.x;
-    const dy = targetY - this.y;
-    const dist = Math.hypot(dx, dy) || 1;
-    this.wobble += 0.1;
-    this.x += (dx / dist) * this.speed + Math.sin(this.wobble) * 0.4;
-    this.y += (dy / dist) * this.speed + Math.cos(this.wobble) * 0.3;
-  }
-  draw(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-
-    ctx.fillStyle = 'rgba(0,0,0,0.45)';
-    ctx.beginPath();
-    ctx.ellipse(0, this.size * 0.85, this.size * 0.7, this.size * 0.3, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    const s = this.size / 24;
-    ctx.scale(s, s);
-
-    ctx.fillStyle = this.type === 'brute' ? '#3a4454' : '#5c4838';
-    ctx.fillRect(-10, -10, 20, 24);
-
-    ctx.fillStyle = this.color;
-    ctx.fillRect(-9, -26, 18, 16);
-
-    ctx.fillStyle = '#ff2200';
-    ctx.fillRect(-6, -21, 4, 4);
-    ctx.fillRect(2, -21, 4, 4);
-    ctx.fillStyle = '#ffff00';
-    ctx.fillRect(-5, -20, 2, 2);
-    ctx.fillRect(3, -20, 2, 2);
-
-    ctx.fillStyle = this.color;
-    const armWave = Math.sin(this.wobble * 2) * 4;
-    ctx.fillRect(-14, -6 + armWave, 6, 14);
-    ctx.fillRect(8, -6 - armWave, 6, 14);
-
-    ctx.fillStyle = '#222b38';
-    ctx.fillRect(-8, 14, 6, 12);
-    ctx.fillRect(2, 14, 6, 12);
-
-    ctx.restore();
-  }
-}
-
-// Particle
-class Particle {
-  constructor(x, y, vx, vy, color, size, life) {
-    this.x = x;
-    this.y = y;
-    this.vx = vx;
-    this.vy = vy;
-    this.color = color;
-    this.size = size;
-    this.life = life;
-    this.maxLife = life;
-  }
-  update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.vy += 0.15;
-    this.life--;
-  }
-  draw(ctx) {
-    const alpha = Math.max(0, this.life / this.maxLife);
-    ctx.fillStyle = this.color;
-    ctx.globalAlpha = alpha;
-    ctx.fillRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
-    ctx.globalAlpha = 1.0;
-  }
-}
-
-// Spawn wave of zombies
+// Spawn Zombies in Circle around Ryu
 function spawnZombies(count) {
   for (let i = 0; i < count; i++) {
-    if (state.remainingZombies <= 0) break;
-    state.remainingZombies--;
+    if (state.totalHorde <= 0) break;
+    state.totalHorde--;
 
-    const angle = Math.random() * Math.PI * 2;
-    const distance = 460 + Math.random() * 260;
-    const x = state.ryu.x + Math.cos(angle) * distance;
-    const y = state.ryu.y + Math.sin(angle) * distance;
-    const speed = 1.6 + Math.random() * 1.5;
-    const isBrute = Math.random() < 0.18;
-    state.zombies.push(new Zombie(x, y, speed, isBrute ? 'brute' : 'walker'));
-  }
-}
-
-// Level Up Power
-function triggerPowerUp() {
-  if (state.ryu.powerLevel < 6) {
-    state.ryu.powerLevel++;
-  } else {
-    // Max level bonus shockwave
-    state.ryu.screenShake = 24;
-  }
-  sfx.powerUp();
-  state.floatingTexts.push({
-    text: `LEVEL ${state.ryu.powerLevel}: ${['SINGLE', 'DUAL', 'TRIPLE', 'CROSS', 'STAR', '360° HEXAGON'][state.ryu.powerLevel - 1]} HADOUKEN!`,
-    x: state.ryu.x,
-    y: state.ryu.y - 100,
-    color: '#ffea00',
-    life: 65,
-    scale: 1.35,
-  });
-}
-
-// Fire Hadouken
-function fireHadouken() {
-  state.ryu.anim = 'hadouken';
-  state.ryu.animTimer = 16;
-  state.ryu.screenShake = 6 + state.ryu.powerLevel * 2;
-  sfx.hadouken();
-
-  const numBalls = state.ryu.powerLevel;
-  const baseAngle = state.ryu.facing === 1 ? 0 : Math.PI;
-
-  let angles = [];
-  if (numBalls === 1) {
-    angles = [baseAngle];
-  } else if (numBalls === 2) {
-    angles = [0, Math.PI];
-  } else if (numBalls === 3) {
-    angles = [baseAngle - 0.38, baseAngle, baseAngle + 0.38];
-  } else if (numBalls === 4) {
-    angles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
-  } else if (numBalls === 5) {
-    angles = [0, (Math.PI * 2) / 5, (Math.PI * 4) / 5, (Math.PI * 6) / 5, (Math.PI * 8) / 5];
-  } else {
-    // 6 FULL 360° OMNI BLAST!
-    for (let i = 0; i < 6; i++) {
-      angles.push((i * Math.PI) / 3);
-    }
-  }
-
-  for (const ang of angles) {
-    state.hadoukens.push({
-      x: state.ryu.x + Math.cos(ang) * 45,
-      y: state.ryu.y - 12 + Math.sin(ang) * 45,
-      vx: Math.cos(ang) * 12,
-      vy: Math.sin(ang) * 12,
-      life: 140,
-      radius: 22 + (state.ryu.powerLevel >= 4 ? 6 : 0),
-      color: state.ryu.powerLevel >= 6 ? '#ff2255' : state.ryu.powerLevel >= 4 ? '#ffe53b' : '#33b5ff',
-      flameTrail: [],
-      pierce: state.ryu.powerLevel >= 5 ? 5 : state.ryu.powerLevel >= 3 ? 3 : 1,
+    const ang = Math.random() * Math.PI * 2;
+    const dist = 380 + Math.random() * 260;
+    const isBrute = Math.random() < 0.15;
+    state.zombies.push({
+      x: state.ryu.x + Math.cos(ang) * dist,
+      y: state.ryu.y + Math.sin(ang) * dist,
+      hp: isBrute ? 4 : 1,
+      maxHp: isBrute ? 4 : 1,
+      speed: (isBrute ? 65 : 95) + Math.random() * 30,
+      size: isBrute ? 90 : 64,
+      t: Math.random() * 10,
+      fl: 0,
+      dir: 1,
     });
   }
 }
 
-// Initial horde
-spawnZombies(140);
+// Initial Horde Spawns
+spawnZombies(120);
 
-// Keyboard Listeners
+// Level Up
+function triggerPowerUp() {
+  if (state.ryu.powerLevel < 6) {
+    state.ryu.powerLevel++;
+  }
+  state.shake = 16;
+  state.flash = 0.35;
+  playSfx('powerup');
+
+  const names = ['SINGLE', 'DUAL 180°', 'TRIPLE SPREAD', '4-WAY CROSS', '5-WAY STAR', '360° OMNI HEXAGON!'];
+  state.floatingTexts.push({
+    text: `LEVEL UP! [${state.ryu.powerLevel}X] ${names[state.ryu.powerLevel - 1]}`,
+    x: state.ryu.x,
+    y: state.ryu.y - 120,
+    color: '#ffea00',
+    life: 1.2,
+    scale: 1.4,
+  });
+}
+
+// Launch Hadouken Blast
+let fireCooldown = 0;
+function fireHadouken() {
+  state.ryu.state = 'hadouken';
+  state.ryu.stateT = 0;
+  state.shake = 4 + state.ryu.powerLevel * 1.5;
+  playSfx('hadouken');
+
+  const n = state.ryu.powerLevel;
+  const baseAng = state.ryu.facing === 1 ? 0 : Math.PI;
+
+  let angles = [];
+  if (n === 1) {
+    angles = [baseAng];
+  } else if (n === 2) {
+    angles = [0, Math.PI];
+  } else if (n === 3) {
+    angles = [baseAng - 0.34, baseAng, baseAng + 0.34];
+  } else if (n === 4) {
+    angles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+  } else if (n === 5) {
+    for (let i = 0; i < 5; i++) angles.push((i * Math.PI * 2) / 5);
+  } else {
+    // 6-Way Hexagonal Omni-Blast
+    for (let i = 0; i < 6; i++) angles.push((i * Math.PI) / 3);
+  }
+
+  for (const ang of angles) {
+    state.projectiles.push({
+      x: state.ryu.x + Math.cos(ang) * 45,
+      y: state.ryu.y - 25 + Math.sin(ang) * 45,
+      vx: Math.cos(ang) * 620,
+      vy: Math.sin(ang) * 620,
+      life: 1.2,
+      radius: 28,
+      pierce: state.ryu.powerLevel >= 5 ? 5 : state.ryu.powerLevel >= 3 ? 3 : 1,
+      trail: [],
+    });
+  }
+}
+
+// Controls
 window.addEventListener('keydown', e => {
-  sfx.init();
+  initAudio();
   if (['ArrowUp', 'KeyW'].includes(e.code)) state.keys.up = true;
   if (['ArrowDown', 'KeyS'].includes(e.code)) state.keys.down = true;
   if (['ArrowLeft', 'KeyA'].includes(e.code)) state.keys.left = true;
   if (['ArrowRight', 'KeyD'].includes(e.code)) state.keys.right = true;
-  if (e.code === 'Space') {
-    state.keys.fire = true;
-    fireHadouken();
-  }
-  if (e.code === 'KeyE') {
-    triggerPowerUp();
-  }
+  if (e.code === 'Space') fireHadouken();
+  if (e.code === 'KeyE') triggerPowerUp();
 });
 window.addEventListener('keyup', e => {
   if (['ArrowUp', 'KeyW'].includes(e.code)) state.keys.up = false;
   if (['ArrowDown', 'KeyS'].includes(e.code)) state.keys.down = false;
   if (['ArrowLeft', 'KeyA'].includes(e.code)) state.keys.left = false;
   if (['ArrowRight', 'KeyD'].includes(e.code)) state.keys.right = false;
-  if (e.code === 'Space') state.keys.fire = false;
 });
 
-// Touch / Button Listeners
 document.getElementById('btn-fire').addEventListener('pointerdown', e => {
   e.preventDefault();
-  sfx.init();
   fireHadouken();
 });
 document.getElementById('btn-power').addEventListener('pointerdown', e => {
   e.preventDefault();
-  sfx.init();
   triggerPowerUp();
 });
 
-// Virtual Joystick
+// Joystick
 const joyArea = document.getElementById('joystick-area');
 const joyKnob = document.getElementById('joystick-knob');
 let joyActive = false;
 let joyStart = { x: 0, y: 0 };
 
 joyArea.addEventListener('pointerdown', e => {
+  initAudio();
   joyActive = true;
   joyStart = { x: e.clientX, y: e.clientY };
   joyArea.setPointerCapture(e.pointerId);
@@ -535,246 +478,307 @@ const resetJoy = () => {
 joyArea.addEventListener('pointerup', resetJoy);
 joyArea.addEventListener('pointercancel', resetJoy);
 
-// Overlay Start
-const overlay = document.getElementById('overlay-msg');
-overlay.addEventListener('click', () => {
-  sfx.init();
-  state.started = true;
-  overlay.style.display = 'none';
-});
+// Fixed 60FPS Game Loop
+let lastT = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
 
-// Game Step Loop
-export function step() {
+  step(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+
+function step(dt) {
   state.frame++;
+  state.t += dt;
 
-  // Screen shake decay
-  if (state.ryu.screenShake > 0) state.ryu.screenShake *= 0.85;
-
-  // Player Movement (Keyboard + Joystick)
-  let moveX = 0;
-  let moveY = 0;
-  if (state.keys.left) moveX -= 1;
-  if (state.keys.right) moveX += 1;
-  if (state.keys.up) moveY -= 1;
-  if (state.keys.down) moveY += 1;
-
-  if (Math.abs(state.joy.dx) > 0.15) moveX = state.joy.dx;
-  if (Math.abs(state.joy.dy) > 0.15) moveY = state.joy.dy;
-
-  if (moveX !== 0 || moveY !== 0) {
-    const len = Math.hypot(moveX, moveY) || 1;
-    state.ryu.x += (moveX / len) * state.ryu.speed;
-    state.ryu.y += (moveY / len) * state.ryu.speed;
-    if (moveX > 0.1) state.ryu.facing = 1;
-    if (moveX < -0.1) state.ryu.facing = -1;
+  if (state.hitstop > 0) {
+    state.hitstop -= dt;
+    return;
   }
 
-  // Constrain Ryu to arena bounds
-  state.ryu.x = Math.max(60, Math.min(W - 60, state.ryu.x));
-  state.ryu.y = Math.max(160, Math.min(H - 140, state.ryu.y));
+  if (state.shake > 0) state.shake *= Math.pow(0.02, dt);
+  if (state.flash > 0) state.flash = Math.max(0, state.flash - dt * 2.5);
+
+  // Movement input
+  let mx = 0, my = 0;
+  if (state.keys.left) mx -= 1;
+  if (state.keys.right) mx += 1;
+  if (state.keys.up) my -= 1;
+  if (state.keys.down) my += 1;
+
+  if (Math.abs(state.joy.dx) > 0.15) mx = state.joy.dx;
+  if (Math.abs(state.joy.dy) > 0.15) my = state.joy.dy;
+
+  const len = Math.hypot(mx, my);
+  if (len > 0.1) {
+    state.ryu.x += (mx / len) * state.ryu.speed * dt;
+    state.ryu.y += (my / len) * state.ryu.speed * dt;
+    if (mx > 0.1) state.ryu.facing = 1;
+    if (mx < -0.1) state.ryu.facing = -1;
+    if (state.ryu.state !== 'hadouken') state.ryu.state = 'walk';
+  } else {
+    if (state.ryu.state !== 'hadouken') state.ryu.state = 'idle';
+  }
+
+  // Smooth Camera Lerp
+  state.cam.x += (state.ryu.x - state.cam.x) * Math.min(1, dt * 7);
+  state.cam.y += (state.ryu.y - state.cam.y) * Math.min(1, dt * 7);
 
   // Auto-Fire Rate
-  const fireInterval = state.ryu.powerLevel >= 6 ? 14 : state.ryu.powerLevel >= 4 ? 18 : 24;
-  if (state.frame % fireInterval === 0) {
+  fireCooldown -= dt;
+  const fireRate = state.ryu.powerLevel >= 6 ? 0.28 : state.ryu.powerLevel >= 4 ? 0.38 : 0.52;
+  if (fireCooldown <= 0) {
+    fireCooldown = fireRate;
     fireHadouken();
   }
 
-  // Auto Level-Up Every 18 Kills
-  if (state.ryu.killCount >= state.ryu.powerLevel * 20 && state.ryu.powerLevel < 6) {
+  // Auto Level Up Every 25 Kills
+  if (state.ryu.killCount >= state.ryu.powerLevel * 25 && state.ryu.powerLevel < 6) {
     triggerPowerUp();
   }
 
-  // Animation timer
-  if (state.ryu.animTimer > 0) {
-    state.ryu.animTimer--;
-    if (state.ryu.animTimer === 0) state.ryu.anim = 'idle';
+  // Ryu state timer
+  state.ryu.stateT += dt;
+  if (state.ryu.state === 'hadouken' && state.ryu.stateT > 0.35) {
+    state.ryu.state = 'idle';
   }
 
-  // Keep horde dense
-  if (state.zombies.length < 180 && state.remainingZombies > 0) {
-    spawnZombies(12);
+  // Keep horde thick
+  if (state.zombies.length < 160 && state.totalHorde > 0) {
+    spawnZombies(10);
   }
 
   // Update Zombies
   for (let i = state.zombies.length - 1; i >= 0; i--) {
     const z = state.zombies[i];
-    z.update(state.ryu.x, state.ryu.y);
+    z.t += dt;
+    z.fl = Math.max(0, z.fl - dt);
 
-    // Collision with Hadoukens
-    for (let j = state.hadoukens.length - 1; j >= 0; j--) {
-      const h = state.hadoukens[j];
-      const dist = Math.hypot(z.x - h.x, z.y - h.y);
-      if (dist < h.radius + z.size) {
+    const dx = state.ryu.x - z.x;
+    const dy = state.ryu.y - z.y;
+    const d = Math.hypot(dx, dy) || 1;
+    z.x += (dx / d) * z.speed * dt;
+    z.y += (dy / d) * z.speed * dt;
+    z.dir = dx > 0 ? 1 : -1;
+
+    // Hit by Projectile
+    for (let j = state.projectiles.length - 1; j >= 0; j--) {
+      const p = state.projectiles[j];
+      const pDist = Math.hypot(z.x - p.x, z.y - p.y);
+      if (pDist < z.size * 0.45 + p.radius) {
         z.hp--;
-        sfx.splat();
+        z.fl = 0.15;
+        playSfx('splat', 0.9 + Math.random() * 0.3);
 
-        // Spawn pixel gibs & sparks
+        // Juice: Hitstop & Splatter Particles
+        state.hitstop = 0.04;
+        state.shake = Math.max(state.shake, 6);
+
         for (let k = 0; k < 6; k++) {
-          const pAngle = Math.random() * Math.PI * 2;
-          const pSpeed = 2 + Math.random() * 5;
-          state.particles.push(
-            new Particle(
-              z.x,
-              z.y,
-              Math.cos(pAngle) * pSpeed,
-              Math.sin(pAngle) * pSpeed,
-              Math.random() < 0.6 ? '#9e1818' : '#33ccff',
-              Math.random() < 0.5 ? 4 : 6,
-              25 + Math.random() * 15
-            )
-          );
+          const pang = Math.random() * Math.PI * 2;
+          const pspd = 120 + Math.random() * 240;
+          state.particles.push({
+            x: z.x,
+            y: z.y - 30,
+            vx: Math.cos(pang) * pspd,
+            vy: Math.sin(pang) * pspd,
+            life: 0.35,
+            color: Math.random() < 0.6 ? '#4f8a0f' : '#ff2d4f',
+            size: 6,
+          });
         }
 
         if (z.hp <= 0) {
           state.ryu.killCount++;
           state.ryu.combo++;
           if (state.ryu.combo > state.ryu.maxCombo) state.ryu.maxCombo = state.ryu.combo;
+          state.gems.push({ x: z.x, y: z.y });
           state.zombies.splice(i, 1);
           break;
         }
 
-        h.pierce--;
-        if (h.pierce <= 0) {
-          state.hadoukens.splice(j, 1);
+        p.pierce--;
+        if (p.pierce <= 0) {
+          state.projectiles.splice(j, 1);
         }
       }
     }
   }
 
-  // Update Hadoukens
-  for (let i = state.hadoukens.length - 1; i >= 0; i--) {
-    const h = state.hadoukens[i];
-    h.x += h.vx;
-    h.y += h.vy;
-    h.life--;
+  // Update Projectiles
+  for (let i = state.projectiles.length - 1; i >= 0; i--) {
+    const p = state.projectiles[i];
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.life -= dt;
 
-    h.flameTrail.push({ x: h.x, y: h.y });
-    if (h.flameTrail.length > 6) h.flameTrail.shift();
+    p.trail.push({ x: p.x, y: p.y, alpha: 1.0 });
+    if (p.trail.length > 5) p.trail.shift();
 
-    if (h.life <= 0 || h.x < -80 || h.x > W + 80 || h.y < -80 || h.y > H + 80) {
-      state.hadoukens.splice(i, 1);
+    if (p.life <= 0) state.projectiles.splice(i, 1);
+  }
+
+  // Magnet Collect Gems
+  for (let i = state.gems.length - 1; i >= 0; i--) {
+    const g = state.gems[i];
+    const gd = Math.hypot(state.ryu.x - g.x, state.ryu.y - g.y);
+    if (gd < 140) {
+      g.x += (state.ryu.x - g.x) / gd * 460 * dt;
+      g.y += (state.ryu.y - g.y) / gd * 460 * dt;
+    }
+    if (gd < 25) {
+      state.gems.splice(i, 1);
     }
   }
 
-  // Update Particles
+  // Particles
   for (let i = state.particles.length - 1; i >= 0; i--) {
-    const p = state.particles[i];
-    p.update();
-    if (p.life <= 0) state.particles.splice(i, 1);
+    const pt = state.particles[i];
+    pt.x += pt.vx * dt;
+    pt.y += pt.vy * dt;
+    pt.life -= dt;
+    if (pt.life <= 0) state.particles.splice(i, 1);
   }
 
-  // Update Floating texts
+  // Floating Texts
   for (let i = state.floatingTexts.length - 1; i >= 0; i--) {
     const ft = state.floatingTexts[i];
-    ft.y -= 1.2;
-    ft.life--;
+    ft.y -= 35 * dt;
+    ft.life -= dt;
     if (ft.life <= 0) state.floatingTexts.splice(i, 1);
   }
 }
 
-// Render Function
-export function render() {
+function render() {
   c.save();
 
   // Screen shake
-  if (state.ryu.screenShake > 0.5) {
-    const sx = (Math.random() - 0.5) * state.ryu.screenShake;
-    const sy = (Math.random() - 0.5) * state.ryu.screenShake;
-    c.translate(sx, sy);
+  if (state.shake > 0.5) {
+    const ox = (Math.random() - 0.5) * state.shake;
+    const oy = (Math.random() - 0.5) * state.shake;
+    c.translate(ox, oy);
   }
 
-  // 1. Background
-  if (imgDojo && imgDojo.complete) {
-    c.drawImage(imgDojo, 0, 0, W, H);
-  } else {
-    c.fillStyle = '#1c151b';
-    c.fillRect(0, 0, W, H);
+  // Camera viewport translation
+  c.save();
+  c.translate(W / 2 - state.cam.x, H / 2 - state.cam.y);
+
+  // 1. Tiled Parallax Suzaku Dojo Floor Grid
+  const cx = Math.floor(state.cam.x / 180) * 180;
+  const cy = Math.floor(state.cam.y / 180) * 180;
+  for (let x = cx - 360; x <= cx + 360; x += 180) {
+    for (let y = cy - 540; y <= cy + 540; y += 180) {
+      const isAlt = ((x + y) / 180) % 2 === 0;
+      c.fillStyle = isAlt ? '#1d1519' : '#140e12';
+      c.fillRect(x, y, 180, 180);
+
+      // Floor grid lines
+      c.strokeStyle = '#2d1e24';
+      c.lineWidth = 2;
+      c.strokeRect(x, y, 180, 180);
+    }
   }
 
-  // Dark vignette
-  c.fillStyle = 'rgba(10, 5, 15, 0.45)';
-  c.fillRect(0, 0, W, H);
+  // 2. Collectible Energy Gems
+  for (const gm of state.gems) {
+    c.fillStyle = '#00f0ff';
+    c.beginPath();
+    c.arc(gm.x, gm.y, 7, 0, Math.PI * 2);
+    c.fill();
+    c.strokeStyle = '#fff';
+    c.lineWidth = 2;
+    c.stroke();
+  }
 
-  // 2. Draw Zombies
+  // 3. Draw Zombies (Sorted by Y for authentic isometric depth)
   state.zombies.sort((a, b) => a.y - b.y);
   for (const z of state.zombies) {
-    z.draw(c);
+    // Drop shadow
+    c.fillStyle = 'rgba(0,0,0,0.35)';
+    c.beginPath();
+    c.ellipse(z.x, z.y, 22, 9, 0, 0, Math.PI * 2);
+    c.fill();
+
+    drawGamepressZombie(c, z.x, z.y, z.size, { t: z.t, dir: z.dir, fl: z.fl > 0 });
   }
 
-  // 3. Draw Ryu
+  // 4. Draw Ryu (High-Fidelity Authentic Capcom Sprite)
   c.save();
   c.translate(state.ryu.x, state.ryu.y);
 
-  c.fillStyle = 'rgba(0,0,0,0.6)';
+  // Ryu Drop Shadow
+  c.fillStyle = 'rgba(0,0,0,0.55)';
   c.beginPath();
-  c.ellipse(0, 32, 38, 14, 0, 0, Math.PI * 2);
+  c.ellipse(0, 4, 38, 14, 0, 0, Math.PI * 2);
   c.fill();
 
-  if (imgRyu && imgRyu.complete) {
-    const frameIdx = state.ryu.anim === 'hadouken' ? 3 : Math.floor(state.frame / 8) % 4;
-    c.scale(state.ryu.facing * 1.8, 1.8);
-    try {
-      c.drawImage(imgRyu, frameIdx * 65, 10, 60, 95, -30, -75, 60, 95);
-    } catch {
-      drawStylizedRyu(c, state.ryu.anim);
-    }
-  } else {
-    drawStylizedRyu(c, state.ryu.anim);
+  c.scale(state.ryu.facing, 1);
+
+  let ryuFr = ATLAS.ryu.idle;
+  let ryuImg = imgRyu;
+
+  if (state.ryu.state === 'walk') {
+    ryuFr = ATLAS.ryu.walk;
+  } else if (state.ryu.state === 'hadouken') {
+    ryuImg = imgSpRyu;
+    ryuFr = state.ryu.stateT < 0.12 ? ATLAS.sp_ryu.sp1 : state.ryu.stateT < 0.28 ? ATLAS.sp_ryu.sp2 : ATLAS.sp_ryu.sp3;
   }
 
-  // 6-Way Omni Aura
+  if (ryuImg && ryuImg.complete && ryuImg.naturalWidth) {
+    const [fx, fy, fw, fh] = ryuFr;
+    const scale = 1.35;
+    const dw = fw * scale;
+    const dh = fh * scale;
+    c.drawImage(ryuImg, fx, fy, fw, fh, -dw / 2, -dh + 8, dw, dh);
+  }
+
+  // 6-Way Hexagonal Power Aura Ring
   if (state.ryu.powerLevel >= 6) {
-    c.strokeStyle = '#ff3366';
-    c.lineWidth = 4 + Math.sin(state.frame * 0.3) * 2;
+    c.strokeStyle = '#ff2255';
+    c.lineWidth = 4 + Math.sin(state.t * 12) * 2;
     c.beginPath();
-    c.arc(0, -25, 48 + Math.sin(state.frame * 0.4) * 4, 0, Math.PI * 2);
+    c.arc(0, -60, 52 + Math.sin(state.t * 8) * 4, 0, Math.PI * 2);
     c.stroke();
   }
 
   c.restore();
 
-  // 4. Draw Hadoukens
-  for (const h of state.hadoukens) {
-    for (let t = 0; t < h.flameTrail.length; t++) {
-      const pt = h.flameTrail[t];
-      c.fillStyle = h.color;
-      c.globalAlpha = (t + 1) / h.flameTrail.length * 0.5;
+  // 5. Draw Projectiles (Authentic Capcom Hadouken Plasma Balls)
+  for (const p of state.projectiles) {
+    if (imgFx && imgFx.complete && imgFx.naturalWidth) {
+      c.save();
+      c.translate(p.x, p.y);
+      c.rotate(Math.atan2(p.vy, p.vx));
+      const [fx, fy, fw, fh] = ATLAS.fx.hadou;
+      const dw = fw * 0.85;
+      const dh = fh * 0.85;
+      c.drawImage(imgFx, fx, fy, fw, fh, -dw / 2, -dh / 2, dw, dh);
+      c.restore();
+    } else {
+      c.fillStyle = '#00e5ff';
       c.beginPath();
-      c.arc(pt.x, pt.y, h.radius * (0.4 + t * 0.1), 0, Math.PI * 2);
+      c.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
       c.fill();
     }
-    c.globalAlpha = 1.0;
+  }
 
-    const grad = c.createRadialGradient(h.x, h.y, 4, h.x, h.y, h.radius * 1.4);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.4, h.color);
-    grad.addColorStop(1, 'transparent');
-    c.fillStyle = grad;
+  // 6. Draw Particles
+  for (const pt of state.particles) {
+    c.fillStyle = pt.color;
     c.beginPath();
-    c.arc(h.x, h.y, h.radius * 1.4, 0, Math.PI * 2);
-    c.fill();
-
-    c.fillStyle = '#ffffff';
-    c.beginPath();
-    c.arc(h.x, h.y, h.radius * 0.5, 0, Math.PI * 2);
+    c.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
     c.fill();
   }
 
-  // 5. Draw Particles
-  for (const p of state.particles) {
-    p.draw(c);
-  }
-
-  // 6. Draw HUD
-  drawHUD(c);
-
-  // 7. Floating Texts
+  // 7. Floating Combat Banners
   for (const ft of state.floatingTexts) {
     c.save();
     c.fillStyle = ft.color;
     c.font = `900 ${28 * (ft.scale || 1)}px Impact, "Arial Black"`;
     c.textAlign = 'center';
-    c.shadowColor = '#000000';
+    c.shadowColor = '#000';
     c.shadowBlur = 8;
     c.lineWidth = 4;
     c.strokeText(ft.text, ft.x, ft.y);
@@ -782,70 +786,50 @@ export function render() {
     c.restore();
   }
 
+  c.restore(); // end camera translation
+
+  // 8. Flash effect
+  if (state.flash > 0) {
+    c.fillStyle = `rgba(255,255,255,${state.flash})`;
+    c.fillRect(0, 0, W, H);
+  }
+
+  // 9. Retro Capcom Top Arcade HUD
+  drawArcadeHUD();
+
   c.restore();
 }
 
-function drawStylizedRyu(ctx, anim) {
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(-16, -55, 32, 45);
-  ctx.fillStyle = '#000000';
-  ctx.fillRect(-18, -25, 36, 6);
-  ctx.fillStyle = '#e8b896';
-  ctx.fillRect(-10, -78, 20, 22);
-  ctx.fillStyle = '#ff1100';
-  ctx.fillRect(-12, -76, 28, 6);
-  ctx.fillRect(12, -74, 14, 4);
-  ctx.fillStyle = '#ff0000';
-  ctx.fillRect(anim === 'hadouken' ? 14 : -18, -42, 10, 10);
+function drawArcadeHUD() {
+  c.fillStyle = 'rgba(0, 0, 0, 0.82)';
+  c.fillRect(0, 0, W, 120);
+
+  c.textAlign = 'center';
+  c.font = '900 36px Impact, "Arial Black"';
+  c.fillStyle = '#ffea00';
+  c.strokeStyle = '#000';
+  c.lineWidth = 5;
+  c.strokeText('RYU VS 1000 ZOMBIES 💀', W / 2, 44);
+  c.fillText('RYU VS 1000 ZOMBIES 💀', W / 2, 44);
+
+  // Power Level Mode
+  const names = ['SINGLE', 'DUAL 180°', 'TRIPLE SPREAD', '4-WAY CROSS', '5-WAY STAR', '360° OMNI HEXAGON!'];
+  c.font = '900 22px Impact';
+  c.fillStyle = state.ryu.powerLevel >= 6 ? '#ff2a5f' : '#00f0ff';
+  c.fillText(`HADOUKEN CANNON: [LVL ${state.ryu.powerLevel}] ${names[state.ryu.powerLevel - 1]}`, W / 2, 80);
+
+  // Stats bar
+  c.font = '900 20px Impact';
+  c.textAlign = 'left';
+  c.fillStyle = '#ff2a5f';
+  c.fillText(`KILLS: ${state.ryu.killCount} / 1000`, 24, 110);
+
+  c.textAlign = 'right';
+  c.fillStyle = '#ffea00';
+  c.fillText(`COMBO: ${state.ryu.combo}X`, W - 24, 110);
 }
 
-function drawHUD(ctx) {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-  ctx.fillRect(0, 0, W, 140);
-
-  ctx.textAlign = 'center';
-  ctx.font = '900 38px Impact, "Arial Black"';
-  ctx.fillStyle = '#ffea00';
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 6;
-  ctx.strokeText('RYU VS 1000 ZOMBIES 💀', W / 2, 50);
-  ctx.fillText('RYU VS 1000 ZOMBIES 💀', W / 2, 50);
-
-  ctx.font = '700 20px -apple-system, sans-serif';
-  ctx.fillStyle = '#ffffff';
-  ctx.fillText('WASD / TOUCH TO MOVE • SPACE TO BLAST', W / 2, 85);
-
-  ctx.font = '900 24px Impact';
-  ctx.fillStyle = state.ryu.powerLevel >= 6 ? '#ff2255' : '#00ffcc';
-  const powerNames = ['SINGLE', 'DUAL 2X', 'TRIPLE 3X', 'CROSS 4X', 'STAR 5X', '360° HEXAGON BLAST 6X!'];
-  ctx.fillText(`HADOUKEN CANNON: [LVL ${state.ryu.powerLevel}] ${powerNames[state.ryu.powerLevel - 1]}`, W / 2, 120);
-
-  // Bottom HUD
-  ctx.fillStyle = 'rgba(0,0,0,0.65)';
-  ctx.fillRect(20, H - 230, W - 40, 80);
-  ctx.strokeStyle = '#ffea00';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(20, H - 230, W - 40, 80);
-
-  ctx.textAlign = 'left';
-  ctx.font = '900 30px Impact';
-  ctx.fillStyle = '#ff2255';
-  ctx.fillText(`KILLS: ${state.ryu.killCount} / ${state.targetZombies}`, 40, H - 180);
-
-  ctx.textAlign = 'right';
-  ctx.fillStyle = '#ffea00';
-  ctx.font = '900 26px Impact';
-  ctx.fillText(`COMBO: ${state.ryu.combo}X!`, W - 40, H - 180);
-}
-
-function loop() {
-  step();
-  render();
-  requestAnimationFrame(loop);
-}
 requestAnimationFrame(loop);
-
-window.__GAME__ = { state, step, render };
 </script>
 </body>
 </html>
