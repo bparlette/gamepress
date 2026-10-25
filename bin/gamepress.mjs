@@ -567,7 +567,7 @@ const _dispatch = { init, capture: () => capture(positional[0] || die('usage: ga
     ).catch(e => die('judge: ' + e.message));
   },
   bundle: () => console.log(bundle(positional[0] || die('usage: gamepress bundle <game dir> [--out dist]'), flag('out', 'dist'))),
-  'publish-demo': () => console.log(JSON.stringify(publishDemo(positional[0] || die('usage: gamepress tracks [name] | publish-demo <id> --catalog <games.json> [--push]'), { catalog: flag('catalog') || die('--catalog required'), videoDir: flag('video', 'press/video'), push: argv.includes('--push') }))),
+  'publish-demo': async () => console.log(JSON.stringify(await publishDemo(positional[0] || die('usage: gamepress tracks [name] | publish-demo <id> --catalog <games.json> [--push]'), { catalog: flag('catalog') || die('--catalog required'), videoDir: flag('video', 'press/video'), push: argv.includes('--push') }))),
   repo: () => out(repoInit(need('repo'), { games: CFG().games, examples: flag('examples', 'examples'), github: argv.includes('--github'), isPrivate: argv.includes('--private') }), o => `${o.id}: ${o.done.join('; ') || 'nothing new'}${o.skipped.length ? '\n  skipped: ' + o.skipped.join('; ') : ''}`),
   'publish-pack': () => console.log(JSON.stringify(publishPack(positional[0] || die('usage: gamepress publish-pack <id> --games <dir>'), { gamesDir: flag('games'), catalog: flag('catalog'), videoDir: flag('video', 'press/video') }), null, 1)),
   'roblox-ship': () => shipRoblox({ file: positional[0], universeId: flag('universe'), placeId: flag('place'), testScript: flag('test') }).then(r => { console.log(JSON.stringify(r, null, 1)); process.exit(r.ok ? 0 : 1); }).catch(e => die('roblox-ship: ' + e.message)),
