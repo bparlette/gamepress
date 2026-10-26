@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script src="../../demo-embed.js"></script>
+<style id="demo-embed-css">
+</style>
+
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#1a1326">
+<title>Street Fighter: Ryu vs 9,000 Zombies</title>
+<style>
+  :root { --ink: #140f1f; --gold: #ffd23c; --pink: #ff5fa2; --cyan: #7ff3ff; --red: #ff3d5e; --st: env(safe-area-inset-top, 0px); --sb: env(safe-area-inset-bottom, 0px); --sl: env(safe-area-inset-left, 0px); --sr: env(safe-area-inset-right, 0px); }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #1a1326; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; overscroll-behavior: none; }
+  body { font-family: Impact, "Haettenschweiler", "Arial Narrow Bold", "Arial Black", system-ui, sans-serif; color: #fff; }
+  #gl { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; display: block; }
+  #stage { position: fixed; inset: 0; z-index: 5; touch-action: none; }
+  .ui { position: fixed; z-index: 10; pointer-events: none; }
+  .stroke { -webkit-text-stroke: 1.5px var(--ink); text-shadow: 3px 3px 0 var(--ink); }
+  /* atmosphere: static vignette + blood moon tint + hurt flash (compositor only, no per-frame writes) */
+  #vig { position: fixed; inset: 0; z-index: 6; pointer-events: none; background: radial-gradient(ellipse at 50% 52%, rgba(0,0,0,0) 52%, rgba(10,4,24,.55) 82%, rgba(6,2,14,.85) 100%); }
+  #moon { position: fixed; inset: 0; z-index: 6; pointer-events: none; background: radial-gradient(ellipse at 50% 40%, rgba(255,40,70,.0) 30%, rgba(160,10,40,.38) 100%); opacity: 0; transition: opacity 1.5s; mix-blend-mode: multiply; }
+  body.bloodmoon #moon { opacity: 1; }
+  #hurt { position: fixed; inset: 0; z-index: 7; pointer-events: none; background: radial-gradient(ellipse at center, rgba(255,0,40,0) 40%, rgba(255,20,60,.55) 100%); opacity: 0; }
+  #hurt.on { animation: hurt .45s ease-out; }
+  @keyframes hurt { from { opacity: 1; } to { opacity: 0; } }
+
+  /* top band */
+  #xp { left: calc(var(--sl) + 8px); right: calc(var(--sr) + 8px); top: calc(var(--st) + 6px); height: 18px; background: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); transform: skewX(-12deg); border-radius: 2px; overflow: hidden; }
+  #xpfill { position: absolute; inset: 0; background: linear-gradient(#b8fbff, #2fd3ff 55%, #1f7bff); transform-origin: 0 50%; transform: scaleX(0); transition: transform .12s; }
+  #xp::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 22px, rgba(20,15,31,.35) 22px 24px); }
+  #lv { left: calc(var(--sl) + 20px); top: calc(var(--st) + 4px); font-size: 17px; z-index: 11; line-height: 22px; color: var(--cyan); font-style: italic; letter-spacing: 1px; }
+  #timer { left: 50%; top: calc(var(--st) + 26px); transform: translateX(-50%); font-size: 46px; color: var(--gold); font-style: italic; letter-spacing: 2px; line-height: 1; -webkit-text-stroke: 2px var(--ink); text-shadow: 4px 4px 0 var(--ink); }
+  #counts { right: calc(var(--sr) + 96px); top: calc(var(--st) + 30px); text-align: right; font-size: 22px; font-style: italic; line-height: 1.1; }
+  #counts .k::before { content: "☠ "; color: #e9e1c8; } #counts .g { color: var(--gold); } #counts .g::before { content: "● "; }
+  #slots { left: calc(var(--sl) + 12px); top: calc(var(--st) + 58px); display: flex; flex-direction: column; gap: 4px; }
+  .srow { display: flex; gap: 4px; }
+  .slot { width: 34px; height: 34px; border-radius: 6px; background: rgba(20,15,31,.8); border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); position: relative; }
+  .slot img { width: 100%; height: 100%; display: block; }
+  .slot b { position: absolute; right: -3px; bottom: -5px; font-size: 13px; font-weight: 400; color: #fff; -webkit-text-stroke: 1px var(--ink); text-shadow: 1px 1px 0 var(--ink); }
+  .slot.evo { border-color: var(--gold); box-shadow: 0 0 8px var(--gold), 2px 2px 0 var(--ink); } .slot.evo b { color: var(--gold); }
+  .slot.empty { opacity: .35; }
+  #pslots .slot { width: 26px; height: 26px; } #pslots .slot b { font-size: 11px; }
+  .tbtn { position: fixed; z-index: 20; top: calc(var(--st) + 30px); width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); background: #fff; color: var(--ink); font: 900 18px/1 system-ui, sans-serif; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; touch-action: manipulation; }
+  .tbtn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+  #bPause { right: calc(var(--sr) + 10px); } #bMute { right: calc(var(--sr) + 56px); background: var(--gold); }
+  #bossbar { left: 50%; top: calc(var(--st) + 80px); transform: translateX(-50%); width: min(520px, 76vw); opacity: 0; transition: opacity .3s; text-align: center; }
+  #bossbar.on { opacity: 1; }
+  #bossbar .nm { font-size: 20px; color: #ff9cf0; font-style: italic; letter-spacing: 2px; }
+  #bossbar .bar { height: 16px; margin-top: 3px; background: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); transform: skewX(-12deg); overflow: hidden; }
+  #bossfill { height: 100%; background: linear-gradient(#ff9cf0, #c02aa8); transform-origin: 0 50%; transition: transform .1s; }
+  #banner { left: 50%; top: 34%; transform: translate(-50%, -50%) rotate(-5deg) scale(.6); font-size: max(40px, 6.4vh); font-style: italic; color: var(--pink); -webkit-text-stroke: 2.5px var(--ink); text-shadow: 5px 5px 0 var(--ink); opacity: 0; white-space: nowrap; letter-spacing: 1px; }
+  #banner.on { animation: bn .35s cubic-bezier(.2,1.6,.4,1) forwards; }
+  @keyframes bn { from { opacity: 0; transform: translate(-50%, -50%) rotate(-5deg) scale(.4); } to { opacity: 1; transform: translate(-50%, -50%) rotate(-5deg) scale(1); } }
+
+  /* touch: floating stick (appears where you touch) + dash button */
+  #stickB { position: fixed; z-index: 12; left: -62px; top: -62px; width: 124px; height: 124px; border-radius: 50%; background: rgba(20,15,31,.35); border: 3px solid rgba(255,255,255,.6); pointer-events: none; opacity: 0; }
+  #stickB.on { opacity: 1; }
+  #stickK { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: var(--gold); border: 3px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+  #bDash { position: fixed; z-index: 20; right: calc(var(--sr) + 22px); bottom: calc(var(--sb) + 30px); width: 84px; height: 84px; border-radius: 50%; border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); background: #3a2a55; color: #fff; font: 900 17px/1 Impact, "Arial Black", sans-serif; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; padding: 0; cursor: pointer; }
+  #bDash span { position: relative; z-index: 2; -webkit-text-stroke: 1px var(--ink); }
+  #dashfill { position: absolute; inset: 0; background: var(--pink); transform-origin: 50% 100%; transform: scaleY(1); }
+  #bDash.ready { animation: rdy 1.2s infinite; } @keyframes rdy { 50% { filter: brightness(1.25); } }
+  #bDash.down { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+  #bDash small { position: absolute; bottom: 9px; left: 0; right: 0; z-index: 2; font: 700 10px/1 system-ui, sans-serif; letter-spacing: 0; opacity: .9; }
+  body:not(.touch) #bDash { width: 66px; height: 66px; font-size: 14px; }
+  body.touch #bDash small { display: none; }
+
+  /* overlays */
+  #ov { position: fixed; inset: 0; z-index: 40; display: none; align-items: center; justify-content: center; background: rgba(12,6,24,.55); }
+  #ov.on { display: flex; }
+  .panel { background: #2a1f3d; border: 4px solid var(--ink); box-shadow: 6px 6px 0 var(--ink), inset 0 0 0 3px #4a3a6a; border-radius: 14px; padding: 16px 18px 14px; max-width: min(860px, 94vw); max-height: 92vh; overflow: auto; text-align: center; animation: pop .25s cubic-bezier(.2,1.5,.4,1); }
+  @keyframes pop { from { transform: scale(.7) rotate(-3deg); opacity: 0; } }
+  .panel h2 { margin: 0 0 10px; font-size: max(40px, 5.4vh); font-style: italic; color: var(--cyan); -webkit-text-stroke: 2px var(--ink); text-shadow: 4px 4px 0 var(--ink); letter-spacing: 1px; transform: rotate(-3deg); }
+  .cards { display: flex; gap: 10px; }
+  .card { all: unset; box-sizing: border-box; cursor: pointer; flex: 1 1 0; min-width: 0; width: 200px; background: #f6efe0; color: var(--ink); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; text-align: center; touch-action: manipulation; transition: transform .08s; }
+  .card img { width: 84px; height: 84px; background: radial-gradient(circle, #ffe9a8 0, #e7d2a6 55%, #d4bd8e 100%); border-radius: 50%; border: 3px solid var(--ink); }
+  .card .cn { font-size: 21px; line-height: 1.05; } .card .cn span { display: block; font-size: 15px; color: #c2183a; }
+  .card .cd { font: 600 13px/1.25 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .card i { font: italic 600 11px/1.2 system-ui, sans-serif; color: #6b4cff; }
+  .card kbd { position: absolute; left: 6px; top: 4px; font: 700 12px/1 system-ui, sans-serif; color: #8a7a9a; }
+  .card.sel, .card:hover { transform: translateY(-4px) rotate(-1deg); background: #fff7c8; box-shadow: 4px 4px 0 var(--ink), 0 0 0 4px var(--gold); }
+  .hint { margin-top: 10px; font: 600 12px/1.3 system-ui, sans-serif; color: #cfc4ea; }
+  .btn { all: unset; cursor: pointer; display: inline-block; margin: 6px; padding: 12px 22px; min-width: 150px; font-size: 24px; letter-spacing: 1px; color: var(--ink); background: var(--gold); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); border-radius: 10px; font-style: italic; touch-action: manipulation; }
+  .btn.alt { background: #e9e4ff; font-size: 19px; } .btn.big { font-size: 32px; padding: 14px 34px; background: var(--pink); color: #fff; -webkit-text-stroke: 1px var(--ink); }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+  .col { display: flex; flex-direction: column; align-items: center; }
+  .build { margin-top: 10px; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; } .build img { width: 38px; height: 38px; }
+  .loot { display: flex; flex-direction: column; gap: 8px; margin: 6px auto 8px; max-width: 420px; }
+  .li { display: flex; align-items: center; gap: 10px; background: #f6efe0; color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); border-radius: 10px; padding: 6px 10px; text-align: left; }
+  .li img { width: 52px; height: 52px; } .li b { display: block; font-size: 20px; font-weight: 400; } .li span { font: 600 13px/1.2 system-ui, sans-serif; }
+  .li.big { background: #fff7c8; box-shadow: 3px 3px 0 var(--ink), 0 0 0 4px var(--gold), 0 0 26px var(--gold); } .li.big img { width: 76px; height: 76px; }
+  .chest.evo h2 { color: var(--gold); }
+  .res .sub { font: 600 14px/1.3 system-ui, sans-serif; color: #e9e4ff; margin-bottom: 10px; }
+  .res.win h2 { color: var(--gold); } .res:not(.win) h2 { color: var(--red); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 4px 0 8px; }
+  .st { background: #f6efe0; color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); border-radius: 10px; padding: 6px 8px; }
+  .st span { display: block; font: 700 11px/1 system-ui, sans-serif; letter-spacing: 1px; color: #6b5a7a; } .st b { font-size: 30px; font-weight: 400; }
+  .bestl { font-size: 18px; color: #cfc4ea; margin: 4px 0; } .bestl em { color: var(--gold); font-size: 24px; -webkit-text-stroke: 1px var(--ink); text-shadow: 2px 2px 0 var(--ink); }
+  .evol { font: 600 13px/1.3 system-ui, sans-serif; color: var(--gold); margin-bottom: 4px; }
+
+  /* attract title */
+  #title { position: fixed; z-index: 30; left: 0; right: 0; top: calc(var(--st) + 70px); bottom: calc(var(--sb) + 18px); display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; pointer-events: none; opacity: 0; transition: opacity .4s; }
+  #title.on { opacity: 1; }
+  #title .logo { display: inline-block; font-size: max(44px, 7.2vh); line-height: .92; font-style: italic; color: #ff3d5e; -webkit-text-stroke: 3px var(--ink); text-shadow: 6px 6px 0 var(--ink); transform: rotate(-4deg); letter-spacing: 1px; }
+  #title .logo span { display: block; color: #fff; font-size: .58em; }
+  #title .tag { display: inline-block; margin-top: 12px; padding: 5px 12px; background: var(--gold); color: var(--ink); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); border-radius: 8px; font-size: 18px; transform: rotate(2deg); }
+  #title .goal { margin-top: 0; font-size: max(34px, 5.4vh); color: var(--gold); font-style: italic; -webkit-text-stroke: 2px var(--ink); text-shadow: 4px 4px 0 var(--ink); }
+  #title .go { margin-top: 1.5vh; font-size: max(20px, 3vh); color: #fff; -webkit-text-stroke: 1px var(--ink); text-shadow: 2px 2px 0 var(--ink); animation: blink 1.1s infinite; }
+  #title .keys { margin-top: 1vh; font: 600 13px/1.3 system-ui, sans-serif; color: #e9e4ff; text-shadow: 1px 1px 0 var(--ink); }
+  #title .best { margin-top: 6px; font-size: 18px; color: var(--cyan); -webkit-text-stroke: 1px var(--ink); }
+  @keyframes blink { 50% { opacity: .35; } }
+  body.touch #title .keys .kb { display: none; } body:not(.touch) #title .keys .tc { display: none; }
+  body.attract #slots, body.attract #counts { opacity: .5; }
+
+  /* portrait 9:16: HUD stays in the top band, controls in the bottom band */
+  body.portrait #timer { font-size: 38px; top: calc(var(--st) + 28px); }
+  body.portrait #counts { right: auto; left: calc(var(--sl) + 12px); top: calc(var(--st) + 30px); text-align: left; font-size: 17px; }
+  
+  body.portrait #slots { top: calc(var(--st) + 78px); flex-direction: row; gap: 6px; }
+  body.portrait #slots .srow { gap: 3px; }
+  body.portrait .slot { width: 28px; height: 28px; } body.portrait #pslots .slot { width: 22px; height: 22px; }
+  body.portrait #bossbar { top: calc(var(--st) + 116px); }
+  body.portrait .cards { flex-direction: column; } body.portrait .card { width: auto; flex-direction: row; text-align: left; padding: 6px 10px; }
+  body.portrait .card img { width: 62px; height: 62px; flex: none; } body.portrait .card .ct { flex: 1; } body.portrait .card kbd { display: none; }
+  body.portrait .stats { grid-template-columns: repeat(2, 1fr); }
+  body.portrait #title { top: calc(var(--st) + 120px); bottom: calc(var(--sb) + 130px); }
+  @media (max-height: 520px) { .card img { width: 60px; height: 60px; } .panel h2 { font-size: 34px; margin-bottom: 6px; } #timer { font-size: 36px; } }
+</style>
+</head>
+<body class="attract">
+<canvas id="gl"></canvas>
+<div id="stage"></div>
+<div id="vig"></div><div id="moon"></div><div id="hurt"></div>
+<div id="xp" class="ui"><div id="xpfill"></div></div>
+<div id="lv" class="ui stroke">LV 1</div>
+<div id="timer" class="ui">00:00</div>
+<div id="counts" class="ui stroke"><div class="k" id="kills">0</div><div class="g" id="gold">0</div></div>
+<div id="slots" class="ui"><div class="srow" id="wslots"></div><div class="srow" id="pslots"></div></div>
+<div id="bossbar" class="ui"><div class="nm stroke">AKUMA / SHIN REAPER</div><div class="bar"><div id="bossfill"></div></div></div>
+<div id="banner" class="ui">SURVIVE 10:00!</div>
+<div id="title">
+  <div class="top">
+    <div class="logo">STREET FIGHTER<span>RYU VS 9,000 ZOMBIES</span></div><br>
+    <div class="tag">★ 3D HADOUKEN SPECIAL EDITION ★</div>
+  </div>
+  <div class="bot">
+    <div class="goal">SURVIVE THE 9,000 HORDE</div>
+    <div class="go">TAP OR PRESS ANY KEY TO FIGHT</div>
+    <div class="keys">
+      <span class="kb">WASD / arrows move · SPACE dash · Hadouken powers up automatically</span>
+      <span class="tc">Drag to move · DASH to dodge · Hadouken powers up automatically</span>
+    </div>
+    <div class="best" id="best0"></div>
+  </div>
+</div>
+  <div class="bot"><div class="goal">SURVIVE 10:00</div><div class="go">TAP OR PRESS ANY KEY</div>
+  <div class="keys"><span class="kb">WASD / arrows move · SPACE dash · P pause · M mute · weapons fire on their own</span><span class="tc">Drag anywhere to move · DASH to dodge · weapons fire on their own</span></div>
+  <div class="best" id="best0"></div></div></div>
+<div id="stickB"><div id="stickK"></div></div>
+<button id="bDash" type="button" aria-label="Dash"><div id="dashfill"></div><span>DASH</span><small>SPACE</small></button>
+<button id="bMute" class="tbtn" type="button" aria-label="Sound on">♪</button>
+<button id="bPause" class="tbtn" type="button" aria-label="Pause">II</button>
+<div id="ov"></div>
+<script type="module" src="game.js"></script>
+</body>
+</html>
