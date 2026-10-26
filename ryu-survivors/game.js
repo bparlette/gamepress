@@ -197,7 +197,7 @@ function resetState(opts = {}) {
   PL.x = 0; PL.y = 0; PL.vx = 0; PL.vy = 0;
   H.clear(); A.reset(); gem.n = 0; pk.n = 0; br.n = 0; pt.n = 0; dn.n = 0; fxl.n = 0; queue = [];
   WD.reset(); if (Gs.t > 0) { while (WD.ei < EVENTS.length && EVENTS[WD.ei].t <= Gs.t) WD.ei++; }
-  A.addWeapon('lash');
+  A.addWeapon('hadouken');
   recomputeStats(); Gs.hp = Gs.maxhp;
   REAPER.root.visible = false; propChunkX = 1e9;
   audio.boss = false; audio.intensity = 0;

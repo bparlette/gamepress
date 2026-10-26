@@ -45,10 +45,21 @@ export function applyPassives(S, passives) {
 
 // per-level tables (index 0 = level 1). evo = evolved form (single stat row).
 export const WEAPONS = {
-  lash: {
-    name: 'Hadouken', icon: 'lash', evo: 'reaver', with: 'heart',
-    desc: ['Fires a Hadouken energy wave through enemies.', 'Adds a second lash behind you.', 'Damage +5.', 'Area +10%, damage +5.', 'Damage +5.', 'Area +10%, damage +5.', 'Damage +5.', 'Damage +5.'],
-    cd: [1.3, 1.3, 1.3, 1.3, 1.25, 1.25, 1.2, 1.2], dmg: [10, 10, 15, 20, 25, 30, 35, 40], amount: [1, 2, 2, 2, 2, 2, 2, 2], area: [1, 1, 1, 1.1, 1.1, 1.2, 1.2, 1.2],
+    hadouken: {
+    name: 'Hadouken Special', icon: 'hadouken', evo: 'shinku', with: 'candle',
+    desc: [
+      'Level 1: Fires a surging Hadouken ki blast forward.',
+      'Level 2: Dual Hadouken blast from twin angles.',
+      'Level 3: Triple Hadouken fan volley tearing through crowds.',
+      'Level 4: Quad 4-way Hadouken blast penetrating deep hordes.',
+      'Level 5: 5-way Hadouken pentagon barrage encircling Ryu.',
+      'Level 6: 6-way Omni Hadouken blasting all 360 surrounding zombies!'
+    ],
+    cd: [1.1, 1.0, 0.95, 0.9, 0.85, 0.75],
+    dmg: [22, 28, 34, 42, 52, 65],
+    amount: [1, 2, 3, 4, 5, 6],
+    pierce: [3, 4, 5, 6, 8, 12],
+    speed: 13,
   },
   dagger: {
     name: 'Silver Dagger', icon: 'dagger', evo: 'edges', with: 'bracer',
@@ -88,7 +99,7 @@ export const WEAPONS = {
   },
 };
 export const EVOS = {
-  reaver:    { name: 'Shinku Hadouken',  from: 'lash',    icon: 'reaver',  desc: 'Massive vacuum Hadouken waves that disintegrate hordes.', cd: 1.05, dmg: 55, amount: 2, area: 1.55 },
+    shinku: { name: 'Shinku Hadouken', from: 'hadouken', icon: 'shinku', desc: 'Overcharged vacuum Hadouken waves disintegrating all zombies.', cd: 0.65, dmg: 90, amount: 6, pierce: 999, speed: 16 },
   edges:     { name: 'Thousand Edges',  from: 'dagger',  icon: 'edges',   desc: 'An endless stream of silver.', cd: 0.09, dmg: 16, amount: 1, pierce: 4, speed: 17 },
   storm:     { name: 'Stormwand',       from: 'bolt',    icon: 'storm',   desc: 'Bolts with almost no cooldown.', cd: 0.22, dmg: 24, amount: 2, pierce: 3, speed: 13 },
   spiral:    { name: 'Death Spiral',    from: 'axe',     icon: 'spiral',  desc: 'Scythes spiral out in every direction.', cd: 2.0, dmg: 55, amount: 10, pierce: 999 },
@@ -207,17 +218,24 @@ export class Arsenal {
   fireOne(w, s, g, ctx, k) {
     const S = ctx.stats, H = ctx.horde, P = this.proj, E = !!w.evo, might = S.might;
     switch (w.id) {
-      case 'lash': {
-        const side = k % 2 === 0 ? 1 : -1, dir = ctx.lastHX * side, area = g('area') * S.area;
-        const len = 3.4 * area, wid = 1.5 * area, cx = ctx.px + dir * (len * 0.5 + 0.2), cy = ctx.py - 0.15;
-        ctx.fx('slash', cx, cy, dir, len, wid, E);
-        const n = ctx.hash.query(cx, cy, len * 0.5 + 0.6, CAND); let hits = 0;
-        for (let q = 0; q < n; q++) {
-          const i = CAND[q]; if (i >= H.n || H.hp[i] <= 0) continue;
-          const dx = H.x[i] - cx, dy = H.y[i] - cy, r = H.rad[i];
-          if (Math.abs(dx) < len * 0.5 + r && Math.abs(dy) < wid * 0.5 + r) { ctx.hit(i, g('dmg') * might, ctx.px, ctx.py, 3.2, s); hits++; }
+            case 'hadouken': {
+        const amt = g('amount');
+        const baseA = Math.atan2(ctx.fy_, ctx.fx_);
+        // If 6 or more, shoot in a full 360 circle! If less, fan symmetrically
+        let a;
+        if (amt >= 6) {
+          a = baseA + (k / amt) * Math.PI * 2;
+        } else if (amt === 1) {
+          a = baseA;
+        } else {
+          const spread = 0.35 * (amt - 1);
+          a = baseA - spread * 0.5 + (k / (amt - 1)) * spread;
         }
-        if (E && hits && this.healBudget > 0) { const h = Math.min(this.healBudget, hits * 0.4); this.healBudget -= h; ctx.heal(h); }
+        const dx = Math.cos(a), dy = Math.sin(a);
+        const sp = (g('speed') || 13) * S.pspeed;
+        const i = P.add(PK.BOLT, ctx.px + dx * 0.45, ctx.py + dy * 0.45, dx * sp, dy * sp, 1.8 * S.dur, g('dmg') * might, g('pierce'), 0.42 * S.area, s);
+        if (i >= 0) { P.evo[i] = E ? 1 : 0; P.h[i] = 1.0; }
+        if (k === 0) ctx.fx('zap', E ? 1 : 0);
         break;
       }
       case 'dagger': {
