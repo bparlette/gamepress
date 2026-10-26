@@ -34,6 +34,17 @@ this repo.
 
 **Workflows** — all 4: `itch-publish`, `steam-publish`, `prototype-fast`, `game-jam`.
 
+**Blender 3D pipeline** (under `blender/`) — 19 skills vendored 2026-10-26 from a
+second collection, **Blender Skills** (https://github.com/arjun988/blender-skills,
+MIT — see `LICENSE-blender-skills.txt`): `blender-director` (orchestrates the chain),
+`hard-surface`, `retopology`, `uv-workflow`, `materials`, `texture-workflow`,
+`asset-optimization`, `lod-pipeline`, `collision-proxy`, `export-pipeline`,
+`scene-assembly`, `set-dressing`, `unity-export`, `unreal-export`, `lowpoly-style`,
+`horror-style`, `psx-horror-style`, `pixel-art-style`, `qa-review`. These execute in
+Blender via the Blender MCP addon — the chain for a game prop is
+director → hard-surface → UV → materials → optimization → export. The other ~75
+upstream skills (styles, genres, worlds) are reference-only at the upstream repo.
+
 ## NOT vendored — reference upstream when needed
 
 Each skill lives at
@@ -52,11 +63,27 @@ Each skill lives at
   ebitengine-game (under `skills/ebitengine/`)
 - **Genres (4):** card-game, rpg, survival-crafting, visual-novel
 
+## Related collections — reference only (not vendored)
+
+- **Claude Code Game Studios** — https://github.com/Donchitos/Claude-Code-Game-Studios
+  (MIT): 49 agents / ~74 skills arranged as a studio hierarchy (directors → leads →
+  specialists) with quality gates. Claude-Code-specific, so not vendored; the part
+  worth borrowing is its default "minimal" rigor mode — one-page brief, then the
+  smallest playable version — which matches gamepress's viral-demo default.
+- **Gameplay Atlas** — https://gameplayatlas.loopyhop.com — a field guide to game
+  mechanics: searchable breakdowns of gameplay systems and art styles. Reference
+  when a build needs a mechanic library to start from instead of a blank page.
+
 ## Notes
 
 - Upstream skills carry deeper `references/*.md` companions (e.g. game-feel's
-  feedback-recipes). Those were **not** vendored to keep this subset lean — fetch them
-  from the upstream path above if a skill points you at one.
+  feedback-recipes). Most were **not** vendored to keep this subset lean — fetch them
+  from the upstream path above if a skill points you at one. Exception (added
+  2026-10-25 at the owner's request — the 3D set, best-for-games first): the three
+  three.js references (`threejs-scene-setup/references/scene-graph.md`,
+  `threejs-materials-lighting/references/materials-lights-table.md`,
+  `threejs-gltf-loading/references/loaders-and-animation.md`) and
+  `create-game-assets/references/three-d-pipeline.md` ARE vendored.
 - If a vendored skill proves its worth, consider promoting its techniques into
   gamepress's own presets/recipes (docs/RECIPES.md, docs/NINTENDO-FEEL.md) rather than
   growing this folder.
