@@ -35,6 +35,18 @@ filtered for what fits this repo's web/Roblox/viral-demo work.)
 | **Flomob** — https://www.flomob.com | 100k+ real mobile-game UI patterns with AI semantic search, copy-to-Figma | Free to join. Gamedexy's closest alternative — use whichever has the game you're copying. |
 | **Mobbin** — https://mobbin.com | 620k+ app (not game) screens: sign-up, settings, paywalls, onboarding | Paid. Only when a game needs app-grade account/paywall flows; the game-specific four above cover most needs. |
 
+## AI video generation & editing (for trailers and videopress)
+
+Sourced from an X roundup by @heyrimsha (Oct 26, 2026) of 10 open-source repos for AI filmmakers, adjudicated for this stack. Full notes live in videopress `docs/TOOLS.md` ("AI video tools — reference only"); the short version:
+
+| Source | What it's for | Notes |
+|---|---|---|
+| **Editly** — https://github.com/mifi/editly | Declarative CLI video assembly (Node + ffmpeg): clips, titles, transitions, music from one spec file | MIT. The most actionable item on the list — a candidate spec layer for repeatable trailer/demo edits. |
+| **AutoSubs** — https://github.com/tmoroney/auto-subs | On-device subtitle generation; standalone app + DaVinci Resolve / Premiere / After Effects integrations | MIT. Fallback for NLE-based edits; videopress normally uses local Whisper. `brew install --cask auto-subs`. |
+| **OpenChatCut** — https://github.com/0xsline/OpenChatCut | Conversational AI editor: multitrack timeline, Agent Skills + MCP, Remotion rendering | **AGPL-3.0 — pattern reference only, never embed.** Same orchestrator + skills + Remotion bet as gamepress/videopress. |
+| **FireRed-OpenStoryline** — https://github.com/FireRedTeam/FireRed-OpenStoryline | Natural-language editing agent; finished workflows can be archived as reusable Style Skills | Apache-2.0. The style-skill idea maps onto videopress presets — borrow the pattern. |
+| **LTX-2 / WanVideo (ComfyUI) / CogVideo / VACE / DiffSynth-Studio / MuseTalk** — github.com/Lightricks/LTX-2 · github.com/kijai/ComfyUI-WanVideoWrapper · github.com/zai-org/CogVideo · github.com/ali-vilab/VACE · github.com/modelscope/DiffSynth-Studio · github.com/TMElyralab/MuseTalk | AI video generation, photo animation, masked video edits, lip-sync | **Reference-only:** all need a serious NVIDIA GPU (LTX-2's recommended weights alone are ~66 GiB) — not runnable on the local stack, and generated footage never replaces real gameplay capture in a demo. Revisit LTX-2 first if a cloud GPU enters the stack. |
+
 ## Rules of thumb
 
 - **License before use.** CC0 (Kenney, much of Freesound) ships anywhere. CC-BY needs an
