@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>BASH MOTO — Arcade Combat Racing</title>
+<style>
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #1a1423; font-family: Impact, "Arial Black", sans-serif; }
+  canvas { display: block; width: 100vw; height: 100vh; }
+  #btn-kick-l, #btn-kick-r {
+    position: fixed; bottom: 30px; width: 85px; height: 85px; border-radius: 50%;
+    background: #e63946; border: 3px solid #fff; color: #fff; font-size: 18px; font-weight: bold;
+    display: flex; align-items: center; justify-content: center; z-index: 50; touch-action: manipulation;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5); user-select: none;
+  }
+  #btn-kick-l { left: 24px; }
+  #btn-kick-r { right: 24px; }
+</style>
+</head>
+<body>
+<div id="btn-kick-l">KICK L</div>
+<div id="btn-kick-r">KICK R</div>
+
+<script type="module">
+// BASH MOTO — 3D Road Rash Combat Racer Homage
+// High speed highway motorcycle combat: kick rival racers into guardrails,
+// weave through traffic, collect nitro boosts, and finish 1st!
+
+import { createStage, sfx, rand, clamp, THREE } from '../_vendor/gp3d.js';
+import { toon, particles, sky, groundTex, build } from '../_vendor/gpkit.js';
+
+const st = createStage({ bg: 0x111625, fitWidth: 10, fov: 60, fog: [80, 260] });
+st.light();
+sky(st.scene, 0x1d2440, 0xff8c42, [100, 300]);
+const fx = particles(st.scene, 400);
+
+// Road dimensions
+const ROAD_W = 14, HALF_W = ROAD_W / 2;
+const TRACK_LEN = 1400;
+
+// Asphalt Highway
+const roadGeo = new THREE.PlaneGeometry(ROAD_W, TRACK_LEN);
+const road = new THREE.Mesh(roadGeo, toon(0xffffff, { map: groundTex('asphalt', 50) }));
+road.rotation.x = -Math.PI / 2;
+road.position.set(0, 0, TRACK_LEN / 2 - 50);
+st.scene.add(road);
+
+// Guardrails & Lights
+for (let z = 0; z < TRACK_LEN; z += 24) {
+  for (const side of [-1, 1]) {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.8, 22), toon(0xd0d4dc));
+    rail.position.set(side * (HALF_W + 0.3), 0.4, z);
+    st.scene.add(rail);
+
+    // Highway light poles
+    if (z % 72 === 0) {
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 8, 8), toon(0x555a66));
+      pole.position.set(side * (HALF_W + 1.8), 4, z);
+      st.scene.add(pole);
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.2, 0.2), toon(0x555a66));
+      arm.position.set(side * (HALF_W + 0.6), 7.8, z);
+      st.scene.add(arm);
+    }
+  }
+}
+
+// Procedural 3D Motorcycle & Biker Geometry
+const motoGeo = () => build([
+  // Body frame
+  { g: 'box', s: [0.6, 0.7, 2.2], p: [0, 0.7, 0], c: 0x111111 },
+  // Gas tank & fairing
+  { g: 'box', s: [0.7, 0.5, 1.1], p: [0, 1.05, 0.2] },
+  // Handlebars
+  { g: 'cyl', s: [0.08, 1.4, 0.08], p: [0, 1.25, 0.8], r: [0, 0, Math.PI / 2], c: 0xcccccc },
+  // Headlight
+  { g: 'box', s: [0.35, 0.3, 0.15], p: [0, 1.1, 1.1], c: 0xffea00 },
+  // Front & rear wheels
+  { g: 'cyl', s: [0.75, 0.35, 0.75], p: [0, 0.45, 1.1], r: [0, 0, Math.PI / 2], c: 0x222222 },
+  { g: 'cyl', s: [0.8, 0.45, 0.8], p: [0, 0.48, -1.0], r: [0, 0, Math.PI / 2], c: 0x222222 },
+  // Exhaust pipe
+  { g: 'cyl', s: [0.12, 1.2, 0.12], p: [0.36, 0.4, -0.4], r: [Math.PI / 2 - 0.2, 0, 0], c: 0x888888 },
+  // Biker torso (leaning forward)
+  { g: 'box', s: [0.65, 0.8, 0.45], p: [0, 1.4, -0.2], r: [0.4, 0, 0] },
+  // Helmet
+  { g: 'sphere', s: [0.42, 0.44, 0.46], p: [0, 1.95, 0.1] },
+  // Visor
+  { g: 'box', s: [0.36, 0.16, 0.15], p: [0, 1.96, 0.35], c: 0x00f0ff }
+]);
+
+function createBike(color, bodyColor) {
+  const grp = new THREE.Group();
+  const m = new THREE.Mesh(motoGeo(), toon(bodyColor, { vertexColors: true }));
+  grp.add(m);
+  st.scene.add(grp);
+  return { grp, mesh: m };
+}
+
+// Racers setup
+const racers = [
+  { name: 'YOU', x: 0, z: 10, speed: 70, maxSpeed: 105, hp: 100, isPlayer: true, color: 0xe63946, kickT: 0, kickDir: 0, crashed: false },
+  { name: 'VIPER', x: -3, z: 25, speed: 72, maxSpeed: 102, hp: 60, isPlayer: false, color: 0x3a86ff, kickT: 0, kickDir: 0, crashed: false },
+  { name: 'RAZOR', x: 2.5, z: 35, speed: 74, maxSpeed: 104, hp: 60, isPlayer: false, color: 0xffbe0b, kickT: 0, kickDir: 0, crashed: false },
+  { name: 'CRUSHER', x: -1.5, z: 50, speed: 76, maxSpeed: 106, hp: 80, isPlayer: false, color: 0x8338ec, kickT: 0, kickDir: 0, crashed: false }
+];
+
+for (const r of racers) {
+  const b = createBike(r.color, r.color);
+  r.bike = b;
+}
+
+// Boost pads on track
+const BOOSTS = [120, 280, 460, 680, 920, 1150].map(z => {
+  const x = (Math.random() - 0.5) * (ROAD_W - 5);
+  const m = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.05, 5), new THREE.MeshBasicMaterial({ color: 0x00ff88 }));
+  m.position.set(x, 0.05, z);
+  st.scene.add(m);
+  return { x, z, active: true };
+});
+
+// Controls & Kicking
+function doKick(dir) {
+  const me = racers[0];
+  if (me.crashed || me.kickT > 0) return;
+  me.kickT = 0.35;
+  me.kickDir = dir; // -1 Left, +1 Right
+  sfx('whoosh');
+
+  // Check collision with nearby rivals
+  for (let i = 1; i < racers.length; i++) {
+    const rival = racers[i];
+    if (rival.crashed) continue;
+    const dx = rival.x - me.x;
+    const dz = Math.abs(rival.z - me.z);
+
+    if (dz < 3.0 && Math.sign(dx) === dir && Math.abs(dx) < 3.2) {
+      // Direct hit!
+      sfx('hit');
+      st.shake(8);
+      st.hitstop(0.06);
+      fx.burst(20, { x: rival.x, y: 1.2, z: rival.z, color: 0xffe600, speed: 12 });
+      rival.hp -= 35;
+      rival.x += dir * 2.8; // Shove towards guardrail!
+
+      if (rival.hp <= 0 || Math.abs(rival.x) >= HALF_W - 0.5) {
+        // Tumble crash!
+        rival.crashed = true;
+        sfx('boom');
+        fx.burst(40, { x: rival.x, y: 1.5, z: rival.z, color: 0xff3b3b, speed: 18 });
+        st.hud.banner('KNOCKOUT: ' + rival.name + ' BASHED!', 1.2);
+      }
+    }
+  }
+}
+
+window.addEventListener('keydown', e => {
+  if (e.code === 'KeyQ' || e.code === 'KeyJ') doKick(-1);
+  if (e.code === 'KeyE' || e.code === 'KeyK') doKick(1);
+  if (e.code === 'Space') doKick(1);
+});
+
+document.getElementById('btn-kick-l').addEventListener('pointerdown', e => { e.preventDefault(); doKick(-1); });
+document.getElementById('btn-kick-r').addEventListener('pointerdown', e => { e.preventDefault(); doKick(1); });
+
+let raceTime = 0, over = false;
+function update(dt) {
+  fx.update(dt);
+  raceTime += dt;
+  const me = racers[0];
+
+  if (!me.crashed && !over) {
+    // Steering
+    let steer = (st.keys.d || st.keys.arrowright ? 1 : 0) - (st.keys.a || st.keys.arrowleft ? 1 : 0);
+    if (st.ptr.down) steer = st.ptr.x > 0 ? 1 : -1;
+    me.x += steer * 14 * dt;
+    me.x = clamp(me.x, -HALF_W + 0.8, HALF_W - 0.8);
+
+    // Acceleration
+    me.speed = Math.min(me.maxSpeed, me.speed + 12 * dt);
+    me.z += me.speed * dt;
+
+    // Check Boost pads
+    for (const b of BOOSTS) {
+      if (b.active && Math.abs(me.z - b.z) < 3.0 && Math.abs(me.x - b.x) < 2.2) {
+        b.active = false;
+        me.speed = Math.min(me.maxSpeed * 1.35, me.speed + 35);
+        sfx('powerup');
+        st.flash('#00ff88', 0.25);
+        st.kick(6);
+      }
+    }
+
+    // Finish Line
+    if (me.z >= TRACK_LEN - 80) {
+      over = true;
+      sfx('win');
+      st.slowmo(0.4, 2);
+      st.hud.banner('VICTORY! FINISHED 1ST PLACE!', 99);
+    }
+  }
+
+  // AI Rivals Update
+  for (let i = 1; i < racers.length; i++) {
+    const r = racers[i];
+    if (r.crashed) {
+      r.bike.grp.rotation.z += 8 * dt;
+      r.bike.grp.position.y = Math.max(0, r.bike.grp.position.y - 4 * dt);
+      continue;
+    }
+    // Rubberbanding & movement
+    const targetSpd = r.maxSpeed * (r.z < me.z ? 1.05 : 0.95);
+    r.speed += (targetSpd - r.speed) * dt * 2;
+    r.z += r.speed * dt;
+    r.x += Math.sin(raceTime * 1.5 + i * 2) * 3 * dt;
+    r.x = clamp(r.x, -HALF_W + 1.2, HALF_W - 1.2);
+  }
+
+  // Update 3D Model transforms
+  for (const r of racers) {
+    if (r.kickT > 0) r.kickT -= dt;
+    r.bike.grp.position.set(r.x, 0, r.z);
+
+    // Lean into turns or kicks
+    const lean = r.kickT > 0 ? -r.kickDir * 0.45 : (r.isPlayer ? (st.keys.d ? -0.25 : st.keys.a ? 0.25 : 0) : 0);
+    r.bike.grp.rotation.z = lean;
+  }
+
+  // Camera tracking
+  st.camera.position.set(me.x * 0.6, 3.8, me.z - 8.5);
+  st.camera.lookAt(me.x * 0.4, 1.4, me.z + 10);
+
+  // HUD
+  const rank = racers.filter(r => !r.crashed && r.z > me.z).length + 1;
+  const progress = Math.min(100, Math.floor((me.z / (TRACK_LEN - 80)) * 100));
+  st.hud.left(`POS: <span style="color:#ffd23c">${rank}/4</span><br>SPD: ${Math.round(me.speed * 1.6)} KM/H`);
+  st.hud.right(`DIST: ${progress}%<br>BASH: [Q / E / SPACE]`);
+  st.hud.hint('A/D steer · Q/E kick rivals into the rails · Hit green pads');
+}
+
+st.run(update);
+</script>
+</body>
+</html>
