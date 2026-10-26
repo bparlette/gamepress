@@ -76,3 +76,10 @@ Fail the gate if the game is:
 - Something you'd close after one round — no hook, no juice, no reason to keep going
 
 If it fails, say so honestly and fix the foundation (game feel, tuning, the core loop) before re-delivering. Never ship a game you wouldn't play.
+
+## Maintainers and direct builders
+
+The relay protocol above is the whole interface **for relay AIs**. If you are
+instead building with gamepress directly, or maintaining gamepress itself,
+read `docs/CAPABILITIES.md` first — it is the single-file map of every use
+case, tool, technique, and asset source, with pointers to the deep docs.
