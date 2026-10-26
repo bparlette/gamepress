@@ -24,6 +24,16 @@ filtered for what fits this repo's web/Roblox/viral-demo work.)
 | **Sketchfab** — https://sketchfab.com | Huge 3D model marketplace/viewer, incl. free downloadable models | **License varies per model** — filter to downloadable + free and read each model's license (CC-BY common). Cars and one-off hero props are its strength. |
 | **Fab / Unity Asset Store (free sections)** — https://fab.com · https://assetstore.unity.com | Free + limited-time-free assets for Unreal (Fab) and Unity (Asset Store) | Reference-only for web builds; directly useful for the Unity/Unreal side projects. Limited-time free drops rotate — worth a periodic skim. |
 
+## UI reference libraries (look at real games before designing screens)
+
+| Source | What it's for | Notes |
+|---|---|---|
+| **Game UI Database** — https://www.gameuidatabase.com | ~78,000 UI screens + transition videos from ~1,975 games, filterable by device (phone/tablet) and screen type (HUD, menus, settings, modals) | Free. The first stop before designing any HUD or menu — copy proven layouts instead of inventing them. |
+| **Interface In Game** — https://interfaceingame.com | Game UI screenshots/videos organized by genre, UI element (menu, inventory, store, tutorial), and theme | Free. PC/console-heavy; best for menus, stores, and tutorials. |
+| **Gamedexy** — https://www.gamedexy.com | Mobile free-to-play flows recorded step-by-step: onboarding, shops, daily rewards, battle passes, gacha | Free tier shows the first steps of each flow; Pro (~$99/yr) adds full flows + MCP access. Use for monetization/onboarding flow design (Yeet Pets-style loops). |
+| **Flomob** — https://www.flomob.com | 100k+ real mobile-game UI patterns with AI semantic search, copy-to-Figma | Free to join. Gamedexy's closest alternative — use whichever has the game you're copying. |
+| **Mobbin** — https://mobbin.com | 620k+ app (not game) screens: sign-up, settings, paywalls, onboarding | Paid. Only when a game needs app-grade account/paywall flows; the game-specific four above cover most needs. |
+
 ## Rules of thumb
 
 - **License before use.** CC0 (Kenney, much of Freesound) ships anywhere. CC-BY needs an
