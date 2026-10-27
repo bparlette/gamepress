@@ -67,6 +67,11 @@ From a 20-tool list posted by @hzxuang ("20 open-source skills" — animation, p
 - **Already in the stack (no action):** Matter.js (Dig Flop Fling Race's engine), Three.js, FFmpeg, faster-whisper, Remotion (videopress ACTIVE), OBS Studio (capture reference).
 - **Skipped for this stack:** Anime.js and React Spring (animation libraries — games hand-roll; React Spring needs React), p5.js and Paper.js (generative/vector niches), OGL and GL Transitions (shader niches — Three.js covers our shader needs).
 
+## Parametric 3D asset libraries (mined Oct 27, 2026)
+
+- **Polyfork** — https://polyfork.dev — **Keeper.** 2,600+ free low-poly models (+~200/week), but the real story is the format: every asset is a small ES-module *program* with typed knobs (colors, proportions, part counts, palette), not a frozen mesh — turn a knob and the model rebuilds, so one asset yields many on-palette variants. Characters are configs (garment/age/build/repaint) on a fixed skeleton, so Mixamo clips still play. Kits share one palette, one scale, and a 64m terrain grid that joins seam-to-seam. Exports: GLB / FBX / USDZ / OBJ plus the live module for three.js (r150+). **License (from their FAQ): commercial use, no attribution** — but no reselling/redistributing the assets themselves, and no training a commercial asset generator. Free tier covers all low-poly + kits + full API/MCP access (agents can search and fetch assets directly via their MCP server — built for exactly our workflow); HD PBR editions are Pro ($15/mo). Pairs with glTF Transform for post-export optimization. Won 1st place in the Build with Gemini XPRIZE. Via @Polyfork3d, Oct 27, 2026.
+- **NVIDIA SimReady Assets** — https://huggingface.co/datasets/nvidia/simready-assets — **Reference only.** 2,575 simulation-ready assets (~472GB) with physics properties and semantic labels, aimed at robotics/digital twins. Cherry-pick an individual prop if a scene needs one realistic object; the bulk download and the sim framing are not our workflow, and NVIDIA's dataset license governs any use — verify before shipping anything from it. Via @oliviscusAI (quoted in the Polyfork post), Oct 25, 2026.
+
 ## Rules of thumb
 
 - **License before use.** CC0 (Kenney, much of Freesound) ships anywhere. CC-BY needs an
