@@ -27,6 +27,7 @@ The industry standard (Brawl Stars, Genshin Impact, Archero):
 | Action buttons | Bottom-right cluster | Circular, 64–84px targets (+8px invisible padding), scale-tween on press |
 | Events | PointerEvent API | Distinct `pointerId` per touch — stick drag and button taps never cancel each other |
 | Hygiene | `touch-action: none` | No scroll, zoom, or rubber-banding; no text selection |
+| Pinch-zoom (iOS) | overlay swallows `touchstart`/`touchmove` (non-passive) + blocks `gesturestart`/`gesturechange` | iOS Safari pinch ignores `touch-action` alone — a second finger landing off-button used to zoom the page mid-game. Fixed in `gptouch.js` 2026-10-27; every pointerdown on the overlay is also preventDefaulted. Pages should still set `touch-action:none` on `html,body` as a backstop. |
 
 ## Wiring it up — `kit/gptouch.js`
 

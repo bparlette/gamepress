@@ -2,7 +2,7 @@
  * kit/gptouch.js — Modern mobile touch standard for gamepress games.
  *
  * The industry-standard mobile layout (Brawl Stars / Genshin / Archero style):
- *   ANYWHERE (not on a button): floating virtual joystick. No fixed pad —
+ *   LEFT HALF  (x < innerWidth/2): floating virtual joystick. No fixed pad —
  *              touching anywhere anchors the stick under the thumb, drag gives
  *              a normalized vector clamped to maxRadius, release resets.
  *   RIGHT HALF: circular action buttons in a fixed bottom-right cluster
@@ -103,10 +103,10 @@ export class TouchController {
     this.enabled = false;
     this.vector = { x: 0, y: 0 };
     this._buttons = {};   // id -> { held, pressed, el, pointerId, def }
-    this._defs = (Array.isArray(options.buttons) ? options.buttons : [
+    this._defs = (options.buttons && options.buttons.length ? options.buttons : [
       { id: 'a', label: 'A' },
       { id: 'b', label: 'B' },
-    ]).slice(0, 4); // buttons: [] = stick only
+    ]).slice(0, 4);
     this._activeStickId = null;
     this._stickOrigin = { x: 0, y: 0 };
     this._els = null;
@@ -181,6 +181,7 @@ export class TouchController {
     const { overlay, base, knob } = this._els;
 
     this._onDown = (e) => {
+      if (e.cancelable) e.preventDefault(); // every pointer on the overlay is game input, never a browser gesture
       // Buttons win over the stick no matter which half they're on.
       const b = this._hitButton(e.clientX, e.clientY);
       if (b && b.pointerId === null) {
@@ -191,8 +192,8 @@ export class TouchController {
         e.preventDefault();
         return;
       }
-      // Floating stick anchors under the thumb wherever it lands (not only the left half), unless it is on a button.
-      if (this._activeStickId === null && !b) {
+      // Left half: floating stick anchors under the thumb.
+      if (e.clientX < window.innerWidth / 2 && this._activeStickId === null && !b) {
         this._activeStickId = e.pointerId;
         this._stickOrigin = { x: e.clientX, y: e.clientY };
         base.style.left = e.clientX + 'px'; base.style.top = e.clientY + 'px'; base.style.display = 'block';
@@ -236,6 +237,16 @@ export class TouchController {
     overlay.addEventListener('pointermove', this._onMove);
     overlay.addEventListener('pointerup', this._onUp);
     overlay.addEventListener('pointercancel', this._onUp);
+    // Browser-gesture kill switch: iOS Safari pinch-zoom ignores
+    // touch-action alone, so swallow touchstart/touchmove outright and
+    // block Safari's proprietary gesture events. Without this, a second
+    // finger landing off-button starts a pinch and zooms the page.
+    this._onTouch = (e) => { if (e.cancelable) e.preventDefault(); };
+    overlay.addEventListener('touchstart', this._onTouch, { passive: false });
+    overlay.addEventListener('touchmove', this._onTouch, { passive: false });
+    this._onGesture = (e) => { e.preventDefault(); };
+    document.addEventListener('gesturestart', this._onGesture, { passive: false });
+    document.addEventListener('gesturechange', this._onGesture, { passive: false });
   }
 
   /**
@@ -265,6 +276,8 @@ export class TouchController {
     overlay.removeEventListener('pointermove', this._onMove);
     overlay.removeEventListener('pointerup', this._onUp);
     overlay.removeEventListener('pointercancel', this._onUp);
+    if (this._onTouch) { overlay.removeEventListener('touchstart', this._onTouch); overlay.removeEventListener('touchmove', this._onTouch); }
+    if (this._onGesture) { document.removeEventListener('gesturestart', this._onGesture); document.removeEventListener('gesturechange', this._onGesture); }
     overlay.remove();
     this._els = null;
     this.enabled = false;
