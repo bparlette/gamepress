@@ -52,6 +52,21 @@ Sourced from an X roundup by @heyrimsha (Oct 26, 2026) of 10 open-source repos f
 | **MoneyPrinterTurbo** — https://github.com/harry0703/MoneyPrinterTurbo | One-keyword auto-generated shorts: LLM script, stock footage, TTS, subtitles, 9:16 export | MIT, ~135k stars — **reference only, do not adopt:** it automates away the hook research and real-clip work that makes a demo worth watching. Its useful layer is the free stock sources it draws on — Pexels, Pixabay, Coverr — now listed in videopress `docs/TOOLS.md` as B-roll sources. Via @mattknowsai, Oct 26, 2026. |
 | **LTX-2 / WanVideo (ComfyUI) / CogVideo / VACE / DiffSynth-Studio / MuseTalk** — github.com/Lightricks/LTX-2 · github.com/kijai/ComfyUI-WanVideoWrapper · github.com/zai-org/CogVideo · github.com/ali-vilab/VACE · github.com/modelscope/DiffSynth-Studio · github.com/TMElyralab/MuseTalk | AI video generation, photo animation, masked video edits, lip-sync | **Reference-only:** all need a serious NVIDIA GPU (LTX-2's recommended weights alone are ~66 GiB) — not runnable on the local stack, and generated footage never replaces real gameplay capture in a demo. Revisit LTX-2 first if a cloud GPU enters the stack. |
 
+## Open-source build stack (mined Oct 27, 2026)
+
+From a 20-tool list posted by @hzxuang ("20 open-source skills" — animation, physics, 3D, sound, delivery), adjudicated against the current stack. Via @hzxuang, Oct 27, 2026.
+
+- **HyperFrames** — https://github.com/heygen-com/hyperframes — HTML-to-video renderer (HeyGen). **Keeper-candidate:** renders web pages/games straight to video, which attacks our known capture pain (headless-capture workarounds). Evaluate for trailer/demo capture.
+- **PixiJS** — https://github.com/pixijs/pixijs — GPU-driven 2D graphics. **Keeper-candidate:** the standard step-up when hand-rolled canvas bottlenecks a 2D game.
+- **glTF Transform** — https://github.com/donmccurdy/glTF-Transform — 3D asset optimization CLI. **Keeper:** fits the Meshy/HY3D → game pipeline (optimize and compress models before they ship).
+- **Tone.js** — https://github.com/Tonejs/Tone.js — WebAudio synths and SFX. **Keeper-candidate:** our games hand-roll WebAudio synth; Tone is the upgrade path when a game needs richer sound.
+- **Rapier** — https://github.com/dimforge/rapier — 3D physics/collisions. **Reference:** candidate for future 3D web builds (already weighed in the Oct 27 engine adjudication).
+- **tsParticles** — https://github.com/tsparticles/tsparticles — particle effects. **Reference:** drop-in juice for web games and trailers.
+- **Chatterbox** — https://github.com/resemble-ai/chatterbox — open-source TTS / voice cloning (Resemble AI). **Reference:** candidate beside the locked Gradium Phonon-31m voice-out migration; cloning could voice game characters.
+- **OpenCut** — https://github.com/OpenCut-app/OpenCut — open-source timeline editor. **Reference** (videopress side).
+- **Already in the stack (no action):** Matter.js (Dig Flop Fling Race's engine), Three.js, FFmpeg, faster-whisper, Remotion (videopress ACTIVE), OBS Studio (capture reference).
+- **Skipped for this stack:** Anime.js and React Spring (animation libraries — games hand-roll; React Spring needs React), p5.js and Paper.js (generative/vector niches), OGL and GL Transitions (shader niches — Three.js covers our shader needs).
+
 ## Rules of thumb
 
 - **License before use.** CC0 (Kenney, much of Freesound) ships anywhere. CC-BY needs an
