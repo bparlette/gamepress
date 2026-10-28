@@ -121,6 +121,160 @@ them early, not at link time:
 When the build breaks on memory, the fix is always fewer simultaneous
 things (bullets, explosions, pooled enemies) — never a bigger pool.
 
+## Target: CPS2
+
+For CPS2 (Capcom Play System 2) the source art usually arrives as loose
+sprite frames (digitized captures, sprite sheets) rather than a ROM to
+extract from, so Part A becomes a **local conversion pipeline** instead
+of ROM extraction. Part B is unchanged: a hand port, routine by routine.
+The legal rules below apply in full — source art stays private and never
+enters this repo; only the tools, the pipeline, and the specs are shared.
+
+### The lean split: pixels local, code by AI
+
+An LLM cannot efficiently slice pixels, calculate color distances, or
+interleave bitplanes — and paying one to try burns a subscription in an
+afternoon. Every mechanical stage runs locally in Python (Pillow); the
+AI receives **only the generated C header and the hardware spec below**
+and writes the renderer and the animation state machine against that
+interface. Never upload raw PNGs or sprite sheets to the AI, and never
+ask it for palettes, RGB values, or bitplane math.
+
+| Stage | Runs | Input → Output |
+|---|---|---|
+| 1. Anchor & normalize | Local Python | Raw frames → canvas-standardized PNGs with one fixed foot origin for every frame |
+| 2. Palette partition & quantize | Local Python | Normalized PNGs → per-tile palette assignments + a palette bank |
+| 3. Slice, dedup, block-group | Local Python | Quantized frames → unique tiles, flip-variant dedup, rectangular blocks over dense regions |
+| 4. Planar pack | Local Python | Tiles + blocks → `character_gfx.bin` (4bpp planar GFX data) + `character_frames.h` (metasprite descriptors) |
+| 5. Renderer | AI (header + spec only) | Object-list drawing loop (68000 asm / C) |
+| 6. Animation state machine | AI | Frame-duration tables + hitbox data → tick/collision update code |
+
+### Palette strategy — the step that decides quality
+
+Every CPS2 object carries exactly **one** palette: 15 colors + 1
+transparent index, chosen from 32 palettes. So the packer's real job is
+partitioning, not just quantizing:
+
+- Build a per-character palette bank (up to 32 palettes) by clustering
+  the color sets of the source tiles (e.g. k-means over tile palettes),
+  then assign each tile or block its closest palette and quantize
+  within it.
+- Never run one global 15-color quantization over a whole digitized
+  character — skin tones, costume, and effects collapse into mush.
+- For digitized sources, Floyd–Steinberg dithering before quantization
+  is a quality lever; tune it per game and judge by eye.
+- A block (below) shares one palette across all its tiles, so
+  block-grouping happens *inside* palette partitions.
+
+### Object format — verified against the MAME driver source
+
+This spec is taken from `cps2_render_sprites` in MAME's
+`src/mame/capcom/cps2.cpp` (checked Oct 2026). Spec from the driver
+source, not from secondary summaries: the patpend CPS2 page is dead
+(404), and paraphrases of it in circulation swap the X/Y word order and
+misplace priority.
+
+- **Object RAM:** two 8 KB banks. Games write entries to the bank at
+  **0x708000**; a second bank sits at 0x700000 (write-only — per MAME's
+  map comment, no game uses it directly). A bank-swap bit (0x8040E0)
+  selects the bank the hardware latches for display. There is no DMA
+  copy between the banks.
+- **Entry = 4 words (8 bytes):**
+  - Word 0: **X** position (bits 0–9, 10-bit wrapped coordinate space);
+    **bits 13–15 = priority (0–7)**.
+  - Word 1: **Y** position (bits 0–9); **bits 13–14 = tile-code bits
+    16–17**.
+  - Word 2: tile code, low 16 bits.
+  - Word 3: attributes — bits 0–4 palette (0–31), bit 5 flip X,
+    bit 6 flip Y, bit 7 offset-enable (leave 0), **bits 8–11 = block
+    width in tiles − 1, bits 12–15 = block height in tiles − 1**.
+- **Blocked sprites:** width/height 0,0 draws a single 16×16 tile;
+  larger values make one entry draw a rectangular block up to 16×16
+  tiles (256×256 px), and the hardware flips the whole block. Per-tile
+  scatter lists work but spend the object budget one tile at a time —
+  for large digitized frames, blocks are the difference between
+  fitting and not fitting.
+- **Block tile layout in GFX ROM:** block tiles are addressed in
+  16-code row groups — within a row, codes advance with the tile
+  column; each new row starts 0x10 codes after the previous row's
+  base. Place each block's tiles at a 16-aligned base code with rows
+  strided by 0x10.
+- **List termination:** end the object list with a terminator entry
+  whose Y word is 0x8000. Without it, the hardware keeps drawing stale
+  entries from the previous frame. Entries render in reverse list
+  order.
+- **Budget:** the bank holds 1024 entries; the hardware displays ~900
+  objects per frame. Count blocks + single tiles, not raw tiles.
+
+### Copy-paste prompt for the AI stages
+
+Give the AI the generated header plus this prompt. The hardware block
+below is the corrected spec — do not substitute other summaries.
+
+```text
+I am developing a CPS2 (Capcom Play System 2) arcade homebrew/port.
+
+I have already processed, quantized, and packed the character sprites
+into native CPS2 16x16 4bpp planar tile banks. I do NOT need you to
+process image data.
+
+Here is the C metasprite header structure generated by my local asset
+pipeline:
+
+typedef struct {
+    int16_t dx;        // X offset of this tile from the actor origin
+    int16_t dy;        // Y offset of this tile from the actor origin
+    uint16_t tile_id;  // 16x16 tile index in CPS2 GFX memory
+    uint8_t palette;   // Palette index 0-31
+    uint8_t flags;     // bit 0 = flip X, bit 1 = flip Y
+} CPS2_TileEntry;
+
+typedef struct {
+    uint16_t tile_count;
+    const CPS2_TileEntry* tiles;
+} CPS2_MetaspriteFrame;
+
+TARGET HARDWARE SPECIFICATION (CPS2 object RAM — verified against the
+MAME CPS2 driver source, src/mame/capcom/cps2.cpp):
+ * Games write object entries to the bank at 0x708000. (A second bank
+   sits at 0x700000; a bank-swap bit at 0x8040E0 selects the displayed
+   bank and the hardware latches it for display.)
+ * Each object entry is 4 words (8 bytes):
+   * Word 0: X position (bits 0-9, 10-bit wrapped coordinate space);
+     bits 13-15 = priority (0-7).
+   * Word 1: Y position (bits 0-9); bits 13-14 are tile-code bits
+     16-17.
+   * Word 2: Tile code, low 16 bits.
+   * Word 3: Attributes: bits 0-4 = palette (0-31), bit 5 = flip X,
+     bit 6 = flip Y, bit 7 = offset-enable (leave 0), bits 8-11 =
+     block width in tiles minus 1, bits 12-15 = block height in
+     tiles minus 1. Width/height 0,0 = a single 16x16 tile; larger
+     values make the hardware draw a rectangular block of tiles
+     from one entry.
+ * The object list must end with a terminator entry whose Y word is
+   0x8000. The hardware displays at most ~900 objects per frame; the
+   RAM bank holds 1024 entries.
+
+TASK:
+ * Write CPS2_DrawMetasprite(int16_t origin_x, int16_t origin_y,
+   const CPS2_MetaspriteFrame* frame, uint8_t facing,
+   uint8_t priority, uint16_t* oam, uint16_t* oam_index):
+   - For each tile: sx = origin_x + dx, sy = origin_y + dy.
+   - When facing == DIR_LEFT: sx = origin_x - dx - 16 and set the
+     flip X bit. (Mirroring a 16 px tile about the origin subtracts
+     the tile width as well; negating dx alone is off by 16 px.)
+   - Pack word 0 = (sx & 0x3FF) | (priority << 13);
+     word 1 = (sy & 0x3FF) | (((tile_id >> 16) & 0x3) << 13);
+     word 2 = tile_id & 0xFFFF;
+     word 3 = palette | (flipX << 5) | (flipY << 6).
+   - Cull tiles fully outside the 384x224 playfield before writing.
+   - Stop writing when *oam_index reaches 900.
+ * Write CPS2_EndObjectList(uint16_t* oam, uint16_t* oam_index) that
+   appends the terminator entry (Y word = 0x8000).
+ * Do not include external dependencies or explanatory fluff. Output
+   production-ready, compilable C only.
+```
+
 ## Verification ladder
 
 A port is done when it passes all four, in order:
@@ -144,8 +298,9 @@ A port is done when it passes all four, in order:
 |---|---|---|
 | SNES (65816) | PVSnesLib | https://github.com/alekmaul/pvsneslib |
 | Game Boy / GBC | GBDK-2020 | https://github.com/gbdk-2020/gbdk-2020 |
-| NES (6502) | cc65 | https://cc65.github.io/ |
+| NES (6502) | cc65 (incl. da65 disassembler) | https://cc65.github.io/ |
 | Genesis (68000) | SGDK | https://github.com/Stephane-D/SGDK |
+| CPS2 (68000) | gcc-68k cross toolchain; no SDK — the MAME driver source is the hardware spec | https://github.com/mamedev/mame |
 | Virtual Boy | VUEngine + VUEngine Studio | https://github.com/VUEngine/VUEngine |
 
 Emulators for testing: Mesen (NES), bsnes-hd / Snes9x (SNES),
