@@ -91,6 +91,11 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
   `docs/SHORT-PIPELINE.md` (fused canvas+WebAudio capture, measured fps and
   stream durations — never quoted from the recorder request),
   −14 LUFS, hook caption ≤1s.
+- **Case study — Miso, built twice:** Nintendo-style platformer, then a
+  photoreal city rebuild with a grapple-swing yarn and a vertical level.
+  Production lessons (iOS silent-switch audio fix, visual reference rule,
+  painted segment backdrops, invisible-floor rule, portrait OY pattern,
+  grapple-by-constraint): `docs/MISO-LESSONS.md`.
 - **Voices/TTS (`tools.json` registry):** kokoro-tts (local, ~137 MB) for
   trailers and voice lines; edge-tts as network fallback (`gamepress
   voices --engine edge`); another6502 for port work. Registry rules:
