@@ -58,4 +58,18 @@
   "release_note": "Instruction-stepped, NOT cycle-accurate — fine for offline per-frame APU register-log capture of a sound driver, not for cycle-timed audio tricks. Installs via pip (no files to download); requires Python >= 3.10. https://github.com/florianehmann/another6502",
   "files": []
  }
+,
+ "piskel": {
+  "description": "Free open-source pixel sprite editor (web app + desktop) — the hand-cleanup step for generated sprite sheets: fix walk-cycle frames, slice icons/props/UI sprites, preview multi-frame animation as GIF",
+  "version": "n/a (web app)",
+  "license": "Apache-2.0",
+  "type": "web-app",
+  "install_dir": "~/.gamepress/piskel",
+  "used_by": [
+   "art-first workflow: sprite cleanup and frame edits between generation and build",
+   "8-bit / 16-bit sheet touch-ups"
+  ],
+  "release_note": "No download — runs in the browser at https://www.piskelapp.com (desktop builds on GitHub for offline use). Output is yours to use commercially. It is an editor, not a generator: gamepress still generates/approves art first; Piskel is where a 90%-right sheet gets finished by hand. https://github.com/piskelapp/piskel",
+  "files": []
+ }
 }
