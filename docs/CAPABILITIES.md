@@ -87,7 +87,9 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
   gpmonetize. Index: `docs/KIT.md`.
 - **Quality floor (80-pt rubric, in `gamepress context`):** ≥3 feel
   functions (hitstop / slowmo / popup / flash / shake / kick), particles +
-  ≥4 SFX types, `?auto=1` lose-first-then-win bot, video 1080×1920 @30fps,
+  ≥4 SFX types, `?auto=1` lose-first-then-win bot, video 1080×1920 per
+  `docs/SHORT-PIPELINE.md` (fused canvas+WebAudio capture, measured fps and
+  stream durations — never quoted from the recorder request),
   −14 LUFS, hook caption ≤1s.
 - **Voices/TTS (`tools.json` registry):** kokoro-tts (local, ~137 MB) for
   trailers and voice lines; edge-tts as network fallback (`gamepress
