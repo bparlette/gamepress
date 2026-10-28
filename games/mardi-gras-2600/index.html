@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>MARDI GRAS '82 — Atari 2600 Bourbontown</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+    background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: monospace;
+  }
+  #screen-wrap {
+    position: relative; width: min(96vw, 560px); aspect-ratio: 4 / 3;
+    background: #000; box-shadow: 0 0 20px rgba(0,0,0,0.8), 0 0 0 4px #222;
+  }
+  canvas {
+    width: 100%; height: 100%; display: block; image-rendering: pixelated;
+  }
+  #controls {
+    margin-top: 10px; color: #aaa; font-size: 13px; text-align: center;
+    letter-spacing: 1px;
+  }
+  #btn-action {
+    display: none;
+    margin-top: 12px; width: 140px; height: 50px; background: #c24; color: #fff;
+    border: 3px solid #fff; font-size: 18px; font-weight: bold; border-radius: 8px;
+    touch-action: manipulation;
+  }
+  @media (pointer: coarse) {
+    #btn-action { display: block; }
+  }
+</style>
+</head>
+<body>
+<div id="screen-wrap">
+  <canvas id="c"></canvas>
+</div>
+<div id="controls">HOLD [SPACE] / TAP BUTTON TO CHARGE POWER · RELEASE TO TOSS BEADS</div>
+<button id="btn-action">TOSS</button>
+
+<script type="module">
+// Atari 2600 TIA Retro Engine — 160x192 Native Resolution
+// Strict chunky rectangular pixels, NTSC color palette, 1-bit scanline playfield,
+// oscillating power meter, and flashing celebration animations upon successful bead catch!
+
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+const NATIVE_W = 160;
+const NATIVE_H = 192;
+cv.width = NATIVE_W;
+cv.height = NATIVE_H;
+
+// Authentic Atari 2600 NTSC Color Palette (TIA color register subset)
+const NTSC = {
+  BLACK: '#000000',
+  BG_PURPLE: '#482068',    // Deep French Quarter dusk
+  BUILDING_BRICK: '#883838', // Balcony brickwork
+  IRON_GREY: '#a0a0a0',     // Wrought iron railing
+  STREET_GOLD: '#c8a848',   // Bourbon Street pavement
+  SKIN_PINK: '#f09088',     // Classic 2600 pinkish flesh tone
+  HAT_BLUE: '#3878c8',      // Guy's cap
+  BEAD_GOLD: '#f8d838',     // Beads gold
+  BEAD_GREEN: '#38a838',    // Beads green
+  BEAD_PURPLE: '#b848d8',   // Beads purple
+  FLASH_YELLOW: '#f8f878',  // Score band
+  TOP_GREEN: '#286828',     // Shirt / halter top
+  WHITE: '#ffffff'
+};
+
+// 1-channel Sound Synthesizer (2600 frequency noise/square TIA sound)
+let actx = null;
+function initAudio() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') actx.resume();
+}
+function sfx(kind) {
+  if (!actx) return;
+  const now = actx.currentTime;
+  const osc = actx.createOscillator();
+  const gain = actx.createGain();
+  osc.connect(gain);
+  gain.connect(actx.destination);
+
+  if (kind === 'charge') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.linearRampToValueAtTime(360, now + 0.1);
+    gain.gain.setValueAtTime(0.08, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+    osc.start(now);
+    osc.stop(now + 0.1);
+  } else if (kind === 'toss') {
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(420, now);
+    osc.frequency.exponentialRampToValueAtTime(140, now + 0.18);
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+    osc.start(now);
+    osc.stop(now + 0.18);
+  } else if (kind === 'catch') {
+    // 2600 2-tone jingle
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(320, now);
+    osc.frequency.setValueAtTime(480, now + 0.08);
+    osc.frequency.setValueAtTime(640, now + 0.16);
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+    osc.start(now);
+    osc.stop(now + 0.3);
+  } else if (kind === 'miss') {
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(90, now);
+    osc.frequency.linearRampToValueAtTime(40, now + 0.22);
+    gain.gain.setValueAtTime(0.18, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.22);
+    osc.start(now);
+    osc.stop(now + 0.22);
+  }
+}
+
+// 8-Bit / 2600 Sprite Matrices (1 = color, 0 = transparent)
+// Guy leaning on balcony railing (width: 14px, height: 28px)
+const GUY_SPRITE = [
+  '..####........',
+  '.######.......',
+  '..#..#........',
+  '..####........',
+  '..####........',
+  '...##.........',
+  '.######.......',
+  '########......',
+  '########......',
+  '.######.......',
+  '..####........',
+  '..####........',
+  '..#..#........',
+  '..#..#........',
+];
+
+// Girl walking below (width: 12px, height: 28px)
+// Frame 0: Walking
+// Frame 1: Flashing boobs up!
+const GIRL_FRAMES = [
+  // Frame 0: Regular walk
+  [
+    '...####.....',
+    '..######....',
+    '...#..#.....',
+    '...####.....',
+    '....##......',
+    '...####.....',
+    '..######....',
+    '..######....',
+    '..##..##....',
+    '...####.....',
+    '...#..#.....',
+    '...#..#.....',
+    '..##..##....',
+    '..##..##....'
+  ],
+  // Frame 1: FLASHING BOOBS (arms raised, chest exposed cheering)
+  [
+    '..#..#.#....',
+    '..######....',
+    '...#..#.....',
+    '...####.....',
+    '....##......',
+    '..######....',
+    '.########...',
+    '.##(..)##...', // Boobs exposed!
+    '.########...',
+    '...####.....',
+    '...#..#.....',
+    '..##..##....',
+    '..#....#....',
+    '.##....##...'
+  ]
+];
+
+// Game State
+const G = {
+  score: 0,
+  beadCount: 20,
+  charging: false,
+  power: 0,
+  powerDir: 1,
+  bead: null, // active bead projectile { x, y, vx, vy, color }
+  girl: {
+    x: 180,
+    y: 130,
+    speed: 35,
+    walking: true,
+    flashing: 0, // timer
+    caughtBeads: 0
+  },
+  balcony: { x: 18, y: 35 },
+  flashScreen: 0
+};
+
+// Input
+function startCharge() {
+  initAudio();
+  if (G.bead) return; // one bead at a time
+  G.charging = true;
+  G.power = 0;
+  G.powerDir = 1;
+}
+
+function releaseToss() {
+  if (!G.charging) return;
+  G.charging = false;
+  sfx('toss');
+
+  // Spawn bead projectile from balcony guy's hand
+  const tossSpeed = 50 + G.power * 140;
+  G.bead = {
+    x: G.balcony.x + 18,
+    y: G.balcony.y + 12,
+    vx: tossSpeed,
+    vy: -35 - G.power * 25,
+    grav: 190,
+    t: 0
+  };
+  G.power = 0;
+}
+
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' && !e.repeat) startCharge();
+});
+window.addEventListener('keyup', e => {
+  if (e.code === 'Space') releaseToss();
+});
+
+const btn = document.getElementById('btn-action');
+btn.addEventListener('pointerdown', e => { e.preventDefault(); startCharge(); });
+btn.addEventListener('pointerup', e => { e.preventDefault(); releaseToss(); });
+btn.addEventListener('pointercancel', e => { e.preventDefault(); releaseToss(); });
+
+// Update Game Loop
+let lastT = performance.now();
+function update(dt) {
+  if (G.flashScreen > 0) G.flashScreen -= dt;
+
+  // Power bar oscillation
+  if (G.charging) {
+    G.power += G.powerDir * dt * 2.2;
+    if (G.power >= 1.0) { G.power = 1.0; G.powerDir = -1; }
+    if (G.power <= 0.0) { G.power = 0.0; G.powerDir = 1; }
+    if (Math.random() < 0.15) sfx('charge');
+  }
+
+  // Girl movement
+  if (G.girl.flashing > 0) {
+    G.girl.flashing -= dt;
+  } else {
+    G.girl.x -= G.girl.speed * dt;
+    if (G.girl.x < -20) {
+      // Respawn new girl with random walk speed
+      G.girl.x = NATIVE_W + 10;
+      G.girl.speed = 25 + Math.random() * 35;
+      G.girl.caughtBeads = 0;
+    }
+  }
+
+  // Bead physics (parabolic trajectory)
+  if (G.bead) {
+    const b = G.bead;
+    b.t += dt;
+    b.x += b.vx * dt;
+    b.vy += b.grav * dt;
+    b.y += b.vy * dt;
+
+    // Check hit on girl's neck / chest area
+    const chestX = G.girl.x + 4;
+    const chestY = G.girl.y + 10;
+
+    if (Math.hypot(b.x - chestX, b.y - chestY) < 9) {
+      // Direct hit! Flash celebration!
+      sfx('catch');
+      G.score += 100;
+      G.girl.flashing = 1.8; // flashes boobs and cheers!
+      G.girl.caughtBeads++;
+      G.flashScreen = 0.2;
+      G.bead = null;
+    } else if (b.y >= 165) {
+      // Missed, hit the cobblestone street
+      sfx('miss');
+      G.bead = null;
+    }
+  }
+}
+
+// 2600 TIA Scanline Rasterizer
+function draw() {
+  // Screen flash on score
+  if (G.flashScreen > 0) {
+    ctx.fillStyle = NTSC.FLASH_YELLOW;
+    ctx.fillRect(0, 0, NATIVE_W, NATIVE_H);
+    return;
+  }
+
+  // 1. Sky & Dusk Horizon
+  ctx.fillStyle = NTSC.BG_PURPLE;
+  ctx.fillRect(0, 0, NATIVE_W, 115);
+
+  // 2. French Quarter Balcony Wall (Left Side)
+  ctx.fillStyle = NTSC.BUILDING_BRICK;
+  ctx.fillRect(0, 0, 48, 120);
+
+  // Ornate 2600 Wrought Iron Balcony Railing
+  ctx.fillStyle = NTSC.IRON_GREY;
+  ctx.fillRect(0, 56, 44, 4);
+  for (let bx = 4; bx < 44; bx += 6) {
+    ctx.fillRect(bx, 56, 2, 28);
+  }
+  ctx.fillRect(0, 84, 44, 4);
+
+  // 3. Street Ground (Bourbon Street Pavement)
+  ctx.fillStyle = NTSC.STREET_GOLD;
+  ctx.fillRect(0, 115, NATIVE_W, 55);
+
+  // 4. Draw Guy on Balcony
+  ctx.fillStyle = NTSC.SKIN_PINK;
+  for (let r = 0; r < GUY_SPRITE.length; r++) {
+    for (let c = 0; c < GUY_SPRITE[r].length; c++) {
+      if (GUY_SPRITE[r][c] === '#') {
+        if (r < 4) ctx.fillStyle = NTSC.HAT_BLUE; // Blue cap
+        else if (r > 10) ctx.fillStyle = NTSC.BUILDING_BRICK; // Pants
+        else ctx.fillStyle = NTSC.SKIN_PINK;
+        ctx.fillRect(G.balcony.x + c * 2, G.balcony.y + r * 2, 2, 2);
+      }
+    }
+  }
+
+  // 5. Draw Girl on the Street
+  const isFlashing = G.girl.flashing > 0;
+  const frame = isFlashing ? GIRL_FRAMES[1] : GIRL_FRAMES[0];
+
+  for (let r = 0; r < frame.length; r++) {
+    for (let c = 0; c < frame[r].length; c++) {
+      const ch = frame[r][c];
+      if (ch === '#' || ch === '(' || ch === '.' || ch === ')') {
+        if (ch === '(' || ch === ')') {
+          // Boob outline
+          ctx.fillStyle = NTSC.WHITE;
+        } else if (r === 7 && isFlashing && (c >= 3 && c <= 8)) {
+          // Flashing bare boobs pixel cluster!
+          ctx.fillStyle = NTSC.FLASH_YELLOW;
+        } else if (r >= 5 && r <= 8 && !isFlashing) {
+          // Green Mardi Gras halter top
+          ctx.fillStyle = NTSC.TOP_GREEN;
+        } else if (r < 4) {
+          // Blonde hair
+          ctx.fillStyle = NTSC.BEAD_GOLD;
+        } else {
+          // Skin
+          ctx.fillStyle = NTSC.SKIN_PINK;
+        }
+        ctx.fillRect(Math.floor(G.girl.x) + c * 2, G.girl.y + r * 2, 2, 2);
+      }
+    }
+  }
+
+  // If she caught beads, render them hanging around her neck!
+  if (G.girl.caughtBeads > 0) {
+    ctx.fillStyle = G.girl.caughtBeads % 2 === 0 ? NTSC.BEAD_GREEN : NTSC.BEAD_PURPLE;
+    ctx.fillRect(Math.floor(G.girl.x) + 6, G.girl.y + 14, 6, 4);
+    ctx.fillStyle = NTSC.BEAD_GOLD;
+    ctx.fillRect(Math.floor(G.girl.x) + 8, G.girl.y + 18, 2, 4);
+  }
+
+  // 6. Draw Bead Projectile
+  if (G.bead) {
+    ctx.fillStyle = NTSC.BEAD_GOLD;
+    ctx.fillRect(Math.floor(G.bead.x), Math.floor(G.bead.y), 4, 4);
+    ctx.fillStyle = NTSC.BEAD_PURPLE;
+    ctx.fillRect(Math.floor(G.bead.x) + 2, Math.floor(G.bead.y) + 2, 2, 2);
+  }
+
+  // 7. Atari 2600 Bottom HUD & Power Meter
+  // Bottom Black TV Border
+  ctx.fillStyle = NTSC.BLACK;
+  ctx.fillRect(0, 170, NATIVE_W, 22);
+
+  // Score Bar
+  ctx.fillStyle = NTSC.FLASH_YELLOW;
+  ctx.fillRect(0, 170, NATIVE_W, 4);
+
+  // 2600 Block Digits for Score
+  ctx.fillStyle = NTSC.WHITE;
+  ctx.font = 'bold 12px monospace';
+  ctx.fillText('SCORE ' + G.score.toString().padStart(4, '0'), 12, 186);
+
+  // Power Oscillating Bar
+  if (G.charging) {
+    const barW = Math.floor(G.power * 46);
+    ctx.fillStyle = NTSC.BEAD_PURPLE;
+    ctx.fillRect(100, 176, 48, 8);
+    ctx.fillStyle = G.power > 0.8 ? '#ff3b3b' : NTSC.BEAD_GOLD;
+    ctx.fillRect(101, 177, barW, 6);
+  } else {
+    ctx.fillStyle = NTSC.IRON_GREY;
+    ctx.fillText('READY', 104, 186);
+  }
+}
+
+function loop(now) {
+  const dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

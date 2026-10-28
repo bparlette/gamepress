@@ -1,0 +1,60 @@
+{
+  "name": "hoa-sledge-hook",
+  "root": "../../",
+  "path": "games/hoa-sledge/index.html?dur=24&target=8000",
+  "spectate": true,
+  "viewport": [
+    540,
+    960
+  ],
+  "scale": 2,
+  "fps": 30,
+  "seed": 7,
+  "duration": 29,
+  "report": "window.__game",
+  "captions": [
+    {
+      "t": 0,
+      "until": 4.2,
+      "text": "His gnomes broke the rules",
+      "pos": "tiptop",
+      "style": "hook"
+    },
+    {
+      "t": 4.2,
+      "until": 9.5,
+      "text": "So I got a bigger hammer",
+      "pos": "tiptop",
+      "style": "hook"
+    },
+    {
+      "t": 14.5,
+      "until": 20,
+      "text": "every gnome is real physics",
+      "pos": "bottom",
+      "style": "note"
+    },
+    {
+      "t": 20.5,
+      "until": 29,
+      "text": "Play free. Link in bio",
+      "pos": "bottom",
+      "style": "cta"
+    }
+  ],
+  "blur": 2,
+  "fade": {
+    "in": 0.2,
+    "out": 0.4
+  },
+  "thumb": 16.5,
+  "audio": {
+    "source": "window.__events",
+    "music": "bed",
+    "musicGain": 0.3,
+    "bed": {
+      "bpm": 128,
+      "root": 60
+    }
+  }
+}

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Roadster Look Lab</title>
+<style>html,body{margin:0;height:100%;background:#0a0d14;overflow:hidden}canvas{display:block}#hud{position:fixed;left:16px;bottom:12px;color:#fff;font:600 13px/1.4 system-ui;opacity:.7;letter-spacing:.06em}</style>
+</head>
+<body>
+<div id="hud"></div>
+<script type="module">
+import { THREE } from '../../kit/gp3d.js';
+import { buildRoadster, buildSemi, buildStarship, buildTower, buildPad, makeEnvMap, buildSky, groundTextures } from './cars.js';
+
+const q = new URLSearchParams(location.search);
+const model = q.get('model') || 'roadster';
+const view = q.get('view') || 'rear34';
+const studio = q.get('studio') !== '0';
+document.getElementById('hud').textContent = `${model} · ${view}`;
+
+const W = innerWidth, H = innerHeight;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(W, H);
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = studio ? 0.92 : 1.02;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(38, W / H, 0.1, 3000);
+scene.environment = makeEnvMap(renderer, { dusk: !studio });
+
+const hemi = new THREE.HemisphereLight(0xbcd4ff, 0x2a2620, studio ? 0.35 : 0.8); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff0dd, studio ? 2.4 : 4.2); sun.position.set(-9, 7, 9); scene.add(sun);
+const fill = new THREE.DirectionalLight(0x9fc2ff, studio ? 0.9 : 0.9); fill.position.set(8, 4, -10); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xfff0d8, studio ? 1.6 : 2.0); rim.position.set(0, 3, -12); scene.add(rim);
+
+if (studio) {
+  scene.background = new THREE.Color(0x07090d);
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(40, 64), new THREE.MeshStandardMaterial({ color: 0x14171d, roughness: 0.55, metalness: 0.25 }));
+  floor.rotation.x = -Math.PI / 2; scene.add(floor);
+  const cyc = new THREE.Mesh(new THREE.CylinderGeometry(26, 26, 34, 48, 1, true, Math.PI * 0.15, Math.PI * 1.2), new THREE.MeshStandardMaterial({ color: 0x1b2029, roughness: 0.85, side: THREE.BackSide }));
+  cyc.position.y = 16; scene.add(cyc);
+  for (const [x, y, z, i] of [[-6, 7, 8, 26], [7, 6, -6, 14], [0, 9, -9, 9]]) {
+    const soft = new THREE.PointLight(i > 20 ? 0xfff2e0 : 0xcfe0ff, i, 40, 2);
+    soft.position.set(x, y, z); scene.add(soft);
+  }
+} else {
+  buildSky(scene);
+  const { desert } = groundTextures();
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), new THREE.MeshStandardMaterial({ map: desert, roughness: 0.95 }));
+  ground.rotation.x = -Math.PI / 2; scene.add(ground);
+}
+
+let obj;
+if (model === 'semi') obj = buildSemi();
+else if (model === 'ship') { obj = buildStarship(); scene.add(buildTower(62)); const p = buildPad(); p.position.z = 8; scene.add(p); }
+else obj = buildRoadster(renderer);
+scene.add(obj);
+if (q.get('clay') === '1') {
+  const clay = new THREE.MeshStandardMaterial({ color: 0xc9ccd2, roughness: 0.62, metalness: 0.05 });
+  obj.traverse(o => { if (o.isMesh && !o.material?.transparent) o.material = clay; });
+}
+
+const poses = {
+  rear34: { d: 9.5, h: 2.6, a: Math.PI * 0.78, t: [0, 0.62, -0.2] },
+  front34: { d: 9.5, h: 2.4, a: Math.PI * 0.18, t: [0, 0.62, 0.1] },
+  side: { d: 10.5, h: 1.5, a: Math.PI * 0.5, t: [0, 0.68, 0] },
+  low: { d: 7.4, h: 0.75, a: Math.PI * 0.72, t: [0, 0.55, -0.3] },
+  top: { d: 8.0, h: 8.0, a: Math.PI * 0.85, t: [0, 0.6, 0] },
+};
+const P = poses[view] || poses.rear34;
+const look = new THREE.Vector3(...P.t);
+if (model === 'ship') { cam.position.set(P.d * 1.6, 26, P.d * 1.4); look.set(0, 26, 0); }
+else { cam.position.set(Math.sin(P.a) * P.d, P.h, Math.cos(P.a) * P.d); cam.lookAt(look); }
+cam.fov = model === 'semi' ? 42 : model === 'ship' ? 45 : 38; cam.updateProjectionMatrix();
+
+// auto-orbit a hair so reflections read
+const t0 = performance.now();
+function frame(t) {
+  requestAnimationFrame(frame);
+  const k = (t - t0) / 1000;
+  if (q.get('orbit') === '1') {
+    const a = P.a + Math.sin(k * 0.25) * 0.35;
+    cam.position.set(Math.sin(a) * P.d, P.h + Math.sin(k * 0.15) * 0.3, Math.cos(a) * P.d);
+    cam.lookAt(look);
+  }
+  if (obj.userData.wheels) obj.userData.wheels.forEach(w => { w.spin.rotation.x = k * (q.get('spin') === '0' ? 0 : 2.2); });
+  renderer.render(scene, cam);
+}
+requestAnimationFrame(frame);
+window.__ready = true;
+</script>
+</body></html>

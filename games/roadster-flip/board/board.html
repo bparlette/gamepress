@@ -1,0 +1,158 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  @page { size: 1600px 1000px; margin: 0; }
+  html,body{margin:0;background:#05070b;}
+  *{box-sizing:border-box}
+  #b{width:1600px;height:1000px;padding:34px 38px;position:relative;overflow:hidden;
+     font-family:system-ui,-apple-system,"Helvetica Neue",sans-serif;color:#e9eef6;
+     background:
+       radial-gradient(1100px 520px at 76% -8%, rgba(70,230,255,.20), transparent 60%),
+       radial-gradient(900px 520px at 8% 108%, rgba(255,140,40,.18), transparent 62%),
+       linear-gradient(160deg,#0a0e16 0%,#05070b 55%,#070a10 100%);}
+  #grain{position:absolute;inset:0;pointer-events:none;opacity:.5;
+     background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);}
+  .row{display:flex;gap:18px}
+  /* ---------- header */
+  header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+  .wm{font-family:Impact,"Haettenschweiler","Arial Narrow Bold",sans-serif;font-size:74px;line-height:.86;letter-spacing:.005em;
+      background:linear-gradient(92deg,#ffffff 8%,#cfe9ff 44%,#8fd8ff 70%,#ffd9a8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+      filter:drop-shadow(0 6px 0 rgba(0,0,0,.55))}
+  .wm em{font-style:normal;color:transparent;background:linear-gradient(92deg,#ff8c28,#ffd34d);-webkit-background-clip:text;background-clip:text}
+  .sub{margin-top:8px;font-size:14.5px;font-weight:800;letter-spacing:.30em;color:#9fb6cf}
+  .sub b{color:#fff}
+  .tag{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+  .chip{font-size:11.5px;font-weight:900;letter-spacing:.16em;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.22);color:#cfe3f7;background:rgba(255,255,255,.05)}
+  .chip.cy{color:#0b1620;background:#46e6ff;border-color:#bff6ff}
+  .chip.or{color:#20120a;background:#ff8c28;border-color:#ffd9a8}
+  .hook{max-width:606px;border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:16px 18px 14px;
+        background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.02))}
+  .hook .k{font-size:11px;font-weight:900;letter-spacing:.28em;color:#7fd7f2;margin-bottom:8px}
+  .hook .l1{font-family:Impact,"Arial Narrow Bold",sans-serif;font-size:34px;line-height:1;letter-spacing:.01em}
+  .hook .l2{font-family:Impact,"Arial Narrow Bold",sans-serif;font-size:34px;line-height:1;margin-top:4px;color:#ffd34d}
+  .hook .l3{margin-top:9px;font-size:13.5px;line-height:1.45;color:#b9cde1}
+  .hook .l3 b{color:#fff}
+  /* ---------- sections */
+  .sec{font-size:10.5px;font-weight:900;letter-spacing:.34em;color:#8aa3bd;margin:14px 0 8px;display:flex;align-items:center;gap:10px}
+  .sec:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.28),transparent)}
+  .cell{position:relative;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.16);background:#0b0f16;
+        box-shadow:0 18px 34px rgba(0,0,0,.55)}
+  .cell img{width:100%;height:100%;display:block;object-fit:cover}
+  .cell .cap{position:absolute;left:0;right:0;bottom:0;padding:22px 12px 9px;font-size:11.5px;font-weight:800;letter-spacing:.06em;color:#eaf4ff;
+        background:linear-gradient(0deg,rgba(3,6,11,.92),rgba(3,6,11,.55) 55%,transparent)}
+  .cell .cap span{display:block;font-size:9.5px;letter-spacing:.22em;color:#8fc9e6;font-weight:900;margin-bottom:2px}
+  .look{height:236px;flex:1}
+  .port{height:300px;flex:0 0 196px}
+  .tl div{display:flex;gap:9px;align-items:baseline;padding:3.5px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:11.5px;color:#b9cde1}
+  .tl b{flex:0 0 34px;color:#fff;font-family:ui-monospace,monospace;font-size:11px}
+  .tl i{flex:0 0 52px;font-style:normal;font-weight:900;letter-spacing:.12em;font-size:9.5px;color:#7fd7f2}
+  .tl span{flex:1}
+  .pill{position:absolute;top:10px;left:10px;font-size:9.5px;font-weight:900;letter-spacing:.2em;padding:4px 8px;border-radius:6px;background:rgba(5,9,14,.72);color:#bff6ff;border:1px solid rgba(120,230,255,.35)}
+  /* ---------- controls + palette */
+  .foot{display:flex;gap:18px;margin-top:16px}
+  .card{border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.045);padding:12px 14px}
+  .btns{display:flex;gap:12px;align-items:center}
+  .big{width:150px;height:74px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+       font-family:Impact,"Arial Narrow Bold",sans-serif;font-size:26px;letter-spacing:.02em;border:2px solid #bff6ff;
+       background:linear-gradient(180deg,rgba(70,230,255,.38),rgba(70,230,255,.08));color:#eafcff;box-shadow:0 0 24px rgba(70,230,255,.35)}
+  .big i{font-style:normal;font-family:system-ui;font-size:9.5px;font-weight:900;letter-spacing:.24em;opacity:.85;margin-top:2px}
+  .big.r{border-color:#ffd9a8;background:linear-gradient(180deg,rgba(255,140,40,.42),rgba(255,140,40,.08));box-shadow:0 0 24px rgba(255,140,40,.35);color:#fff5ea}
+  .sw{display:flex;gap:8px;margin-top:2px}
+  .sw div{width:66px;height:34px;border-radius:8px;border:1px solid rgba(255,255,255,.22);position:relative}
+  .sw b{position:absolute;left:0;right:0;bottom:-15px;text-align:center;font-size:8.5px;letter-spacing:.1em;color:#8aa3bd;font-weight:900}
+  .note{font-size:12px;color:#a9bfd5;line-height:1.5}
+  .note b{color:#ffd34d}
+  .sign{position:absolute;right:38px;bottom:26px;text-align:right;font-size:10px;letter-spacing:.24em;color:#6e869d;font-weight:900}
+</style></head>
+<body><div id="b"><div id="grain"></div>
+
+  <header>
+    <div>
+      <div class="wm">ROADSTER <em>// FLIP</em></div>
+      <div class="sub"><b>STARBASE RUN</b> &nbsp;·&nbsp; ONE-BUTTON AUTO-DRIVE STUNT RACER &nbsp;·&nbsp; THREE.JS</div>
+      <div class="tag">
+        <span class="chip cy">30 SECOND SHORT</span>
+        <span class="chip">9:16 VERTICAL</span>
+        <span class="chip or">2 BUTTONS</span>
+        <span class="chip">TESLA ROADSTER 2.0</span>
+        <span class="chip">TESLA SEMI</span>
+        <span class="chip">STARSHIP / STARBASE TX</span>
+      </div>
+    </div>
+    <div class="hook">
+      <div class="k">HOOK — FIRST 0.8 SECONDS</div>
+      <div class="l1">IT DRIVES ITSELF.</div>
+      <div class="l2">YOU GET TWO BUTTONS.</div>
+      <div class="l3"><b>Left = cold-gas fan</b> → sonic loops. <b>Right = thrusters</b> → the iconic kickflip over Tesla Semis crossing the 4-way.</div>
+    </div>
+  </header>
+
+  <div class="sec">LOOK-DEV &nbsp;·&nbsp; EVERY VEHICLE GENERATED IN CODE</div>
+  <div class="row">
+    <div class="cell look"><img src="asset-rear34.jpg"><span class="pill">REAR 3/4</span>
+      <div class="cap"><span>ROADSTER</span>Clearcoat white · black rocker · full-width tail bar · 4 thrusters</div></div>
+    <div class="cell look"><img src="asset-low.jpg"><span class="pill">LOW</span>
+      <div class="cap"><span>HIGH-DOWNFORCE MODE</span>Splitter shadow, air dam, wheel-arch tuck</div></div>
+    <div class="cell look"><img src="asset-side.jpg"><span class="pill">SIDE</span>
+      <div class="cap"><span>PACKAGE</span>2+2 silhouette, 20" turbine wheels, glasshouse rake</div></div>
+    <div class="cell look"><img src="asset-semi.jpg"><span class="pill">TRAFFIC</span>
+      <div class="cap"><span>TESLA SEMI</span>Stainless cab + trailer — the thing you kickflip</div></div>
+  </div>
+
+  <div class="sec">SCENES &nbsp;·&nbsp; 30s CUT &nbsp;·&nbsp; FRAMES PULLED FROM THE ACTUAL RENDER</div>
+  <div class="row" style="align-items:stretch">
+    <div class="cell port"><span class="pill">02.4s</span><img src="scene-loop.jpg">
+      <div class="cap"><span>SONIC LOOP</span>Hold fan · loop enters at 2.1s</div></div>
+    <div class="cell port"><span class="pill">22.9s</span><img src="scene-flip.jpg">
+      <div class="cap"><span>KICKFLIP</span>Tap thrusters · roll peaks mid-air</div></div>
+    <div class="cell port"><span class="pill">15.4s</span><img src="scene-rocket.jpg">
+      <div class="cap"><span>STARBASE</span>Starship lifting off behind the run</div></div>
+    <div class="cell port"><span class="pill">25.9s</span><img src="scene-win.jpg">
+      <div class="cap"><span>CLEAN RUN</span>5,950 pts · 3 shields Left</div></div>
+    <div class="card" style="flex:1;display:flex;flex-direction:column;justify-content:space-between">
+      <div>
+        <div class="sec" style="margin:0 0 12px">SHOT LIST &nbsp;·&nbsp; ONE TAKE, NO CUTS</div>
+        <div class="tl">
+          <div><b>0.0</b><i>hook</i><span>Auto-drive, semis rolling out of the haze</span></div>
+          <div><b>2.1</b><i>loop</i><span>Fan on — first sonic loop, FOV kick</span></div>
+          <div><b>4.2</b><i>flip</i><span>Thrusters — kickflip over Semi #1</span></div>
+          <div><b>6.4</b><i>loop</i><span>Second loop, speed climbs</span></div>
+          <div><b>10.4</b><i>loop ×2</i><span>Double loop, slow-motion window</span></div>
+          <div><b>16.4</b><i>rocket</i><span>Third Starship launch lights the horizon</span></div>
+          <div><b>20.9</b><i>flip</i><span>Last Semi, slow-mo roll</span></div>
+          <div><b>25.8</b><i>win</i><span>Finish card, CTA</span></div>
+        </div>
+      </div>
+      <div class="note" style="margin-top:10px">Captions: <b>IT DRIVES ITSELF</b> · <b>YOU GET TWO BUTTONS</b> · <b>ZERO CRASHES</b> · CTA.</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="card" style="flex:0 0 452px">
+      <div class="sec" style="margin:0 0 10px">CONTROLS</div>
+      <div class="btns">
+        <div class="big">FAN<i>HOLD</i></div>
+        <div class="big r">THRUST<i>TAP</i></div>
+        <div class="note" style="margin-left:6px">A / ← / F<br>hold for loops<br><br>D / → / T<br>tap to flip</div>
+      </div>
+    </div>
+    <div class="card" style="flex:1">
+      <div class="sec" style="margin:0 0 12px">TYPE + PALETTE</div>
+      <div class="sw">
+        <div style="background:#05070b"><b>#05070B</b></div>
+        <div style="background:#f4f4f2"><b>#F4F4F2</b></div>
+        <div style="background:#46e6ff"><b>#46E6FF</b></div>
+        <div style="background:#ff8c28"><b>#FF8C28</b></div>
+        <div style="background:#ffd34d"><b>#FFD34D</b></div>
+        <div style="background:#1a2740"><b>#1A2740</b></div>
+      </div>
+      <div class="note" style="margin-top:24px"><b>Impact</b> display / <b>system-ui 900</b> labels, 0.24em tracking · HUD: score, MPH, 3 shields, combo popups.</div>
+    </div>
+    <div class="card" style="flex:0 0 330px">
+      <div class="sec" style="margin:0 0 10px">DESIGN NOTE</div>
+      <div class="note">Close on image but.<br><b>It accurate.</b><br><br>Shot-for-shot toward the Roadster 2.0 reveal: tight body, honest grille-less nose, tail bar that lights across the full width.</div>
+    </div>
+  </div>
+
+  <div class="sign">GAMEPRESS · 30s SHORT · DESIGN BOARD v1 · 5,950 PTS · 3 SHIELDS LEFT · 0 CRASHES</div>
+</div></body></html>

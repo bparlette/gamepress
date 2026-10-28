@@ -15,3 +15,4 @@ research/test-kart.json
 *.test.jpg
 *.test.png
 
+.tmp/

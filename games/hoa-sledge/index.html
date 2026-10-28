@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>HOA SLEDGE — code enforcement</title>
+<style>
+  #hud{position:fixed;inset:0;pointer-events:none;color:#fff;font-family:Impact,"Arial Black",system-ui,sans-serif;z-index:5}
+  #hud *{box-sizing:border-box}
+  #top{position:absolute;left:0;right:0;top:1.6vh;text-align:center}
+  #score{font-size:11vmin;line-height:.86;letter-spacing:.01em;text-shadow:0 .55vmin 0 #000,0 0 3.4vmin rgba(255,200,90,.5);font-variant-numeric:tabular-nums}
+  #lbl{font-size:2.4vmin;letter-spacing:.34em;opacity:.8;font-family:system-ui,sans-serif;font-weight:800;margin-top:.6vh}
+  #row{position:absolute;left:0;right:0;top:15.5vh;display:flex;justify-content:center;gap:4vw;align-items:center}
+  #time{font-size:5.4vmin;color:#ffe066;text-shadow:0 .4vmin 0 #000;font-variant-numeric:tabular-nums}
+  #lvl{font-size:3.2vmin;letter-spacing:.16em;font-family:system-ui,sans-serif;font-weight:900;background:rgba(10,14,26,.45);border:.35vmin solid rgba(255,255,255,.35);
+       border-radius:2vmin;padding:.7vmin 1.8vmin;text-shadow:0 .3vmin 0 #000}
+  #bar{position:absolute;left:12vw;right:12vw;top:21.6vh;height:1.5vmin;border-radius:1vmin;background:rgba(0,0,0,.42);border:.28vmin solid rgba(255,255,255,.3);overflow:hidden}
+  #fill{height:100%;width:0%;background:linear-gradient(90deg,#4ff0b8,#ffe066,#ff8a3c);transition:width .18s}
+  #combo{position:absolute;left:0;right:0;bottom:17vh;text-align:center;font-size:5.6vmin;color:#7ef0ff;opacity:0;transform:scale(.8);transition:opacity .12s,transform .12s;
+         text-shadow:0 .5vmin 0 #000,0 0 3vmin rgba(120,240,255,.8)}
+  #combo.on{opacity:1;transform:scale(1)}
+  #tap{position:absolute;left:0;right:0;bottom:4.2vh;text-align:center;font-size:3.6vmin;letter-spacing:.18em;font-family:system-ui,sans-serif;font-weight:900;opacity:.85;
+       text-shadow:0 .4vmin 0 #000;animation:pulse 1.1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.45}50%{opacity:.95}}
+  #mute{position:absolute;right:4vw;bottom:3vh;font-size:3.2vmin;opacity:.5;font-family:system-ui,sans-serif;font-weight:800}
+</style>
+</head>
+<body>
+<div id="hud">
+  <div id="top"><div id="score">0</div><div id="lbl">CODE VIOLATIONS</div></div>
+  <div id="row"><div id="lvl">YEAR 1</div><div id="time">45</div></div>
+  <div id="bar"><div id="fill"></div></div>
+  <div id="combo">×2</div>
+  <div id="tap">TAP TO SWING</div>
+</div>
+<script type="module">
+// HOA SLEDGE — code enforcement.
+// One tap. A giant sledge hovers over the neighbour's illegal lawn-ornament pile; the pile is a real
+// Rapier rigid-body stack, so every union of gnomes is a simulation, not an animation (see docs/RAPIER-UPGRADE.md).
+// Contract: fixed 1/60 step, window.__events, window.__game, ?clean / ?auto / ?spectate / ?seed / ?dur,
+// st.shell + st.end, lose-then-win bot under ?auto=1.
+import { THREE, createStage, sfx, clamp } from '../../kit/gp3d.js';
+import { toon, sky, groundTex, particles, blobs, crowd, personGeo, houseGeo, treeGeo, hero, walkClock } from '../../kit/gpkit.js';
+import * as RAPIER from '../_vendor/rapier3d-compat.js';
+
+await RAPIER.init();
+
+const qs = new URLSearchParams(location.search);
+const SEED = +(qs.get('seed') || 12);
+const DUR = clamp(+(qs.get('dur') || 45), 6, 120);
+const TARGET = +(qs.get('target') || Math.round(DUR * 450));   // ~250 pts/s is a good player's pace
+const AUTO = qs.has('auto'), SPECTATE = qs.has('spectate');
+const CLEAN = qs.has('clean') || AUTO || SPECTATE || qs.has('autostart');
+
+/* ---------------------------------------------------------------- seeded rng (capture must be repeatable) */
+let _s = (SEED * 2654435761) >>> 0;
+const rnd = () => { _s = (_s * 1664525 + 1013904223) >>> 0; return _s / 4294967296; };
+const rr = (a, b) => a + rnd() * (b - a);
+const pickOne = a => a[Math.floor(rnd() * a.length)];
+
+/* ---------------------------------------------------------------- stage */
+const st = createStage({ bg: 0xa9d8ff, fov: 56, fitWidth: 7.2 });
+st.renderer.toneMappingExposure = 1.04;
+sky(st.scene, 0x2f7fd6, 0xffe4b8, [46, 250]);
+st.light();
+const sun = st.scene.children.find(o => o.isDirectionalLight);
+if (sun) { sun.position.set(9, 16, 11); sun.intensity = 2.3; sun.color.setHex(0xfff2da); }
+const bounce = new THREE.DirectionalLight(0xa6c8ff, 0.5); bounce.position.set(-11, 5, 7); st.scene.add(bounce);
+
+const px = particles(st.scene, 800);
+const bl = blobs(st.scene, 40);
+
+/* ---------------------------------------------------------------- the yard */
+{
+  const lawn = new THREE.Mesh(new THREE.PlaneGeometry(34, 26), toon(0xffffff, { map: groundTex('grass', 26) }));
+  lawn.rotation.x = -Math.PI / 2; lawn.position.set(0, 0, 0); st.scene.add(lawn);
+
+  const walkway = new THREE.Mesh(new THREE.BoxGeometry(34, 0.24, 3.4), toon(0xd2ccbe));
+  walkway.position.set(0, 0.11, 8.9); st.scene.add(walkway);
+  const street = new THREE.Mesh(new THREE.BoxGeometry(48, 0.22, 16), toon(0x4b5160));
+  street.position.set(0, 0.09, 18.4); st.scene.add(street);
+  const curb = new THREE.Mesh(new THREE.BoxGeometry(34, 0.3, 0.34), toon(0xbfb9ac));
+  curb.position.set(0, 0.15, 10.7); st.scene.add(curb);
+
+  // white picket fence: front line with a gate gap, plus both sides
+  const pickets = new THREE.InstancedMesh(new THREE.BoxGeometry(0.15, 1.3, 0.15), toon(0xf8f6ef), 96);
+  const o = new THREE.Object3D(); let n = 0;
+  for (let x = -9.5; x <= 9.5; x += 0.62) { if (Math.abs(x) < 1.1) continue; o.position.set(x, 0.65, 7.3); o.rotation.set(0, 0, 0); o.updateMatrix(); pickets.setMatrixAt(n++, o.matrix); }
+  for (let z = -6.6; z <= 7.3; z += 0.62) for (const x of [-9.5, 9.5]) { o.position.set(x, 0.65, z); o.rotation.set(0, Math.PI / 2, 0); o.updateMatrix(); pickets.setMatrixAt(n++, o.matrix); }
+  pickets.count = n; pickets.frustumCulled = false; st.scene.add(pickets);
+  for (const y of [0.52, 1.0]) {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(19, 0.11, 0.09), toon(0xf8f6ef)); rail.position.set(0, y, 7.3); st.scene.add(rail);
+    for (const x of [-9.5, 9.5]) { const r2 = new THREE.Mesh(new THREE.BoxGeometry(14, 0.11, 0.09), toon(0xf8f6ef)); r2.position.set(x, y, 0.35); r2.rotation.y = Math.PI / 2; st.scene.add(r2); }
+  }
+
+  // houses behind + trees in the corners (the cel look, so the yard is a place not a void)
+  const houses = [[-6.2, -10.5, 2.35, 0xe9dcc0, 0.10], [6.9, -11.8, 2.15, 0xd8d2f2, -0.12], [-15.5, -14.5, 2.05, 0xcfe2d4, 0.3]];
+  for (const [hx, hz, s, tint, ry] of houses) { const h = hero(houseGeo(), tint); h.position.set(hx, 0, hz); h.scale.setScalar(s); h.rotation.y = ry; st.scene.add(h); }
+  for (const [tx, tz, kind, sc] of [[-12.4, 3.4, 'round', 1.5], [12.6, 2.2, 'pine', 1.7], [13.6, -7.4, 'round', 1.9]]) {
+    const t = hero(treeGeo(kind), kind === 'pine' ? 0x2f7a44 : 0x3f9b4a); t.position.set(tx, 0, tz); t.scale.setScalar(sc); st.scene.add(t);
+  }
+  // flower bed the pile sits in
+  const bed = new THREE.Mesh(new THREE.CylinderGeometry(2.9, 3.0, 0.16, 22), toon(0x6b4a2e));
+  bed.position.set(0, 0.07, 0.4); st.scene.add(bed);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(2.95, 0.12, 6, 24), toon(0x8d5f3a));
+  rim.rotation.x = Math.PI / 2; rim.position.set(0, 0.16, 0.4); st.scene.add(rim);
+}
+
+/* ---------------------------------------------------------------- physics world (Rapier) */
+const world = new RAPIER.World({ x: 0, y: -14, z: 0 });   // heavier than earth for snappy falls, but light enough that a stack stands
+try { world.integrationParameters.numSolverIterations = 8; } catch {}   // stacks need a stiffer solver than the default 4
+world.timestep = 1 / 60;
+{
+  const gb = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(0, -0.6, 0));
+  world.createCollider(RAPIER.ColliderDesc.cuboid(26, 0.6, 26).setFriction(0.95).setRestitution(0.02), gb);
+  // the fence is a real wall: props bounce off it instead of sliding into the street
+  for (const [px0, pz0, hx, hz] of [[0, 7.45, 9.6, 0.16], [-9.6, 0.3, 0.16, 7.2], [9.6, 0.3, 0.16, 7.2]]) {
+    const wb = world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(px0, 0.7, pz0));
+    world.createCollider(RAPIER.ColliderDesc.cuboid(hx, 0.7, hz).setFriction(0.7).setRestitution(0.22), wb);
+  }
+}
+
+/* ---------------------------------------------------------------- the illegal ornaments */
+const meshOf = (geo, color) => new THREE.Mesh(geo, toon(color));
+const add = (g, m, x, y, z) => { m.position.set(x, y, z); g.add(m); return m; };
+
+function artGnome(c) {
+  const g = new THREE.Group();
+  add(g, meshOf(new THREE.CylinderGeometry(0.29, 0.36, 0.62, 10), c), 0, 0.31, 0);
+  add(g, meshOf(new THREE.SphereGeometry(0.24, 10, 8), 0xf7caa3), 0, 0.73, 0);
+  add(g, meshOf(new THREE.BoxGeometry(0.26, 0.2, 0.1), 0xf9f7f2), 0, 0.64, 0.2);
+  add(g, meshOf(new THREE.ConeGeometry(0.27, 0.48, 10), c), 0, 1.02, 0);
+  return g;
+}
+function artFlamingo(c) {
+  const g = new THREE.Group();
+  add(g, meshOf(new THREE.CylinderGeometry(0.035, 0.035, 0.7, 6), 0x3b3f4a), -0.1, 0.35, 0);
+  add(g, meshOf(new THREE.CylinderGeometry(0.035, 0.035, 0.7, 6), 0x3b3f4a), 0.1, 0.35, 0);
+  const body = add(g, meshOf(new THREE.SphereGeometry(0.3, 10, 8), c), 0, 0.78, 0); body.scale.set(1, 0.82, 0.66);
+  add(g, meshOf(new THREE.CylinderGeometry(0.06, 0.06, 0.46, 7), c), 0.12, 1.06, 0);
+  add(g, meshOf(new THREE.SphereGeometry(0.13, 8, 6), c), 0.16, 1.3, 0);
+  add(g, meshOf(new THREE.ConeGeometry(0.07, 0.2, 6), 0x2f3440), 0.3, 1.28, 0).rotation.z = -1.4;
+  return g;
+}
+function artChair(c) {
+  const g = new THREE.Group();
+  add(g, meshOf(new THREE.BoxGeometry(0.66, 0.1, 0.62), c), 0, 0.44, 0);
+  add(g, meshOf(new THREE.BoxGeometry(0.66, 0.56, 0.09), c), 0, 0.72, -0.28);
+  for (const [lx, lz] of [[-0.27, -0.24], [0.27, -0.24], [-0.27, 0.24], [0.27, 0.24]]) add(g, meshOf(new THREE.BoxGeometry(0.08, 0.44, 0.08), 0xeeeae0), lx, 0.22, lz);
+  return g;
+}
+function artBath(c) {
+  const g = new THREE.Group();
+  add(g, meshOf(new THREE.CylinderGeometry(0.3, 0.34, 0.12, 10), c), 0, 0.06, 0);
+  add(g, meshOf(new THREE.CylinderGeometry(0.12, 0.14, 0.62, 8), c), 0, 0.38, 0);
+  add(g, meshOf(new THREE.CylinderGeometry(0.46, 0.3, 0.12, 12), c), 0, 0.73, 0);
+  add(g, meshOf(new THREE.CylinderGeometry(0.34, 0.34, 0.05, 12), 0x6fc8f0), 0, 0.79, 0);
+  return g;
+}
+function artMailbox(c) {
+  const g = new THREE.Group();
+  add(g, meshOf(new THREE.BoxGeometry(0.11, 0.92, 0.11), 0x8a6a45), 0, 0.46, 0);
+  add(g, meshOf(new THREE.BoxGeometry(0.4, 0.3, 0.62), c), 0, 1.06, 0);
+  add(g, meshOf(new THREE.CylinderGeometry(0.2, 0.2, 0.62, 10, 1, false, 0, Math.PI), c), 0, 1.21, 0).rotation.x = Math.PI / 2;
+  return g;
+}
+function artGrill(c) {
+  const g = new THREE.Group();
+  add(g, meshOf(new THREE.CylinderGeometry(0.42, 0.36, 0.34, 12), 0x2b2f36), 0, 0.34, 0);
+  add(g, meshOf(new THREE.SphereGeometry(0.42, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), c), 0, 0.5, 0);
+  add(g, meshOf(new THREE.BoxGeometry(0.9, 0.06, 0.06), 0x9aa2ad), 0.0, 0.62, 0);
+  for (const s of [-1, 1]) add(g, meshOf(new THREE.BoxGeometry(0.06, 0.4, 0.06), 0x9aa2ad), s * 0.3, 0.2, 0);
+  return g;
+}
+function artSanta(c) {
+  const g = new THREE.Group();
+  const body = add(g, meshOf(new THREE.SphereGeometry(0.46, 12, 10), c), 0, 0.56, 0); body.scale.set(1, 1.1, 1);
+  add(g, meshOf(new THREE.SphereGeometry(0.26, 10, 8), 0xf7caa3), 0, 1.02, 0);
+  add(g, meshOf(new THREE.ConeGeometry(0.28, 0.44, 10), c), 0, 1.3, 0);
+  add(g, meshOf(new THREE.SphereGeometry(0.1, 8, 6), 0xffffff), 0, 1.53, 0);
+  return g;
+}
+
+// every ornament gets the same 0.6 x 1.1 x 0.6 collision box: art can differ, the pyramid must stand
+const PROP = {
+  gnome: { hh: 0.55, hx: 0.3, hz: 0.3, paint: [0xd94f4f, 0x4f7ad9, 0x4fd98a, 0xe0b93f], art: artGnome },
+  flamingo: { hh: 0.55, hx: 0.3, hz: 0.3, paint: [0xff77b5, 0xff8fc4, 0xf25fa4], art: artFlamingo },
+  chair: { hh: 0.55, hx: 0.3, hz: 0.3, paint: [0x6fd0c8, 0xf0e2a0, 0xe98fb0], art: artChair },
+  bath: { hh: 0.55, hx: 0.3, hz: 0.3, paint: [0xcdd5e0, 0xb9c4d2], art: artBath },
+  mailbox: { hh: 0.55, hx: 0.3, hz: 0.3, paint: [0x2f3a52, 0x8a4b2a, 0x3d6b52], art: artMailbox },
+  grill: { hh: 0.55, hx: 0.3, hz: 0.3, paint: [0x3a3f47], art: artGrill },
+  santa: { hh: 0.55, hx: 0.3, hz: 0.3, paint: [0xd93b3b, 0x2f6fd0], art: artSanta },
+};
+const EARLY = ['gnome', 'flamingo', 'chair', 'bath', 'mailbox'];
+const LATE = ['gnome', 'flamingo', 'chair', 'bath', 'mailbox', 'grill', 'santa'];
+const typePool = () => (G.level >= 3 ? LATE : G.level >= 2 ? [...EARLY, 'grill'] : EARLY);
+
+const props = [];
+const propLayer = new THREE.Group(); st.scene.add(propLayer);
+function spawnProp(type, x, y, z, vy = 0) {
+  const spec = PROP[type];
+  const holder = new THREE.Group();
+  const art = spec.art(pickOne(spec.paint)); art.position.y = -spec.hh; holder.add(art);
+  holder.position.set(x, y, z); propLayer.add(holder);
+  const rb = world.createRigidBody(RAPIER.RigidBodyDesc.dynamic().setTranslation(x, y, z).setLinearDamping(0.06).setAngularDamping(0.2));
+  if (vy) rb.setLinvel({ x: 0, y: vy, z: 0 }, true);
+  const col = world.createCollider(RAPIER.ColliderDesc.cuboid(spec.hx, spec.hh, spec.hz).setDensity(1.15).setFriction(1.0).setRestitution(0.0), rb);
+  const p = { type, spec, holder, rb, col, born: G.t, flat: false };
+  props.push(p); return p;
+}
+function removeProp(i) {
+  const p = props[i]; propLayer.remove(p.holder);
+  p.holder.traverse(o => { if (o.isMesh) o.geometry.dispose(); });
+  world.removeRigidBody(p.rb); props.splice(i, 1);
+}
+
+/* ---------------------------------------------------------------- the sledgehammer */
+const hammer = new THREE.Group(); st.scene.add(hammer);
+{
+  const steel = toon(0x39414f), edge = toon(0xd9e2ef), wood = toon(0xa9784a), accent = toon(0xff8a3c);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.52, 0.56), steel); hammer.add(head);
+  const face = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.58, 0.62), edge); face.position.x = 0.63; hammer.add(face);
+  const face2 = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.58, 0.62), edge); face2.position.x = -0.63; hammer.add(face2);
+  const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.34, 10), accent); collar.position.y = 0.34; hammer.add(collar);
+  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.085, 2.2, 8), wood);
+  grip.position.set(-0.02, 1.42, 0); grip.rotation.z = 0.05; hammer.add(grip);
+  const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.105, 0.14, 8), accent); ring.position.set(-0.05, 2.4, 0); hammer.add(ring);
+}
+const reticle = new THREE.Mesh(new THREE.RingGeometry(1.02, 1.16, 28), new THREE.MeshBasicMaterial({ color: 0xffe066, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false }));
+reticle.rotation.x = -Math.PI / 2; st.scene.add(reticle);
+const reticleDot = new THREE.Mesh(new THREE.CircleGeometry(0.2, 14), new THREE.MeshBasicMaterial({ color: 0xffd34d, transparent: true, opacity: 0.6, depthWrite: false }));
+reticleDot.rotation.x = -Math.PI / 2; st.scene.add(reticleDot);
+
+/* ---------------------------------------------------------------- the neighbour (walks, golfs, complains) */
+const npc = crowd(st.scene, personGeo(), 1, true, 1);
+
+/* ---------------------------------------------------------------- state */
+const G = {
+  phase: 'idle', swingT: 0, t: 0, endT: 0, score: 0, chain: 0, lastHit: -9, lastSwing: -9,
+  level: 1, target: 6, spawnCd: 0.4, liveT: -9, acts: 0, best: 0, over: false, comboShown: 1, zoom: 0, camX: 0,
+};
+const PILE_MAX_Y = 6.4;
+const NPC_LINES = ['MY GNOMES!', 'NOT THE FLAMINGO!', 'I AM CALLING THE BOARD', 'THAT IS A COLLECTIBLE', 'YOU ARE ON THE LIST'];
+
+function resetRun() {
+  for (let i = props.length - 1; i >= 0; i--) removeProp(i);
+  G.phase = 'idle'; G.swingT = 0; G.t = 0; G.endT = 0; G.score = 0; G.chain = 0; G.lastHit = -9; G.lastSwing = -9;
+  G.level = 1; G.target = 6; G.spawnCd = 0.5; G.liveT = -9; G.over = false; G.zoom = 0; G.camX = 0; G.armAt = 0.45; G.intro = 1;
+  buildPile(6);
+  st.rearm();
+  st.hud.hint(CLEAN ? '' : 'TAP ANYWHERE TO SWING');
+  document.getElementById('tap').style.display = CLEAN ? 'none' : '';
+  st.camera.position.set(2.2, 1.3, 3.6);   // the update loop eases this back to the wide shot
+}
+
+function buildPile(n) {
+  // taper the rows (3,3,...,2,1) so the top always rests on two props, never on air
+  const sizes = []; let left = n;
+  while (left > 6) { sizes.push(3); left -= 3; }
+  if (left >= 3) { sizes.push(3); left -= 3; }
+  if (left >= 2) { sizes.push(2); left -= 2; }
+  if (left >= 1) sizes.push(1);
+  const plan = sizes.map(c => Array.from({ length: c }, () => pickOne(typePool())));
+  let base = 0;
+  for (let r = 0; r < plan.length; r++) {
+    const row = plan[r];
+    const tallest = Math.max(...row.map(ty => PROP[ty].hh * 2));
+    for (let k = 0; k < row.length; k++) {
+      const ty = row[k];
+      const x = (k - (row.length - 1) / 2) * 0.74;
+      spawnProp(ty, x, base + PROP[ty].hh + 0.02, 0.4 + (rnd() - 0.5) * 0.06);
+    }
+    base += tallest + 0.015;
+  }
+}
+
+/* ---------------------------------------------------------------- scoring */
+// The chain only advances on a swing that actually connects, so it tracks *your* accuracy.
+function chainMult() { return 1 + Math.min(3, Math.floor(Math.max(0, G.chain) / 3)); }   // up to x4
+function bumpChain() { G.chain = (G.t - G.lastHit < 2.0) ? G.chain + 1 : 1; G.lastHit = G.t; return chainMult(); }
+function decayChain() { if (G.chain && G.t - G.lastHit > 2.0) G.chain = 0; }
+function addScore(base, at, label, color) {
+  const pts = base * chainMult();
+  G.score += pts;
+  st.popup(`${label} +${pts}`, { x: at.x, y: Math.max(2.0, at.y + 1.25), z: at.z }, color, label.length > 8 ? 4.2 : 5);
+  sfx(label === 'FLIPPED' ? 'snap' : 'ding', 0.5);
+}
+
+/* ---------------------------------------------------------------- swing */
+function aimX() { return Math.sin(G.t * 1.75) * 2.35; }
+function slam() {
+  if (G.phase !== 'idle' || G.over || G.t < (G.armAt || 0)) return;
+  G.phase = 'down'; G.swingT = 0; G.lastSwing = G.t;
+  sfx('whoosh', 0.55);
+}
+function resolveImpact(hp) {
+  let hits = 0;
+  for (const p of props) {
+    const t = p.rb.translation();
+    const d = Math.hypot(t.x - hp.x, (t.y - hp.y) * 1.2, t.z - hp.z);
+    if (d > 1.4) continue;
+    hits++;
+    const mass = p.rb.mass() || 1;
+    let dx = t.x - hp.x, dz = t.z - hp.z;
+    const len = Math.hypot(dx, dz) || 1;
+    dx /= len; dz /= len;
+    const power = (1 - d / 1.9) * 11 + 5.5;
+    p.rb.applyImpulseAtPoint(
+      { x: dx * power * 0.95 * mass, y: (0.5 + (1 - d / 1.4) * 0.55) * power * 0.5 * mass, z: dz * power * 0.55 * mass + 1.9 * mass },
+      { x: t.x, y: t.y + 0.24, z: t.z }, true);
+    p.rb.applyTorqueImpulse({ x: rr(-1, 1) * mass * 0.5, y: rr(-1, 1) * mass * 0.4, z: rr(-1, 1) * mass * 0.5 }, true);
+  }
+  G.zoom = Math.min(1, G.zoom + (hits ? 0.45 : 0.12));
+  if (hits) {
+    G.liveT = G.t;   // anything that topples in the next 3 s was caused by this swing
+    const pts = 50 * hits * bumpChain();
+    G.score += pts;
+    st.popup(`+${pts}`, { x: hp.x, y: hp.y + 0.95, z: hp.z }, '#ffe066', hits >= 3 ? 6.4 : 5.2);
+  }
+  if (!hits) {
+    st.popup('MISS', { x: hp.x, y: 2.6, z: hp.z }, '#ff8a3c', 4.2);
+    st.shake(0.12); sfx('tick', 0.5);
+    G.chain = 0;
+    return;
+  }
+  // dust + turf kicked up at the impact point
+  for (let i = 0; i < 10 + hits * 4; i++) {
+    px.emit({ x: hp.x + rr(-0.4, 0.4), y: 0.2 + rr(0, 0.5), z: hp.z + rr(-0.4, 0.4), vx: rr(-4, 4), vy: rr(1, 6), vz: rr(-3, 3), size: rr(0.12, 0.34), life: rr(0.3, 0.8), color: [0x9c7a4e, 0x6f8f4a, 0xd7cbb2][i % 3], g: 12 });
+  }
+  st.hitstop(hits >= 3 ? 0.075 : 0.045);
+  st.shake(0.22 + Math.min(0.5, hits * 0.1));
+  st.kick(2 + hits * 1.6);
+  sfx('crash', 0.75);
+  if (hits >= 3 && rnd() < 0.55) st.popup(NPC_LINES[Math.floor(rnd() * NPC_LINES.length)], { x: npcX() + 0.4, y: 2.5, z: 8.0 }, '#ffffff', 3.6);
+  if (hits >= 3) { st.slowmo(0.34, 0.26); st.flash('#fff0c0', 0.16); sfx('boom', 0.5); }
+}
+
+/* ---------------------------------------------------------------- per-frame */
+function stepProps(dt) {
+  world.timestep = clamp(dt, 1 / 240, 1 / 30);
+  world.step();
+  let n = 0;
+  for (let i = props.length - 1; i >= 0; i--) {
+    const p = props[i], t = p.rb.translation(), q = p.rb.rotation();
+    p.holder.position.set(t.x, t.y, t.z);
+    p.holder.quaternion.set(q.x, q.y, q.z, q.w);
+    const settled = G.t - p.born > 1.1;
+    const outYard = Math.abs(t.x) > 9.7 || t.z > 7.6 || t.z < -7.4 || t.y < -1.5;
+    if (outYard && settled && G.t - G.liveT < 3.0) {
+      addScore(500, t, 'OUT OF THE YARD', '#7ef0ff');
+      for (let k = 0; k < 6; k++) px.emit({ x: t.x, y: t.y, z: t.z, vx: rr(-5, 5), vy: rr(1, 7), vz: rr(-5, 5), size: rr(0.14, 0.3), life: rr(0.3, 0.7), color: [0xffe066, 0x7ef0ff, 0xffffff][k % 3], g: 10 });
+      removeProp(i); continue;
+    }
+    if (settled && !p.offbed && Math.hypot(t.x, t.z - 0.4) > 3.5 && t.y < 2.2) {
+      p.offbed = true;
+      if (G.t - G.liveT < 3.0) addScore(250, t, 'OFF THE BED', '#7ef0ff');
+    }
+    if (settled && !p.flat && t.y < 1.3) {
+      const upY = 1 - 2 * (q.x * q.x + q.z * q.z);
+      if (upY < 0.5) {
+        p.flat = true; p.flatT = G.t;
+        if (G.t - G.liveT < 3.0) addScore(150, t, 'FLIPPED', '#ffe066');
+      }
+    }
+    if (p.flat && G.t - (p.flatT || 0) > 3.0 && t.y < 0.9) removeProp(i);   // tidied away, only the first knock counts
+    n++;
+  }
+  bl.done(n);
+  // contact shadows: cheap, and they are what sells a stack to the eye
+  let i2 = 0;
+  for (const p of props) { const t = p.rb.translation(); bl.set(i2++, t.x, t.z, clamp(1.5 - t.y * 0.13, 0.35, 1.4)); }
+}
+
+function cleanYard() { for (let i = props.length - 1; i >= 0; i--) removeProp(i); }
+function refill(dt) {
+  G.spawnCd -= dt;
+  G.level = 1 + Math.floor(G.t / 13);
+  G.target = Math.min(9, 6 + (G.level - 1) * 3);   // 9 = a 4-row pyramid; taller than that self-collapses
+  if (props.length <= 2) {                       // the neighbour sweeps up and stacks a fresh pile
+    cleanYard(); buildPile(G.target); G.spawnCd = 1.0;
+    st.hud.banner(`YEAR ${G.level}: A FRESH PILE`, 1.0); sfx('groan', 0.45);
+    return;
+  }
+  if (props.length >= G.target || G.spawnCd > 0) return;
+  G.spawnCd = 0.62;
+  let top = 0.6;
+  for (const p of props) top = Math.max(top, p.rb.translation().y);
+  spawnProp(pickOne(typePool()), (rnd() - 0.5) * 1.5, Math.min(top + 0.62, PILE_MAX_Y), 0.4 + (rnd() - 0.5) * 0.5, 0);
+  G.acts++;
+  if (G.level > G.comboShown) {
+    G.comboShown = G.level;
+    st.hud.banner(`YEAR ${G.level}: MORE GNOMES`, 1.1);
+    sfx('groan', 0.5);
+    st.popup('THE NEIGHBOUR ADDS MORE', { x: 0, y: 4.2, z: 1.4 }, '#ffffff', 3.4);
+  }
+}
+
+const camPos = new THREE.Vector3(0, 3.0, 10.4);
+const camLook = new THREE.Vector3(0, 1.55, 0.55);
+const hammerPos = new THREE.Vector3();
+
+function npcX() { return Math.sin(G.t * 0.5) * 6.4; }
+
+function update(dt) {
+  walkClock.value = st.t;
+  if (G.over) {
+    G.endT += dt;
+    px.update(dt);
+    if ((AUTO || SPECTATE) && G.endT > 2.4) { if (AUTO) st.attempt++; resetRun(); }
+    return;
+  }
+  G.t += dt;
+  G.zoom = Math.max(0, G.zoom - dt * 1.6);
+
+  // --- swing / aim
+  if (G.phase === 'idle') {
+    const x = aimX();
+    const top = props.length ? props.reduce((m, p) => Math.max(m, p.rb.translation().y), 0.5) : 0.8;
+    hammerPos.set(x, clamp(top + 1.45, 2.15, 4.1), 0.95);
+    hammer.position.lerp(hammerPos, 1 - Math.pow(0.0008, dt));
+    hammer.rotation.set(0, 0, 0.06 * Math.sin(G.t * 3));
+    reticle.position.set(x, 0.045, 0.95); reticle.scale.setScalar(1 + 0.14 * Math.sin(G.t * 6));
+    reticleDot.position.set(x, 0.05, 0.95);
+    reticle.material.opacity = 0.34 + 0.2 * Math.sin(G.t * 6); reticleDot.material.opacity = reticle.material.opacity;
+  } else if (G.phase === 'down') {
+    G.swingT += dt;
+    const u = clamp(G.swingT / 0.085, 0, 1);
+    const top = hammerPos.y;
+    hammer.position.set(hammerPos.x, top + (1.05 - top) * u, hammerPos.z);
+    hammer.rotation.set(0, 0, -0.5 * u);
+    reticle.material.opacity = 0.7 * (1 - u); reticleDot.material.opacity = 0.4;
+    if (u >= 1) { G.phase = 'hold'; G.swingT = 0; resolveImpact(hammer.position.clone()); }
+  } else if (G.phase === 'hold') {
+    G.swingT += dt;
+    if (G.swingT > 0.06) { G.phase = 'up'; G.swingT = 0; }
+  } else {
+    G.swingT += dt;
+    const u = clamp(G.swingT / 0.19, 0, 1);
+    hammer.position.y = 1.05 + (hammerPos.y + 0.3 - 1.05) * u;
+    hammer.rotation.set(0, 0, -0.5 * (1 - u));
+    if (u >= 1) G.phase = 'idle';
+  }
+
+  stepProps(dt);
+  refill(dt);
+  px.update(dt);
+
+  // --- neighbour pace back and forth with the walk cycle
+  const nx = npcX(), dir = Math.cos(G.t * 0.5) > 0 ? 0 : Math.PI;
+  npc.set(0, nx, 0, 8.15, 1.05, dir + Math.PI / 2);
+  npc.done(1);
+
+  // --- camera: gentle push-in on big hits, tiny sway so the frame is never static
+  const tx = G.camX + Math.sin(G.t * 0.7) * 0.1, tz = 10.4 - G.zoom * 1.0;
+  const tgt = camPos.set(tx, 3.0 - G.zoom * 0.22, tz);
+  st.camera.position.lerp(tgt, 1 - Math.pow(0.002, dt));
+  st.camera.lookAt(camLook);
+
+  // --- bot (lose first, then win: attempt 0 swings when the aim is far from the pile)
+  if ((AUTO || SPECTATE) && G.phase === 'idle' && G.t - G.lastSwing > 0.34) {
+    const ax = Math.abs(aimX());
+    if (AUTO && st.dumb()) { if (ax > 2.05) slam(); }   // dumb bot: hammers the far edge of the lawn, never the pile
+    else if (ax < 1.05) slam();
+  }
+
+  // --- HUD
+  const el = id => document.getElementById(id);
+  el('score').textContent = Math.round(G.score).toLocaleString();
+  el('time').textContent = Math.max(0, Math.ceil(DUR - G.t));
+  el('lvl').textContent = `YEAR ${G.level}`;
+  el('fill').style.width = `${clamp(G.score / TARGET, 0, 1) * 100}%`;
+  decayChain();
+  const mult = chainMult();
+  const cEl = el('combo');
+  if (mult > 1) { cEl.textContent = `×${mult} COMBO`; cEl.classList.add('on'); } else cEl.classList.remove('on');
+  el('tap').style.opacity = G.t < 3 ? '0.85' : '0.35';
+  window.__game = { score: Math.round(G.score), level: G.level, chain: G.chain, props: props.length, phase: G.phase, t: +G.t.toFixed(2) };
+
+  // --- round end
+  if (G.t >= DUR) {
+    G.over = true; G.endT = 0;
+    const win = G.score >= TARGET;
+    st.popup(win ? 'YARD CLEARED!' : 'THEY WON', { x: 0, y: 3.6, z: 0.8 }, win ? '#7dff7d' : '#ff6b6b', 7);
+    sfx(win ? 'win' : 'groan', 0.8);
+    if (win) for (let i = 0; i < 40; i++) px.emit({ x: rr(-6, 6), y: rr(2, 9), z: rr(-1, 3), vx: rr(-5, 5), vy: rr(1, 6), vz: rr(-4, 4), size: rr(0.16, 0.4), life: rr(0.8, 1.8), color: [0xffe066, 0x7ef0ff, 0x7dff7d][i % 3], g: 6 });
+    st.end({ win, score: Math.round(G.score), label: 'CODE VIOLATIONS', progress: G.score / TARGET });
+  }
+}
+
+st.onPointerDown = () => slam();
+addEventListener('keydown', e => { if (e.code === 'Space' || e.key === 'ArrowDown') slam(); });
+
+resetRun();
+st.shell({
+  id: 'hoa-sledge', title: 'HOA SLEDGE',
+  sub: 'TAP = SWING. The pile is real physics: knock them off the lawn.',
+  onReset: () => resetRun(),
+});
+
+st.run(update);
+window.__rev = 1;
+window.__dbg = () => ({ rev: window.__rev, t: +G.t.toFixed(2), score: Math.round(G.score), level: G.level, chain: G.chain,
+  props: props.length, phase: G.phase, over: G.over, aim: +aimX().toFixed(2), top: +(props.reduce((m, p) => Math.max(m, p.rb.translation().y), 0)).toFixed(2) });
+window.__ready = true;
+window.startDemo = () => resetRun();
+</script>
+</body>
+</html>

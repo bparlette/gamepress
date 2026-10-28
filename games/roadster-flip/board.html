@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ROADSTER // FLIP — design board</title>
+<style>
+  :root{
+    --ink:#07090e; --panel:#0e121a; --line:#252c38; --paper:#f6f2ea;
+    --flame:#ff7a2a; --cyan:#3fe6ff; --gold:#ffcf5a; --salt:#c8926a; --glass:#8fa6c4;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#0a0c11;color:var(--paper);font-family:system-ui,-apple-system,"Helvetica Neue",sans-serif}
+  #board{width:1600px;height:1120px;position:relative;overflow:hidden;
+    background:
+      radial-gradient(1200px 700px at 78% -10%, rgba(255,122,42,.20), transparent 60%),
+      radial-gradient(900px 600px at 5% 105%, rgba(63,230,255,.14), transparent 62%),
+      linear-gradient(180deg,#0a0d13 0%, #0b0e15 55%, #090b10 100%);
+    padding:34px 40px 30px;display:grid;grid-template-columns:470px 1fr;gap:26px}
+  #board:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+    background-size:40px 40px;mask-image:radial-gradient(120% 100% at 50% 0%,#000 40%,transparent 100%)}
+  .col{position:relative;z-index:2;display:flex;flex-direction:column;gap:16px;min-width:0}
+  .kicker{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:#8a94a6;font-weight:800}
+  h1{margin:0;font-family:Impact,"Arial Black",system-ui,sans-serif;font-size:76px;line-height:.86;letter-spacing:.005em;
+    text-shadow:0 5px 0 #000,0 0 40px rgba(255,150,60,.35)}
+  h1 em{font-style:normal;color:var(--gold)}
+  .sub{margin:2px 0 0;font-size:16px;line-height:1.45;color:#c7cfdd;max-width:440px}
+  .rule{height:2px;background:linear-gradient(90deg,var(--flame),transparent)}
+  .card{background:linear-gradient(180deg,rgba(20,25,34,.92),rgba(12,16,23,.92));border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .card h3{margin:0 0 8px;font-size:12px;letter-spacing:.26em;text-transform:uppercase;color:#93a0b4}
+  .row{display:flex;gap:10px}
+  .btn{flex:1;border-radius:12px;padding:12px 12px 10px;border:2px solid;display:flex;flex-direction:column;gap:2px}
+  .btn b{font-family:Impact,"Arial Black",sans-serif;font-size:26px;letter-spacing:.03em;line-height:1}
+  .btn i{font-style:normal;font-size:11px;letter-spacing:.18em;color:#9fabbf;font-weight:800}
+  .btn.l{border-color:var(--cyan);background:rgba(63,230,255,.12);box-shadow:inset 0 0 30px rgba(63,230,255,.18)}
+  .btn.l b{color:#c9f7ff}
+  .btn.r{border-color:var(--flame);background:rgba(255,122,42,.13);box-shadow:inset 0 0 30px rgba(255,122,42,.2)}
+  .btn.r b{color:#ffd8b6}
+  ul{margin:0;padding-left:16px;font-size:13.5px;line-height:1.62;color:#c3ccda}
+  ul b{color:#fff}
+  .swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .sw{border-radius:9px;height:46px;border:1px solid rgba(255,255,255,.14);position:relative;overflow:hidden}
+  .sw span{position:absolute;left:6px;bottom:4px;font-size:9px;letter-spacing:.1em;font-weight:800;color:#0a0c11;
+    background:rgba(255,255,255,.72);padding:1px 4px;border-radius:3px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:minmax(0,auto);gap:14px}
+  .cell{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#0d1117}
+  .cell img{display:block;width:100%;height:100%;object-fit:cover}
+  .cell .tag{position:absolute;left:8px;top:8px;font-size:10px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;
+    background:rgba(6,8,12,.72);border:1px solid rgba(255,255,255,.22);padding:3px 7px;border-radius:5px}
+  .cell .cap{position:absolute;left:0;right:0;bottom:0;padding:16px 9px 7px;font-size:11px;line-height:1.25;font-weight:700;
+    background:linear-gradient(transparent,rgba(4,6,10,.92))}
+  .h-row{grid-column:span 3;display:flex;align-items:center;gap:10px;margin-top:2px}
+  .h-row b{font-family:Impact,"Arial Black",sans-serif;font-size:16px;letter-spacing:.12em;color:var(--gold)}
+  .h-row .ln{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  .assets{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .assets .cell{aspect-ratio:4/3}
+  .beats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .beats .cell{aspect-ratio:3/4}
+  .spec{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:12.5px;color:#b8c2d2;line-height:1.5}
+  .spec b{color:#fff}
+  .foot{position:absolute;left:40px;right:40px;bottom:12px;z-index:2;display:flex;justify-content:space-between;
+    font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:#6f7a8d;font-weight:800}
+  .quote{font-size:14px;line-height:1.5;color:#dfe6f1;border-left:3px solid var(--flame);padding-left:11px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:10px;letter-spacing:.14em;font-weight:900;text-transform:uppercase;padding:3px 7px;border-radius:4px;
+    background:rgba(255,255,255,.07);border:1px solid var(--line);color:#aeb9cb}
+</style>
+</head>
+<body>
+<div id="board">
+
+  <!-- ============ LEFT: title + mechanics + palette ============ -->
+  <div class="col">
+    <div>
+      <div class="kicker">Gamepress · Three.js · 30-second vertical</div>
+      <h1>ROADSTER<br><em>// FLIP</em></h1>
+      <div class="kicker" style="margin-top:8px;color:#ffb784">Starbase Run</div>
+      <p class="sub">Auto-drive at 300&nbsp;mph across the Texas salt flats. Two buttons. One is a cold-gas fan that
+        bends the air into a <b>sonic loop</b>. The other fires thrusters for the <b>kickflip</b> over Tesla Semis
+        crossing the 4-way junctions — while Starships claw off the pad behind you.</p>
+    </div>
+    <div class="rule"></div>
+
+    <div class="card">
+      <h3>The whole game</h3>
+      <div class="row">
+        <div class="btn l"><b>FAN ◀</b><i>HOLD · SONIC LOOP</i></div>
+        <div class="btn r"><b>THRUST ▶</b><i>TAP · KICKFLIP</i></div>
+      </div>
+      <ul style="margin-top:10px">
+        <li>The car <b>never steers itself into a wall</b> — it never needs you. It only needs you <b>on beat</b>.</li>
+        <li><b>Hold</b> the fan on the cyan rails: the car rides a 360° (or 720°) loop on air.</li>
+        <li><b>Tap</b> thrusters right before the junction: 4.5&nbsp;m of hop and a full barrel roll over the trailer.</li>
+        <li>Let go mid-loop and you <b>lose the grip</b>. Miss the tap and you eat a semi. 3 shields, then done.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>The 10-second hook</h3>
+      <div class="quote">“It drives itself. You only get two buttons — and one of them makes the car fly in a
+        loop.”</div>
+      <div class="chips" style="margin-top:9px">
+        <span class="chip">0.0s car in frame</span><span class="chip">0.4s Starship lights</span>
+        <span class="chip">1.0s first loop</span><span class="chip">no logo ramp</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Palette</h3>
+      <div class="swatches">
+        <div class="sw" style="background:#f7f5f0"><span>SALT WHITE</span></div>
+        <div class="sw" style="background:#3a3f47"><span>ASPHALT</span></div>
+        <div class="sw" style="background:#c8926a"><span>DUSK SAND</span></div>
+        <div class="sw" style="background:linear-gradient(120deg,#ffe3b8,#ff7a2a)"><span>SUNSET</span></div>
+        <div class="sw" style="background:#3fe6ff"><span>FAN CYAN</span></div>
+        <div class="sw" style="background:#9fe8ff"><span>PLUME</span></div>
+        <div class="sw" style="background:#ffcf5a"><span>STUNT GOLD</span></div>
+        <div class="sw" style="background:#101319"><span>COCKPIT</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Tech spec</h3>
+      <div class="spec">
+        <div><b>Engine</b><br>Three.js r1xx, ACES tonemap, PMREM env</div>
+        <div><b>Step</b><br>fixed 1/60 s, seeded RNG (runs are reproducible)</div>
+        <div><b>Car</b><br>procedural 3.0 × 1.2 × 5.8 m Roadster silhouette</div>
+        <div><b>Frame</b><br>9:16 · 4.2 fps budget in headless capture</div>
+        <div><b>Audio</b><br>fan whine, thruster thud, loop whoosh, crash</div>
+        <div><b>Feel</b><br>hitstop 100 ms + 0.7 s slowmo on crash</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ RIGHT: assets + scenes ============ -->
+  <div class="col">
+    <div class="grid" style="flex:1;grid-template-rows:auto auto auto 1fr auto">
+
+      <div class="h-row"><b>ASSETS · HERO VEHICLES</b><div class="ln"></div></div>
+      <div class="assets">
+        <div class="cell"><img src="board/asset-rear34.jpg" alt=""><div class="tag">Roadster</div><div class="cap">Rear 3/4 · black haunch, full-width tail light</div></div>
+        <div class="cell"><img src="board/asset-side.jpg" alt=""><div class="tag">Studio</div><div class="cap">Teardrop glass roof · low nose</div></div>
+        <div class="cell"><img src="board/asset-low.jpg" alt=""><div class="tag">Desert</div><div class="cap">Sunset rim · wheel turbines</div></div>
+        <div class="cell"><img src="board/asset-semi.jpg" alt=""><div class="tag">Semi</div><div class="cap">Trailer to scale · 53 ft, flat-nose</div></div>
+        <div class="cell"><img src="board/asset-ship.jpg" alt=""><div class="tag">Starship</div><div class="cap">Starbase stack + launch tower</div></div>
+      </div>
+
+      <div class="h-row"><b>THE RUN · 30 SECONDS, 3 BEATS</b><div class="ln"></div></div>
+      <div class="beats">
+        <div class="cell"><img src="board/beat-loop.jpg" alt=""><div class="tag">01 · Fan</div><div class="cap">HOLD — cyan rails, camera pulls out, 360° loop at 200 mph</div></div>
+        <div class="cell"><img src="board/beat-flip.jpg" alt=""><div class="tag">02 · Thrust</div><div class="cap">TAP — barrel roll over the trailer at the 4-way junction</div></div>
+        <div class="cell"><img src="board/beat-rocket.jpg" alt=""><div class="tag">03 · Starbase</div><div class="cap">Starship lifts behind the finish gantry · stunt score</div></div>
+      </div>
+
+      <div class="cell" style="min-height:0"><img src="board/beat-wide.jpg" alt="" style="object-position:center 42%">
+        <div class="tag">Composite</div>
+        <div class="cap">World: salt flat → asphalt ribbon → cyan loop gantries → SEMI X-ING junctions → Starbase
+          launch sites. Fog 220–1250 m so the rockets always sit behind the car.</div>
+      </div>
+
+      <div class="foot" style="position:static;margin-top:-4px">
+        <span>ROADSTER // FLIP · v1</span><span>auto-drive · 2 buttons · 30 s</span><span>gamepress · starbase run</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

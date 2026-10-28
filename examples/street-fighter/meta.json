@@ -1,0 +1,20 @@
+{
+  "id": "street-fighter",
+  "title": "STREET FIGHTER",
+  "tagline": "Hadouken vs Tiger Shot",
+  "description": "1987 arcade replica: Ryu vs Sagat. Fireballs clash, hits stop time, one winner.",
+  "tags": [
+    "street fighter",
+    "arcade replica",
+    "ryu sagat",
+    "fighting game",
+    "browser game",
+    "html5"
+  ],
+  "youtubeTitle": "Hadouken vs Tiger Shot (1987 arcade replica)",
+  "category": "Classic Homebrew",
+  "price": 0,
+  "keys": {},
+  "labels": {},
+  "orientation": "portrait"
+}
