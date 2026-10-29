@@ -46,6 +46,6 @@ Generated from `presets/recipes.json` (full detail: [`docs/RECIPES-CATALOG.md`](
 
 ## Docs
 
-`docs/KIT.md` (game kit API), `docs/RECIPES.md` and `docs/RECIPE-RULES.md`, `docs/DRIVING.md` (capture plans), `docs/TOOLING.md` (tools and commands), `docs/NINTENDO-FEEL.md`, `docs/MISO-LESSONS.md`, `docs/VIRAL-PLAYBOOK.md`, `docs/HOSTING.md`, `scripts/README.md`. Tests: `npm test`.
+`docs/KIT.md` (game kit API), `docs/RECIPES.md` and `docs/RECIPE-RULES.md`, `docs/DRIVING.md` (capture plans), `docs/TOOLING.md` (tools and commands), `docs/NINTENDO-FEEL.md`, `docs/MISO-LESSONS.md`, `docs/PREMIUM.md`, `docs/VIRAL-PLAYBOOK.md`, `docs/HOSTING.md`, `scripts/README.md`. Tests: `npm test`.
 
 MIT

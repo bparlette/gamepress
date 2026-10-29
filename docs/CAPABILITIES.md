@@ -96,6 +96,11 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
   Production lessons (iOS silent-switch audio fix, visual reference rule,
   painted segment backdrops, invisible-floor rule, portrait OY pattern,
   grapple-by-constraint): `docs/MISO-LESSONS.md`.
+- **What reads as premium (the top 3):** one coherent visual system (style
+  contract gate + normalised assets + unified lighting + one grade chain),
+  game feel as a system (forgiveness windows + per-event feedback budget +
+  layered audio), and a hard performance budget from day one (draw calls,
+  DPR cap, KTX2/Draco) — plus the anti-patterns to refuse: `docs/PREMIUM.md`.
 - **Voices/TTS (`tools.json` registry):** kokoro-tts (local, ~137 MB) for
   trailers and voice lines; edge-tts as network fallback (`gamepress
   voices --engine edge`); another6502 for port work. Registry rules:
