@@ -207,8 +207,45 @@ play, however correct their hitboxes are. Rules from the verdict:
   onomatopoeia popups. Understatement is the failure mode.
 - A dedicated combat-feel overhaul followed the verdict.
 
-**Overhaul implementation (slot — fill in when it ships):**
-_hit-stop duration, popup/burst system details, attack timing numbers._
+**Overhaul implementation (shipped Oct 29, 2026):**
+
+- **Moves are runtime pose overrides layered on the rig** — restore →
+  mixer update → save → parent-space bone deltas, so nothing compounds
+  frame over frame. Punch (Z/K) range 2.35, kick (C/V) range 2.55,
+  hitbox checked once at the strike moment; every move runs
+  anticipation → easeOutBack strike → hold → recover, with a root
+  lunge/hop. Touch remapped: A (👊) = attack, alternating punch/kick
+  as a combo; B (🧶) = yarn throw.
+- **Hit-stop: 85 ms on melee connect (both actors), 50 ms enemy-only
+  on yarn hits.** Impact language: canvas starburst ~170 ms at the
+  contact point; onomatopoeia popups with per-kind word cycling
+  (melee POW!/BAM!/WHAM!/BONK!, kicks THWACK!/BOOT!/KAPOW!, yarn
+  BONK!/POP!/BOING!, player-hurt OUCH!/YOWCH!), rise + fade ~480 ms
+  with an overshoot scale-pop; additive swoosh arcs; victim white
+  emissive flash — **materials must be cloned per dog instance or the
+  flash leaks across enemies**; squash-and-stretch + knockback + star
+  burst. Melee also fires the existing camera-shake channel at
+  0.07 s — no full-screen shake, ripple, or chromatic aberration
+  added.
+- **The dogs' offense bug was a missing play call, not a bad clip:**
+  the shipped game *never played* the dogs' Attack clip — only Walk,
+  Hit, and Down — so the fight read passive however the numbers were
+  tuned. Fix: telegraph = 0.35 s hold + rear-up pose override (chest
+  back, both paws up), then a lunge at ×3.4 drive for 0.45 s with
+  swoosh + forward-pitch overshoot, hit window checked across the
+  whole pass. Boss jump-slam landing fires burst + impact star.
+- **Camera:** `STREET_CAM_TIGHTEN = 0.88`, street mode only (both
+  fighter sections, boss block included) — measured camera z 29.9 vs
+  ~33.6 before, fighters ~13% larger on screen. Title and runner
+  framing untouched.
+- **Verification:** full harness 24/24 probes, zero JS errors — and
+  the stills rule above still governs: the hit/POW contact still
+  reads; punch stills read cross-body (the rig's arm-chain local axes
+  sit rolled ~90° vs the hips; tuned mix rx −2.4 / rz −0.85 gives
+  full-arm extension along the facing axis — motion sells it, stills
+  don't). Capture action stills in bursts: a transient first-frame
+  flake can drop the player from a single presented frame while
+  position and visibility report correct.
 
 ### The verify harness pattern (proven twice)
 
