@@ -132,6 +132,11 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
 - **Animation:** Mixamo (humanoid auto-rig + animations, free w/ Adobe
   account); **Mesh2Motion** (browser auto-rigger + 170 CC0 creature
   animations — the non-humanoid gap); Blender skills for cleanup/export.
+- **Free sprite→3D→rig chain:** see `docs/SPRITE-TO-3D.md` (TRELLIS.2 /
+  Hunyuan3D-2 via HF Spaces or Colab GPU, UniRig, local Blender rigger
+  fallback) — the $0 route when a sprite has to become a walking 3D
+  character; Meshy stays the paid alternative (free tier generates, but
+  downloads are Pro-paywalled).
 - **Sound:** Freesound (per-file license — CC-BY-NC never in a paid release).
 - **UI reference (look before designing):** Game UI Database (~78k screens),
   Interface In Game, Gamedexy + Flomob (mobile F2P flows), Mobbin (app flows).
