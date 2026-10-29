@@ -91,11 +91,13 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
   `docs/SHORT-PIPELINE.md` (fused canvas+WebAudio capture, measured fps and
   stream durations — never quoted from the recorder request),
   −14 LUFS, hook caption ≤1s.
-- **Case study — Miso, built twice:** Nintendo-style platformer, then a
-  photoreal city rebuild with a grapple-swing yarn and a vertical level.
+- **Case study — Miso, built three times:** Nintendo-style platformer,
+  then a photoreal city rebuild with a grapple-swing yarn and a vertical
+  level, then an all-3D three.js fighter/runner (Miso City Level 1).
   Production lessons (iOS silent-switch audio fix, visual reference rule,
   painted segment backdrops, invisible-floor rule, portrait OY pattern,
-  grapple-by-constraint): `docs/MISO-LESSONS.md`.
+  grapple-by-constraint, and §7: the GLB color-space trap, combat
+  readability, the verify harness, itch packaging): `docs/MISO-LESSONS.md`.
 - **What reads as premium (the top 3):** one coherent visual system (style
   contract gate + normalised assets + unified lighting + one grade chain),
   game feel as a system (forgiveness windows + per-event feedback budget +

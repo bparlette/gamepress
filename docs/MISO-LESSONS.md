@@ -157,6 +157,84 @@ hook; X hooks when there is.**
   indexing) runs zero times and looks like "the art didn't take." When a
   visual feature has no effect, first prove its condition executes.
 
+## 7. The 3D build: Miso City Level 1 (three.js, Oct 29, 2026)
+
+Third build of the character: a side-scroller fighter street → alley
+runner → boss fight, all-3D cast from the local procedural pipeline
+(`docs/SPRITE-TO-3D.md`), shipped as a browser game on itch. The
+pipeline lessons live in SPRITE-TO-3D; these are the *engine-integration*
+lessons — what happens when the GLBs meet three.js.
+
+### The color-space trap (headline lesson)
+
+**Procedural GLBs store raw sRGB numbers in `baseColorFactor`; three.js
+reads them as linear, so the sRGB output pass washes the cast to
+pastels** — Miso's orange coat rendered cream-yellow, the green headband
+rendered mint, charcoal wraps rendered grey. The models were never
+wrong; the loader numbers were. **Fix: `material.color.convertSRGBToLinear()`
+once per material at load.** Ground truth for the palette is the Blender
+still of the same GLB — if the in-game character doesn't match the
+still's hues, suspect color space before touching art.
+
+### flattenToBasic is a dead end
+
+An early build "fixed" invisible characters by flattening every material
+to `MeshBasicMaterial`. Two lessons in that: (1) three r170's GLTFLoader
+splits multi-primitive meshes into separate single-material
+`SkinnedMesh`es — **no material arrays ever reach the renderer on this
+path, so the "array on a groupless geometry draws nothing" workaround
+was treating a bug that doesn't exist here**; (2) flattening only
+destroyed the shading and compounded the pastel problem. Keep the
+exported `MeshStandardMaterial`s, and light the characters instead:
+hemisphere + warm directional key + cool fill. Directional lights earn
+their keep twice — they also cover far set zones (the runner alley sits
+~400 units from the street) where the street's point lights can't reach.
+Character saturation and identity must be **screenshot-checked against
+the Blender stills**, not assumed from "it renders".
+
+### Combat readability: probes passing ≠ the fight reads
+
+The shipped fight was mechanically correct — 21/21 harness probes green —
+and the owner's playtest verdict was still: *"Can't see punches or
+kicks."* Subtle 0.5s attack clips on small characters are invisible in
+play, however correct their hitboxes are. Rules from the verdict:
+
+- **Verify combat with frozen action stills judged by eye** (mid-swing,
+  contact frame), the same way §5 of SPRITE-TO-3D verifies walks. A
+  damage-number probe is not evidence a hit can be *seen*.
+- **Ship fighting exaggerated:** anticipation and overshoot on every
+  swing, plus comic impact language — hit-stop, impact bursts,
+  onomatopoeia popups. Understatement is the failure mode.
+- A dedicated combat-feel overhaul followed the verdict.
+
+**Overhaul implementation (slot — fill in when it ships):**
+_hit-stop duration, popup/burst system details, attack timing numbers._
+
+### The verify harness pattern (proven twice)
+
+Playwright against a local static server, network intercepted to the
+local origin. The game exposes `window.__game` (mode, hearts, score,
+district, player position, enemies alive, boss HP) and a `__gameStart()`
+hook; ~21 probes cover: load with zero console errors, movement,
+per-move damage, mode transitions (street → runner → boss), boss spawn
+and kill, win screen, game-over path — and a **touch probe against the
+real `gptouch` overlay** (drag moves the player; buttons act). Two
+calibration warnings: headless SwiftShader runs the game clock at
+~0.06× real time (dt-clamped frames), so size probe iteration budgets
+for the slow clock, and **never quote headless fps as device
+performance** — it measures the software rasterizer, not the game.
+
+### Shipping a three.js game to itch
+
+Zip with **`index.html` at the root**; vendor three under
+`node_modules/three/` (the module + `three/addons/` imports resolve
+relatively, so the folder ships as-is); include `assets/` (GLBs), art
+plates, and audio. Exclude dev files: the verify harness, screenshots,
+source generation files. The shipped Level 1 zip: **126 files, 5.7 MB**
+— itch took it as browser-playable with room to spare. Before zipping,
+run the public-naming check over every shipped text file: no owner
+names, no GitHub URLs in anything a player can download.
+
 ## See also
 
 - `docs/SHORT-PIPELINE.md` — filming Miso (recorder, choreographed bot,
@@ -164,3 +242,6 @@ hook; X hooks when there is.**
   coordinates.
 - `docs/NINTENDO-FEEL.md` — the decompiled constants behind §1.
 - `docs/TOUCH.md` — the floating-joystick standard used for the phone build.
+- `docs/SPRITE-TO-3D.md` — the pipeline that produced the §7 cast:
+  routes (Meshy / HF Spaces / Colab / local procedural), the shared-rig
+  action contract, tail and grounding rules, proof-render verification.
