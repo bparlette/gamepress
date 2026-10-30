@@ -20,3 +20,9 @@ Original art only. No Math.random/Date.now. Keep gameplay untouched between tier
 - Screen FX: `GLPOST.fx = {ca, hurt, flash, ember}` (chromatic kick, red low-HP vignette, white flash, drifting embers).
 - Build: add id to games.json, `python3 build.py gN --art`.
 Limits: normals are fake (luminance), so flat art lights flat; embers are procedural, not simulated.
+
+## Tier 6: HD Close (g17e): close camera + no pause menus
+- Same sim, but `drawHD` follows the hero with a smoothed camera at zoom 1.9 (1.55 during boss). Characters render about 2x larger on screen; atlas parts are 4x svg units (env tiles 8x via `S` override in `art/build-art.cjs`) so they stay crisp.
+- Room is painted straight from the atlas each frame (`drawRoom`) instead of a cached sprite, so zoom does not blur it.
+- Level-up no longer pauses: in `step()` the least-upgraded power is auto-applied when the gem bar fills (popup + sfx). Do this for any new game: never block play on a menu.
+- To make another game "Close": start from its Lux edition, set `z` and a follow camera, replace cached background sprites with direct drawing.
