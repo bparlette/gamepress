@@ -24,3 +24,6 @@ Honest ceiling: 22 colours at 256x224 gets "rich 8-bit"; painted HD art like a m
 
 ## Libraries added
 `glpost.js` (GLPOST: WebGL overlay, enabled by `window.GLPOST_ON`) and `rigkit.js` (RIG.def/draw/ready, atlas from `window.ATLAS`). Avoid global name collisions: use `RIG.*`, `GLPOST.*`, `HD.*`, `ART.*`.
+
+## Full API
+See `KIT-API.md` (signatures/units), `ART-CONVENTIONS.md` (SVG rigs), `HD-ART-TIER.md` (tiers 4-6, tall layout, touch pad), `RUNBOOK-ENV.md` (env, registry, verification).

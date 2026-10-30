@@ -1,0 +1,12 @@
+# SVG art conventions (drawing a new rig)
+
+Files live in `kit/cabinet/art/`. `node art/build-art.cjs` renders them into `art/atlas.json`; register the file in `SETS` at the top of `build-art.cjs`.
+
+**Canvas.** Characters: `viewBox="0 0 120 150"` (humanoid) or `0 0 160 140` (big boss). Keep width/height = 4x viewBox. Draw facing RIGHT. Feet centre on the ground line at about (60,141); that point is the rig `anchor`. Hero is ~110 units tall in SVG, which `scale:0.15` turns into ~17 logical units (so ~17 px in pixel edition). A character should read at 15-25 logical units tall; the follow-camera editions show them at ~2x.
+**Parts.** Every moving piece is a `<g data-p="name">` group. Every part is rendered ALONE into a full-viewBox transparent image, so parts overlay exactly: never offset a part with its own translate; draw it where it sits in the neutral pose. Standard humanoid names and back-to-front order: `pack?, legB, legF, armFar, torso, head, arm` (`arm` = the near arm that aims the gun, drawn last). Boss: `legsL, legsR, body, head`.
+**Pivots** (SVG units, in `RIG.def pivots`): hip for legs (e.g. `[48,104]`), shoulder for arms (`[66,74]`), waist for torso (`[60,108]`), neck for head (`[60,64]`). Rotate = about that point, radians, positive clockwise. The near arm at rotation 0 must point along +x (right) so aim angle can be passed straight in.
+**Attachments.** A gun is its own SVG (`gun.svg`, no parts -> key `gun.all`) placed with `attach:[{key:'gun.all',to:'arm',at:[x,y],scale}]` at the hand.
+**Gradients.** Every gradient/filter id must be unique ACROSS files that share a page (prefix per file: `e_`, `f_`, `p_`). Limit to flat fills + linear/radial gradients + strokes; no external fonts or images.
+**Palette/shading.** Light from top-left: highlight stroke `#fff` at 0.3-0.7 opacity on top-left edges, shadow gradient on the lower right, dark outline (#10131a-ish) 1-1.5 units. Variants (elite, tinted) copy the file with colour swaps.
+**Environment tiles.** Tiles are square power-of-two-ish units (32x32 floor, 32x18 wall) and are rendered 8x for the close-camera editions (`S` map in `build-art.cjs`). Props are drawn in one sheet (`env_props.svg`, 160x48) with a baked contact shadow; draw at `(x - ox, y - oy)` using the part's own offset.
+**Check.** `node art/render.cjs hero_rig.svg zombie_rig.svg` -> `out/art_sheet.png`; then `./check.sh gN 40` and `ART=1 SEED=7 node snap.cjs gN 420 900` and LOOK at the image.

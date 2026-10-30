@@ -6,6 +6,6 @@ const { chromium } = require('playwright'); const fs = require('fs'), path = req
   await pg.goto('file://' + path.resolve(__dirname, 'out', g + (process.env.ART ? '.art' : process.env.HD ? '.hd' : '') + '.html') + (process.env.SEED ? '?seed=' + process.env.SEED : '')); await pg.evaluate(() => document.fonts.load('8px "Press Start 2P"')); await pg.waitForTimeout(300);
   await pg.evaluate(() => { window.__shell.start(); window.__shell.bot(true); });
   for (let i = 0; i <= max; i++) { await pg.evaluate(() => { window.__shell.step(); window.__shell.render(); });
-    if (at.includes(i)) { const u = await pg.evaluate(() => { const c = document.getElementById('screen'), z = document.createElement('canvas'); z.width = 768; z.height = 672; const x = z.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(c, 0, 0, 768, 672); return z.toDataURL(); });
+    if (at.includes(i)) { const u = await pg.evaluate(() => { const c = document.getElementById('screen'), z = document.createElement('canvas'); z.width = c.width; z.height = c.height; const x = z.getContext('2d'); x.drawImage(c, 0, 0); return z.toDataURL(); });
       fs.writeFileSync(path.resolve(__dirname, 'out', `${g}${process.env.ART ? '_art' : process.env.HD ? '_hd' : ''}_f${i}_x3.png`), Buffer.from(u.split(',')[1], 'base64')); } }
   await b.close(); })();

@@ -26,3 +26,10 @@ Limits: normals are fake (luminance), so flat art lights flat; embers are proced
 - Room is painted straight from the atlas each frame (`drawRoom`) instead of a cached sprite, so zoom does not blur it.
 - Level-up no longer pauses: in `step()` the least-upgraded power is auto-applied when the gem bar fills (popup + sfx). Do this for any new game: never block play on a menu.
 - To make another game "Close": start from its Lux edition, set `z` and a follow camera, replace cached background sprites with direct drawing.
+
+## Tall layout + any-direction touch pad (all new games)
+- **Shell** (`head.html`): the cabinet is `100dvh`: screen fills the height, controller is one compact row (pad left, SELECT/START centre, B/A right, about 130 px). The old key-hint line is hidden.
+- **Tall games**: set `tall:true` in `kit({})`. `loop.js fitTall()` sets `window.HD_H` (224..480 logical units) from the screen box each frame and resizes the canvas (`cv.height = 3*HD_H`). In `drawHD` use `HH = window.HD_H || 224`: centre the camera at `HH/2`, clamp `cy` to `[HH/2/z, 224-HH/2/z]`, fill overlays to `HH`, put bottom UI at `HH-12`, and keep `z >= HH/224 + 0.04` so the world always covers the view. Title/game-over panels are auto-centred.
+- **Touch pad** (`core.js dpadUpdate`): looks like a d-pad (plus a thumb nub) but is an analog stick. `kit({dir})`: `'4'` = only up/down/left/right (dominant axis), `'8'` = default (diagonals, 22.5 degree sectors), `'any'` = also fills `inp.ax/inp.ay` (-1..1, 360 degrees). `inp.l/r/u/d` are always set so old games work. In `any` games move with `ax/ay` and normalise: `m=Math.hypot(ax,ay); if(m>1){ax/=m;ay/=m}`; bots set only `l/r/u/d`, so fall back: `inp.ax !== undefined ? inp.ax : (inp.r?1:0)-(inp.l?1:0)`.
+- **No pause menus**: never block play on a menu. Level-ups auto-apply (least-upgraded power first) with a popup, or are ground pickups.
+- **Tiers and rules**: tiers must play identically (`node tiers.cjs g17 g17.hd g17b.hd g17c.art g17d.art`). A tier that changes rules (g17e) is listed with `--expect-diff g17e`.

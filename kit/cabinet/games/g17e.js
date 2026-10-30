@@ -94,7 +94,7 @@ function paintRoom(g) {{
     for (const sx of [0, 250]) { g.fillStyle = HD.lg(g, sx, 0, sx + 6, 0, [[0, '#1a222c'], [0.4, '#7a8a98'], [1, '#222a34']]); g.fillRect(sx, 18, 6, 190); for (let y = 30; y < 208; y += 40) HD.part(g, sx - 0.5, y, 7, 3, 0.8, '#a0acb8', '#4a5560'); }
   }}
 
-const GAME = kit({ id:'g17e', t1:'VAMPIRE', t2:'METROID CLOSE', sub:'SURVIVE. LEVEL. MELT THE HIVE.', seed:171, off:17, secs:48,
+const GAME = kit({ id:'g17e', tall:true, dir:'any', t1:'VAMPIRE', t2:'METROID CLOSE', sub:'SURVIVE. LEVEL. MELT THE HIVE.', seed:171, off:17, secs:48,
   music:MUS(150, -21, true),
   setup(S) {
     S.p = { x:128, y:112, hp:100, inv:0, f:0, ang:0 }; S.en = []; S.sh = []; S.pel = []; S.fx = []; S.mines = []; S.dec = []; S.mz = 0;
@@ -108,7 +108,8 @@ const GAME = kit({ id:'g17e', t1:'VAMPIRE', t2:'METROID CLOSE', sub:'SURVIVE. LE
       if ((a || b) && S.mt > 0.3) { S.lv[S.menu[S.sel]]++; S.menu = null; sfx('power'); popup(S, 'POWER UP!', p.x, p.y - 14, CY); }
       return;
     }
-    p.x = clamp(p.x + ((inp.r ? 1 : 0) - (inp.l ? 1 : 0)) * 58 * dt, 8, 248); p.y = clamp(p.y + ((inp.d ? 1 : 0) - (inp.u ? 1 : 0)) * 58 * dt, 22, 200); p.inv -= dt;
+    let mx = inp.ax !== undefined ? inp.ax : (inp.r ? 1 : 0) - (inp.l ? 1 : 0), my = inp.ay !== undefined ? inp.ay : (inp.d ? 1 : 0) - (inp.u ? 1 : 0); const mm = Math.hypot(mx, my); if (mm > 1) { mx /= mm; my /= mm; }
+    p.x = clamp(p.x + mx * 58 * dt, 8, 248); p.y = clamp(p.y + my * 58 * dt, 22, 200); p.inv -= dt;
     /* spawns from the screen edges, ramping */
     S.spw -= dt; const rate = Math.min(0.09, 0.45 / (1 + S.T * 0.35));
     while (S.spw <= 0 && S.en.length < 140) {
@@ -173,7 +174,7 @@ const GAME = kit({ id:'g17e', t1:'VAMPIRE', t2:'METROID CLOSE', sub:'SURVIVE. LE
     if (S.menu) { txt('LEVEL UP! CHOOSE', 128, 76, Y, 8, 'center'); S.menu.forEach((k, i) => { const x = 32 + i * 66; txt(UP17[k], x + 30, 100, W, 8, 'center'); txt('LV ' + (S.lv[k] + 1), x + 30, 134, CY, 8, 'center'); }); }
   },
   drawHD(S, g, mode) {
-    const T = S.T, p = S.p, dt = 1 / 60, clampv = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    const HH = window.HD_H || 224, T = S.T, p = S.p, dt = 1 / 60, clampv = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
     if (!S.hd) S.hd = { parts:[], ghosts:[], nums:[], vis:new WeakMap(), last:null, zoom:0, shake:0, xp:0, hp:100, hpg:100, lvl:1, boss:0, kick:0, mzp:0, px:p.x, py:p.y, puff:0, xpf:0, kp:0, kills:0, rings:[] };
     const hd = S.hd, win = S.win > 0, boss = S.boss;
     /* ---- visual event detection ---- */
@@ -190,11 +191,11 @@ const GAME = kit({ id:'g17e', t1:'VAMPIRE', t2:'METROID CLOSE', sub:'SURVIVE. LE
     hd.kick *= 0.78; hd.zoom *= 0.93; hd.shake *= 0.9; hd.kp *= 0.88; hd.xpf *= 0.9;
     /* ---- camera: lean toward hero, zoom pulses, boss-death push-in, shake ---- */
     if (hd.cx === undefined) { hd.cx = p.x; hd.cy = p.y; } hd.cx += (p.x - hd.cx) * 0.14; hd.cy += (p.y - hd.cy) * 0.14;
-    let z = (boss ? 1.55 : 1.9) + hd.zoom * 0.1, cx = hd.cx, cy = hd.cy;
+    let z = Math.max(HH / 224 + 0.04, boss ? 1.55 : 1.9) + hd.zoom * 0.1, cx = hd.cx, cy = hd.cy;
     if (win && boss) { const k = 1 - S.win / 1.2; z += k * 0.5; cx += (boss.x - cx) * k * 0.7; cy += (boss.y - cy) * k * 0.7; hd.shake = Math.max(hd.shake, 1.2); if (S.win > 0.1) { HD.burst(hd.parts, boss.x + (vr() - 0.5) * 24, boss.y + (vr() - 0.5) * 20, vr() < 0.5 ? '#ffd060' : '#c864f0', 3, 90, 1.4); if ((S.T * 60 | 0) % 8 === 0) hd.rings.push({ x:boss.x, y:boss.y, r:5, t:0.6, c:'255,230,160' }); } }
-    cx = clampv(cx, 128 / z, 256 - 128 / z); cy = clampv(cy, 112 / z, 224 - 112 / z);
+    cx = clampv(cx, 128 / z, 256 - 128 / z); cy = clampv(cy, HH / 2 / z, 224 - HH / 2 / z);
     const shk = hd.shake * 1.7 + (p.inv > 0.45 ? 0.8 : 0);
-    g.save(); g.translate(128 + (shk ? Math.sin(T * 91) * shk : 0), 112 + (shk ? Math.cos(T * 77) * shk : 0)); g.scale(z, z); g.translate(-cx, -cy);
+    g.save(); g.fillStyle = '#000'; g.fillRect(0, 0, 256, HH); g.translate(128 + (shk ? Math.sin(T * 91) * shk : 0), HH / 2 + (shk ? Math.cos(T * 77) * shk : 0)); g.scale(z, z); g.translate(-cx, -cy);
     drawRoom(g); hd.cam = { z, cx, cy, ox:(shk ? Math.sin(T * 91) * shk : 0), oy:(shk ? Math.cos(T * 77) * shk : 0) };
     for (const d of S.dec) { const c = d.el ? '170,110,200' : '110,200,70'; g.fillStyle = HD.rg(g, d.x, d.y, 0, 5.5, [[0, `rgba(${c},0.6)`], [1, `rgba(${c},0)`]]); g.beginPath(); g.ellipse(d.x, d.y, 6, 4, hash(d.k, 1) * 3, 0, 6.283); g.fill(); for (let k = 0; k < 3; k++) { g.fillStyle = `rgba(${c},0.55)`; g.beginPath(); g.arc(d.x + (hash(d.k, k) - 0.5) * 12, d.y + (hash(k, d.k) - 0.5) * 8, 0.9, 0, 6.283); g.fill(); } }
     for (const q of S.pel) { const bob = Math.sin(T * 5 + q.x) * 1, dd = Math.hypot(q.x - p.x, q.y - p.y); HD.shadow(g, q.x, q.y + 3, 3, 1.2, 0.4); g.save(); g.translate(q.x, q.y - 1 + bob); g.scale(1 + (dd < 28 ? 0.25 : 0), 1 + (dd < 28 ? 0.25 : 0)); g.beginPath(); g.moveTo(0, -3.2); g.lineTo(2.4, 0); g.lineTo(0, 3.2); g.lineTo(-2.4, 0); g.closePath(); g.fillStyle = HD.lg(g, -2, -3, 2, 3, [[0, '#d8fbff'], [1, '#2ab0e8']]); g.fill(); g.lineWidth = 0.4; g.strokeStyle = '#0a2a40'; g.stroke(); g.restore(); }
@@ -227,7 +228,7 @@ const GAME = kit({ id:'g17e', t1:'VAMPIRE', t2:'METROID CLOSE', sub:'SURVIVE. LE
 
     /* ---- WebGL dynamic lights (normal-from-luminance shading in glpost.js) ---- */
     if (typeof GLPOST !== 'undefined' && window.GLPOST_ON) {
-      const cm = hd.cam, W = (x, y) => [((x - cm.cx) * cm.z + 128 + cm.ox) / 256, ((y - cm.cy) * cm.z + 112 + cm.oy) / 224], rz = cm.z / 256;
+      const cm = hd.cam, W = (x, y) => [((x - cm.cx) * cm.z + 128 + cm.ox) / 256, ((y - cm.cy) * cm.z + HH / 2 + cm.oy) / HH], rz = cm.z / 256;
       GLPOST.clear(); let q;
       q = W(p.x, p.y - 4); GLPOST.light(q[0], q[1], 0.42 * cm.z, 0.7, [0.55, 0.85, 1]);
       if (S.mz > 0) { q = W(p.x + Math.cos(p.ang) * 12, p.y - 1 + Math.sin(p.ang) * 12); GLPOST.light(q[0], q[1], 0.3 * cm.z, 2.2, [1, 0.7, 0.3]); }
@@ -237,16 +238,16 @@ const GAME = kit({ id:'g17e', t1:'VAMPIRE', t2:'METROID CLOSE', sub:'SURVIVE. LE
       GLPOST.fx.ca = Math.min(1.6, hd.shake * 0.9 + (p.inv > 0.4 ? 0.8 : 0)); GLPOST.fx.hurt = p.hp < 35 ? 0.35 + 0.2 * Math.sin(T * 6) : (p.inv > 0.3 ? 0.6 : 0); GLPOST.fx.flash = Math.max(hd.xpf, win && boss ? 0.8 : 0); GLPOST.fx.ember = boss ? 1 : 0.55;
     }
     /* screen-space overlays */
-    if (p.inv > 0.3) { g.fillStyle = HD.rg(g, 128, 112, 70, 170, [[0, 'rgba(200,0,0,0)'], [1, 'rgba(220,20,20,0.5)']]); g.fillRect(0, 0, 256, 224); }
-    g.fillStyle = HD.rg(g, 128, 112, 100, 190, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,0.38)']]); g.fillRect(0, 0, 256, 224);
-    if (hd.zoom > 0.3) { g.fillStyle = `rgba(190,240,255,${(hd.zoom - 0.3) * 0.18})`; g.fillRect(0, 0, 256, 224); }
-    if (win && boss) { const k = 1 - S.win / 1.2; g.fillStyle = `rgba(255,255,255,${Math.max(0, 0.7 * Math.sin(k * 14) * (1 - k))})`; g.fillRect(0, 0, 256, 224); }
+    if (p.inv > 0.3) { g.fillStyle = HD.rg(g, 128, HH / 2, 70, HH * 0.76, [[0, 'rgba(200,0,0,0)'], [1, 'rgba(220,20,20,0.5)']]); g.fillRect(0, 0, 256, HH); }
+    g.fillStyle = HD.rg(g, 128, HH / 2, 100, HH * 0.85, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,0.38)']]); g.fillRect(0, 0, 256, HH);
+    if (hd.zoom > 0.3) { g.fillStyle = `rgba(190,240,255,${(hd.zoom - 0.3) * 0.18})`; g.fillRect(0, 0, 256, HH); }
+    if (win && boss) { const k = 1 - S.win / 1.2; g.fillStyle = `rgba(255,255,255,${Math.max(0, 0.7 * Math.sin(k * 14) * (1 - k))})`; g.fillRect(0, 0, 256, HH); }
     /* animated HUD */
     HD.bar(g, 40, 4, 56, 6, hd.xp, '#7aeaff', '#1a7ab8'); if (hd.xpf > 0.05) { HD.rr(g, 40, 4, 56, 6, 2); g.fillStyle = `rgba(255,255,255,${hd.xpf * 0.8})`; g.fill(); }
     g.fillStyle = '#ff6a8a'; g.beginPath(); g.arc(103, 7, 3 + (hd.hpg - hd.hp > 1 ? 0.8 : 0), 0, 6.283); g.fill(); HD.bar(g, 112, 4, 54, 6, hd.hp / 100, '#ff5a50', '#a01818');
     if (hd.hpg > hd.hp + 0.2) { g.fillStyle = 'rgba(255,230,230,0.85)'; g.fillRect(112 + 54 * hd.hp / 100, 4, 54 * (hd.hpg - hd.hp) / 100, 6); }
     if (hd.kp > 0.05) HD.glow(g, 222, 8, 26, '255,200,60', hd.kp * 0.35);
-    if (boss && boss.hp > 0) HD.bar(g, 64, 212, 128, 6, boss.hp / 300, '#c46af0', '#5a1a8a');
+    if (boss && boss.hp > 0) HD.bar(g, 64, HH - 12, 128, 6, boss.hp / 300, '#c46af0', '#5a1a8a');
     if (S.menu) { g.fillStyle = 'rgba(0,4,10,0.7)'; g.fillRect(0, 0, 256, 224); HD.rr(g, 24, 70, 208, 84, 5); g.fillStyle = HD.lg(g, 0, 70, 0, 154, [[0, '#1c2c48'], [1, '#0c1424']]); g.fill(); g.lineWidth = 1; g.strokeStyle = '#6ad8ff'; g.stroke();
       S.menu.forEach((k, i) => { const x = 32 + i * 66, on = i === S.sel; HD.rr(g, x, 96, 60, 50, 4); g.fillStyle = HD.lg(g, 0, 96, 0, 146, on ? [[0, '#6a4a1a'], [1, '#3a2408']] : [[0, '#2c3a52'], [1, '#161e2e']]); g.fill(); g.lineWidth = on ? 1.4 : 0.7; g.strokeStyle = on ? '#ffd84a' : '#4a5a74'; g.stroke(); if (on) HD.glow(g, x + 30, 121, 40, '255,200,60', 0.25); iconHD(g, k, x + 30, 118, T); }); }
   },

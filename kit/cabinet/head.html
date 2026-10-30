@@ -20,57 +20,59 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--text)}
 body{
-  min-height:100%;
-  padding-block:12px 20px;
-  padding-left:max(16px, env(safe-area-inset-left, 0px));
-  padding-right:max(16px, env(safe-area-inset-right, 0px));
-  display:flex;justify-content:center;
+  height:100dvh;min-height:100%;margin:0;
+  padding-top:max(6px, env(safe-area-inset-top, 0px));
+  padding-bottom:max(8px, env(safe-area-inset-bottom, 0px));
+  padding-left:max(8px, env(safe-area-inset-left, 0px));
+  padding-right:max(8px, env(safe-area-inset-right, 0px));
+  display:flex;justify-content:center;overflow:hidden;
   font-family:var(--util);
   user-select:none;-webkit-user-select:none;touch-action:manipulation;
 }
-.cab{width:100%;max-width:512px;display:flex;flex-direction:column;gap:14px;min-width:0}
-.screen-wrap{background:#000;border:3px solid var(--frame);border-radius:10px;overflow:hidden;line-height:0}
-canvas{display:block;width:100%;height:auto;aspect-ratio:256/224;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
+.cab{width:100%;max-width:520px;height:100%;display:flex;flex-direction:column;gap:8px;min-width:0}
+.screen-wrap{flex:1 1 0;min-height:0;background:#000;border:2px solid var(--frame);border-radius:10px;overflow:hidden;line-height:0;display:flex;align-items:center;justify-content:center;position:relative}
+canvas{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
 .pad{
-  display:grid;grid-template-columns:auto 1fr;grid-template-areas:"dpad ab" "mid mid";
-  gap:14px 10px;align-items:center;
-  background:var(--frame);border-radius:14px;padding:16px 14px 14px;
+  flex:none;display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"dpad mid ab";
+  gap:8px;align-items:center;
+  background:var(--frame);border-radius:14px;padding:8px 10px;
   touch-action:none;
 }
-.dpad{grid-area:dpad;position:relative;width:148px;height:148px;touch-action:none;justify-self:start}
+.dpad{grid-area:dpad;position:relative;width:118px;height:118px;touch-action:none;justify-self:start}
+.nub{position:absolute;left:calc(50% - 17px);top:calc(50% - 17px);width:34px;height:34px;border-radius:50%;background:#3a3a42;box-shadow:inset 0 0 0 2px #55555c;pointer-events:none;transition:transform .04s}
 .bar{position:absolute;background:var(--ink);border-radius:6px;box-shadow:inset 0 0 0 2px #2d2d33}
-.bar.h{left:0;right:0;top:calc(50% - 25px);height:50px}
-.bar.v{top:0;bottom:0;left:calc(50% - 25px);width:50px}
-.hub{position:absolute;left:calc(50% - 14px);top:calc(50% - 14px);width:28px;height:28px;border-radius:50%;background:#101013}
+.bar.h{left:0;right:0;top:calc(50% - 20px);height:40px}
+.bar.v{top:0;bottom:0;left:calc(50% - 20px);width:40px}
+.hub{position:absolute;left:calc(50% - 12px);top:calc(50% - 12px);width:24px;height:24px;border-radius:50%;background:#101013}
 .ar{position:absolute;background:#55555c}
-.ar.u{top:9px;left:calc(50% - 8px);width:16px;height:14px;clip-path:polygon(50% 0,100% 100%,0 100%)}
-.ar.d{bottom:9px;left:calc(50% - 8px);width:16px;height:14px;clip-path:polygon(0 0,100% 0,50% 100%)}
-.ar.l{left:9px;top:calc(50% - 8px);width:14px;height:16px;clip-path:polygon(100% 0,100% 100%,0 50%)}
-.ar.r{right:9px;top:calc(50% - 8px);width:14px;height:16px;clip-path:polygon(0 0,100% 50%,0 100%)}
+.ar.u{top:6px;left:calc(50% - 7px);width:14px;height:12px;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.ar.d{bottom:6px;left:calc(50% - 7px);width:14px;height:12px;clip-path:polygon(0 0,100% 0,50% 100%)}
+.ar.l{left:6px;top:calc(50% - 7px);width:12px;height:14px;clip-path:polygon(100% 0,100% 100%,0 50%)}
+.ar.r{right:6px;top:calc(50% - 7px);width:12px;height:14px;clip-path:polygon(0 0,100% 50%,0 100%)}
 .dpad.on-l .ar.l,.dpad.on-r .ar.r,.dpad.on-d .ar.d,.dpad.on-u .ar.u{background:var(--text)}
-.ab{grid-area:ab;display:flex;justify-content:center;align-items:flex-start;gap:16px;background:var(--face);border-radius:12px;padding:16px 10px 10px}
-.ab div{display:flex;flex-direction:column;align-items:center;gap:8px}
+.ab{grid-area:ab;display:flex;justify-content:center;align-items:center;gap:10px;background:var(--face);border-radius:12px;padding:8px 10px 6px}
+.ab div{display:flex;flex-direction:column;align-items:center;gap:4px}
 .round{
-  width:64px;height:64px;border-radius:50%;border:0;background:var(--red);color:#fff;
-  font:400 16px var(--pixel);box-shadow:inset 0 -5px 0 rgba(0,0,0,.28);touch-action:none;cursor:pointer;
+  width:54px;height:54px;border-radius:50%;border:0;background:var(--red);color:#fff;
+  font:400 14px var(--pixel);box-shadow:inset 0 -4px 0 rgba(0,0,0,.28);touch-action:none;cursor:pointer;
 }
 .round.on{transform:translateY(2px);box-shadow:inset 0 2px 0 rgba(0,0,0,.35);filter:brightness(.88)}
-.ab span{font:400 9px var(--pixel);color:#c9c5b7;letter-spacing:.02em;white-space:nowrap}
-.mid{grid-area:mid;display:flex;justify-content:center;gap:22px}
+.ab span{font:400 8px var(--pixel);color:#c9c5b7;letter-spacing:.02em;white-space:nowrap}
+.mid{grid-area:mid;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px}
 .mid button{
-  border:0;background:var(--ink);color:#c9c5b7;font:400 10px var(--pixel);
-  padding:10px 14px;border-radius:999px;cursor:pointer;touch-action:none;min-width:96px;
+  border:0;background:var(--ink);color:#c9c5b7;font:400 8px var(--pixel);
+  padding:8px 10px;border-radius:999px;cursor:pointer;touch-action:none;min-width:78px;
 }
 .mid button.on{filter:brightness(1.6)}
 button:focus-visible{outline:2px solid #fff;outline-offset:2px}
-.keys{margin:0;color:var(--muted);font-size:12px;line-height:1.6;text-align:center;text-wrap:balance}
+.keys{display:none}
 .keys b{color:var(--text);font-weight:500}
 </style>
 
 <main class="cab">
   <div class="screen-wrap"><canvas id="screen" width="256" height="224" role="img" aria-label="%%TITLE%% game screen"></canvas></div>
   <section class="pad" aria-label="Controller">
-    <div class="dpad" id="dpad"><i class="bar h"></i><i class="bar v"></i><i class="hub"></i><b class="ar u"></b><b class="ar d"></b><b class="ar l"></b><b class="ar r"></b></div>
+    <div class="dpad" id="dpad"><i class="bar h"></i><i class="bar v"></i><i class="hub"></i><i class="nub" id="nub"></i><b class="ar u"></b><b class="ar d"></b><b class="ar l"></b><b class="ar r"></b></div>
     <div class="ab">
       <div><button type="button" class="round" data-k="b" aria-label="B, %%LB%%">B</button><span>%%LB%%</span></div>
       <div><button type="button" class="round" data-k="a" aria-label="A, %%LA%%">A</button><span>%%LA%%</span></div>

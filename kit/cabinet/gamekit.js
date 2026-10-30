@@ -32,7 +32,7 @@ function kit(c) {
   let S = null;
   const fresh = att => { S = { att:!!att, T:0, score:0, pops:[], rng:mkRng(runSeed(att ? c.seed : null, c.off || 7)), edge:mkEdge() }; c.setup(S, !!att); };
   return {
-    id:c.id, t1:c.t1, t2:c.t2, sub:c.sub, music:c.music,
+    id:c.id, dir:c.dir, tall:c.tall, t1:c.t1, t2:c.t2, sub:c.sub, music:c.music,
     init(att) { fresh(att); },
     update(dt, inp, mode) {
       S.att = mode === 'title'; S.T += dt;

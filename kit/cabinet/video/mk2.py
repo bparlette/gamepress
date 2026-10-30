@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Compose a Short from 4 recorded games: python3 mk2.py out.mp4 g20 g13 g17 g14   (frames/json in $FR, default /tmp/frames)
+"""Compose a Short from 4 recorded games: python3 mk2.py out.mp4 g20 g13 g17 g14   (frames/json in $FR, default out/frames)
 Per game: 2 s 'X meets Y' title over dimmed gameplay, then the best 10 s window (most action) with live chiptune + sfx."""
 import json, sys, os, subprocess, wave, numpy as np
 from PIL import Image, ImageDraw, ImageFont
-here = os.path.dirname(os.path.abspath(__file__)); FR = os.environ.get('FR', '/tmp/frames')
+here = os.path.dirname(os.path.abspath(__file__)); FR = os.environ.get('FR', os.path.join(here, '..', 'out', 'frames'))
 out, ids = sys.argv[1], sys.argv[2:]
 GM = {x['id']: x for x in json.load(open(here + '/../games.json'))}
 SR = 44100; TF, GF = 120, 600; W, H = 1080, 1920; GX, GY = 28, 420

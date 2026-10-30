@@ -1,7 +1,7 @@
 // record a bot run of one built game: node rec2.js gN [maxPlayFrames]  -> $FR/f_gN/*.png + $FR/gN.json (meta, sfx, music)
 const { chromium } = require('playwright'); const fs = require('fs'), path = require('path');
 (async () => {
-  const g = process.argv[2], maxPlay = +(process.argv[3] || 6500), root = process.env.FR || '/tmp/frames', html = path.resolve(__dirname, '../out', g + (process.env.ART ? '.art' : process.env.HD ? '.hd' : '') + '.html');
+  const g = process.argv[2], maxPlay = +(process.argv[3] || 6500), root = process.env.FR || path.resolve(__dirname, '../out/frames'), html = path.resolve(__dirname, '../out', g + (process.env.ART ? '.art' : process.env.HD ? '.hd' : '') + '.html');
   const dir = `${root}/f_${g}`; fs.rmSync(dir, { recursive: true, force: true }); fs.mkdirSync(dir, { recursive: true });
   const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 400, height: 760 } });
   const errs = []; pg.on('pageerror', e => errs.push(e.message));

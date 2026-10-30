@@ -25,14 +25,21 @@ function step(dt) {
     if (raw.start && overT > 1.5) { begin(); sfx('beep'); }
   }
 }
+function fitTall() { /* tall games: canvas height follows the screen area so the picture fills a portrait phone */
+  if (!GAME.tall) { window.HD_H = 224; return; }
+  const r = cv.parentNode.getBoundingClientRect(); if (!r.width || !r.height) { window.HD_H = window.HD_H || 224; return; }
+  const h = Math.max(224, Math.min(480, Math.round(256 * r.height / r.width))); window.HD_H = h;
+  if (cv.height !== h * 3) { cv.height = h * 3; if (window.GLPOST && GLPOST.el) GLPOST.el.height = cv.height; }
+}
 function render() {
+  if (window.HD_MODE) fitTall();
   if (window.HD_MODE && GAME.renderHD) { ctx.setTransform(3, 0, 0, 3, 0, 0); ctx.imageSmoothingEnabled = true; GAME.renderHD(ctx, mode); }
   else { GAME.render(mode);
   for (let i = 0; i < buf.length; i++) px32[i] = PAL32[buf[i]];
   ctx.putImageData(img, 0, 0); }
   GAME.hud(mode);
-  if (window.GLPOST_ON) { if (!GLPOST.on && !GLPOST.tried) { GLPOST.tried = 1; GLPOST.init(cv); } GLPOST.run(performance.now() / 1000); }
   const WH = HEX[W], YE = HEX[Y];
+  const HH = window.HD_H || 224; if (window.HD_MODE && HH !== 224) { ctx.save(); ctx.translate(0, (HH - 224) / 2); }
   if (mode === 'title') {
     panel(16, 12, 224, 96);
     const s1 = GAME.t1.length <= 6 ? 32 : 24;
@@ -49,6 +56,8 @@ function render() {
     else txt('BEST ' + pad5(hi), 128, 110, WH, 8, 'center');
     if (overT > 1.5 && (Math.floor(blink * 2) & 1)) txt('PRESS START', 128, 130, WH, 8, 'center');
   }
+  if (window.HD_MODE && HH !== 224) ctx.restore();
+  if (window.GLPOST_ON) { if (!GLPOST.on && !GLPOST.tried) { GLPOST.tried = 1; GLPOST.init(cv); } GLPOST.run(performance.now() / 1000); }
 }
 let last = 0, acc = 0;
 function frame(ts) {
