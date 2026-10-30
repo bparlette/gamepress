@@ -7,7 +7,7 @@ which assets exist?* Every entry is one line with a verdict; the deep doc is
 linked where one exists. `tracks.json` is the machine-readable version of
 the track map; `gamepress context` is the ~400-token build cheat sheet.
 
-## The four use cases (`docs/USE-CASES.md`)
+## The five use cases (`docs/USE-CASES.md`)
 
 **Default rule: every request is Use Case 1 (viral video demo) unless the
 human explicitly says "full game", "assets", or "trailer". Never ask.**
@@ -59,6 +59,25 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
   `test` + `botcheck` (lose-then-win proof), `grade`, `pack`, `host`.
 - **Techniques:** Nintendo feel (`docs/NINTENDO-FEEL.md`), quality bar
   (`docs/QUALITY.md`), kit modules below. Track: `full-game`.
+
+### 5. Gameboy — "gamepress gameboy" (explicit words only)
+
+- **Goal:** a complete, small, single-file NES-cabinet game — the game is
+  the product, played upright on a phone, one sitting, persistent hi-score.
+- **Form:** 256x224 indexed buffer, 22-colour palette, fixed 60 Hz timestep,
+  cabinet pad below the screen, zero binary assets (string-map sprites +
+  procedural art), one looping music format for every game.
+- **Techniques:** the cabinet recipe (`docs/GAMEBOY.md`) — host game + ONE
+  donor mechanic, D-pad + A/B only, mandatory attract bot, seeded RNG,
+  `GAME` contract (`init/update/render/hud/info/bot`), shell hooks
+  (`window.__shell/__norun/__log`).
+- **Shell:** `head.html` + `core.js` + `loop.js` + `build.py`, frozen as a
+  versioned template at `kit/cabinet/` (push pending from the originating
+  build session, Oct 2026); the six Hawk reference builds are the interim
+  source of truth.
+- **Done =** live permanent playable link + registered with the other games
+  + bot pass + a real-phone play verdict (touch and WebAudio are a human
+  gate for this use case).
 
 ## Tracks (`tracks.json` → `docs/tracks/*.md`)
 
