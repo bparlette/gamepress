@@ -15,6 +15,8 @@ GAMES = {
              keys='<b>Keys:</b> arrows move, up jumps, Z or Space punches, X kicks. In the boss fight, left and right dodge, down blocks, Z jabs and X hooks when the boss is stunned. Enter starts, M mutes.'),
   'g7': dict(title='Maze Wrecker', la='SMASH', lb='DASH',
              keys='<b>Keys:</b> arrows steer, Z or Space swings the hammer (smashes brick walls), X dashes, Enter starts, M mutes. Eat every pellet before the maze seals in 150 seconds — smash bricks to reroute the ghosts.'),
+  'g8': dict(title='Maze Wrecker', la='SMASH', lb='DASH',
+             keys='<b>Keys:</b> arrows move, Z or Space swings the hammer (smash the wall in front of you or stun a patrol bot), X dashes, Enter starts, M mutes. Wrecked walls reveal dots; collect 26 before the timer seals the maze. Walls grow back.'),
 }
 def build(g, local_font=False, outdir=None):
     m = GAMES[g]
