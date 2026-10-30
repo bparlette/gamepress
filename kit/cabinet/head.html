@@ -7,10 +7,10 @@
 <style>
 /* One arcade cabinet column: 256x224 pixel screen on top, NES-style pad below, built for a phone held upright. */
 :root{
-  --bg:#0d0e13;
-  --frame:#c9c5b7;
-  --face:#26262a;
-  --ink:#17171a;
+  --bg:#07070c;
+  --deck:#17171d;
+  --face:#26262c;
+  --ink:#0c0c10;
   --red:#d1261b;
   --text:#e9e6da;
   --muted:#8d8a80;
@@ -26,53 +26,56 @@ body{
   user-select:none;-webkit-user-select:none;touch-action:manipulation;
   overflow:hidden;
 }
-/* Fullscreen cabinet: the column IS the viewport — screen full-width on top,
-   the pad grows to fill every remaining pixel below it, keys strip last.
-   No page margins, no dead background. (Cherie 2026-10-30: theirs fills the screen.) */
+/* Fullscreen stage (Cherie 2026-10-30): the GAME fills the screen; only the
+   controls are visible besides it. No cabinet furniture. The stage flexes to
+   every leftover pixel and the canvas scales with object-fit:contain —
+   as large as the phone allows, never cropped, never distorted. */
 .cab{
-  width:100%;max-width:calc(100dvh * 0.72);height:100dvh;
-  display:flex;flex-direction:column;min-width:0;
+  position:relative;
+  width:100%;height:100dvh;
+  min-width:0;
 }
-.screen-wrap{background:#000;line-height:0;flex:0 0 auto}
-canvas{display:block;width:100%;height:auto;aspect-ratio:256/224;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
+.screen-wrap{position:absolute;inset:0;background:#000;line-height:0}
+canvas{display:block;width:100%;height:100%;object-fit:contain;object-position:50% 38%;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
 .pad{
-  flex:1 1 auto;
+  position:absolute;left:0;right:0;bottom:0;
+  background:linear-gradient(to bottom, rgba(5,5,8,0), rgba(5,5,8,.78) 32%);
   display:grid;grid-template-columns:auto 1fr;grid-template-areas:"dpad ab" "mid mid";
-  grid-template-rows:1fr auto;
-  gap:14px 10px;align-items:center;align-content:center;
-  background:var(--frame);padding:16px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  gap:10px;align-items:center;
+  padding:26px 14px calc(10px + env(safe-area-inset-bottom, 0px));
   padding-left:max(14px, env(safe-area-inset-left, 0px));
   padding-right:max(14px, env(safe-area-inset-right, 0px));
   touch-action:none;
 }
-.dpad{grid-area:dpad;position:relative;width:clamp(148px, 40vw, 196px);height:clamp(148px, 40vw, 196px);touch-action:none;justify-self:start}
-.bar{position:absolute;background:var(--ink);border-radius:6px;box-shadow:inset 0 0 0 2px #2d2d33}
-.bar.h{left:0;right:0;top:calc(50% - 25px);height:50px}
-.bar.v{top:0;bottom:0;left:calc(50% - 25px);width:50px}
-.hub{position:absolute;left:calc(50% - 14px);top:calc(50% - 14px);width:28px;height:28px;border-radius:50%;background:#101013}
-.ar{position:absolute;background:#55555c}
-.ar.u{top:9px;left:calc(50% - 8px);width:16px;height:14px;clip-path:polygon(50% 0,100% 100%,0 100%)}
-.ar.d{bottom:9px;left:calc(50% - 8px);width:16px;height:14px;clip-path:polygon(0 0,100% 0,50% 100%)}
-.ar.l{left:9px;top:calc(50% - 8px);width:14px;height:16px;clip-path:polygon(100% 0,100% 100%,0 50%)}
-.ar.r{right:9px;top:calc(50% - 8px);width:14px;height:16px;clip-path:polygon(0 0,100% 50%,0 100%)}
+.dpad{grid-area:dpad;position:relative;width:clamp(132px, 36vw, 168px);height:clamp(132px, 36vw, 168px);touch-action:none;justify-self:start}
+.bar{position:absolute;background:var(--face);border-radius:6px;box-shadow:inset 0 0 0 2px #33333c}
+.bar.h{left:0;right:0;top:calc(50% - 22px);height:44px}
+.bar.v{top:0;bottom:0;left:calc(50% - 22px);width:44px}
+.hub{position:absolute;left:calc(50% - 13px);top:calc(50% - 13px);width:26px;height:26px;border-radius:50%;background:#101014}
+.ar{position:absolute;background:#6a6a75}
+.ar.u{top:8px;left:calc(50% - 8px);width:16px;height:14px;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.ar.d{bottom:8px;left:calc(50% - 8px);width:16px;height:14px;clip-path:polygon(0 0,100% 0,50% 100%)}
+.ar.l{left:8px;top:calc(50% - 8px);width:14px;height:16px;clip-path:polygon(100% 0,100% 100%,0 50%)}
+.ar.r{right:8px;top:calc(50% - 8px);width:14px;height:16px;clip-path:polygon(0 0,100% 50%,0 100%)}
 .dpad.on-l .ar.l,.dpad.on-r .ar.r,.dpad.on-d .ar.d,.dpad.on-u .ar.u{background:var(--text)}
-.ab{grid-area:ab;display:flex;justify-content:center;align-items:center;gap:16px;background:var(--face);border-radius:12px;padding:16px 10px 10px;align-self:stretch}
-.ab div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.ab{grid-area:ab;display:flex;justify-content:center;align-items:center;gap:16px;padding:6px 4px}
+.ab div{display:flex;flex-direction:column;align-items:center;gap:7px}
 .round{
-  width:clamp(64px, 18vw, 88px);height:clamp(64px, 18vw, 88px);border-radius:50%;border:0;background:var(--red);color:#fff;
+  width:clamp(60px, 16.5vw, 78px);height:clamp(60px, 16.5vw, 78px);border-radius:50%;border:0;background:var(--red);color:#fff;
   font:400 16px var(--pixel);box-shadow:inset 0 -5px 0 rgba(0,0,0,.28);touch-action:none;cursor:pointer;
 }
 .round.on{transform:translateY(2px);box-shadow:inset 0 2px 0 rgba(0,0,0,.35);filter:brightness(.88)}
-.ab span{font:400 9px var(--pixel);color:#c9c5b7;letter-spacing:.02em;white-space:nowrap}
+.ab span{font:400 9px var(--pixel);color:#a5a5b0;letter-spacing:.02em;white-space:nowrap}
 .mid{grid-area:mid;display:flex;justify-content:center;gap:22px}
 .mid button{
-  border:0;background:var(--ink);color:#c9c5b7;font:400 10px var(--pixel);
-  padding:10px 14px;border-radius:999px;cursor:pointer;touch-action:none;min-width:96px;
+  border:0;background:var(--face);color:#c9c9d2;font:400 10px var(--pixel);
+  padding:9px 14px;border-radius:999px;cursor:pointer;touch-action:none;min-width:96px;
 }
 .mid button.on{filter:brightness(1.6)}
 button:focus-visible{outline:2px solid #fff;outline-offset:2px}
-.keys{flex:0 0 auto;margin:0;padding:8px 14px calc(8px + env(safe-area-inset-bottom, 0px));color:var(--muted);font-size:11px;line-height:1.55;text-align:center;text-wrap:balance}
+.keys{position:absolute;top:8px;left:0;right:0;margin:0;padding:0 14px;color:var(--muted);font-size:11px;line-height:1.55;text-align:center;text-wrap:balance;pointer-events:none}
 .keys b{color:var(--text);font-weight:500}
+@media (pointer:coarse){ .keys{display:none} }
 </style>
 
 <main class="cab">

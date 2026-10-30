@@ -39,14 +39,19 @@ No genre template — a five-line brief:
 
 - 256x224 indexed buffer, 22-colour palette, pixelated upscale.
 - Fixed 60 Hz timestep.
-- One fullscreen arcade-cabinet column: the column IS the viewport
-  (100dvh, no page margins or dead background) — screen full-width on
-  top, the NES-style pad grows to fill every remaining pixel below it,
-  keys strip last, safe-area insets respected. (Fullscreen layout
-  Cherie 2026-10-30, superseding the original shrink-wrapped column.)
-  The cabinet pad is this form's touch standard — it sits below the
-  screen and never overlays play. (gptouch, docs/TOUCH.md, remains the
-  standard for every non-cabinet game.)
+- One fullscreen stage: the page IS the screen (100dvh, no margins, no
+  cabinet furniture). The game canvas scales with object-fit:contain
+  inside a full-viewport black stage — as large as the display allows,
+  never cropped, never distorted — and the NES-style pad floats over
+  the stage's lower area on a soft dark gradient (D-pad left, A/B
+  right, SOUND/START pills below). The keyboard hints line shows on
+  fine pointers only. Safe-area insets respected. (Fullscreen stage
+  layout Cherie 2026-10-30 — "make theirs fill the screen" — superseding
+  both the original shrink-wrapped beige column and the first
+  filled-column attempt.) The cabinet pad is this form's touch
+  standard — it never covers the drawn game on a normal phone.
+  (gptouch, docs/TOUCH.md, remains the standard for every non-cabinet
+  game.)
 - One HTML file, zero binary assets. Sprites are string arrays (one
   palette letter per pixel, `.` = transparent) drawn by
   `spr(rows, x, y, flip, pal)` with optional per-call palette remap; the
