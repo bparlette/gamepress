@@ -38,9 +38,11 @@ function kit(c) {
       S.att = mode === 'title'; S.T += dt;
       if (S.att && S.T > (c.secs || 60)) { fresh(true); return; }
       for (let i = S.pops.length - 1; i >= 0; i--) { S.pops[i].t += dt; if (S.pops[i].t > 1.1) S.pops.splice(i, 1); }
+      if (S.inv > 0) S.inv -= dt;
+      if (S.parts) for (let i = S.parts.length - 1; i >= 0; i--) { const p = S.parts[i]; p.t -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; if (p.t <= 0) S.parts.splice(i, 1); }
       if (c.step(S, dt, inp, S.att) === 'reset') fresh(true);
     },
-    render() { c.draw(S); },
+    render() { c.draw(S); drawParts(S); },
     hud(mode) { c.hud && c.hud(S, mode); drawPops(S); },
     info() { return Object.assign({ score:Math.round(S.score), t:+S.T.toFixed(1) }, c.info ? c.info(S) : {}); },
     bot() { return c.bot(S, NI()) || NI(); },
@@ -48,3 +50,13 @@ function kit(c) {
 }
 /* finish helper: attract loops, real play ends. */
 function finish(S, msg, bonus) { if (S.att) return 'reset'; endGame(S.score + (bonus || 0), msg); }
+/* ---- added after the 20-game batch: the things most games re-wrote ---- */
+const lerp = (a, b, t) => a + (b - a) * t;
+function bar(x, y, w, h, v, max, col, bg) { rect(x, y, w, h, bg || DG); rect(x, y, Math.round(w * clamp(v / max, 0, 1)), h, col); }
+/* timed on-screen hint: hint(S,'JUMP OVER GAPS',8) in hud(); shows only while S.T < secs in real play */
+function hint(S, s, secs, y) { if (!S.att && S.T < (secs || 8)) txt(s, 128, y || 214, W, 8, 'center'); }
+/* particles: burst(S,x,y,col,n) in step; drawParts(S) at end of draw(); updated automatically by kit() */
+function burst(S, x, y, col, n) { S.parts = S.parts || []; for (let k = 0; k < (n || 8); k++) { const a = S.rng() * 6.283, v = 20 + S.rng() * 50; S.parts.push({ x, y, vx:Math.cos(a) * v, vy:Math.sin(a) * v - 20, t:0.5 + S.rng() * 0.4, col }); } }
+function drawParts(S) { for (const p of S.parts || []) rect(Math.round(p.x), Math.round(p.y), 2, 2, p.col); }
+/* damage with invulnerability: hurtS(S,1) -> true if it landed. Needs S.hp; uses S.inv (seconds). */
+function hurtS(S, n, fx) { if (S.inv > 0) return false; S.hp -= n || 1; S.inv = 1.2; sfx('hurt'); if (fx) burst(S, fx[0], fx[1], R, 8); return true; }

@@ -8,3 +8,6 @@ A game file is only rules. Shared code lives in `core.js` (draw/audio/sfx), `gam
 - Put `// KEYS: ...` in the game file for the on-page controls text.
 
 Commands (from `kit/cabinet`): `new.py gN "Title" A B "keys" "mashup"` scaffold, `check.sh gN [secs]` build + bot run + determinism, `ship.sh HAWK_DIR gN…` copy into a Hawk checkout.
+
+More helpers: `lerp`, `bar(x,y,w,h,v,max,col)`, `hint(S,text,secs)` (real play only), `burst(S,x,y,col,n)` particles (auto-updated/drawn by kit), `hurtS(S,n,[fx,fy])` hp + invulnerability (`S.inv` auto-decays).
+Scripts: `qa.sh [secs] [seeds]` builds everything and runs every game on every seed in parallel (table: outcome, time, errors); `sheet.py` makes `out/sheet.png` contact sheet.
