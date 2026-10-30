@@ -26,9 +26,10 @@ function step(dt) {
   }
 }
 function render() {
-  GAME.render(mode);
+  if (window.HD_MODE && GAME.renderHD) { ctx.setTransform(3, 0, 0, 3, 0, 0); ctx.imageSmoothingEnabled = true; GAME.renderHD(ctx, mode); }
+  else { GAME.render(mode);
   for (let i = 0; i < buf.length; i++) px32[i] = PAL32[buf[i]];
-  ctx.putImageData(img, 0, 0);
+  ctx.putImageData(img, 0, 0); }
   GAME.hud(mode);
   const WH = HEX[W], YE = HEX[Y];
   if (mode === 'title') {
