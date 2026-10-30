@@ -1,6 +1,6 @@
 # Cabinet recipe: NES-style single-file demos
 
-Source: `kit/cabinet/` (shell + seven reference games). Build: `python3 kit/cabinet/build.py [g1..g7] [--out DIR] [--local-font]`.
+Source: `kit/cabinet/` (shell + eight reference games). Build: `python3 kit/cabinet/build.py [g1..g8] [--out DIR] [--local-font]`.
 Test: `node kit/cabinet/test.cjs g1 60 [seed]` (headless bot run, screenshots, errors) and `node kit/cabinet/seedcheck.cjs` (determinism proof). Both need Playwright.
 
 ## 1. Brief recipe (one per game)
@@ -78,3 +78,4 @@ Known gates still open: human playtest of touch controls, real-device sound (inc
 - g5: bot reliably reaches about x=2882 of 3571 then dies; grapple needs a ring ahead and above; ledge assist covers 13 px; `info()` carries debug fields.
 - g6: ring phase is one boss with four moves; "hard" only shortens the telegraph; a knife-loop crash (array reset mid-iteration) was found late, so audit other loops that reset arrays.
 - g7: grid-based; bot clears the maze in about 15 s with no hits, so human difficulty is probably too low; ghost speed and dot goal are the first knobs. Walls hiding dots blink a sparkle (readability aid). Patrol-bot art is original, not a copy of any arcade ghost.
+- g8 Morph Climb: forms are man, ball (5x6, fits a 7px slot), wing (flaps, flies through layers), beam (up-shot dissolves a brick layer). Lava rises at 4 + 0.05 per second. Bot reaches the summit on 3 seeds with all lives, so it is probably too easy; slot width and lava speed are the first knobs.
