@@ -8,3 +8,6 @@ The cabinet renders a 256x224, 22-colour indexed buffer, so it tops out at rich 
 - Judge with `HD=1 node snap.cjs gN 700 1500`.
 - Pipeline for all three versions: docs/HOWTO-THREE-VERSIONS.md (make-all.sh).
 - Next: port more games by copying the g17 pattern (painted room + 3-4 sprite frames + light pass); real raster art would replace `HD.spr` painters with inlined PNGs.
+
+## Tier 4 added
+SVG skeletal rigs (`rigkit.js`, `art/`) and a WebGL post pass (`glpost.js`) are the fourth tier. See `HD-ART-TIER.md`. Remaining gaps: environment art still code-painted; no real lighting normals; no particles in shader.

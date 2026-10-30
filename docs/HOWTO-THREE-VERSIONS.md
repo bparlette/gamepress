@@ -33,3 +33,12 @@ Rules: never commit videos to git; deliver the mp4 in chat. Titles for posting m
 
 ## Tiers of the same game (keep all of them; they share rules and seeds)
 `g17` pixel 8-bit -> `g17` with `--hd` (painted) -> `g17b` `--hd` (HD+ game feel). To make a new tier, copy the game file to a new id, register it in games.json, and only change `drawHD`; rules/bot stay identical. HD+ adds, all visual-only: per-entity hit flash/squash/knockback (WeakMap on enemy objects), floating damage numbers, death ghosts, casings and dust, camera lean/zoom pulses, boss-death push-in with rings and white flash, animated bars with a damage-ghost segment. Compare tiers at the same moment: `SEED=7 [HD=1] node snap.cjs <id> 420 900` then stack the PNGs.
+
+## Fourth version: HD Art (SVG rig + WebGL)
+Now four editions: pixel (`build.py gN`), HD painted (`--hd`), HD+ game feel (separate id, e.g. g17b), HD Art (`--art`, e.g. g17c).
+Full recipe: `HD-ART-TIER.md`. Short version:
+1. Draw parts as SVG (`art/*.svg`, `<g data-p="part">`), run `node art/build-art.cjs` -> `art/atlas.json`.
+2. Copy the HD+ game file to a new id, add `RIG.def(...)`, swap `HD.puts` calls for `RIG.draw(...)` guarded by `RIG.ready`.
+3. Add the id to `games.json` first, then `python3 build.py gN --art`.
+4. `./make-all.sh gN` builds every tier plus the Short; set `NODE_PATH=$(npm root -g)`.
+5. Publish each `out/*.html` as its own artifact; copy to Hawk `games/<id>/index.html`. Never commit videos.
