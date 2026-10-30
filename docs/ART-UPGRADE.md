@@ -6,4 +6,5 @@ The cabinet renders a 256x224, 22-colour indexed buffer, so it tops out at rich 
 - A game opts in by adding `drawHD(S, g, mode)` to its `kit({...})`. Rules, bot, seeds and `hud()` text are shared, so pixel and HD editions play identically.
 - `hdkit.js` (global `HD`): `spr` (paint once into a cached canvas), `put`, `part`/`ball` (gradient + outline shapes), `shadow`, `glow` (additive), `grain`, lighting (`beginLight/addLight/endLight` = dark layer cut by gradients), `burst/parts` particles, `bar`. Reference implementation: `games/g17.js` (heroHD, zomHD, queenHD, roomHD, drawHD).
 - Judge with `HD=1 node snap.cjs gN 700 1500`.
+- Pipeline for all three versions: docs/HOWTO-THREE-VERSIONS.md (make-all.sh).
 - Next: port more games by copying the g17 pattern (painted room + 3-4 sprite frames + light pass); real raster art would replace `HD.spr` painters with inlined PNGs.

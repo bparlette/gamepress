@@ -79,7 +79,7 @@ ff = subprocess.Popen(['ffmpeg', '-y', '-v', 'error', '-f', 'rawvideo', '-pix_fm
 for gi, g in enumerate(ids):
     m = json.load(open(f'{FR}/{g}.win.json')); s0 = m['_s0']; meta = m['meta']; info = GM[g]; a, _, b = info['mashup'].partition(' x '); T = tpl(info['title'].upper())
     def put(i, dim):
-        gm = np.array(Image.open(f'{FR}/f_{g}/f{min(i, len(meta) - 1):05d}.png').convert('RGB')); gm = np.repeat(np.repeat(gm, 4, 0), 4, 1)
+        im0 = Image.open(f'{FR}/f_{g}/f{min(i, len(meta) - 1):05d}.png').convert('RGB'); gm = np.array(im0.resize((1024, 896), Image.LANCZOS)) if im0.size[0] > 256 else np.repeat(np.repeat(np.array(im0), 4, 0), 4, 1)
         if dim: gm = (gm * .35).astype(np.uint8)
         fr = T.copy(); fr[GY:GY + 896, GX:GX + 1024] = gm; return fr
     for k in range(TF):  # title card: X meets Y over dimmed gameplay

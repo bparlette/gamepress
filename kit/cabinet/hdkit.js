@@ -9,7 +9,7 @@ const HD = (() => {
   /* draw a cached sprite anchored bottom-centre at (x,y) */
   H.put = (g, c, x, y, flip, a) => { const w = c.width / SC, h = c.height / SC; g.save(); if (a !== undefined) g.globalAlpha = a; if (flip) { g.translate(x, 0); g.scale(-1, 1); g.drawImage(c, -w / 2, y - h, w, h); } else g.drawImage(c, x - w / 2, y - h, w, h); g.restore(); };
   H.lg = (g, x0, y0, x1, y1, stops) => { const r = g.createLinearGradient(x0, y0, x1, y1); stops.forEach(([o, c]) => r.addColorStop(o, c)); return r; };
-  H.rg = (g, x, y, r0, r1, stops) => { const r = g.createRadialGradient(x, y, r0, x, y, r1); stops.forEach(([o, c]) => r.addColorStop(o, c)); return r; };
+  H.rg = (g, x, y, r0, r1, stops) => { r1 = Math.max(0.01, r1); r0 = Math.max(0, Math.min(r0, r1)); const r = g.createRadialGradient(x, y, r0, x, y, r1); stops.forEach(([o, c]) => r.addColorStop(o, c)); return r; };
   H.rr = (g, x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
   /* filled+outlined rounded part with top-left light gradient */
   H.part = (g, x, y, w, h, r, c1, c2, line = '#10131a') => { H.rr(g, x, y, w, h, r); g.fillStyle = H.lg(g, x, y, x + w, y + h, [[0, c1], [1, c2]]); g.fill(); g.lineWidth = 0.5; g.strokeStyle = line; g.stroke(); };
