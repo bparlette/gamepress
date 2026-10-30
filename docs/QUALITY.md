@@ -20,6 +20,12 @@ Nothing in Gamepress is a minimalist web toy, stick-figure prototype, or barebon
 5. **Native 9:16 Short & 16:9 Landscape Dual Support**:
    - Always format clips cleanly for vertical YouTube Shorts / TikTok with high-contrast text banners, combo counters, and K.O. callouts.
 
+6. **No Sprite-Count Shortcuts (Cherie, 2026-10-29)**:
+   - Animation frames are budgeted by feel, never by an arbitrary pose count. A handful of poses per character is a prototype, not a standard.
+   - Use as many frames as the motion needs — 20, 50, or more per character: full locomotion cycles, graded leans and aims, anticipation, follow-through, tumbles, recoveries, idles, celebrations.
+   - Procedurally drawn frames count when they read well. What matters is smooth, interesting motion on screen.
+   - Judge animation in motion (the video), not by sheet size. If it looks stiff, the fix is more frames and better timing — never fewer frames to save effort.
+
 Reference showpieces (Hawk repo, `brad-demos/g/`): **wasteland-van** (Roadkill Rig: cel + outline look, vehicle vs horde), **cinema-city**, **shell-shock-3d**, **street-fighter-arcade**.
 Plain spheres, boxes and flat colours do not go viral. Every demo needs these, all available in `_vendor/gpkit.js`:
 

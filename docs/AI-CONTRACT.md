@@ -74,6 +74,7 @@ Minimize token spend:
 - **NEVER** push to main without the human explicitly saying "push" or "merge."
 - **NEVER** overwrite another agent's work. Check `git status` and `git log` before committing in shared repos.
 - **NEVER** run `git reset --hard` or `git stash` on files you didn't create.
+- **NEVER** shortcut animation with a fixed small sprite/pose count. Frame counts are set by feel — add as many as the motion needs to read smooth and interesting (see QUALITY.md, Core Quality Mandate 6).
 
 ## 9. Session handoff
 
