@@ -11,7 +11,12 @@ Reference builds (Oct 2026, live in Hawk `games/`, all verified against
 this doc): Block Commando (Contra x Tetris), Disc Fighters (Windjammers x
 Street Fighter II), Paper Rash (Paperboy x Road Rash), Boom Balloons
 (Balloon Fight x Bomberman), Grapple Ninja (Bionic Commando x Ninja
-Gaiden), Kung Fu Knockout (Kung-Fu Master x Punch-Out!!).
+Gaiden), Kung Fu Knockout (Kung-Fu Master x Punch-Out!!), and Maze
+Wrecker (Pac-Man x Wrecking Crew) — the seventh, and the first one
+authored against the frozen shell by a different builder than the
+shell's author, which is the recipe's transfer test. Build detail —
+the brief in practice, the feel table, the QA loop as run — lives in
+`docs/RECIPE.md`; this doc is the standard, that one is the logbook.
 **Not a reference:** BMX Downhill Rush looks similar but is a separate
 lineage (no GAME contract, own hi-score key) — do not template from it.
 
@@ -74,10 +79,16 @@ Enter starts; M mutes.
   seeds from `Date.now() & 0xffff` plus a per-game offset. Particles use
   `Math.random()` — visual only, so gameplay is deterministic but
   replays are not pixel-exact.
-- `?seed=` is PLANNED, not shipped: it goes in `core.js`, the active seed
-  gets exposed via `window.__shell`, and games are rebuilt from the
-  shell. Never hand-edit a built game file to add it — that forks the
-  game from the template.
+- `?seed=` is SHIPPED (in `core.js`): it takes a number or any string,
+  each game adds its own offset, and the active seed is exposed as
+  `window.__shell.seed` (`seedFromUrl` gives the raw value). It was
+  added in the shell and the games rebuilt from it — never hand-edit a
+  built game file to add a shell feature; that forks the game from the
+  template. Determinism is proven by `kit/cabinet/seedcheck.cjs`
+  (same seed = same `info()` after 1,500 fast-forwarded frames,
+  different seed = different state). State leaks are the known failure
+  mode: reset EVERYTHING in `init()`, including `GAME._x` fields —
+  three reference games shipped bot state that survived restarts.
 
 ## Music (one format for every game)
 
@@ -116,15 +127,18 @@ check the reference builds before inventing one.
 
 The shell is source, not one frozen file: `head.html`, `core.js`,
 `loop.js`, and `build.py` (which stitches shell + game file into the
-single HTML page). As of 2026-10-30 those sources live only in the
-originating build session; they are being frozen as a versioned template
-at `kit/cabinet/`. Until that lands, the six reference builds are the
-source of truth — diff a built game against this doc, not against memory.
+single HTML page), plus the game sources in `kit/cabinet/games/`,
+`test.cjs` (headless bot run) and `seedcheck.cjs`. It is frozen as a
+versioned template at `kit/cabinet/` — build with
+`python3 kit/cabinet/build.py [g1..g7] [--out DIR]`. The built games in
+Hawk are outputs; the shell is the source of truth.
 
-Known retrofit pending in the shell: the iOS audio fix in `audioInit`
-(`navigator.audioSession.type = 'playback'`, resume on gesture — see
-MISO-LESSONS.md). One shell change fixes every future game; the reference
-builds predate it.
+The iOS audio fix is IN the shell's `audioInit`
+(`navigator.audioSession.type = 'playback'`, a silent-buffer unlock,
+resume on touchend/click/keydown/pointerup, and a visibilitychange
+resume — see MISO-LESSONS.md), and the reference builds on Hawk main
+were rebuilt from the shell with it. Silent-switch behaviour is still
+untested on a real device — that remains the human gate.
 
 ## QC gates (learned from the first batch — do not repeat its gaps)
 
