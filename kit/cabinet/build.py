@@ -13,6 +13,8 @@ GAMES = {
              keys='<b>Keys:</b> arrows move, hold Z or Space to fire the grapple at a ring ahead and above you and swing, release to launch, X slashes, Enter starts, M mutes.'),
   'g6': dict(title='Kung Fu Knockout', la='PUNCH', lb='KICK',
              keys='<b>Keys:</b> arrows move, up jumps, Z or Space punches, X kicks. In the boss fight, left and right dodge, down blocks, Z jabs and X hooks when the boss is stunned. Enter starts, M mutes.'),
+  'g7': dict(title='Maze Wrecker', la='SMASH', lb='DASH',
+             keys='<b>Keys:</b> arrows move, Z or Space swings the hammer (smash the wall in front of you or stun a patrol bot), X dashes, Enter starts, M mutes. Wrecked walls reveal dots; collect 20 before the timer seals the maze. Walls grow back.'),
 }
 def build(g, local_font=False, outdir=None):
     m = GAMES[g]
