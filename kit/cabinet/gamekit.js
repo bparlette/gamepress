@@ -54,7 +54,7 @@ function finish(S, msg, bonus) { if (S.att) return 'reset'; endGame(S.score + (b
 const lerp = (a, b, t) => a + (b - a) * t;
 function bar(x, y, w, h, v, max, col, bg) { rect(x, y, w, h, bg || DG); rect(x, y, Math.round(w * clamp(v / max, 0, 1)), h, col); }
 /* timed on-screen hint: hint(S,'JUMP OVER GAPS',8) in hud(); shows only while S.T < secs in real play */
-function hint(S, s, secs, y) { if (!S.att && S.T < (secs || 8)) txt(s, 128, y || 214, W, 8, 'center'); }
+function hintS(S, s, secs, y) { if (!S.att && S.T < (secs || 8)) txt(s, 128, y || 214, W, 8, 'center'); }
 /* particles: burst(S,x,y,col,n) in step; drawParts(S) at end of draw(); updated automatically by kit() */
 function burst(S, x, y, col, n) { S.parts = S.parts || []; for (let k = 0; k < (n || 8); k++) { const a = S.rng() * 6.283, v = 20 + S.rng() * 50; S.parts.push({ x, y, vx:Math.cos(a) * v, vy:Math.sin(a) * v - 20, t:0.5 + S.rng() * 0.4, col }); } }
 function drawParts(S) { for (const p of S.parts || []) rect(Math.round(p.x), Math.round(p.y), 2, 2, p.col); }
