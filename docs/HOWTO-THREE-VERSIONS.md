@@ -30,3 +30,6 @@ Rules: never commit videos to git; deliver the mp4 in chat. Titles for posting m
 - State leaking between runs breaks determinism: every field lives on `S`.
 - Canvas radial gradients throw on negative radii: clamp.
 - Videos from the bot show whatever the bot does: tune the bot so the best 10 s is exciting.
+
+## Tiers of the same game (keep all of them; they share rules and seeds)
+`g17` pixel 8-bit -> `g17` with `--hd` (painted) -> `g17b` `--hd` (HD+ game feel). To make a new tier, copy the game file to a new id, register it in games.json, and only change `drawHD`; rules/bot stay identical. HD+ adds, all visual-only: per-entity hit flash/squash/knockback (WeakMap on enemy objects), floating damage numbers, death ghosts, casings and dust, camera lean/zoom pulses, boss-death push-in with rings and white flash, animated bars with a damage-ghost segment. Compare tiers at the same moment: `SEED=7 [HD=1] node snap.cjs <id> 420 900` then stack the PNGs.

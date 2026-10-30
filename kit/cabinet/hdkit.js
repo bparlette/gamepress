@@ -28,5 +28,10 @@ const HD = (() => {
   H.parts = (g, list, dt = 1 / 60) => { for (let i = list.length - 1; i >= 0; i--) { const p = list[i]; p.t -= dt; if (p.t <= 0) { list.splice(i, 1); continue; } p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.g * dt; g.globalAlpha = Math.min(1, p.t * 4); g.fillStyle = p.c; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 6.283); g.fill(); } g.globalAlpha = 1; };
   /* painted framed bar, v 0..1 */
   H.bar = (g, x, y, w, h, v, c1, c2) => { H.rr(g, x - 1, y - 1, w + 2, h + 2, 2.5); g.fillStyle = '#0a0d12'; g.fill(); H.rr(g, x, y, w, h, 2); g.fillStyle = '#242c36'; g.fill(); const f = Math.max(0, Math.min(1, v)) * w; if (f > 1) { H.rr(g, x, y, f, h, 2); g.fillStyle = H.lg(g, 0, y, 0, y + h, [[0, c1], [1, c2]]); g.fill(); g.fillStyle = 'rgba(255,255,255,0.28)'; g.fillRect(x + 1, y + 0.6, Math.max(0, f - 2), h * 0.28); } };
+  /* tinted copy cache (hit flashes), scaled/anchored draw, floating numbers */
+  const tint = new Map();
+  H.tinted = (c, col) => { let m = tint.get(c); if (!m) tint.set(c, m = {}); if (!m[col]) { const t = document.createElement('canvas'); t.width = c.width; t.height = c.height; const x = t.getContext('2d'); x.drawImage(c, 0, 0); x.globalCompositeOperation = 'source-atop'; x.fillStyle = col; x.fillRect(0, 0, t.width, t.height); m[col] = t; } return m[col]; };
+  H.puts = (g, c, x, y, flip, sx = 1, sy = 1, a = 1, tc, ta = 0) => { const w = c.width / SC, h = c.height / SC; g.save(); g.translate(x, y); g.scale((flip ? -1 : 1) * sx, sy); g.globalAlpha = a; g.drawImage(c, -w / 2, -h, w, h); if (tc && ta > 0) { g.globalAlpha = a * ta; g.drawImage(H.tinted(c, tc), -w / 2, -h, w, h); } g.restore(); };
+  H.num = (g, s, x, y, col, size = 6, a = 1) => { g.save(); g.globalAlpha = a; g.font = `${size}px "Press Start 2P", monospace`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = size * 0.28; g.strokeStyle = '#000'; g.strokeText(s, x, y); g.fillStyle = col; g.fillText(s, x, y); g.restore(); };
   return H;
 })();
