@@ -1,0 +1,258 @@
+[
+ {
+  "id": "g1",
+  "title": "Block Commando",
+  "la": "JUMP",
+  "lb": "FIRE",
+  "keys": "<b>Keys:</b> arrows move and aim up, Z or Space jumps, X fires, Enter starts, M mutes. Shoot the falling blocks to break them, clear rows to delete the floor, and do not get crushed.",
+  "mashup": "Contra x Tetris"
+ },
+ {
+  "id": "g2",
+  "title": "Disc Fighters",
+  "la": "THROW",
+  "lb": "LOB",
+  "keys": "<b>Keys:</b> arrows move, Z or Space throws, X lobs, Enter starts, M mutes. Catch the disc, then tap down, forward, A for a fireball super when the meter is full. Hold B when a super hits to parry it.",
+  "mashup": "Windjammers x Street Fighter II"
+ },
+ {
+  "id": "g3",
+  "title": "Paper Rash",
+  "la": "PAPER",
+  "lb": "PUNCH",
+  "keys": "<b>Keys:</b> up and down change lanes, left and right ride slower or faster, Z or Space throws a paper, X punches an adjacent rival, Enter starts, M mutes. Hit the mailboxes, dodge the cars.",
+  "mashup": "Paperboy x Road Rash"
+ },
+ {
+  "id": "g4",
+  "title": "Boom Balloons",
+  "la": "FLAP",
+  "lb": "BOMB",
+  "keys": "<b>Keys:</b> left and right steer, Z or Space flaps, X drops a bomb, Enter starts, M mutes. Pop every enemy balloon, but keep clear of the blast.",
+  "mashup": "Balloon Fight x Bomberman"
+ },
+ {
+  "id": "g5",
+  "title": "Grapple Ninja",
+  "la": "GRAPPLE",
+  "lb": "SLASH",
+  "keys": "<b>Keys:</b> arrows move, hold Z or Space to fire the grapple at a ring ahead and above you and swing, release to launch, X slashes, Enter starts, M mutes.",
+  "mashup": "Bionic Commando x Ninja Gaiden"
+ },
+ {
+  "id": "g6",
+  "title": "Kung Fu Knockout",
+  "la": "PUNCH",
+  "lb": "KICK",
+  "keys": "<b>Keys:</b> arrows move, up jumps, Z or Space punches, X kicks. In the boss fight, left and right dodge, down blocks, Z jabs and X hooks when the boss is stunned. Enter starts, M mutes.",
+  "mashup": "Kung-Fu Master x Punch-Out!!"
+ },
+ {
+  "id": "g7",
+  "title": "Maze Wrecker",
+  "la": "SMASH",
+  "lb": "DASH",
+  "keys": "<b>Keys:</b> arrows move, Z or Space swings the hammer (smash the wall in front of you or stun a patrol bot), X dashes, Enter starts, M mutes. Wrecked walls reveal dots; collect 20 before the timer seals the maze. Walls grow back.",
+  "mashup": "Pac-Man x Wrecking Crew"
+ },
+ {
+  "id": "g8",
+  "title": "Morph Climb",
+  "la": "JUMP",
+  "lb": "FIRE",
+  "keys": "<b>Keys:</b> left and right move, Z or Space jumps (wings: hold to flap), X fires the beam, B or Shift changes form, Enter starts, M mutes. Grab a form on each floor before the layer that needs it. Lava rises from below.",
+  "mashup": "Metroid x Kid Icarus"
+ },
+ {
+  "id": "g9",
+  "title": "Dig Up",
+  "la": "DIG",
+  "lb": "PUMP",
+  "keys": "<b>Keys:</b> left and right walk and face, up and down climb your tunnel, Z or Space digs the tile in front, up plus Z digs the tile above you, X pumps an enemy to stun it, Enter starts, M mutes. Dirt you dig above you falls on enemies below.",
+  "mashup": "Dig Dug x Ice Climber"
+ },
+ {
+  "id": "g10",
+  "title": "Gridlock Grand Prix",
+  "la": "LANE",
+  "lb": "NITRO",
+  "keys": "<b>Keys:</b> left and right change lane (one tap each), up accelerates, down brakes, Z or Space uses your one nitro, Enter starts, M mutes. Pass cars in the next lane for near misses. One crash ends the run.",
+  "mashup": "Pole Position x Frogger"
+ },
+ {
+  "id": "g11",
+  "title": "Hop Fight",
+  "la": "UP-L",
+  "lb": "UP-R",
+  "keys": "<b>Keys:</b> Left and Right hop down the pyramid, Z (A) hops up-left, X (B) hops up-right. Diagonals (Up or Down plus Left or Right) also work. Land on cubes to claim them, hop onto your rival to knock them off. Enter starts, M mutes. Most cubes at the end wins.",
+  "mashup": "Q*bert x Joust"
+ },
+ {
+  "id": "g99",
+  "title": "Zed Test",
+  "la": "JAB",
+  "lb": "DODGE",
+  "keys": "<b>Keys:</b> Z jabs. Enter starts, M mutes.",
+  "mashup": "Test x Test"
+ },
+ {
+  "id": "g12",
+  "title": "Blade Punch",
+  "la": "JAB",
+  "lb": "DODGE",
+  "keys": "",
+  "mashup": "Punch-Out!! x Blade Ball"
+ },
+ {
+  "id": "g13",
+  "title": "Balatro Grand Prix",
+  "la": "DRIFT",
+  "lb": "PLAY CARD",
+  "keys": "",
+  "mashup": "Mario Kart x Balatro"
+ },
+ {
+  "id": "g14",
+  "title": "Buckshot Saloon",
+  "la": "SHOOT",
+  "lb": "SELF",
+  "keys": "",
+  "mashup": "Sunset Riders x Buckshot Roulette"
+ },
+ {
+  "id": "g15",
+  "title": "Kong Calamity",
+  "la": "JUMP",
+  "lb": "ROLL",
+  "keys": "",
+  "mashup": "Donkey Kong Country x Natural Disaster Survival"
+ },
+ {
+  "id": "g16",
+  "title": "Lethal Castlevania",
+  "la": "WHIP",
+  "lb": "SCAN",
+  "keys": "",
+  "mashup": "Symphony of the Night x Lethal Company"
+ },
+ {
+  "id": "g17",
+  "title": "Vampire Metroid",
+  "la": "JUMP",
+  "lb": "DASH",
+  "keys": "",
+  "mashup": "Super Metroid x Vampire Survivors"
+ },
+ {
+  "id": "g18",
+  "title": "Tower of Yoshi",
+  "la": "JUMP",
+  "lb": "TONGUE",
+  "keys": "",
+  "mashup": "Super Mario World x Tower of Hell"
+ },
+ {
+  "id": "g19",
+  "title": "Mushroom BedWars",
+  "la": "BUILD",
+  "lb": "SWING",
+  "keys": "",
+  "mashup": "Super Mario Bros 3 x BedWars"
+ },
+ {
+  "id": "g20",
+  "title": "Contra Helldivers",
+  "la": "FIRE",
+  "lb": "STRATAGEM",
+  "keys": "",
+  "mashup": "Contra x Helldivers 2"
+ },
+ {
+  "id": "g21",
+  "title": "Hyrule DOORS",
+  "la": "OPEN",
+  "lb": "HIDE",
+  "keys": "",
+  "mashup": "A Link to the Past x DOORS"
+ },
+ {
+  "id": "g22",
+  "title": "Onett Mart Sim",
+  "la": "STOCK",
+  "lb": "SCAN",
+  "keys": "",
+  "mashup": "EarthBound x Supermarket Simulator"
+ },
+ {
+  "id": "g23",
+  "title": "Fisch of Mana",
+  "la": "CAST",
+  "lb": "SLASH",
+  "keys": "",
+  "mashup": "Secret of Mana x FISCH"
+ },
+ {
+  "id": "g24",
+  "title": "Liars Tavern",
+  "la": "CALL",
+  "lb": "LIAR",
+  "keys": "",
+  "mashup": "Chrono Trigger x Liars Bar"
+ },
+ {
+  "id": "g25",
+  "title": "SpookSnap 64",
+  "la": "SNAP",
+  "lb": "FLASH",
+  "keys": "",
+  "mashup": "Pokemon Snap x Content Warning"
+ },
+ {
+  "id": "g26",
+  "title": "Pet Quest 99",
+  "la": "HATCH",
+  "lb": "FIGHT",
+  "keys": "",
+  "mashup": "Dragon Quest x Pet Simulator 99"
+ },
+ {
+  "id": "g27",
+  "title": "Deep Rock Dig Dug",
+  "la": "DIG",
+  "lb": "BLAST",
+  "keys": "",
+  "mashup": "Dig Dug x Deep Rock Galactic"
+ },
+ {
+  "id": "g28",
+  "title": "Four Swords Murder",
+  "la": "STAB",
+  "lb": "DASH",
+  "keys": "",
+  "mashup": "Four Swords x Murder Mystery 2"
+ },
+ {
+  "id": "g29",
+  "title": "Dress to Quest",
+  "la": "PICK",
+  "lb": "STRUT",
+  "keys": "",
+  "mashup": "Final Fantasy VI x Dress to Impress"
+ },
+ {
+  "id": "g30",
+  "title": "River City Cartel",
+  "la": "PUNCH",
+  "lb": "DEAL",
+  "keys": "",
+  "mashup": "River City Ransom x crime sim"
+ },
+ {
+  "id": "g31",
+  "title": "Pal Harvest",
+  "la": "TEND",
+  "lb": "THROW",
+  "keys": "",
+  "mashup": "Harvest Moon x Palworld"
+ }
+]
