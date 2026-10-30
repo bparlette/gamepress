@@ -70,3 +70,6 @@ Presets: `trailer` (deep, slow â€” `am_adam` @ 0.85x), `character` (energetic â€
 boundaries and concatenated. Model dir override: `GAMEPRESS_TTS_DIR`.
 
 Rules for kit changes: prioritize top-tier game feel, high-fidelity physics, and juicy animation; keep imports ESM-compatible, deterministic, and backward compatible; run `gamepress botcheck` on a few recipes after touching it.
+
+## Cabinet (NES-style demos)
+`kit/cabinet/` holds the NES-style single-file shell, six reference games, build, test and seed-check scripts. Recipe and contract: `docs/RECIPE.md`.
