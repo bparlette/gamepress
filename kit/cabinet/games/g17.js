@@ -2,58 +2,8 @@
 /* ===== VAMPIRE METROID: bounty hunter vs. endless cave bugs. Auto-fire, pellets, level-up picks, boss melt. ===== */
 const UP17 = ['SPAZER', 'ICE AURA', 'MINES', 'SCREW'];
 
-/* ---- art: hive-lab room, shaded sprites, fog-of-war vignette ---- */
-const HERO17 = ['..BBBB..', '.BCCCCB.', '.BCWWCB.', '..BBBB..', '.YBBBBY.', 'YYBLLBYY', '.BBBBBB.', '.MMMMMM.', '.BB..BB.', '.NN..NN.', '.KK..KK.'];
-const ZOM17 = ['..EEEE..', '.EEEEEE.', '.EYEEYE.', '.EEKKEE.', '..EEEE..', '.LLLLLL.', 'ELLLLLLE', 'E.LLLL.E', '..DDDD..'];
-const ZLEG17 = [['..D..D..', '.DD..DD.'], ['..DD.D..', '.D...DD.']];
-let BG17 = null;
-function bg17() {
-  if (BG17) return BG17;
-  clear(DG);
-  for (let y = 16; y < 208; y += 16) for (let x = 0; x < 256; x += 16) {
-    rect(x, y, 16, 1, K); rect(x, y, 1, 16, K);
-    for (let k = 2; k < 15; k += 2) { px(x + k, y + 1, D); px(x + 1, y + k, D); }
-    const h = hash(x, y);
-    if (h < 0.18) for (let j = 0; j < 7; j++) for (let i = 0; i < 9; i++) if (((i + j) & 1) && hash(x + i, y + j) < 0.8) px(x + 3 + i, y + 4 + j, F);
-    if (h > 0.9) { rect(x + 3, y + 5, 6, 1, K); rect(x + 8, y + 6, 4, 1, K); rect(x + 11, y + 7, 2, 2, K); }
-  }
-  for (let k = 0; k < 8; k++) { const x = 24 + hash(k, 3) * 208, y = 40 + hash(k, 5) * 150;
-    for (let j = -5; j <= 5; j++) for (let i = -6; i <= 6; i++) { const d = i * i / 36 + j * j / 25; if (d < 1 && (d < 0.45 || ((i + j) & 1))) px(x + i, y + j, d < 0.45 ? R : M); } }
-  rect(0, 0, 256, 16, M);
-  for (let r = 0; r < 4; r++) for (let x = -(r & 1) * 8; x < 256; x += 16) { rect(x + 1, r * 4 + 1, 14, 3, BRK); rect(x + 1, r * 4 + 1, 14, 1, T); }
-  rect(0, 14, 256, 2, K);
-  for (let i = 0; i < 5; i++) { const x = 10 + i * 50; rect(x, 2, 15, 13, DG); rect(x, 2, 15, 1, L); rect(x, 2, 1, 13, L); rect(x + 2, 4, 11, 1, K); rect(x + 2, 6, 11, 1, K); rect(x + 2, 8, 11, 1, K); rect(x + 11, 11, 2, 2, Y); }
-  rect(0, 208, 256, 16, M);
-  for (let r = 0; r < 3; r++) for (let x = -(r & 1) * 8; x < 256; x += 16) { rect(x + 1, 212 + r * 4, 14, 3, BRK); rect(x + 1, 212 + r * 4, 14, 1, T); }
-  for (let x = 0; x < 256; x += 8) { rect(x, 208, 4, 3, Y); rect(x + 4, 208, 4, 3, K); }
-  for (const sx of [0, 250]) { rect(sx, 16, 6, 192, N); rect(sx + (sx ? 0 : 5), 16, 1, 192, K); rect(sx + 2, 16, 3, 192, D); rect(sx + 2, 16, 1, 192, L);
-    for (let y = 24; y < 208; y += 40) { rect(sx, y, 6, 3, L); rect(sx, y + 3, 6, 1, K); } }
-  for (const [tx, ty] of [[10, 22], [222, 178]]) { rect(tx, ty + 9, 3, 6, M); rect(tx + 21, ty + 9, 3, 6, M); rect(tx, ty + 4, 24, 6, M); rect(tx, ty, 24, 5, T); rect(tx, ty, 24, 1, S);
-    rect(tx + 3, ty - 5, 3, 5, CY); rect(tx + 4, ty - 7, 1, 2, W); rect(tx + 10, ty - 4, 3, 4, E); rect(tx + 16, ty - 6, 3, 6, PK); px(tx + 4, ty - 3, W); px(tx + 11, ty - 2, V); }
-  rect(228, 22, 14, 14, BRK); rect(228, 22, 14, 2, T); rect(228, 34, 14, 2, M); rect(228, 22, 2, 14, M); rect(240, 22, 2, 14, M); rect(231, 27, 8, 1, M);
-  fillCircle(20, 186, 6, T); fillCircle(20, 186, 5, BRK); rect(14, 184, 13, 1, M); rect(14, 188, 13, 1, M);
-  BG17 = buf.slice(); return BG17;
-}
-function splat17(d) {
-  const c = d.el ? PU : GR, c2 = d.el ? PK : E, x = Math.round(d.x), y = Math.round(d.y);
-  fillCircle(x, y, 3, c); fillCircle(x - 1, y - 1, 1, c2);
-  for (let k = 0; k < 4; k++) px(x + Math.round((hash(d.k, k) - 0.5) * 14), y + Math.round((hash(k, d.k) - 0.5) * 10), c);
-}
-function drawZom17(e, T) {
-  const x = Math.round(e.x), y = Math.round(e.y), w = Math.floor(T * 6 + x) & 1, pal = e.el ? { E:PK, L:PU, Y:R } : null;
-  rect(x - 4, y + 5, 8, 2, K); spr(ZOM17, x - 4, y - 5, e.x < 128 ? 0 : 1, pal); spr(ZLEG17[w], x - 4, y + 4, 0, pal);
-}
-function drawQueen17(e, T) {
-  const x = Math.round(e.x), y = Math.round(e.y), w = Math.floor(T * 6) & 1;
-  rect(x - 14, y + 11, 29, 4, K);
-  for (const sd of [-1, 1]) for (let k = 0; k < 3; k++) { const lx = x + sd * (8 + k * 3), ly = y + 2 + k * 4 + (w && k === 1 ? 1 : 0); rect(Math.min(lx, lx + sd * 6), ly, 7, 2, D); rect(lx + sd * 6, ly - 2, 2, 5, L); }
-  fillCircle(x, y + 6, 7, M); fillCircle(x, y, 12, M); fillCircle(x, y - 1, 10, PU); fillCircle(x - 3, y - 5, 4, PK); fillCircle(x + 4, y + 3, 4, M);
-  rect(x - 7, y - 5, 5, 5, Y); rect(x + 3, y - 5, 5, 5, Y); rect(x - 5, y - 4, 2, 3, R); rect(x + 5, y - 4, 2, 3, R); px(x - 6, y - 5, W); px(x + 4, y - 5, W);
-  rect(x - 5, y + 3, 2, 5, W); rect(x + 4, y + 3, 2, 5, W); rect(x - 2, y + 6, 5, 1, K);
-  for (const [dx, h] of [[-7, 4], [-1, 6], [5, 4]]) { rect(x + dx, y - 11 - h, 3, h + 2, PU); rect(x + dx, y - 11 - h, 3, 2, Y); }
-  if (e.hp < 100 && (Math.floor(T * 8) & 1)) for (let k = 0; k < 10; k++) px(x + Math.cos(k * 0.63) * 13, y + Math.sin(k * 0.63) * 13, R);
-}
-function bar17(x, y, w, v, col, hi) { rect(x - 1, y - 1, w + 2, 8, K); rect(x, y, w, 6, DG); const f = Math.round(w * Math.max(0, Math.min(1, v))); rect(x, y, f, 6, col); rect(x, y, f, 2, hi); }
+/* ---- art: all from ART (artkit.js) ---- */
+const bgFn17 = () => { ART.floor(); ART.blood(8); ART.brick(0, 16, 4); ART.lockers(5, 10, 50); ART.pipes(); ART.brick(208, 16, 3); ART.hazard(208); ART.table(10, 22); ART.table(222, 178); ART.crate(228, 22); ART.barrel(20, 186); };
 function icon17(k, cx, cy, T) {
   if (k === 0) { for (const a of [-0.45, 0, 0.45]) for (let i = 0; i < 4; i++) rect(cx - 8 + i * 4, cy + Math.round(Math.sin(a) * (i * 4 - 2)) - 1, 3, 3, i === 3 ? W : Y); }
   else if (k === 1) { for (let a = 0; a < 6.28; a += 0.14) px(cx + Math.cos(a + T) * 9, cy + Math.sin(a + T) * 9, CY); fillCircle(cx, cy, 3, W); }
@@ -116,32 +66,21 @@ const GAME = kit({ id:'g17', t1:'VAMPIRE', t2:'METROID', sub:'SURVIVE. LEVEL. ME
     }
   },
   draw(S) {
-    const p = S.p, T = S.T; buf.set(bg17());
-    for (const d of S.dec) splat17(d);
-    for (const q of S.pel) { const bob = Math.floor(T * 4 + q.x) & 1; rect(q.x - 2, q.y + 3, 5, 1, K); rect(q.x - 2, q.y - 2 - bob, 5, 5, CY); rect(q.x - 1, q.y - 1 - bob, 2, 2, W); px(q.x + 1, q.y + 1 - bob, B); }
+    const p = S.p, T = S.T; ART.bg('g17', bgFn17);
+    for (const d of S.dec) ART.splat(d);
+    for (const q of S.pel) ART.gem(q.x, q.y, T);
     for (const m of S.mines) { fillCircle(m.x, m.y, 3, D); fillCircle(m.x, m.y, 2, DG); rect(m.x - 1, m.y - 1, 2, 2, Math.floor(T * 10) & 1 ? R : Y); }
     const aur = S.lv[1] ? 22 + S.lv[1] * 9 : 0;
-    if (aur) for (let k = 0; k < 90; k++) { const an = k * 0.0698 + T; px(p.x + Math.cos(an) * aur, p.y + Math.sin(an) * aur, k % 3 ? CY : W); if (k % 2) px(p.x + Math.cos(an) * (aur - 3), p.y + Math.sin(an) * (aur - 3), SKY); }
-    const ents = S.en.map(e => ({ y:e.y, e })); ents.push({ y:p.y, pl:1 }); ents.sort((a, b) => a.y - b.y);
-    for (const o of ents) {
-      if (o.e) { if (o.e.big) drawQueen17(o.e, T); else drawZom17(o.e, T); continue; }
-      const bl = p.inv > 0 && (Math.floor(T * 20) & 1), fl = Math.cos(p.ang) < 0, cx = Math.round(p.x), cy = Math.round(p.y);
-      for (let k = 0; k < 14; k++) px(cx + Math.cos(k * 0.449 + T * 2) * 9, cy + 4 + Math.sin(k * 0.449 + T * 2) * 4, SKY); rect(cx - 4, cy + 5, 9, 2, K); if (bl) continue;
-      spr(HERO17, cx - 4, cy - 6, 0);
-      for (let k = 3; k < 10; k++) px(cx + Math.cos(p.ang) * k, cy - 1 + Math.sin(p.ang) * k, k > 8 ? L : D);
-      if (S.mz > 0) { const gx = cx + Math.cos(p.ang) * 11, gy = cy - 1 + Math.sin(p.ang) * 11; fillCircle(gx, gy, 2, Y); px(gx, gy, W); }
-    }
-    for (const s of S.sh) { rect(s.x - 1, s.y - 1, 3, 3, Y); px(s.x - s.vx * 0.025, s.y - s.vy * 0.025, O); px(s.x - s.vx * 0.05, s.y - s.vy * 0.05, D); }
-    for (const f of S.fx) { if (f.o) { fillCircle(f.x, f.y, 3, W); px(f.x, f.y, CY); px(f.x + 2, f.y - 2, CY); } else if (f.r && !f.dmg) { const r = Math.round(f.r * (1 - f.t * 2) + 4); fillCircle(f.x, f.y, r, R); fillCircle(f.x, f.y, Math.max(1, r - 3), O); fillCircle(f.x, f.y, Math.max(1, r - 6), Y); if (r > 9) fillCircle(f.x, f.y, r - 9, W); } }
-    for (let y = 0; y < 224; y++) for (let x = 0; x < 256; x++) { const dx = x - p.x, dy = y - p.y, d = dx * dx + dy * dy; if (d > 14400 && (d > 27225 ? (x + y) & 1 : (x & 1) & (y & 1))) buf[y * 256 + x] = K; }
-    if (p.inv > 0.3) { rect(0, 0, 256, 2, R); rect(0, 222, 256, 2, R); rect(0, 0, 2, 224, R); rect(254, 0, 2, 224, R); }
-    bar17(40, 4, 56, S.xp / S.need, CY, W); rect(101, 4, 3, 3, PK); rect(105, 4, 3, 3, PK); rect(102, 7, 5, 2, R); bar17(112, 4, 54, p.hp / 100, R, PK);
-    if (S.boss && S.boss.hp > 0) bar17(64, 212, 128, S.boss.hp / 300, PU, PK);
-    if (S.menu) {
-      for (let y = 0; y < 224; y++) for (let x = (y & 1); x < 256; x += 2) buf[y * 256 + x] = K;
-      rect(22, 68, 212, 88, W); rect(24, 70, 208, 84, N); rect(24, 70, 208, 2, B);
-      S.menu.forEach((k, i) => { const x = 32 + i * 66, on = i === S.sel; rect(x - 2, 94, 64, 54, on ? Y : DG); rect(x, 96, 60, 50, on ? BRK : D); rect(x, 96, 60, 2, on ? Y : L); icon17(k, x + 30, 118, T); });
-    }
+    if (aur) { ART.ring(p.x, p.y, aur, T); ART.ring(p.x, p.y, aur - 3, T, SKY, SKY, 45); }
+    const cx = Math.round(p.x), cy = Math.round(p.y), bl = p.inv > 0 && (Math.floor(T * 20) & 1);
+    ART.depth(S.en.map(e => ({ y:e.y, draw: () => e.big ? ART.queen(Math.round(e.x), Math.round(e.y), T, e.hp) : ART.grunt(Math.round(e.x), Math.round(e.y), T, e.el ? { E:PK, L:PU, Y:R } : null, e.x < 128 ? 0 : 1) }))
+      .concat([{ y:p.y, draw: () => { ART.marker(cx, cy, T); if (bl) return; ART.hero(cx, cy); ART.gun(cx, cy, p.ang, S.mz > 0); } }]));
+    for (const s of S.sh) ART.bullet(s);
+    for (const f of S.fx) { if (f.o) { fillCircle(f.x, f.y, 3, W); px(f.x, f.y, CY); px(f.x + 2, f.y - 2, CY); } else if (f.r && !f.dmg) ART.blast(f.x, f.y, Math.round(f.r * (1 - f.t * 2) + 4)); }
+    ART.fog(p.x, p.y); if (p.inv > 0.3) ART.flash();
+    ART.bar(40, 4, 56, S.xp / S.need, CY, W); ART.heart(101, 4); ART.bar(112, 4, 54, p.hp / 100, R, PK);
+    if (S.boss && S.boss.hp > 0) ART.bar(64, 212, 128, S.boss.hp / 300, PU, PK);
+    if (S.menu) { ART.modal(24, 70, 208, 84); S.menu.forEach((k, i) => { const x = 32 + i * 66; ART.card(x, 96, 60, 50, i === S.sel); icon17(k, x + 30, 118, T); }); }
   },
   hud(S, mode) {
     txt('LV ' + S.lvl, 4, 4, W, 8); txt('KILLS ' + S.kills, 252, 4, Y, 8, 'right');

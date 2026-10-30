@@ -11,7 +11,7 @@ def build(g, local_font=False, outdir=None):
            '<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">'
     html = (head.replace('%%TITLE%%', m['title']).replace('%%LA%%', m['la']).replace('%%LB%%', m['lb'])
             .replace('%%KEYS%%', m['keys']).replace('%%FONT%%', font)
-            .replace('%%CORE%%', open(f'{base}/core.js').read() + open(f'{base}/gamekit.js').read())
+            .replace('%%CORE%%', open(f'{base}/core.js').read() + open(f'{base}/gamekit.js').read() + open(f'{base}/artkit.js').read())
             .replace('%%GAME%%', open(f'{base}/games/{g}.js').read())
             .replace('%%LOOP%%', open(f'{base}/loop.js').read()))
     outdir = outdir or f'{base}/out'
