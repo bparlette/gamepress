@@ -17,6 +17,8 @@ GAMES = {
              keys='<b>Keys:</b> arrows move, Z or Space swings the hammer (smash the wall in front of you or stun a patrol bot), X dashes, Enter starts, M mutes. Wrecked walls reveal dots; collect 20 before the timer seals the maze. Walls grow back.'),
   'g8': dict(title='Morph Climb', la='JUMP', lb='FIRE',
              keys='<b>Keys:</b> left and right move, Z or Space jumps (wings: hold to flap), X fires the beam, B or Shift changes form, Enter starts, M mutes. Grab a form on each floor before the layer that needs it. Lava rises from below.'),
+  'g9': dict(title='Dig Up', la='DIG', lb='PUMP',
+             keys='<b>Keys:</b> left and right walk and face, up and down climb your tunnel, Z or Space digs the tile in front, up plus Z digs the tile above you, X pumps an enemy to stun it, Enter starts, M mutes. Dirt you dig above you falls on enemies below.'),
 }
 def build(g, local_font=False, outdir=None):
     m = GAMES[g]
