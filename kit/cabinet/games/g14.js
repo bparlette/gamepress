@@ -37,7 +37,7 @@ function act14(S, who, k) {
   if (!S.shells.length) S.reload = true;
 }
 const GAME = kit({
-  id:'g14', t1:'BUCKSHOT', t2:'SALOON', sub:'ONE GUN. ONE TABLE. DON\'T BLINK.', seed:7, off:14, secs:52,
+  id:'g14', t1:'BUCKSHOT', t2:'SALOON', sub:'ONE GUN. ONE TABLE. DON\'T BLINK.', seed:5, off:14, secs:52,
   music:MUS(96, -26, true),
   setup(S) { S.hp = { p:3, e:3 }; S.inv = { p:[], e:[] }; S.turn = 'p'; S.endT = 0; S.fl = 0; S.shake = 0; S.aim = 'foe'; S.last = 'p'; S.reload = false; S.tg = 0; load14(S, false); },
   step(S, dt, inp) {

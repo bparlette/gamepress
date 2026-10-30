@@ -17,7 +17,7 @@ const GAME = kit({
   music:MUS(124, -24, true),
   setup(S) {
     S.d = []; for (let y = 0; y < GH; y++) S.d.push(new Array(GW).fill(y >= 2 ? 1 : 0));
-    S.p = { x:SX27, y:2 }; S.face = [0, 1]; S.hold = 0; S.pd = ''; S.mt = 0; S.cd = 0; S.hp = 3; S.inv = 0; S.o2 = 55; S.gold = 0; S.fl = 3; S.kills = 0; S.bolt = null; S.sp = 3; S.alert = 0; S.pod = 0; S.fx = 0; S.bo = []; S.en = []; S.gv = []; S.rope = 0;
+    S.p = { x:SX27, y:2 }; S.face = [0, 1]; S.hold = 0; S.pd = ''; S.mt = 0; S.cd = 0; S.hp = 5; S.inv = 0; S.o2 = 55; S.gold = 0; S.fl = 3; S.kills = 0; S.bolt = null; S.sp = 3; S.alert = 0; S.pod = 0; S.fx = 0; S.bo = []; S.en = []; S.gv = []; S.rope = 0;
     S.d[2][SX27] = 0; S.d[3][SX27] = 0;
     const gx = [4, 27, 5, 26, 16], gy = [8, 11, 15, 18, 21];
     for (let i = 0; i < 5; i++) S.gv.push({ x:gx[i] + rint(S, 3) - 1, y:gy[i] + rint(S, 2) });
