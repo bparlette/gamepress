@@ -2,8 +2,13 @@ import sys, os, re
 base = os.path.dirname(os.path.abspath(__file__))
 import json
 GAMES = {m['id']: m for m in json.load(open(f'{base}/games.json'))}
+THREE_SRC = None
+def _three():
+    return "const THREE = (() => { const module = { exports:{} }, exports = module.exports;\n" + open(f'{base}/vendor/three.cjs').read() + "\nreturn module.exports; })();\n"
 def build(g, local_font=False, outdir=None, hd=False, art=False):
+    global THREE_SRC
     m = dict(GAMES[g]); src = open(f'{base}/games/{g}.js').read()
+    THREE_SRC = _three() if '// NEEDS: three' in src else ''
     k = re.search(r'^// KEYS: (.*)$', src, re.M)
     if k: m['keys'] = '<b>Keys:</b> ' + k.group(1) + ' Enter starts, M mutes.'
     head = open(f'{base}/head.html').read()
@@ -11,7 +16,7 @@ def build(g, local_font=False, outdir=None, hd=False, art=False):
            '<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">'
     html = (head.replace('%%TITLE%%', m['title']).replace('%%LA%%', m['la']).replace('%%LB%%', m['lb'])
             .replace('%%KEYS%%', m['keys']).replace('%%FONT%%', font)
-            .replace('%%CORE%%', open(f'{base}/core.js').read() + open(f'{base}/gamekit.js').read() + open(f'{base}/artkit.js').read() + open(f'{base}/hdkit.js').read() + open(f'{base}/glpost.js').read() + open(f'{base}/rigkit.js').read())
+            .replace('%%CORE%%', (THREE_SRC if '// NEEDS: three' in src else '') + open(f'{base}/core.js').read() + open(f'{base}/gamekit.js').read() + open(f'{base}/artkit.js').read() + open(f'{base}/hdkit.js').read() + open(f'{base}/glpost.js').read() + open(f'{base}/rigkit.js').read())
             .replace('%%GAME%%', open(f'{base}/games/{g}.js').read())
             .replace('%%LOOP%%', open(f'{base}/loop.js').read()))
     if hd or art:
