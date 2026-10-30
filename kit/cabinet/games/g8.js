@@ -104,6 +104,9 @@ const GAME = {
     txt('HEIGHT ' + String(Math.min(100, Math.floor(maxY8 / YP8[NP8] * 100))) + '%', 4, 4, W, 8);
     txt(P8.form.toUpperCase(), 252, 4, Y, 8, 'right');
     for (let i = 0; i < Math.max(0, lives8); i++) rect(6 + i * 10, 16, 6, 6, R);
+    const ly = L8[P8.cur], nd = ly ? NEED8[ly.t] : null;
+    if (nd && P8.form !== nd) txt(P8.owned.includes(nd) ? 'X OR SHIFT: SWITCH TO ' + nd.toUpperCase() : 'FIND THE ' + nd.toUpperCase() + ' POWER', 128, 28, Y, 8, 'center');
+    else if (T8 < 10 && mode === 'play') txt('JUMP UP THROUGH THE GAP', 128, 28, W, 8, 'center');
     for (const p of pops8) txt(p.s, clamp(Math.round(p.x), 24, 232), Math.round(p.y - p.t * 12), p.col, 8, 'center');
   },
   info() { return { score:score8, height:Math.floor(maxY8), lives:lives8, form:P8.form, cur:P8.cur, owned:P8.owned.join('+'), lt:(L8[P8.cur] || {}).t, lox:(L8[P8.cur] || {}).ox, px:+P8.x.toFixed(1), act:+P8.act.toFixed(2), pk:PK8.filter(k => k.j === P8.cur).map(k => k.k + (k.taken ? ':t' : ':n')).join(',') }; },

@@ -63,6 +63,7 @@ const GAME = {
     txt('SPD ' + Math.round(spd10), 4, 206, CY, 8);
     txt(nitro10 ? 'NITRO READY' : 'NITRO USED', 252, 206, nitro10 ? Y : DG, 8, 'right');
     rect(96, 210, 64, 6, DG); rect(96, 210, Math.round(64 * Math.min(1, dist10 / GOAL10)), 6, Y);
+    if (mode === 'play' && T10 < 7) txt('TAP LEFT / RIGHT: CHANGE LANE', 128, 100, W, 8, 'center');
     for (const p of pops10) txt(p.s, p.x, Math.round(p.y - p.t * 14), p.col, 8, 'center');
   },
   info() { return { score:score10, dist:Math.floor(dist10), spd:Math.round(spd10), lane:lane10, nitro:nitro10, cars:cars10.length }; },

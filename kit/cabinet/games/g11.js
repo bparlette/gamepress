@@ -37,7 +37,7 @@ const GAME = {
     for (let i = pops11.length - 1; i >= 0; i--) { pops11[i].t += dt; if (pops11[i].t > 1.1) pops11.splice(i, 1); }
     hopCd11 = Math.max(0, hopCd11 - dt); rvCd11 -= dt; pl11.inv = Math.max(0, (pl11.inv || 0) - dt); rvRespawn11 = Math.max(0, rvRespawn11 - dt);
     tleft11 -= dt; if (tleft11 <= 0) { if (att11) setup11(true); else { const a = count11(1), b = count11(2); endGame(a * 10, a > b ? 'YOU WIN' : 'DEFEAT'); } return; }
-    const dir = (inp.u && inp.l) ? 'ul' : (inp.u && inp.r) ? 'ur' : (inp.d && inp.l) ? 'dl' : (inp.d && inp.r) ? 'dr' : '';
+    const dir = (inp.u && inp.l) ? 'ul' : (inp.u && inp.r) ? 'ur' : (inp.d && inp.l) ? 'dl' : (inp.d && inp.r) ? 'dr' : inp.l ? 'dl' : inp.r ? 'dr' : inp.a ? 'ul' : inp.b ? 'ur' : '';
     if (dir && dir !== prevDir11 && hopCd11 <= 0) {
       const map = { ul:[-1, -1], ur:[-1, 0], dl:[1, 0], dr:[1, 1] }[dir];
       const nr = pl11.r + map[0], nc = pl11.c + map[1];
@@ -79,7 +79,7 @@ const GAME = {
     txt('RIVAL ' + String(count11(2)).padStart(2, '0'), 252, 4, R, 8, 'right');
     txt(String(Math.ceil(tleft11)), 128, 4, tleft11 < 10 ? R : W, 8, 'center');
     for (let i = 0; i < Math.max(0, lives11); i++) rect(6 + i * 10, 208, 6, 6, Y);
-    txt('LEFT AND UP JUMP', 128, 206, W, 8, 'center');
+    txt('L/R HOP DOWN   A/B HOP UP', 128, 206, W, 8, 'center');
     for (const p of pops11) txt(p.s, clamp(Math.round(p.x), 24, 232), Math.round(p.y - p.t * 12), p.col, 8, 'center');
   },
   info() { return { you:count11(1), rival:count11(2), lives:lives11, time:Math.round(tleft11), pr:pl11.r, pc:pl11.c }; },

@@ -102,7 +102,7 @@ const GAME = {
     txt(String(Math.ceil(tleft9)), 128, 4, tleft9 < 15 ? R : W, 8, 'center');
     txt('SCORE ' + pad5(score9), 252, 4, Y, 8, 'right');
     for (let i = 0; i < Math.max(0, lives9); i++) rect(6 + i * 10, 214, 6, 6, R);
-    if (mode === 'play' && T9 < 8) txt('UP + A DIGS UP. B PUMPS.', 128, 200, W, 8, 'center');
+    if (mode === 'play' && T9 < 16) txt('UP + A DIGS UP. X PUMPS.', 128, 200, W, 8, 'center');
   },
   info() { return { score:score9, height:P9.r, lives:lives9, time:Math.round(tleft9), enemies:E9.length, traps:CL9.length, c:P9.c }; },
   bot() {
