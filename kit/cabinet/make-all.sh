@@ -6,5 +6,6 @@ cd "$(dirname "$0")"; export NODE_PATH=$(npm root -g); g=$1
 python3 build.py $g --hd >/dev/null
 if grep -q "drawHD" games/$g.js; then HD=1 node snap.cjs $g 700 1500; else rm -f out/$g.hd.html; echo "no drawHD in $g: HD edition skipped"; fi
 node snap.cjs $g 700 1500
+if grep -q "RIG.def" games/$g.js; then python3 build.py $g --art >/dev/null; ART=1 node snap.cjs $g 700 1500; fi   # 4th tier: SVG rig + WebGL
 [ "$2" = "--no-video" ] || video/short.sh out/${g}_short.mp4 $g
 ls -la out/$g*.html out/${g}_short.mp4 2>/dev/null

@@ -31,6 +31,7 @@ function render() {
   for (let i = 0; i < buf.length; i++) px32[i] = PAL32[buf[i]];
   ctx.putImageData(img, 0, 0); }
   GAME.hud(mode);
+  if (window.GLPOST_ON) { if (!GLPOST.on && !GLPOST.tried) { GLPOST.tried = 1; GLPOST.init(cv); } GLPOST.run(performance.now() / 1000); }
   const WH = HEX[W], YE = HEX[Y];
   if (mode === 'title') {
     panel(16, 12, 224, 96);
