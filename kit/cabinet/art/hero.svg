@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="480" height="600">
+<defs>
+<linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd9b0"/><stop offset="1" stop-color="#e3a374"/></linearGradient>
+<linearGradient id="camo" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#8fae5a"/><stop offset="1" stop-color="#4a6830"/></linearGradient>
+<linearGradient id="pants" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a8a52"/><stop offset="1" stop-color="#3e4c2a"/></linearGradient>
+<linearGradient id="cap" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fa850"/><stop offset="1" stop-color="#3a5a26"/></linearGradient>
+<linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c8794"/><stop offset="1" stop-color="#2c333c"/></linearGradient>
+</defs>
+<g stroke="#15171d" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round">
+<ellipse cx="60" cy="142" rx="30" ry="6" fill="#000" opacity=".35" stroke="none"/>
+<!-- backpack -->
+<path d="M22 70 q-8 4 -8 20 q0 16 10 20 l14 -2 l-2 -38z" fill="#8a6a3c"/><path d="M20 76 q-3 10 0 22" stroke="#d9b070" stroke-width="2" fill="none"/>
+<!-- back leg -->
+<path d="M44 104 l-4 26 l14 0 l4 -26z" fill="url(#pants)"/><path d="M36 128 q-4 0 -4 6 q0 6 8 6 l16 0 q4 0 4 -6 l-2 -6z" fill="#3a3c46"/><path d="M36 128 q-2 3 -1 6" stroke="#6a6e7c" stroke-width="2" fill="none"/>
+<!-- front leg -->
+<path d="M62 104 l2 26 l14 0 l2 -26z" fill="url(#pants)"/><path d="M62 128 q-4 0 -4 6 q0 6 8 6 l18 0 q6 0 6 -6 l-2 -6z" fill="#454854"/><path d="M62 130 q-2 3 -1 6" stroke="#7a7e8c" stroke-width="2" fill="none"/>
+<!-- torso -->
+<path d="M36 66 q-4 0 -4 8 l2 34 q14 8 34 0 l2 -34 q0 -8 -4 -8z" fill="url(#camo)"/>
+<path d="M38 70 l6 0 l-2 34 l-6 -2z" fill="#fff" opacity=".12" stroke="none"/>
+<path d="M44 82 h18 v12 h-18z" fill="#3a5226"/><path d="M48 82 v12 M56 82 v12" stroke="#15171d" stroke-width="1.6"/>
+<path d="M34 104 q18 8 36 0 l0 6 q-18 8 -36 0z" fill="#5a3e22"/><rect x="48" y="104" width="8" height="8" rx="1.5" fill="#d8b04a"/>
+<!-- far arm -->
+<path d="M40 72 q-8 12 4 22 l10 -6 l-4 -14z" fill="#6f8f46"/>
+<!-- head -->
+<ellipse cx="60" cy="40" rx="27" ry="25" fill="url(#skin)"/>
+<ellipse cx="34" cy="42" rx="5" ry="6.5" fill="#e3a374"/>
+<path d="M33 22 q27 -26 56 0 q0 6 -6 6 l-12 -4 q-14 -3 -34 4 z" fill="url(#cap)"/>
+<path d="M60 20 q16 0 28 10 l16 3 q8 2 6 8 q-8 4 -22 0 q-20 -6 -34 -4z" fill="#456a2c"/>
+<path d="M44 14 q8 -4 16 -4" stroke="#bfe08a" stroke-width="2.4" fill="none" opacity=".8"/>
+<ellipse cx="73" cy="44" rx="4.5" ry="6" fill="#fff"/><ellipse cx="74.5" cy="45" rx="2.6" ry="4" fill="#1c1c24" stroke="none"/><circle cx="75.5" cy="43" r="1.1" fill="#fff" stroke="none"/>
+<ellipse cx="50" cy="44" rx="4" ry="5.5" fill="#fff"/><ellipse cx="51" cy="45" rx="2.4" ry="3.6" fill="#1c1c24" stroke="none"/><circle cx="52" cy="43" r="1" fill="#fff" stroke="none"/>
+<path d="M66 54 q6 5 12 0" stroke-width="2.4" fill="none"/>
+<path d="M46 36 q4 -3 8 -1 M68 36 q4 -3 9 -1" stroke-width="2.6" fill="none"/>
+<ellipse cx="82" cy="52" rx="4" ry="2.6" fill="#ff8a6a" opacity=".5" stroke="none"/>
+<!-- near arm + rifle -->
+<path d="M62 72 l18 8 l14 -2 l0 12 l-16 2 l-18 -8z" fill="url(#camo)"/>
+<circle cx="96" cy="88" r="6.5" fill="url(#skin)"/>
+<g transform="translate(70 82)"><path d="M0 0 h46 v9 h-46z" fill="url(#metal)"/><path d="M-12 -2 l14 2 v11 l-14 4z" fill="#6a4a2c"/><path d="M46 2 h14 v5 h-14z" fill="#9aa4b0"/><path d="M12 -5 h18 v5 h-18z" fill="#3a4048"/><path d="M4 9 l-2 16 h10 l2 -16z" fill="#2c333c"/></g>
+</g></svg>
