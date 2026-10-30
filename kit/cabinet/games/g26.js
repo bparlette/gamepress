@@ -61,7 +61,7 @@ const GAME = kit({
     for (const r of S.rocks) { if (r.chest) { rect(r.x - 7, r.y - 5, 14, 10, T); rect(r.x - 7, r.y - 5, 14, 4, S_TAN); rect(r.x - 2, r.y - 1, 4, 4, Y); } else { rect(r.x - 7, r.y - 5, 14, 11, L); rect(r.x - 5, r.y - 7, 10, 3, L); px(r.x - 3, r.y, Y); px(r.x + 2, r.y + 2, Y); px(r.x + 1, r.y - 3, Y); rect(r.x - 7, r.y + 4, 14, 2, D); } }
     const h = S.h, bs = S.boss;
     if (bs && bs.dying < 1.4) { const f = bs.dying ? (S.T * 30 & 1) : 0; rect(bs.x - 20, bs.y - 18, 40, 40, f ? W : PU); rect(bs.x - 24, bs.y - 26, 8, 12, R); rect(bs.x + 16, bs.y - 26, 8, 12, R); rect(bs.x - 12, bs.y - 8, 8, 6, Y); rect(bs.x + 4, bs.y - 8, 8, 6, Y); rect(bs.x - 10, bs.y + 8, 20, 4, K); }
-    for (let j = S.pets.length - 1; j >= 0; j--) { const p = S.hist[(j + 1) * 5] || h, k = S.pets[j].k; pet26(k, p.x, p.y, j % 2 ? GR : CY, Math.sin(S.T * 10) * 2); if (S.beam > 0 && k === 3 && bs && !bs.dying) for (let t = 0; t < 14; t++) rect(p.x + (bs.x - p.x) * t / 14, p.y + (bs.y - p.y) * t / 14, 4, 4, t & 1 ? Y : W); }
+    for (let j = S.pets.length - 1; j >= 0; j--) { const p = S.hist[(j + 1) * 5] || h, k = S.pets[j].k; pet26(k, p.x, p.y, j % 2 ? PU : CY, Math.sin(S.T * 10) * 2); if (S.beam > 0 && k === 3 && bs && !bs.dying) for (let t = 0; t < 14; t++) rect(p.x + (bs.x - p.x) * t / 14, p.y + (bs.y - p.y) * t / 14, 4, 4, t & 1 ? Y : W); }
     rect(h.x - 4, h.y - 8, 8, 4, B); rect(h.x - 3, h.y - 5, 6, 5, S_TAN); rect(h.x - 4, h.y, 8, 7, R); rect(h.x - 4, h.y + 7, 3, 2, K); rect(h.x + 1, h.y + 7, 3, 2, K);
     if (h.sw > 0) { const sx = h.x + h.fx * 11, sy = h.y + h.fy * 11; rect(sx - 4, sy - 4, 8, 8, W); rect(sx - 2, sy - 2, 4, 4, CY); }
     rect(0, 0, VW, 18, N); rect(0, 18, VW, 1, W);
