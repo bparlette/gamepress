@@ -1,7 +1,7 @@
 /* ===== MAZE WRECKER: NIGHT SHIFT — Pac-Man x Wrecking Crew, built on the shared gamekit.
    Same lattice maze as Moth's g7, one new rule: the hammer is a weapon now — swing at a
    foreman (ghost) to STUN him for 3 s (+50). Dusk palette, tighter 135 s seal.
-   All state on S; ghost steering uses the kit's shared bfs(). ===== */
+   All state on S; ghost steering uses the kit's shared bfs(). Updated to the artkit-era script: HUD icons draw in ui() (hud() is text-only - pixel calls there are discarded after the blit), particles renamed S.fx so the kit's own S.parts updater leaves them alone. Gameplay, map and 135 s seal unchanged. ===== */
 // KEYS: Arrows move, Z swings the hammer (smash bricks, STUN ghosts), X dashes.
 const MW32 = 16, MH32 = 14, TS32 = 16, SEAL32 = 135;
 const MAP32 = [
@@ -47,7 +47,7 @@ const GHOST32 = [
 ];
 const tile32 = (S, x, y) => (x < 0 || y < 0 || x >= MW32 || y >= MH32) ? '#' : S.tiles[y][x];
 const pass32 = (S, x, y) => { const t = tile32(S, x, y); return t !== '#' && t !== 'B'; };
-function burst32(S, x, y, col, n) { for (let i = 0; i < n; i++) { const a = vr() * 6.283, sp = 14 + vr() * 40; S.parts.push({ x, y, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp - 12, t:0, life:0.4 + vr() * 0.3, col }); } }
+function burst32(S, x, y, col, n) { for (let i = 0; i < n; i++) { const a = vr() * 6.283, sp = 14 + vr() * 40; S.fx.push({ x, y, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp - 12, t:0, life:0.4 + vr() * 0.3, col }); } }
 function snap32(e) { const cx = Math.round((e.x - 8) / TS32) * TS32 + 8, cy = Math.round((e.y - 8) / TS32) * TS32 + 8; return [cx, cy, Math.abs(e.x - cx) < 0.6 && Math.abs(e.y - cy) < 0.6]; }
 function resetPos32(S) {
   const P = S.P;
@@ -104,12 +104,12 @@ const GAME = kit({
     S.P = { x:pStart.x * TS32 + 8, y:pStart.y * TS32 + 8, dir:'l', want:'l', sx:pStart.x, sy:pStart.y, swing:0, swingCd:0, dash:0, dashCd:0, invuln:0 };
     const cols = [O, CY, PK], kinds = ['chase', 'ambush', 'roam'];
     S.ghosts = spawns.map((s, i) => ({ x:s.x * TS32 + 8, y:s.y * TS32 + 8, dir:DK32[i % 4], sx:s.x, sy:s.y, kind:kinds[i % 3], col:cols[i % 3], eyes:false, stun:0, roamT:0, roamTx:s.x, roamTy:s.y }));
-    S.parts = []; S.fruits = [];
+    S.fx = []; S.fruits = [];
     S.lives = 3; S.timeLeft = SEAL32; S.frightT = 0; S.eaten = 0; S.stuns = 0;
   },
   step(S, dt, inp, att) {
     const P = S.P;
-    for (let i = S.parts.length - 1; i >= 0; i--) { const p = S.parts[i]; p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 160 * dt; if (p.t > p.life) S.parts.splice(i, 1); }
+    for (let i = S.fx.length - 1; i >= 0; i--) { const p = S.fx[i]; p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 160 * dt; if (p.t > p.life) S.fx.splice(i, 1); }
     if (inp.l) P.want = 'l'; if (inp.r) P.want = 'r'; if (inp.u) P.want = 'u'; if (inp.d) P.want = 'd';
     P.swingCd -= dt; P.dashCd -= dt; P.invuln -= dt;
     if (S.edge(inp, 'a') && P.swingCd <= 0) {
@@ -197,16 +197,19 @@ const GAME = kit({
       const [fx, fy] = D32[P.dir], hx = Math.round(P.x + fx * 11), hy = Math.round(P.y + fy * 11);
       rect(hx - 1, hy - 5, 3, 8, T); rect(hx - 3, hy - 8, 7, 4, D);
     }
-    for (const p of S.parts) px(p.x, p.y, p.col);
+    for (const p of S.fx) px(p.x, p.y, p.col);
     if (!S.att && S.timeLeft <= 10) { rect(0, 0, VW, 2, R); rect(0, VH - 2, VW, 2, R); }
     if (!S.att && S.timeLeft <= 30 && S.timeLeft > 10 && (Math.floor(S.T * 2) & 1)) { rect(0, 0, VW, 2, O); rect(0, VH - 2, VW, 2, O); }
+  },
+  ui(S) {
+    /* HUD icons live here now: hud() runs after the blit, so spr() there never showed */
+    for (let i = 0; i < S.lives - 1; i++) spr(WRECKER32, 8 + i * 12, 212, false, null);
   },
   hud(S, mode) {
     if (mode === 'title') return;
     txt('SC ' + pad5(S.score), 6, 3, W, 8);
     txt(Math.max(0, Math.ceil(S.timeLeft)) + 's', 128, 3, S.timeLeft <= 10 ? R : Y, 8, 'center');
     txt(S.pellets + ' LEFT', 250, 3, CY, 8, 'right');
-    for (let i = 0; i < S.lives - 1; i++) spr(WRECKER32, 8 + i * 12, 212, false, null);
   },
   info(S) { return { pellets:S.pellets, lives:S.lives, time:+S.timeLeft.toFixed(1), eaten:S.eaten, stuns:S.stuns, px:Math.round(S.P.x), py:Math.round(S.P.y), ghosts:S.ghosts.map(g => Math.round(g.x) + ',' + Math.round(g.y)).join(' ') }; },
   bot(S, i) {

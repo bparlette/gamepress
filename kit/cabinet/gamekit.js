@@ -42,7 +42,7 @@ function kit(c) {
       if (S.parts) for (let i = S.parts.length - 1; i >= 0; i--) { const p = S.parts[i]; p.t -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; if (p.t <= 0) S.parts.splice(i, 1); }
       if (c.step(S, dt, inp, S.att) === 'reset') fresh(true);
     },
-    render() { c.draw(S); drawParts(S); },
+    render() { c.draw(S); drawParts(S); if (c.ui) c.ui(S); },
     hud(mode) { c.hud && c.hud(S, mode); drawPops(S); },
     info() { return Object.assign({ score:Math.round(S.score), t:+S.T.toFixed(1) }, c.info ? c.info(S) : {}); },
     bot() { return c.bot(S, NI()) || NI(); },

@@ -15,8 +15,9 @@ const GAME = kit({{
   music:MUS(150, -24, true),
   setup(S, att) {{ S.lives = 3; /* all state lives on S */ }},
   step(S, dt, inp, att) {{ /* update; end with: return finish(S, 'CLEAR!') or endGame via finish */ }},
-  draw(S) {{ clear(N); }},
-  hud(S, mode) {{ txt('SCORE ' + pad5(S.score), 4, 4, W, 8); }},
+  draw(S) {{ ART.bg('{g}', () => {{ ART.floor(); ART.brick(0, 16, 4); ART.brick(208, 16, 3); }});  /* static room baked once */
+    /* ART.depth([{{y, draw}}]) for sprites, ART.fog(x,y), ART.bar(...)  (all pixel drawing here, none in hud) */ }},
+  hud(S, mode) {{ txt('SCORE ' + pad5(S.score), 4, 4, W, 8); hintS(S, 'ARROWS MOVE  Z ACTION', 8, 200); }},  /* text only */
   info(S) {{ return {{ lives:S.lives }}; }},
   bot(S, i) {{ return i; }},
 }});
