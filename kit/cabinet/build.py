@@ -19,6 +19,10 @@ GAMES = {
              keys='<b>Keys:</b> left and right move, Z or Space jumps (wings: hold to flap), X fires the beam, B or Shift changes form, Enter starts, M mutes. Grab a form on each floor before the layer that needs it. Lava rises from below.'),
   'g9': dict(title='Dig Up', la='DIG', lb='PUMP',
              keys='<b>Keys:</b> left and right walk and face, up and down climb your tunnel, Z or Space digs the tile in front, up plus Z digs the tile above you, X pumps an enemy to stun it, Enter starts, M mutes. Dirt you dig above you falls on enemies below.'),
+  'g10': dict(title='Gridlock Grand Prix', la='LANE', lb='NITRO',
+             keys='<b>Keys:</b> left and right change lane (one tap each), up accelerates, down brakes, Z or Space uses your one nitro, Enter starts, M mutes. Pass cars in the next lane for near misses. One crash ends the run.'),
+  'g11': dict(title='Hop Fight', la='HOP', lb='HOP',
+             keys='<b>Keys:</b> hold a diagonal to hop: Up plus Left or Right hops up, Down plus Left or Right hops down. Land on cubes to claim them, hop onto your rival to knock them off. Enter starts, M mutes. Most cubes at the end wins.'),
 }
 def build(g, local_font=False, outdir=None):
     m = GAMES[g]

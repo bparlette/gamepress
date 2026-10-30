@@ -1,7 +1,7 @@
 // usage: node seedcheck.cjs [g1 g2 ...]  - proves ?seed= is deterministic and seed-sensitive (same seed => same state, different seed => different state)
 const { chromium } = require('playwright');
 (async () => {
-  const gs = process.argv.slice(2).length ? process.argv.slice(2) : ['g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8', 'g9'];
+  const gs = process.argv.slice(2).length ? process.argv.slice(2) : ['g1', 'g2', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8', 'g9', 'g10', 'g11'];
   const b = await chromium.launch(); let bad = 0;
   const run = async (g, seed) => {
     const pg = await b.newPage(); await pg.goto('file://' + __dirname + '/out/' + g + '.html' + (seed ? '?seed=' + seed : ''));
