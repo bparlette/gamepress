@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="18" viewBox="0 0 32 18">
+<defs><linearGradient id="w_a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8744c"/><stop offset="1" stop-color="#7c4a30"/></linearGradient>
+<linearGradient id="w_b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a06040"/><stop offset="1" stop-color="#6a3c28"/></linearGradient>
+<linearGradient id="w_ao" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.65"/></linearGradient></defs>
+<g data-p="wall"><rect width="32" height="18" fill="#1a120e"/>
+<g stroke="#12090a" stroke-width="0.6"><rect x="0.4" y="0.4" width="15.2" height="3.8" rx="0.7" fill="url(#w_a)"/><rect x="16.4" y="0.4" width="15.2" height="3.8" rx="0.7" fill="url(#w_b)"/>
+<rect x="-7.6" y="4.9" width="15.2" height="3.8" rx="0.7" fill="url(#w_b)"/><rect x="8.4" y="4.9" width="15.2" height="3.8" rx="0.7" fill="url(#w_a)"/><rect x="24.4" y="4.9" width="15.2" height="3.8" rx="0.7" fill="url(#w_b)"/>
+<rect x="0.4" y="9.4" width="15.2" height="3.8" rx="0.7" fill="url(#w_b)"/><rect x="16.4" y="9.4" width="15.2" height="3.8" rx="0.7" fill="url(#w_a)"/>
+<rect x="-7.6" y="13.9" width="15.2" height="3.8" rx="0.7" fill="url(#w_a)"/><rect x="8.4" y="13.9" width="15.2" height="3.8" rx="0.7" fill="url(#w_b)"/><rect x="24.4" y="13.9" width="15.2" height="3.8" rx="0.7" fill="url(#w_a)"/></g>
+<g stroke="#f0b088" stroke-opacity="0.35" stroke-width="0.4"><path d="M1 0.8 H15 M17 0.8 H31 M9 5.3 H23 M1 9.8 H15 M17 9.8 H31 M9 14.3 H23"/></g>
+<rect width="32" height="18" fill="url(#w_ao)"/></g></svg>

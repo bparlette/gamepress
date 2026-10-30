@@ -12,3 +12,11 @@ Editions of one game (example: Vampire Metroid): g17 pixel, g17-hd painted, g17b
 
 ## Rules
 Original art only. No Math.random/Date.now. Keep gameplay untouched between tiers. Atlas adds about 1 MB per HTML file.
+
+## Tier 5: HD Lux (g17d): SVG environment + WebGL lights
+- Environment: `art/env_floor.svg` (parts a/b/c), `env_wall.svg`, `env_props.svg` (crate/barrel/table/locker) -> atlas keys `envF.a`, `envW.wall`, `envP.crate`... `roomEnv()` in `games/g17d.js` composites them into a cached 256x224 sprite and falls back to `roomHD()` until images load.
+- Lighting (`glpost.js`): per frame call `GLPOST.clear()`, then `GLPOST.light(x,y,radius,intensity,[r,g,b])` (max 8, coords normalised 0..1 of the screen; convert world->screen with the camera: `(x-cx)*z+128+shakeX)/256`). The shader derives a pseudo-normal from luminance and adds diffuse + specular.
+- Haze: `GLPOST.hazeAt(x,y,r,strength)` (max 3) warps the image around explosions.
+- Screen FX: `GLPOST.fx = {ca, hurt, flash, ember}` (chromatic kick, red low-HP vignette, white flash, drifting embers).
+- Build: add id to games.json, `python3 build.py gN --art`.
+Limits: normals are fake (luminance), so flat art lights flat; embers are procedural, not simulated.

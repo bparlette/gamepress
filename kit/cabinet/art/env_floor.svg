@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+<defs><linearGradient id="f_a" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#4a5b65"/><stop offset="1" stop-color="#2a363e"/></linearGradient>
+<radialGradient id="f_r" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#d8e4ec"/><stop offset="0.5" stop-color="#7a8a96"/><stop offset="1" stop-color="#20282e"/></radialGradient>
+<radialGradient id="f_s" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#3a1210" stop-opacity="0.7"/><stop offset="1" stop-color="#3a1210" stop-opacity="0"/></radialGradient>
+<linearGradient id="f_g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a7c86"/><stop offset="1" stop-color="#2a343c"/></linearGradient></defs>
+<g data-p="a"><rect width="32" height="32" fill="url(#f_a)"/>
+<rect x="0.6" y="0.6" width="30.8" height="30.8" fill="none" stroke="#0a1014" stroke-opacity="0.55" stroke-width="1.2"/>
+<path d="M0.8 31 V0.8 H31" fill="none" stroke="#9db2be" stroke-opacity="0.4" stroke-width="1"/>
+<path d="M31.2 1 V31.2 H1" fill="none" stroke="#05080a" stroke-opacity="0.6" stroke-width="1"/>
+<g fill="url(#f_r)"><circle cx="4" cy="4" r="1.5"/><circle cx="28" cy="4" r="1.5"/><circle cx="4" cy="28" r="1.5"/><circle cx="28" cy="28" r="1.5"/></g>
+<g stroke="#0a1014" stroke-opacity="0.35" stroke-width="0.5" fill="none"><path d="M9 20 L15 17 L22 19"/><path d="M12 10 L20 12"/></g>
+<g stroke="#b8cbd6" stroke-opacity="0.12" stroke-width="0.6"><path d="M7 14 L26 14"/><path d="M7 24 L26 24"/></g></g>
+<g data-p="b"><rect width="32" height="32" fill="#0c1216"/><rect y="0" width="32" height="32" fill="#3fd05a" opacity="0.22"/>
+<g><rect y="1" width="32" height="3" fill="url(#f_g)"/><rect y="8" width="32" height="3" fill="url(#f_g)"/><rect y="15" width="32" height="3" fill="url(#f_g)"/><rect y="22" width="32" height="3" fill="url(#f_g)"/><rect y="29" width="32" height="3" fill="url(#f_g)"/></g>
+<rect x="0" y="0" width="2" height="32" fill="#5a6a74"/><rect x="30" y="0" width="2" height="32" fill="#1c262c"/><path d="M0 1 H32 M0 8 H32 M0 15 H32 M0 22 H32 M0 29 H32" stroke="#c0d2dc" stroke-opacity="0.35" stroke-width="0.5"/></g>
+<g data-p="c"><rect width="32" height="32" fill="url(#f_a)"/><rect x="0.6" y="0.6" width="30.8" height="30.8" fill="none" stroke="#0a1014" stroke-opacity="0.55" stroke-width="1.2"/>
+<path d="M0.8 31 V0.8 H31" fill="none" stroke="#9db2be" stroke-opacity="0.35" stroke-width="1"/>
+<ellipse cx="18" cy="17" rx="10" ry="7" fill="url(#f_s)"/>
+<path d="M6 6 L12 12 L11 18 L17 22 L16 30 M12 12 L21 11 L26 5 M17 22 L25 24" fill="none" stroke="#06090c" stroke-width="1.3" stroke-linejoin="round"/>
+<path d="M6.6 6.4 L12.6 12.4 L11.6 18.4 L17.6 22.4" fill="none" stroke="#9db2be" stroke-opacity="0.25" stroke-width="0.5"/></g>
+</svg>
