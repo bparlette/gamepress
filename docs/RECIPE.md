@@ -1,6 +1,6 @@
 # Cabinet recipe: NES-style single-file demos
 
-Source: `kit/cabinet/` (shell + six reference games). Build: `python3 kit/cabinet/build.py [g1..g6] [--out DIR] [--local-font]`.
+Source: `kit/cabinet/` (shell + eleven reference games). Build: `python3 kit/cabinet/build.py [g1..g11] [--out DIR] [--local-font]`.
 Test: `node kit/cabinet/test.cjs g1 60 [seed]` (headless bot run, screenshots, errors) and `node kit/cabinet/seedcheck.cjs` (determinism proof). Both need Playwright.
 
 ## 1. Brief recipe (one per game)
@@ -37,7 +37,7 @@ Visual-only randomness (particles, popup jitter) uses `vr()`. Never use `Math.ra
 - Run start calls `tms = 0; blink = 0;` before `GAME.init(false)`. Games must reset every piece of state in `init`, including anything stored on `GAME` (`GAME._x`). Leaked state broke determinism twice (g4 flap counter, g2 time base).
 
 ## 4. Seeds
-`?seed=N` (number, or any string, hashed) reproduces a run. The active seed is `window.__shell.seed` (per-game offset added: g1 +1, g2 +3, g3 +5, g4 +9, g6 +11, g5 +0); `window.__shell.seedFromUrl` is the raw value or null.
+`?seed=N` (number, or any string, hashed) reproduces a run. The active seed is `window.__shell.seed` (per-game offset added: g1 +1, g2 +3, g3 +5, g4 +9, g6 +11, g7 +13, g5 +0); `window.__shell.seedFromUrl` is the raw value or null.
 Without `?seed=`: attract mode uses its fixed seed, real play uses a per-run seed, and g5's level generator is always seed 55.
 `node kit/cabinet/seedcheck.cjs` verifies: same seed gives the same state after 1500 bot frames, a different seed differs.
 
@@ -64,6 +64,7 @@ Readability checks are manual: render at 256x224, character at least about 16 px
 | g4 Boom Balloons | 380 / 200 / 120 by balloons 0 / 1 / 2 | flap vy -64 (1 balloon), -74 (2), stomp bounce -70 | max 46 ground, 64 air; accel 10/s ground, 2.4/s air | bomb fuse 2.1 s, blast range 3 tiles, enemy flap cooldown 0.32 to 0.77 s |
 | g5 Grapple Ninja | 470 | jump vy -178 | 74 ground, 62 air; accel 14/s ground, 3/s air | rope pump 190, rope reel max length 138, level 3300 |
 | g6 Kung Fu Knockout | 560 | jump vy +205 (y up in this game) | 58 | grunt 38, knife 105, boss tell 0.62 s (0.42 s at 6 HP or less), boss attack resolves at 0.12 s, dodge 0.45 s, boss HP 12 |
+| g7 Maze Wrecker | none (grid) | none | player 4.1 tiles/s, dash 7 for 0.3 s (cooldown 1.6) | patrol bots 3.4 +0.09 per dot (+0.4 in last 30 s), hammer cooldown 0.3, stun 3 s, walls regrow after 10 s (5 s in last 30), 26 dots, 80 s timer, 3 lives |
 Not yet unified: units differ per game, and enemy AI reaction times are per-game. Next step for a shared table is a `kit/cabinet/feel.js` with named presets that games read.
 
 ## 9. QA loop
@@ -76,3 +77,8 @@ Known gates still open: human playtest of touch controls, real-device sound (inc
 - g3, g4: tuned by bot runs; no human difficulty data.
 - g5: bot reliably reaches about x=2882 of 3571 then dies; grapple needs a ring ahead and above; ledge assist covers 13 px; `info()` carries debug fields.
 - g6: ring phase is one boss with four moves; "hard" only shortens the telegraph; a knife-loop crash (array reset mid-iteration) was found late, so audit other loops that reset arrays.
+- g7: grid-based; bot clears the maze in about 15 s with no hits, so human difficulty is probably too low; ghost speed and dot goal are the first knobs. Walls hiding dots blink a sparkle (readability aid). Patrol-bot art is original, not a copy of any arcade ghost.
+- g8 Morph Climb: forms are man, ball (5x6, fits a 7px slot), wing (flaps, flies through layers), beam (up-shot dissolves a brick layer). Lava rises at 4 + 0.05 per second. Bot reaches the summit on 3 seeds with all lives, so it is probably too easy; slot width and lava speed are the first knobs.
+- g9 Dig Up: grid of dirt (1) and holes (2). A digs the tile in front (up plus A digs above). Holes are climbable and never drop you. Dirt dug above you drops as a trap only when an enemy is in that column. Enemies spawn into freshly carved side caves. Summit is row 35. Bot finishes on 3 seeds with full lives.
+- g10 Gridlock Grand Prix: 4 lanes, one tap per lane change. Up accelerates, down brakes, A is the one nitro per run. Near miss (adjacent lane, within 14 px) scores 50. Bot finishes 1500 m on 3 seeds without crashing, so it is probably too easy; spawn rate and car speeds are the first knobs.
+- g11 Hop Fight: 5-row cube pyramid, Up plus Left or Right hops up, Down plus Left or Right hops down. Landing claims a cube. Hopping onto the rival knocks them off; the rival knocks you with 25% chance per contact, then you get 2 s invulnerability. Lives 5, 60 s timer. Bot wins on 3 seeds. Known weakness: the rival AI is simple and the bot is strong.

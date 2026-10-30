@@ -1,6 +1,6 @@
 # gamepress use cases
 
-gamepress builds games for five different jobs. Know which one you're doing before you start — each one changes what "done" looks like.
+gamepress builds games for four different jobs. Know which one you're doing before you start — each one changes what "done" looks like.
 
 ## 1. Viral video demo ("gamepress youtube")
 
@@ -39,17 +39,6 @@ The actual game people play start to finish. The end of the funnel: 24 demos →
 - Full game feel, balance, progression, polish.
 - "Done" = a game a stranger would actually play (see ORCHESTRATOR.md QC gate).
 
-## 5. Gameboy ("gamepress gameboy")
-
-**A complete, small, single-file NES-cabinet game.** The game itself is the product — built to be played on a phone held upright, finished in one sitting, with a persistent high score. Full spec: `docs/GAMEBOY.md`.
-
-- Shorthand: when Cherie says "gamepress gameboy," this is what she means.
-- The form: 256x224 screen, 22-colour palette, fixed 60 Hz timestep, cabinet pad below the screen, one HTML file, zero binary assets (sprites are code).
-- Built from a brief, not a genre: host game (camera, core verb, loop) + ONE transplanted donor mechanic; D-pad + A + B only; an attract bot that can play it unattended is mandatory.
-- Not a viral demo (no video deliverable required) and not a full game (scope is one loop / level / boss — full quality, demo length; see QUALITY.md).
-- "Done" = the single file live at a permanent playable link, registered with the other games, bot-verified, and played once on a real phone.
-- Reference builds (Oct 2026, Hawk `games/`): Block Commando, Disc Fighters, Paper Rash, Boom Balloons, Grapple Ninja, Kung Fu Knockout.
-
 ## Choosing
 
 **DEFAULT RULE (Cherie 2026-10-21): every game request is Use case 1 (viral video demo) unless she explicitly names another use case.** "Make [game]", "build [game]", or any game idea without a qualifier = viral demo: playable link + downloadable video + viral title. Never ask which use case — just build the demo. She specifies otherwise only with explicit words like "full game", "assets", "trailer", or "playable game".
@@ -60,4 +49,3 @@ The actual game people play start to finish. The end of the funnel: 24 demos →
 | "gamepress assets" / "store assets" | Use case 2: store assets |
 | "gamepress trailer" | Use case 3: trailer |
 | "full game" / "playable game" (explicit) | Use case 4: playable game |
-| "gamepress gameboy" / "gameboy" | Use case 5: gameboy (cabinet game) |

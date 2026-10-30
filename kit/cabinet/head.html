@@ -1,5 +1,4 @@
 <title>%%TITLE%%</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -7,10 +6,10 @@
 <style>
 /* One arcade cabinet column: 256x224 pixel screen on top, NES-style pad below, built for a phone held upright. */
 :root{
-  --bg:#07070c;
-  --deck:#17171d;
-  --face:#26262c;
-  --ink:#0c0c10;
+  --bg:#0d0e13;
+  --frame:#c9c5b7;
+  --face:#26262a;
+  --ink:#17171a;
   --red:#d1261b;
   --text:#e9e6da;
   --muted:#8d8a80;
@@ -19,69 +18,61 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--text)}
+html,body{margin:0;background:var(--bg);color:var(--text)}
 body{
-  display:flex;justify-content:center;
+  height:100dvh;min-height:100%;margin:0;
+  padding-top:max(6px, env(safe-area-inset-top, 0px));
+  padding-bottom:max(8px, env(safe-area-inset-bottom, 0px));
+  padding-left:max(8px, env(safe-area-inset-left, 0px));
+  padding-right:max(8px, env(safe-area-inset-right, 0px));
+  display:flex;justify-content:center;overflow:hidden;
   font-family:var(--util);
   user-select:none;-webkit-user-select:none;touch-action:manipulation;
-  overflow:hidden;
 }
-/* Fullscreen stage (Cherie 2026-10-30): the GAME fills the screen; only the
-   controls are visible besides it. No cabinet furniture. The stage flexes to
-   every leftover pixel and the canvas scales with object-fit:contain —
-   as large as the phone allows, never cropped, never distorted. */
-.cab{
-  position:relative;
-  width:100%;height:100dvh;
-  min-width:0;
-}
-.screen-wrap{position:absolute;inset:0;background:#000;line-height:0}
-canvas{display:block;width:100%;height:100%;object-fit:contain;object-position:50% 38%;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
+.cab{width:100%;max-width:520px;height:100%;display:flex;flex-direction:column;gap:8px;min-width:0}
+.screen-wrap{flex:1 1 0;min-height:0;background:#000;border:2px solid var(--frame);border-radius:10px;overflow:hidden;line-height:0;display:flex;align-items:center;justify-content:center;position:relative}
+canvas{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
 .pad{
-  position:absolute;left:0;right:0;bottom:0;
-  background:linear-gradient(to bottom, rgba(5,5,8,0), rgba(5,5,8,.78) 32%);
-  display:grid;grid-template-columns:auto 1fr;grid-template-areas:"dpad ab" "mid mid";
-  gap:10px;align-items:center;
-  padding:26px 14px calc(10px + env(safe-area-inset-bottom, 0px));
-  padding-left:max(14px, env(safe-area-inset-left, 0px));
-  padding-right:max(14px, env(safe-area-inset-right, 0px));
+  flex:none;display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"dpad mid ab";
+  gap:8px;align-items:center;
+  background:var(--frame);border-radius:14px;padding:8px 10px;
   touch-action:none;
 }
-.dpad{grid-area:dpad;position:relative;width:clamp(132px, 36vw, 168px);height:clamp(132px, 36vw, 168px);touch-action:none;justify-self:start}
-.bar{position:absolute;background:var(--face);border-radius:6px;box-shadow:inset 0 0 0 2px #33333c}
-.bar.h{left:0;right:0;top:calc(50% - 22px);height:44px}
-.bar.v{top:0;bottom:0;left:calc(50% - 22px);width:44px}
-.hub{position:absolute;left:calc(50% - 13px);top:calc(50% - 13px);width:26px;height:26px;border-radius:50%;background:#101014}
-.ar{position:absolute;background:#6a6a75}
-.ar.u{top:8px;left:calc(50% - 8px);width:16px;height:14px;clip-path:polygon(50% 0,100% 100%,0 100%)}
-.ar.d{bottom:8px;left:calc(50% - 8px);width:16px;height:14px;clip-path:polygon(0 0,100% 0,50% 100%)}
-.ar.l{left:8px;top:calc(50% - 8px);width:14px;height:16px;clip-path:polygon(100% 0,100% 100%,0 50%)}
-.ar.r{right:8px;top:calc(50% - 8px);width:14px;height:16px;clip-path:polygon(0 0,100% 50%,0 100%)}
+.dpad{grid-area:dpad;position:relative;width:118px;height:118px;touch-action:none;justify-self:start}
+.nub{position:absolute;left:calc(50% - 17px);top:calc(50% - 17px);width:34px;height:34px;border-radius:50%;background:#3a3a42;box-shadow:inset 0 0 0 2px #55555c;pointer-events:none;transition:transform .04s}
+.bar{position:absolute;background:var(--ink);border-radius:6px;box-shadow:inset 0 0 0 2px #2d2d33}
+.bar.h{left:0;right:0;top:calc(50% - 20px);height:40px}
+.bar.v{top:0;bottom:0;left:calc(50% - 20px);width:40px}
+.hub{position:absolute;left:calc(50% - 12px);top:calc(50% - 12px);width:24px;height:24px;border-radius:50%;background:#101013}
+.ar{position:absolute;background:#55555c}
+.ar.u{top:6px;left:calc(50% - 7px);width:14px;height:12px;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.ar.d{bottom:6px;left:calc(50% - 7px);width:14px;height:12px;clip-path:polygon(0 0,100% 0,50% 100%)}
+.ar.l{left:6px;top:calc(50% - 7px);width:12px;height:14px;clip-path:polygon(100% 0,100% 100%,0 50%)}
+.ar.r{right:6px;top:calc(50% - 7px);width:12px;height:14px;clip-path:polygon(0 0,100% 50%,0 100%)}
 .dpad.on-l .ar.l,.dpad.on-r .ar.r,.dpad.on-d .ar.d,.dpad.on-u .ar.u{background:var(--text)}
-.ab{grid-area:ab;display:flex;justify-content:center;align-items:center;gap:16px;padding:6px 4px}
-.ab div{display:flex;flex-direction:column;align-items:center;gap:7px}
+.ab{grid-area:ab;display:flex;justify-content:center;align-items:center;gap:10px;background:var(--face);border-radius:12px;padding:8px 10px 6px}
+.ab div{display:flex;flex-direction:column;align-items:center;gap:4px}
 .round{
-  width:clamp(60px, 16.5vw, 78px);height:clamp(60px, 16.5vw, 78px);border-radius:50%;border:0;background:var(--red);color:#fff;
-  font:400 16px var(--pixel);box-shadow:inset 0 -5px 0 rgba(0,0,0,.28);touch-action:none;cursor:pointer;
+  width:54px;height:54px;border-radius:50%;border:0;background:var(--red);color:#fff;
+  font:400 14px var(--pixel);box-shadow:inset 0 -4px 0 rgba(0,0,0,.28);touch-action:none;cursor:pointer;
 }
 .round.on{transform:translateY(2px);box-shadow:inset 0 2px 0 rgba(0,0,0,.35);filter:brightness(.88)}
-.ab span{font:400 9px var(--pixel);color:#a5a5b0;letter-spacing:.02em;white-space:nowrap}
-.mid{grid-area:mid;display:flex;justify-content:center;gap:22px}
+.ab span{font:400 8px var(--pixel);color:#c9c5b7;letter-spacing:.02em;white-space:nowrap}
+.mid{grid-area:mid;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px}
 .mid button{
-  border:0;background:var(--face);color:#c9c9d2;font:400 10px var(--pixel);
-  padding:9px 14px;border-radius:999px;cursor:pointer;touch-action:none;min-width:96px;
+  border:0;background:var(--ink);color:#c9c5b7;font:400 8px var(--pixel);
+  padding:8px 10px;border-radius:999px;cursor:pointer;touch-action:none;min-width:78px;
 }
 .mid button.on{filter:brightness(1.6)}
 button:focus-visible{outline:2px solid #fff;outline-offset:2px}
-.keys{position:absolute;top:8px;left:0;right:0;margin:0;padding:0 14px;color:var(--muted);font-size:11px;line-height:1.55;text-align:center;text-wrap:balance;pointer-events:none}
+.keys{display:none}
 .keys b{color:var(--text);font-weight:500}
-@media (pointer:coarse){ .keys{display:none} }
 </style>
 
 <main class="cab">
   <div class="screen-wrap"><canvas id="screen" width="256" height="224" role="img" aria-label="%%TITLE%% game screen"></canvas></div>
   <section class="pad" aria-label="Controller">
-    <div class="dpad" id="dpad"><i class="bar h"></i><i class="bar v"></i><i class="hub"></i><b class="ar u"></b><b class="ar d"></b><b class="ar l"></b><b class="ar r"></b></div>
+    <div class="dpad" id="dpad"><i class="bar h"></i><i class="bar v"></i><i class="hub"></i><i class="nub" id="nub"></i><b class="ar u"></b><b class="ar d"></b><b class="ar l"></b><b class="ar r"></b></div>
     <div class="ab">
       <div><button type="button" class="round" data-k="b" aria-label="B, %%LB%%">B</button><span>%%LB%%</span></div>
       <div><button type="button" class="round" data-k="a" aria-label="A, %%LA%%">A</button><span>%%LA%%</span></div>

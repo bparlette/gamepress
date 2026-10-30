@@ -1,6 +1,6 @@
 #!/bin/bash
 # one command per batch: build, headless bot run (errors + info), determinism. usage: check.sh g12 g13 [secs]
-cd "$(dirname "$0")"; export NODE_PATH=$(npm root -g)
+cd "$(dirname "$0")"; source ./env.sh
 G=(); SECS=45; for a in "$@"; do [[ $a =~ ^[0-9]+$ ]] && SECS=$a || G+=("$a"); done
 python3 build.py "${G[@]}" >/dev/null || exit 1
 # lint: pixel drawing inside hud() is lost (hud runs after the blit); use draw()/ui()

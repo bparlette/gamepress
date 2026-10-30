@@ -1,0 +1,35 @@
+# Tier 4: HD Art (SVG skeletal rig + WebGL post)
+
+Editions of one game (example: Vampire Metroid): g17 pixel, g17-hd painted, g17b HD+ game feel, g17c HD Art. All share gameplay; only rendering differs.
+
+## Pipeline
+1. Author characters as SVG in `kit/cabinet/art/*.svg`. Each limb is a `<g data-p="part">` (pack, legB, legF, armFar, torso, head, arm...). Use unique gradient IDs per file.
+2. `node art/build-art.cjs` renders every part (4x, transparent, playwright) into `art/atlas.json` ({key:{url,w,h}}). `node art/render.cjs` writes a preview sheet to `out/art_sheet.png`.
+3. In the game file: `RIG.def(name,{scale,anchor,order,pivots,attach})`, then `RIG.draw(g,name,x,y,{flip,sx,sy,a,tint,ta,pose})`. `pose` maps part -> `{rot,ox,oy,sx,sy}` about its pivot. Guard with `RIG.ready(name)` and fall back to the code-painted sprite (see `drawZomR`, `hPose`, `zPose`, `qPose` in `games/g17c.js`).
+4. Register the id in `games.json` FIRST (build.py builds all games if the id is unknown), then `python3 build.py gN --art` -> `out/gN.art.html` (injects `HD_MODE`, `GLPOST_ON`, `ATLAS`).
+5. `glpost.js` overlays a WebGL canvas `#gl` (copies `#screen` to a texture, one fragment shader: vignette, bloom, grade). Enabled only by `window.GLPOST_ON`; it silently stays off if WebGL is unavailable.
+6. Check: `./check.sh gN 40`; view `ART=1 SEED=7 node snap.cjs gN 420 900`. `make-all.sh gN` does all tiers + Short.
+
+## Rules
+Original art only. No Math.random/Date.now. Keep gameplay untouched between tiers. Atlas adds about 1 MB per HTML file.
+
+## Tier 5: HD Lux (g17d): SVG environment + WebGL lights
+- Environment: `art/env_floor.svg` (parts a/b/c), `env_wall.svg`, `env_props.svg` (crate/barrel/table/locker) -> atlas keys `envF.a`, `envW.wall`, `envP.crate`... `roomEnv()` in `games/g17d.js` composites them into a cached 256x224 sprite and falls back to `roomHD()` until images load.
+- Lighting (`glpost.js`): per frame call `GLPOST.clear()`, then `GLPOST.light(x,y,radius,intensity,[r,g,b])` (max 8, coords normalised 0..1 of the screen; convert world->screen with the camera: `(x-cx)*z+128+shakeX)/256`). The shader derives a pseudo-normal from luminance and adds diffuse + specular.
+- Haze: `GLPOST.hazeAt(x,y,r,strength)` (max 3) warps the image around explosions.
+- Screen FX: `GLPOST.fx = {ca, hurt, flash, ember}` (chromatic kick, red low-HP vignette, white flash, drifting embers).
+- Build: add id to games.json, `python3 build.py gN --art`.
+Limits: normals are fake (luminance), so flat art lights flat; embers are procedural, not simulated.
+
+## Tier 6: HD Close (g17e): close camera + no pause menus
+- Same sim, but `drawHD` follows the hero with a smoothed camera at zoom 1.9 (1.55 during boss). Characters render about 2x larger on screen; atlas parts are 4x svg units (env tiles 8x via `S` override in `art/build-art.cjs`) so they stay crisp.
+- Room is painted straight from the atlas each frame (`drawRoom`) instead of a cached sprite, so zoom does not blur it.
+- Level-up no longer pauses: in `step()` the least-upgraded power is auto-applied when the gem bar fills (popup + sfx). Do this for any new game: never block play on a menu.
+- To make another game "Close": start from its Lux edition, set `z` and a follow camera, replace cached background sprites with direct drawing.
+
+## Tall layout + any-direction touch pad (all new games)
+- **Shell** (`head.html`): the cabinet is `100dvh`: screen fills the height, controller is one compact row (pad left, SELECT/START centre, B/A right, about 130 px). The old key-hint line is hidden.
+- **Tall games**: set `tall:true` in `kit({})`. `loop.js fitTall()` sets `window.HD_H` (224..480 logical units) from the screen box each frame and resizes the canvas (`cv.height = 3*HD_H`). In `drawHD` use `HH = window.HD_H || 224`: centre the camera at `HH/2`, clamp `cy` to `[HH/2/z, 224-HH/2/z]`, fill overlays to `HH`, put bottom UI at `HH-12`, and keep `z >= HH/224 + 0.04` so the world always covers the view. Title/game-over panels are auto-centred.
+- **Touch pad** (`core.js dpadUpdate`): looks like a d-pad (plus a thumb nub) but is an analog stick. `kit({dir})`: `'4'` = only up/down/left/right (dominant axis), `'8'` = default (diagonals, 22.5 degree sectors), `'any'` = also fills `inp.ax/inp.ay` (-1..1, 360 degrees). `inp.l/r/u/d` are always set so old games work. In `any` games move with `ax/ay` and normalise: `m=Math.hypot(ax,ay); if(m>1){ax/=m;ay/=m}`; bots set only `l/r/u/d`, so fall back: `inp.ax !== undefined ? inp.ax : (inp.r?1:0)-(inp.l?1:0)`.
+- **No pause menus**: never block play on a menu. Level-ups auto-apply (least-upgraded power first) with a popup, or are ground pickups.
+- **Tiers and rules**: tiers must play identically (`node tiers.cjs g17 g17.hd g17b.hd g17c.art g17d.art`). A tier that changes rules (g17e) is listed with `--expect-diff g17e`.

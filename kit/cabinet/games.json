@@ -49,19 +49,19 @@
  },
  {
   "id": "g7",
-  "title": "Maze Wrecker (Cabinet)",
-  "la": "SMASH",
-  "lb": "DASH",
-  "keys": "<b>Keys:</b> arrows steer, Z or Space swings the hammer (smashes brick walls), X dashes, Enter starts, M mutes. Eat every pellet before the maze seals in 150 seconds \u2014 smash bricks to reroute the ghosts.",
-  "mashup": "Pac-Man x Wrecking Crew"
- },
- {
-  "id": "g8",
-  "title": "Maze Wrecker: Steel Yard",
+  "title": "Maze Wrecker",
   "la": "SMASH",
   "lb": "DASH",
   "keys": "<b>Keys:</b> arrows move, Z or Space swings the hammer (smash the wall in front of you or stun a patrol bot), X dashes, Enter starts, M mutes. Wrecked walls reveal dots; collect 26 before the timer seals the maze. Walls grow back.",
   "mashup": "Pac-Man x Wrecking Crew"
+ },
+ {
+  "id": "g8",
+  "title": "Morph Climb",
+  "la": "JUMP",
+  "lb": "FIRE",
+  "keys": "<b>Keys:</b> left and right move, Z or Space jumps (wings: hold to flap), X fires the beam, B or Shift changes form, Enter starts, M mutes. Grab a form on each floor before the layer that needs it. Lava rises from below.",
+  "mashup": "Metroid x Kid Icarus"
  },
  {
   "id": "g9",
@@ -248,6 +248,38 @@
   "mashup": "Harvest Moon x Palworld"
  },
  {
+  "id": "g17b",
+  "title": "Vampire Metroid HD+",
+  "la": "JUMP",
+  "lb": "DASH",
+  "keys": "",
+  "mashup": "Super Metroid x Vampire Survivors"
+ },
+ {
+  "id": "g17c",
+  "title": "Vampire Metroid HD Art",
+  "la": "JUMP",
+  "lb": "DASH",
+  "keys": "",
+  "mashup": "Super Metroid x Vampire Survivors"
+ },
+ {
+  "id": "g17d",
+  "title": "Vampire Metroid HD Lux",
+  "la": "JUMP",
+  "lb": "DASH",
+  "keys": "",
+  "mashup": "Super Metroid x Vampire Survivors"
+ },
+ {
+  "id": "g17e",
+  "title": "Vampire Metroid HD Close",
+  "la": "JUMP",
+  "lb": "DASH",
+  "keys": "",
+  "mashup": "Super Metroid x Vampire Survivors"
+ },
+ {
   "id": "g32",
   "title": "Maze Wrecker: Night Shift",
   "la": "SMASH",
@@ -256,11 +288,11 @@
   "mashup": "Pac-Man x Wrecking Crew"
  },
  {
-  "id": "g33",
-  "title": "Morph Climb",
-  "la": "JUMP",
-  "lb": "FIRE",
-  "keys": "<b>Keys:</b> left and right move, Z or Space jumps (wings: hold to flap), X fires the beam, B or Shift changes form, Enter starts, M mutes. Grab a form on each floor before the layer that needs it. Lava rises from below.",
-  "mashup": "Metroid x Kid Icarus"
+  "id": "g34",
+  "title": "Maze Wrecker (Cabinet)",
+  "la": "SMASH",
+  "lb": "DASH",
+  "keys": "<b>Keys:</b> arrows steer, Z or Space swings the hammer (smashes brick walls), X dashes, Enter starts, M mutes. Eat every pellet before the maze seals in 150 seconds \u2014 smash bricks to reroute the ghosts.",
+  "mashup": "Pac-Man x Wrecking Crew"
  }
 ]

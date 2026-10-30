@@ -21,3 +21,9 @@ Reference target: layered, shaded, lit scenes. Recipe that took Vampire Metroid 
 5. **UI**: `ART.bar`, `ART.heart`, `ART.modal`/`ART.card`. **Pixel UI goes in `draw()` or `ui(S)`; `hud()` is text only** (hud runs after the blit, so rect/spr there are silently dropped). `check.sh` lints this.
 Judge with `node snap.cjs gN 300 900` (3x zoom frames in out/) and `python3 sheet.py`, not the tiny test screenshots.
 Honest ceiling: 22 colours at 256x224 gets "rich 8-bit"; painted HD art like a modern mobile game needs a different renderer (see `docs/ART-UPGRADE.md`).
+
+## Libraries added
+`glpost.js` (GLPOST: WebGL overlay, enabled by `window.GLPOST_ON`) and `rigkit.js` (RIG.def/draw/ready, atlas from `window.ATLAS`). Avoid global name collisions: use `RIG.*`, `GLPOST.*`, `HD.*`, `ART.*`.
+
+## Full API
+See `KIT-API.md` (signatures/units), `ART-CONVENTIONS.md` (SVG rigs), `HD-ART-TIER.md` (tiers 4-6, tall layout, touch pad), `RUNBOOK-ENV.md` (env, registry, verification).

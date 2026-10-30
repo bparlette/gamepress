@@ -162,7 +162,7 @@ function sfx(n) { if (SFX[n]) SFX[n](); }
 
 /* ---------- input ---------- */
 const kd = { l:false, r:false, u:false, d:false, b:false, a:false };
-const td = { l:false, r:false, u:false, d:false, b:false, a:false };
+const td = { l:false, r:false, u:false, d:false, b:false, a:false, on:false, ax:0, ay:0 };
 let aEdge = false, bEdge = false, startEdge = false;
 const KEYMAP = { ArrowLeft:'l', KeyA:'l', ArrowRight:'r', KeyD:'r', ArrowDown:'d', KeyS:'d', ArrowUp:'u', KeyW:'u',
   KeyZ:'a', Space:'a', KeyK:'a', KeyX:'b', ShiftLeft:'b', ShiftRight:'b', KeyJ:'b' };
@@ -176,16 +176,29 @@ addEventListener('keyup', e => { const k = KEYMAP[e.code]; if (k) { kd[k] = fals
 addEventListener('blur', () => { for (const k in kd) kd[k] = false; for (const k in td) td[k] = false; });
 
 const dpad = document.getElementById('dpad');
+const nub = document.getElementById('nub');
+/* The pad LOOKS like a d-pad but reads like an analog stick: angle + strength of the touch decide the output.
+   GAME.dir = '4' (up/down/left/right only), '8' (default, adds diagonals) or 'any' (also exposes inp.ax/inp.ay, -1..1, full 360 degrees).
+   inp.l/r/u/d are always set so every game keeps working; inp.ax/inp.ay exist for games that want smooth movement. */
 function dpadUpdate(e, on) {
-  td.l = td.r = td.u = td.d = false;
+  td.l = td.r = td.u = td.d = false; td.on = false; td.ax = td.ay = 0;
+  let nx = 0, ny = 0;
   if (on) {
-    const r = dpad.getBoundingClientRect();
-    const nx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
-    const ny = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
-    if (nx < -0.2) td.l = true; if (nx > 0.2) td.r = true;
-    if (ny < -0.2) td.u = true; if (ny > 0.2) td.d = true;
-    if (Math.max(Math.abs(nx), Math.abs(ny)) < 0.16) td.l = td.r = td.u = td.d = false;
+    const r = dpad.getBoundingClientRect(), m = (typeof GAME !== 'undefined' && GAME.dir) || '8';
+    nx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2); ny = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+    const mag = Math.hypot(nx, ny);
+    if (mag >= 0.16) {
+      const ux = nx / mag, uy = ny / mag;
+      td.on = true;
+      if (m === '4') { if (Math.abs(ux) >= Math.abs(uy)) { td.l = ux < 0; td.r = ux > 0; } else { td.u = uy < 0; td.d = uy > 0; } td.ax = td.r - td.l; td.ay = td.d - td.u; }
+      else {
+        if (ux < -0.38) td.l = true; if (ux > 0.38) td.r = true; if (uy < -0.38) td.u = true; if (uy > 0.38) td.d = true;
+        if (m === 'any') { const s = Math.min(1, (mag - 0.16) / 0.5); td.ax = ux * s; td.ay = uy * s; } else { td.ax = td.r - td.l; td.ay = td.d - td.u; }
+      }
+    }
   }
+  const k = Math.min(1, Math.hypot(nx, ny)) , sc = k > 0 ? 40 * k / Math.hypot(nx, ny) : 0;
+  if (nub) nub.style.transform = on ? `translate(${(nx * sc).toFixed(1)}px,${(ny * sc).toFixed(1)}px)` : '';
   dpad.classList.toggle('on-l', td.l); dpad.classList.toggle('on-r', td.r);
   dpad.classList.toggle('on-u', td.u); dpad.classList.toggle('on-d', td.d);
 }
@@ -215,9 +228,10 @@ function toggleSound() {
   if (master) master.gain.value = muted ? 0 : 0.16;
   sndBtn.textContent = muted ? 'SOUND OFF' : 'SOUND ON';
 }
-const BLANK = Object.freeze({ l:0, r:0, u:0, d:0, a:0, b:0, pa:0, pb:0, start:0 });
+const BLANK = Object.freeze({ l:0, r:0, u:0, d:0, a:0, b:0, pa:0, pb:0, start:0, ax:0, ay:0 });
 function readInput() {
   const i = { l:kd.l || td.l, r:kd.r || td.r, u:kd.u || td.u, d:kd.d || td.d, a:kd.a || td.a, b:kd.b || td.b, pa:aEdge, pb:bEdge, start:startEdge };
+  i.ax = td.on ? td.ax : (i.r ? 1 : 0) - (i.l ? 1 : 0); i.ay = td.on ? td.ay : (i.d ? 1 : 0) - (i.u ? 1 : 0);
   aEdge = false; bEdge = false; startEdge = false;
   return i;
 }

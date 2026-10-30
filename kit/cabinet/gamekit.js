@@ -32,7 +32,7 @@ function kit(c) {
   let S = null;
   const fresh = att => { S = { att:!!att, T:0, score:0, pops:[], rng:mkRng(runSeed(att ? c.seed : null, c.off || 7)), edge:mkEdge() }; c.setup(S, !!att); };
   return {
-    id:c.id, t1:c.t1, t2:c.t2, sub:c.sub, music:c.music,
+    id:c.id, dir:c.dir, tall:c.tall, t1:c.t1, t2:c.t2, sub:c.sub, music:c.music,
     init(att) { fresh(att); },
     update(dt, inp, mode) {
       S.att = mode === 'title'; S.T += dt;
@@ -42,6 +42,7 @@ function kit(c) {
       if (S.parts) for (let i = S.parts.length - 1; i >= 0; i--) { const p = S.parts[i]; p.t -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; if (p.t <= 0) S.parts.splice(i, 1); }
       if (c.step(S, dt, inp, S.att) === 'reset') fresh(true);
     },
+    renderHD(g, mode) { if (c.drawHD) c.drawHD(S, g, mode); },
     render() { c.draw(S); drawParts(S); if (c.ui) c.ui(S); },
     hud(mode) { c.hud && c.hud(S, mode); drawPops(S); },
     info() { return Object.assign({ score:Math.round(S.score), t:+S.T.toFixed(1) }, c.info ? c.info(S) : {}); },
