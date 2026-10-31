@@ -30,21 +30,28 @@ const ENG = (() => {
   const proj = { fire(S, x, y, vx, vy, o) { (S.eproj = S.eproj || []).push(Object.assign({ x, y, vx, vy, life:1.2, r:2, dmg:1, pierce:0, team:'p' }, o)); } };
   const imp = { push(e, dx, dy, force) { const l = Math.hypot(dx, dy) || 1; e.ix = (e.ix || 0) + dx / l * force; e.iy = (e.iy || 0) + dy / l * force; },
     step(e, dt) { if (e.ix || e.iy) { e.x += e.ix * dt; e.y += e.iy * dt; const d = Math.exp(-8 * dt); e.ix *= d; e.iy *= d; if (Math.abs(e.ix) < 1 && Math.abs(e.iy) < 1) e.ix = e.iy = 0; } } };
+  /* swarm cfg: {cap, spawn:(S)=>interval s, pick:(S)=>kind, kinds:{k:{hp, sp:number|[lo,hi], r, ...extra copied onto the entity}},
+       ring:[min,max] OR spawnAt:(S)=>{x,y} (custom spawn points e.g. screen edges), bounds, separate:false to disable crowding push}.
+     per-entity e.slow (default 1) scales chase speed for one step (auras, freeze). ENG.swarm.add(S,kind,x,y) places one by hand (bosses). */
   const swarm = {
     init(S, cfg) { S.swarm = { list:[], cfg, acc:0, kills:0, id:0 }; },
+    add(S, k, x, y) { const W_ = S.swarm, K_ = W_.cfg.kinds[k], sp = Array.isArray(K_.sp) ? K_.sp[0] + S.rng() * (K_.sp[1] - K_.sp[0]) : K_.sp * (0.9 + S.rng() * 0.2);
+      const e = Object.assign({}, K_, { id:W_.id++, k, x, y, hp:K_.hp, hpMax:K_.hp, sp, r:K_.r, ix:0, iy:0, dead:false, t:0, slow:1 }); W_.list.push(e); return e; },
     step(S, dt, tx, ty) {
       const W_ = S.swarm, c = W_.cfg, L = W_.list, dead = [];
       W_.acc += dt; const iv = c.spawn(S);
-      while (W_.acc >= iv && L.length < c.cap) { W_.acc -= iv; const k = c.pick(S), K_ = c.kinds[k], a = S.rng() * 6.283, d = c.ring[0] + S.rng() * (c.ring[1] - c.ring[0]);
+      while (W_.acc >= iv && L.length < c.cap) { W_.acc -= iv;
+        if (c.spawnAt) { const q = c.spawnAt(S); swarm.add(S, c.pick(S), q.x, q.y); continue; }
+        const k = c.pick(S), a = S.rng() * 6.283, d = c.ring[0] + S.rng() * (c.ring[1] - c.ring[0]);
         let x = tx + Math.cos(a) * d, y = ty + Math.sin(a) * d; if (c.bounds) { x = clamp(x, c.bounds[0], c.bounds[2]); y = clamp(y, c.bounds[1], c.bounds[3]); }
-        L.push({ id:W_.id++, k, x, y, hp:K_.hp, hpMax:K_.hp, sp:K_.sp * (0.9 + S.rng() * 0.2), r:K_.r, ix:0, iy:0, dead:false, t:0 }); }
+        swarm.add(S, k, x, y); }
       if (L.length >= c.cap) W_.acc = Math.min(W_.acc, iv);
       for (let i = L.length - 1; i >= 0; i--) { const e = L[i]; if (e.dead) { dead.push(e); L.splice(i, 1); continue; } e.t += dt;
-        let dx = tx - e.x, dy = ty - e.y, d = Math.hypot(dx, dy) || 1; e.x += dx / d * e.sp * dt; e.y += dy / d * e.sp * dt; imp.step(e, dt); }
-      /* separation: O(n) via 12 px spatial hash so a 150-strong horde stays cheap */
+        let dx = tx - e.x, dy = ty - e.y, d = Math.hypot(dx, dy) || 1, sl = e.slow === undefined ? 1 : e.slow; e.x += dx / d * e.sp * sl * dt; e.y += dy / d * e.sp * sl * dt; e.slow = 1; imp.step(e, dt); }
+      if (c.separate !== false) { /* separation: 12 px spatial hash so a 150-strong horde stays cheap */
       const cell = 12, hh = new Map(); for (const e of L) { const key = Math.floor(e.x / cell) + ',' + Math.floor(e.y / cell); (hh.get(key) || hh.set(key, []).get(key)).push(e); }
       for (const e of L) { const cx = Math.floor(e.x / cell), cy = Math.floor(e.y / cell); for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) for (const o of hh.get((cx + a) + ',' + (cy + b)) || []) { if (o.id <= e.id) continue; const ox = e.x - o.x, oy = e.y - o.y, dd = Math.hypot(ox, oy), m = e.r + o.r;
-        if (dd > 0 && dd < m) { const p = (m - dd) / 2 / dd; e.x += ox * p; e.y += oy * p; o.x -= ox * p; o.y -= oy * p; } } }
+        if (dd > 0 && dd < m) { const p = (m - dd) / 2 / dd; e.x += ox * p; e.y += oy * p; o.x -= ox * p; o.y -= oy * p; } } } }
       if (c.bounds) for (const e of L) { e.x = clamp(e.x, c.bounds[0], c.bounds[2]); e.y = clamp(e.y, c.bounds[1], c.bounds[3]); }
       W_.kills += dead.length; return dead; },
     hurt(S, e, dmg, kx, ky) { e.hp -= dmg; e.hit = 0.1; if (kx !== undefined) imp.push(e, e.x - kx, e.y - ky, 70); if (e.hp <= 0) e.dead = true; return e.dead; },

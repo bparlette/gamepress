@@ -7,7 +7,7 @@ Two kinds: **PROVEN** (measured in shipped code that a bot plays and wins) and *
 |---|---|
 | player | 8-way, 58 px/s, hp 100, contact hit 5 (boss 14), invulnerable 0.6 s after a hit |
 | weapon | auto-fire at nearest; every 0.42 s; pellets = 2 x spazer level (starts 2); speed 150; life 1.2 s; dmg 1 + 0.5 x level |
-| spawn interval | `max(0.09, 0.45 / (1 + 0.35 * T))` s; from the screen edges; hits the 0.09 s floor at T = 11.4 s (about 11 spawns/s) |
+| spawn interval | **constant 0.09 s (about 11 spawns/s) from t = 0**, from the screen edges. (An earlier version of this sheet claimed a ramp; the source is `Math.min(0.09, 0.45 / (1 + 0.35 * T))`, and `min` makes the ramp dead code. Corrected 2026-10-31 while porting to `engine.js`.) |
 | horde cap | 140 on screen |
 | enemy kinds | grunt hp 2, elite hp 4 (20% of spawns once T > 12 s); speed uniform 16-32 px/s; boss (Hive Queen) at T = 20 s: hp 300, speed 24, size x2.4 |
 | XP | 1 per kill (gem pickup radius 28); level-up needs 4, then +2 each level (4, 6, 8, ...). Zombie/close tiers: no pause, auto power-up on level |
@@ -15,7 +15,7 @@ Two kinds: **PROVEN** (measured in shipped code that a bot plays and wins) and *
 | win | kill the boss (it melts), ~48 s run |
 | **crowd density (bot, seed 1)** | on-screen enemies: 45 @5 s, 71 @10 s, 79 @15 s, 92 @20 s, 96 @25 s, 104 @30 s, 139 @40 s; player level 14 at the end, score 1975 |
 
-Use it: a "sparse" swarm game usually has a spawn floor above 0.2 s or a cap under 60. To match this reference density: floor 0.09 s, cap 140, enemy hp 2, speed 16-32, firepower that scales (about 10 pellets/s by minute 1).
+Use it: a "sparse" swarm game usually spawns slower than 0.2 s or caps under 60. To match this reference density: spawn every 0.09 s from the start, cap 140, enemy hp 2, speed 16-32, firepower that scales (about 10 pellets/s by minute 1).
 
 ## B. Starter sheets (live in the files), PROVEN
 * **s1 arena** (`TUNE1`): win 40 s, hp 100, speed 58, hurt 8 / inv 0.8, fire every 0.16 s speed 170 pierce 1; spawn `max(0.16, 0.6 / (1 + 0.3T))`, cap 90, elite after 12 s (20%), bug hp 2 / elite hp 4. Result: bot wins 8/8 seeds, ends hp 28-100, ~150 kills.
@@ -38,3 +38,6 @@ Use it: a "sparse" swarm game usually has a spawn floor above 0.2 s or a cap und
 | difficulty ramp shape | PROVEN | fast first 15 s (about 1.5x), plateau, boss/finale at about 50% of the run |
 
 ## D. Per-tier sheets: see `GENERIC-KIT.md` section 4 (what changes, what is invariant, the proving test).
+
+## E. Engine port check (g17h)
+`games/g17h.js` is the World edition with its sim rebuilt on `engine.js` (swarm, proj, hits, fx; no hand-rolled collision or aging). Same renderer code, same rules. Measured against `g17f` (bot, seed 1), on-screen enemies at 5/10/15/20/25/30 s: g17f 50/68/81/84/100/114, g17h 49/76/74/55/62/71. So early density matches within about 15%, but later the port thins out (circle hit tests and per-frame damage ordering differ from the original boxes), and the boss dies at about 36 s vs 38 s. It is the same game in spirit, **not** digit-for-digit identical to g17f. Pixel/HD/Art tiers of g17h match each other exactly (`tiers.cjs g17h g17h.hd g17h.art`, seeds 1-3).

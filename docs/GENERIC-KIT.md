@@ -23,6 +23,8 @@ That copies the starter, renames ids/seed, registers it in `games.json`, builds 
 ## 2. Engines: `kit/cabinet/engine.js` (global `ENG`)
 `move` (AABB vs solid fn), `grid`, `path`, `proj`, `swarm`, `hits`, `imp` (knockback), `cam`/`shake`, `fx`. Full signatures are the header comment of `engine.js`. **Rule: engines own lifecycles.** `kit()` calls `ENG.tick(S, dt)` every sim step, so effects (`S.efx`), projectiles (`S.eproj`), knockback and camera shake age in the simulation, never inside a renderer. Renderers only *read*. (The bug this prevents: explosion effects aged inside the pixel renderer and piled up forever in HD/Art.) A game that imports the engine contains no hand-rolled collision, swarm or effect aging: see `s1.js`, 45 lines of rules.
 
+The engine also survives a real game: `games/g17h.js` is the zombie game's sim rebuilt on it (details and caveats in `FEEL-SHEETS.md` section E). Engine options added for it: `swarm` `spawnAt` (custom spawn points), `sp:[lo,hi]` ranges, per-entity `slow`, `separate:false`, `ENG.swarm.add`.
+
 ## 3. The QA contract (any genre)
 A game is checkable if it exposes exactly four things; the harness needs nothing else.
 1. **Controls**: `inp = {l,r,u,d,a,b,pa,pb,start,ax,ay}`. Use `inp.ax !== undefined ? inp.ax : (r - l)` for analog. Declare `dir:'4'|'8'|'any'`.

@@ -318,5 +318,13 @@
   "lb": "-",
   "keys": "<b>Keys:</b> arrows move cursor, Z or Space builds, Enter starts, M mutes.",
   "mashup": "starter: tower defense"
+ },
+ {
+  "id": "g17h",
+  "title": "Vampire Metroid HD Engine",
+  "la": "JUMP",
+  "lb": "DASH",
+  "keys": "",
+  "mashup": "Super Metroid x Vampire Survivors (engine.js sim)"
  }
 ]
