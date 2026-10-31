@@ -38,6 +38,40 @@ const PRIG = (() => {
       for (const k in J) if (k !== 'lying') J[k] = [J[k][0] - 6, J[k][1] - my + 12 + (1 - sl) * 26]; }
     return J;
   }
+
+  /* ---- IK fighter poses (SF2-style move sets). Every pose is a handful of numbers: lean (deg), hip height, feet (x from hip, height above ground), hands (x,y relative to shoulder).
+     skelG(pose, env, ph): env 0..1 blends guard -> pose peak (the game drives it from startup/active/recovery), ph = walk phase / spin phase, flips handled by `rot` (deg, + = backwards). */
+  const GUARD = { lean:6, hip:58, fa:[24, 0], fb:[-24, 0], ha:[28, 0], hb:[18, 8] };
+  const PG = {
+    idle:GUARD, crouch:{ lean:12, hip:36, fa:[34, 0], fb:[-26, 0], ha:[28, -6], hb:[18, 0] },
+    jab:{ lean:8, hip:58, fa:[26, 0], fb:[-24, 0], ha:[62, 2], hb:[18, 8] }, cross:{ lean:12, hip:56, fa:[30, 0], fb:[-30, 0], ha:[68, 0], hb:[20, 6] }, hpunch:{ lean:18, hip:52, fa:[34, 0], fb:[-36, 0], ha:[76, -2], hb:[18, 6] },
+    closeh:{ lean:6, hip:60, fa:[26, 0], fb:[-22, 0], ha:[44, 40], hb:[18, 8] },
+    lkick:{ lean:-2, hip:58, fa:[54, 22], fb:[-24, 0], ha:[24, 2], hb:[16, 8] }, mkick:{ lean:-8, hip:60, fa:[62, 52], fb:[-24, 0], ha:[22, 0], hb:[10, 6] }, hkick:{ lean:-18, hip:62, fa:[62, 82], fb:[-22, 0], ha:[16, -4], hb:[4, 4] },
+    cjab:{ lean:14, hip:36, fa:[34, 0], fb:[-26, 0], ha:[56, -6], hb:[18, 0] }, cupper:{ lean:6, hip:42, fa:[30, 0], fb:[-26, 0], ha:[30, 56], hb:[16, 0] }, clkick:{ lean:16, hip:34, fa:[62, 8], fb:[-26, 0], ha:[28, -6], hb:[14, 0] }, cmkick:{ lean:18, hip:32, fa:[70, 10], fb:[-28, 0], ha:[26, -6], hb:[12, 0] },
+    sweep:{ lean:22, hip:26, fa:[84, 6], fb:[-30, 0], ha:[10, -12], hb:[-8, -8] },
+    jump:{ lean:4, hip:86, fa:[22, 30], fb:[-20, 22], ha:[26, 10], hb:[14, 18] }, jpunch:{ lean:10, hip:86, fa:[22, 30], fb:[-20, 22], ha:[58, -18], hb:[14, 18] }, jlkick:{ lean:6, hip:86, fa:[54, 26], fb:[-20, 22], ha:[26, 10], hb:[14, 18] }, jhkick:{ lean:-6, hip:86, fa:[64, 40], fb:[-20, 22], ha:[24, 10], hb:[10, 18] },
+    grab:{ lean:14, hip:56, fa:[30, 0], fb:[-28, 0], ha:[52, 12], hb:[46, 20] }, throw:{ lean:-14, hip:56, fa:[26, 0], fb:[-28, 0], ha:[24, 50], hb:[14, 56] },
+    hado:{ lean:14, hip:50, fa:[36, 0], fb:[-36, 0], ha:[60, 8], hb:[54, 4] }, dp:{ lean:2, hip:74, fa:[20, 34], fb:[-12, 18], ha:[16, 92], hb:[8, 10] },
+    tatsu:{ lean:-24, hip:82, fa:[72, 68], fb:[-50, 46], ha:[14, 52], hb:[-6, 54] }, tatsu2:{ lean:-24, hip:82, fa:[-50, 46], fb:[72, 68], ha:[-6, 54], hb:[14, 52] },
+    sonic:{ lean:8, hip:56, fa:[34, 0], fb:[-34, 0], ha:[62, -2], hb:[-24, 12] }, flash:{ lean:0, hip:78, fa:[44, 104], fb:[-14, 40], ha:[10, 22], hb:[-10, 18] },
+    hit:{ lean:-16, hip:58, fa:[16, 0], fb:[-20, 0], ha:[-10, -26], hb:[-22, -16] }, hitc:{ lean:-8, hip:36, fa:[34, 0], fb:[-26, 0], ha:[-6, -18], hb:[-14, -12] }, block:{ lean:2, hip:50, fa:[26, 0], fb:[-26, 0], ha:[24, 14], hb:[18, 20] }, blockc:{ lean:6, hip:34, fa:[34, 0], fb:[-26, 0], ha:[22, 10], hb:[16, 14] },
+    knock:{ lean:-50, hip:70, fa:[20, 20], fb:[-10, 10], ha:[-20, 10], hb:[-30, 4] }, ko:{ lean:0, hip:62, fa:[6, 0], fb:[-6, 0], ha:[10, -34], hb:[-6, -30] }, getup:{ lean:30, hip:34, fa:[30, 0], fb:[-20, 0], ha:[24, -14], hb:[12, -10] } };
+  const ik = (r, p, l1, l2, sg) => { let dx = p[0] - r[0], dy = p[1] - r[1], d = Math.hypot(dx, dy), mx = l1 + l2 - 0.5; if (d > mx) { dx *= mx / d; dy *= mx / d; d = mx; } if (d < 1) d = 1;
+    const a = Math.acos(Math.max(-1, Math.min(1, (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d)))), b = Math.atan2(dy, dx) + sg * a; const m = [r[0] + l1 * Math.cos(b), r[1] + l1 * Math.sin(b)]; return [m, [r[0] + dx, r[1] + dy]]; };
+  const mix = (a, b, e) => a + (b - a) * e, mix2 = (a, b, e) => [mix(a[0], b[0], e), mix(a[1], b[1], e)];
+  function skelG(pose, env, ph, rotDeg) {
+    const P = PG[pose] || GUARD, e = Math.max(0, Math.min(1, env === undefined ? 1 : env)), base = (pose === 'idle' || pose === 'walk') ? GUARD : (/^(crouch|cjab|cupper|clkick|cmkick|sweep|hitc|blockc)/.test(pose) ? PG.crouch : (/^j/.test(pose) ? PG.jump : GUARD)); const J = {};
+    const lean = mix(base.lean, P.lean, e), hipy = mix(base.hip, P.hip, e) + (pose === 'idle' ? 2 * Math.sin(ph || 0) : 0); let fa = mix2(base.fa, P.fa, e), fb = mix2(base.fb, P.fb, e), ha = mix2(base.ha, P.ha, e), hb = mix2(base.hb, P.hb, e);
+    if (pose === 'walk') { const s = Math.sin(ph), c = Math.cos(ph); fa = [24 + 14 * s, 14 * Math.max(0, c)]; fb = [-24 - 14 * s, 14 * Math.max(0, -c)]; }
+    J.hip = [0, hipy]; J.sh = [44 * Math.sin(lean * Math.PI / 180), hipy + 44 * Math.cos(lean * Math.PI / 180)]; J.head = [J.sh[0] + 17 * Math.sin((lean - 4) * Math.PI / 180), J.sh[1] + 17 * Math.cos((lean - 4) * Math.PI / 180)];
+    [J.kneeA, J.footA] = ik(J.hip, [fa[0], fa[1]], 33, 33, -1); [J.kneeB, J.footB] = ik(J.hip, [fb[0], fb[1]], 33, 33, -1);
+    [J.elbA, J.handA] = ik(J.sh, [J.sh[0] + ha[0], J.sh[1] + ha[1]], 27, 26, 1); [J.elbB, J.handB] = ik(J.sh, [J.sh[0] + hb[0], J.sh[1] + hb[1]], 27, 26, 1);
+    const rot = (rotDeg || 0) * Math.PI / 180; if (rot) { const c = J.hip, cs = Math.cos(rot), sn = Math.sin(rot); for (const k in J) { const x = J[k][0] - c[0], y = J[k][1] - c[1]; J[k] = [c[0] + x * cs - y * sn, c[1] + x * sn + y * cs]; } }
+    J.lying = pose === 'ko'; J.free = !!rot || /^j|dp|flash|tatsu|knock/.test(pose);
+    if (J.lying) { const c = J.hip; for (const k in J) if (typeof J[k] === 'object') { const x = J[k][0] - c[0], y = J[k][1] - c[1]; J[k] = [c[0] - y, c[1] + x]; } const my = (J.hip[1] + J.sh[1] + J.head[1] + J.footA[1] + J.footB[1]) / 5; for (const k in J) if (typeof J[k] === 'object') J[k] = [J[k][0] - 6, J[k][1] - my + 12]; }
+    else if (!J.free) { const low = Math.min(J.footA[1], J.footB[1]); for (const k in J) if (typeof J[k] === 'object') J[k] = [J[k][0], J[k][1] - low]; }
+    return J;
+  }
   function skel(kind, pose, ph) {
     if (kind === 'fighter') return skelF(pose, ph);
     ph = ph || 0; const sol = kind === 'soldier', J = {}; let lean, hipy, ta, tb;
@@ -84,12 +118,25 @@ const PRIG = (() => {
   }
   const quad = (a, b, w1, w2) => { const dx = b[0] - a[0], dy = b[1] - a[1], n = Math.hypot(dx, dy) || 1, nx = -dy / n, ny = dx / n; return [[a[0] + nx * w1, a[1] + ny * w1], [b[0] + nx * w2, b[1] + ny * w2], [b[0] - nx * w2, b[1] - ny * w2], [a[0] - nx * w1, a[1] - ny * w1]]; };
   function draw(kind, vr, pose, x, y, face, ph, o) {
-    o = o || {}; const hpx = o.sc || 40, k = hpx / 150, sol = kind === 'soldier', J = skel(kind, pose, ph), R = RAMP, vk = vr || 'green';
+    o = o || {}; const hpx = o.sc || 40, k = hpx / 150, sol = kind === 'soldier', J = (kind === 'fighter' && (vr === 'ryu' || vr === 'guile')) ? skelG(pose, o.env, ph, o.rot) : skel(kind, pose, ph), R = RAMP, vk = vr || 'green';
     const cx = SW / 2, cy = SH - 8; lay.fill(-1);
     const P = n => [cx + face * J[n][0] * k, cy - J[n][1] * k]; const S = {}; for (const n in J) if (n !== 'lying') S[n] = P(n);
     const f = (dx, dy, b) => [b[0] + face * dx * k, b[1] + dy * k], w = v => Math.max(1, v * k);
     const C = (a, b, w1, w2, r, fl) => cap(a, b, w(w1), w(w2), R[r] || r, fl);
-    if (kind === 'fighter') {
+    if (kind === 'fighter' && (vr === 'ryu' || vr === 'guile')) {
+      const ry = vr === 'ryu', hd = S.head, big = ry ? 1 : 1.18, top = ry ? [DG, L, W] : [D, L, W], pants = ry ? [DG, L, W] : [F, GR, E], skin = R.skin, boot = ry ? [K, M, T] : [K, M, T];
+      const Ck = (a, b, w1, w2, r, fl) => cap(a, b, w(w1 * big), w(w2 * big), r, fl);
+      Ck(S.sh, S.elbB, 6, 5, ry ? top : skin); Ck(S.elbB, S.handB, 5, 4.6, ry ? [M, R, O] : skin); cap(S.handB, S.handB, w(5.2), w(5.2), ry ? [M, R, O] : skin);
+      Ck(S.hip, S.kneeB, 8.5, 7.5, pants); Ck(S.kneeB, S.footB, 7, 5.5, pants); Ck(S.footB, f(11, 0, S.footB), 4, 5.2, boot);
+      poly(quad(S.hip, S.sh, 12.5 * k * big, 13.5 * k * big), top); if (ry) poly(quad(S.hip, S.hip, 0, 0), top); if (!ry) { poly(quad(S.hip, f(0, 0, [S.hip[0], S.hip[1] + (S.sh[1] - S.hip[1]) * 0.25]), 12.5 * k * big, 12.5 * k * big), pants); }
+      Ck(f(0, 0, S.hip), f(0, -2, S.hip), 12, 12, ry ? [K, DG, D] : [K, M, T], true);
+      Ck(S.hip, S.kneeA, 8.5, 7.5, pants); Ck(S.kneeA, S.footA, 7, 5.5, pants); Ck(S.footA, f(12, 0, S.footA), 4, 5.2, boot);
+      Ck(f(0, 7, hd), S.sh, 4.5 * big, 5.5 * big, skin); cap(hd, hd, w(13), w(13), R.skin);
+      if (ry) { poly([f(-15, 0, hd), f(-13, -12, hd), f(-1, -16, hd), f(9, -12, hd), f(12, -5, hd), f(2, -5, hd), f(-9, 4, hd)], R.hair, true); Ck(f(-14, -4, hd), f(13, -5, hd), 2, 2, [M, R, O], true); poly([f(-14, -3, hd), f(-24, 4, hd), f(-18, 9, hd)], [M, R, O], true); }
+      else { poly([f(-14, -3, hd), f(-13, -20, hd), f(-4, -26, hd), f(8, -24, hd), f(12, -14, hd), f(12, -6, hd), f(2, -7, hd), f(-8, 2, hd)], [T, Y, V], false); poly([f(-6, -22, hd), f(-6, -32, hd), f(6, -32, hd), f(8, -22, hd)], [T, Y, V], true); }
+      put(f(7, 0, hd)[0], f(7, 0, hd)[1], K); put(f(7, -1, hd)[0], f(7, -1, hd)[1], K); put(f(10, 5, hd)[0], f(10, 5, hd)[1], M);
+      Ck(S.sh, S.elbA, 6.5, 5.5, ry ? top : skin); Ck(S.elbA, S.handA, 5.5, 5, ry ? [M, R, O] : skin); cap(S.handA, S.handA, w(5.8), w(5.8), ry ? [M, R, O] : skin);
+    } else if (kind === 'fighter') {
       const gi = R[vr || 'red'], hd = S.head;
       C(S.sh, S.elbB, 6, 5, gi); C(S.elbB, S.handB, 5, 4.5, 'skin'); cap(S.handB, S.handB, w(5), w(5), R.skin);
       C(S.hip, S.kneeB, 8.5, 7.5, gi); C(S.kneeB, S.footB, 7, 5.5, gi); C(S.footB, f(10, 0, S.footB), 4, 5, 'skin');

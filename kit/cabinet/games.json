@@ -390,5 +390,13 @@
   "lb": "KICK",
   "keys": "<b>Keys:</b> left/right move, down blocks, up jumps, Z punches, X kicks, Enter starts, M mutes. One round: KO the CPU or lead on health at 45 seconds.",
   "mashup": "Street Fighter x one round"
+ },
+ {
+  "id": "g37",
+  "title": "Ryu vs Guile",
+  "la": "PUNCH",
+  "lb": "KICK",
+  "keys": "<b>Keys:</b> arrows move, crouch, jump. U I O = light/medium/heavy punch, J K L = light/medium/heavy kick (Z/X = medium punch/kick). Fireball 236+P, Dragon Punch 623+P, Hurricane Kick 214+K; Guile: hold back then forward+P for Sonic Boom, hold down then up+K for Flash Kick. Close + forward/back + P throws.",
+  "mashup": "Street Fighter II: Ryu vs Guile, one round"
  }
 ]

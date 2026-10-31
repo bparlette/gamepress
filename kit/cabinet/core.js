@@ -163,18 +163,20 @@ const SFX = {
 function sfx(n) { if (SFX[n]) SFX[n](); }
 
 /* ---------- input ---------- */
-const kd = { l:false, r:false, u:false, d:false, b:false, a:false };
+const kd = { l:false, r:false, u:false, d:false, b:false, a:false, p1:false, p2:false, p3:false, k1:false, k2:false, k3:false };
+/* six-button mode (fighters): a game sets window.SIXBTN = true at the top of its file; then U I O = light/medium/heavy punch, J K L = light/medium/heavy kick (Z = a, X = b stay as medium shortcuts) */
+const SIX = { KeyU:'p1', KeyI:'p2', KeyO:'p3', KeyJ:'k1', KeyK:'k2', KeyL:'k3' };
 const td = { l:false, r:false, u:false, d:false, b:false, a:false, on:false, ax:0, ay:0 };
 let aEdge = false, bEdge = false, startEdge = false;
 const KEYMAP = { ArrowLeft:'l', KeyA:'l', ArrowRight:'r', KeyD:'r', ArrowDown:'d', KeyS:'d', ArrowUp:'u', KeyW:'u',
   KeyZ:'a', Space:'a', KeyK:'a', KeyX:'b', ShiftLeft:'b', ShiftRight:'b', KeyJ:'b' };
 addEventListener('keydown', e => {
-  const k = KEYMAP[e.code];
+  const k = (window.SIXBTN && SIX[e.code]) || KEYMAP[e.code];
   if (k) { if (!kd[k] && k === 'a') aEdge = true; if (!kd[k] && k === 'b') bEdge = true; kd[k] = true; e.preventDefault(); audioInit(); return; }
   if (e.code === 'Enter') { startEdge = true; e.preventDefault(); audioInit(); }
   else if (e.code === 'KeyM') toggleSound();
 });
-addEventListener('keyup', e => { const k = KEYMAP[e.code]; if (k) { kd[k] = false; e.preventDefault(); } });
+addEventListener('keyup', e => { const k = (window.SIXBTN && SIX[e.code]) || KEYMAP[e.code]; if (k) { kd[k] = false; e.preventDefault(); } });
 addEventListener('blur', () => { for (const k in kd) kd[k] = false; for (const k in td) td[k] = false; });
 
 const dpad = document.getElementById('dpad');
@@ -230,9 +232,9 @@ function toggleSound() {
   if (master) master.gain.value = muted ? 0 : 0.16;
   sndBtn.textContent = muted ? 'SOUND OFF' : 'SOUND ON';
 }
-const BLANK = Object.freeze({ l:0, r:0, u:0, d:0, a:0, b:0, pa:0, pb:0, start:0, ax:0, ay:0 });
+const BLANK = Object.freeze({ p1:0, p2:0, p3:0, k1:0, k2:0, k3:0, l:0, r:0, u:0, d:0, a:0, b:0, pa:0, pb:0, start:0, ax:0, ay:0 });
 function readInput() {
-  const i = { l:kd.l || td.l, r:kd.r || td.r, u:kd.u || td.u, d:kd.d || td.d, a:kd.a || td.a, b:kd.b || td.b, pa:aEdge, pb:bEdge, start:startEdge };
+  const i = { l:kd.l || td.l, r:kd.r || td.r, u:kd.u || td.u, d:kd.d || td.d, a:kd.a || td.a, b:kd.b || td.b, p1:kd.p1, p2:kd.p2, p3:kd.p3, k1:kd.k1, k2:kd.k2, k3:kd.k3, pa:aEdge, pb:bEdge, start:startEdge };
   i.ax = td.on ? td.ax : (i.r ? 1 : 0) - (i.l ? 1 : 0); i.ay = td.on ? td.ay : (i.d ? 1 : 0) - (i.u ? 1 : 0);
   aEdge = false; bEdge = false; startEdge = false;
   return i;
