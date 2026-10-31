@@ -358,5 +358,13 @@
   "lb": "-",
   "keys": "<b>Keys:</b> arrows move, your critter fights by itself, Enter starts, M mutes.",
   "mashup": "Clash of Critters (SVG rig + WebGL)"
+ },
+ {
+  "id": "g33",
+  "title": "Trick or Treat House",
+  "la": "MOVE",
+  "lb": "-",
+  "keys": "<b>Keys:</b> arrows move, your critter fights by itself, Enter starts, M mutes.",
+  "mashup": "Critter Clash x Trick or Treat Toss x family tower defense"
  }
 ]
