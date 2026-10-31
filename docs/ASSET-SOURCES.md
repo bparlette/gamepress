@@ -80,6 +80,20 @@ From a 20-tool list posted by @hzxuang ("20 open-source skills" — animation, p
 - **Polyfork** — https://polyfork.dev — **Keeper.** 2,600+ free low-poly models (+~200/week), but the real story is the format: every asset is a small ES-module *program* with typed knobs (colors, proportions, part counts, palette), not a frozen mesh — turn a knob and the model rebuilds, so one asset yields many on-palette variants. Characters are configs (garment/age/build/repaint) on a fixed skeleton, so Mixamo clips still play. Kits share one palette, one scale, and a 64m terrain grid that joins seam-to-seam. Exports: GLB / FBX / USDZ / OBJ plus the live module for three.js (r150+). **License (from their FAQ): commercial use, no attribution** — but no reselling/redistributing the assets themselves, and no training a commercial asset generator. Free tier covers all low-poly + kits + full API/MCP access (agents can search and fetch assets directly via their MCP server — built for exactly our workflow); HD PBR editions are Pro ($15/mo). Pairs with glTF Transform for post-export optimization. Won 1st place in the Build with Gemini XPRIZE. Via @Polyfork3d, Oct 27, 2026.
 - **NVIDIA SimReady Assets** — https://huggingface.co/datasets/nvidia/simready-assets — **Reference only.** 2,575 simulation-ready assets (~472GB) with physics properties and semantic labels, aimed at robotics/digital twins. Cherry-pick an individual prop if a scene needs one realistic object; the bulk download and the sim framing are not our workflow, and NVIDIA's dataset license governs any use — verify before shipping anything from it. Via @oliviscusAI (quoted in the Polyfork post), Oct 25, 2026.
 
+## Cabinet rig games g35-g45 (what they ship)
+
+- **Art:** none imported. Every character, stage, effect and HUD element is drawn in code
+  (`pixrig.js`, per-game draw functions); the 16-bit tier (g37p) is vector shapes + a
+  posterise pass. No third-party sprites, sounds or models.
+- **Font:** *Press Start 2P* (SIL Open Font License 1.1, Google Fonts) loaded from Google
+  Fonts by the shell; not vendored.
+- **Third-party IP (flag, not cleared):** the Ryu vs Guile family (g37, g37p, g39, g40, g41,
+  slugs `ryu-vs-guile*`, `training-dojo`, `tournament-ladder`, `boss-rush`) uses the character
+  names Ryu and Guile and Street Fighter-style move motions and costume cues
+  (white gi + red headband / blond flat-top + camo). g36, g38, g42 and the move names in
+  their key hints also lean on that vocabulary. Decide before any store/itch/CrazyGames
+  release whether to rename and redesign.
+
 ## Rules of thumb
 
 - **License before use.** CC0 (Kenney, much of Freesound) ships anywhere. CC-BY needs an

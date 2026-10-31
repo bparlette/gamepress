@@ -85,6 +85,15 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
   gpphys, gpchar, gpsprites, gpaudio, gptouch (`docs/TOUCH.md`), gpviewport
   (9:16 safe zones), gpshaders / gptoon, gpretro + gbfixed (ports),
   gpmonetize. Index: `docs/KIT.md`.
+- **Cabinet rig games (`kit/cabinet`, g35-g45):** `pixrig.js` (PRIG) draws characters fresh
+  every frame from a skeleton — no sprite assets: soldier/zombie/fighter kinds, a jointed
+  fighter skeleton (pelvis, spine, two shoulders, knee/elbow flexion limits, heel/toe feet)
+  and `PRIG.draw(..., {J})` for any caller-supplied joints. Games on it: g35 Locker Room
+  Last Stand, g36 Street Round, g37/g37p fighter (8-bit / 16-bit tier), g38 Floppy Race
+  (Verlet ragdoll with muscle springs), g39-g41 fighter variants (`variants37.py`), g42
+  Street Brawl, g43 Sumo Shove, g44 Fireball Dodgeball, g45 Grapple Duel. Checks:
+  `check.sh`, `seedcheck.cjs`, `baseline.cjs` (PERSONAS=1), `shots.cjs`, `test37.cjs`,
+  `test37-anatomy.cjs`; showcase video: `video/montage.cjs` + `montage.py`.
 - **Quality floor (80-pt rubric, in `gamepress context`):** ≥3 feel
   functions (hitstop / slowmo / popup / flash / shake / kick), particles +
   ≥4 SFX types, `?auto=1` lose-first-then-win bot, video 1080×1920 per
