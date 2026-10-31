@@ -10,7 +10,7 @@
      ENG.swarm.init(S,cfg)                 S.swarm={list,cfg}; cfg={cap,spawn:(S)=>interval s,kinds:{k:{hp,sp,r,dmg,score}},pick:(S)=>kind,ring:[min,max],bounds}
      ENG.swarm.step(S,dt,tx,ty)            spawn on the curve, chase (tx,ty), separate, expire dead. returns array of kills this step
      ENG.swarm.hurt(S,e,dmg,kx,ky)         damage + knockback; marks e.dead when hp<=0 (removed next step, kills reported once)
-     ENG.hits(S,fn)                        projectile vs swarm collisions in one place: fn(proj,enemy) per hit (handles pierce/consume)
+     ENG.hits(S,fn[,list])                 projectile vs swarm (or any {x,y,r,dead} list) collisions in one place: fn(proj,enemy) per hit (handles pierce/consume)
      ENG.path(pts) -> P                    polyline P.len, P.at(d)->{x,y,a}
      ENG.cam(S,tx,ty,vw,vh,ww,wh,k)        follow camera with lerp k and world clamp -> S.ecam={x,y,sh}; ENG.shake(S,amount)
    */
@@ -56,7 +56,7 @@ const ENG = (() => {
       W_.kills += dead.length; return dead; },
     hurt(S, e, dmg, kx, ky) { e.hp -= dmg; e.hit = 0.1; if (kx !== undefined) imp.push(e, e.x - kx, e.y - ky, 70); if (e.hp <= 0) e.dead = true; return e.dead; },
   };
-  const hits = (S, fn) => { const L = S.swarm ? S.swarm.list : []; for (const p of S.eproj || []) { if (p.dead || p.team !== 'p') continue;
+  const hits = (S, fn, list) => { const L = list || (S.swarm ? S.swarm.list : []);   /* list: any array of {x,y,r,dead} (path walkers etc.) */ for (const p of S.eproj || []) { if (p.dead || p.team !== 'p') continue;
     for (const e of L) { if (e.dead) continue; if (Math.hypot(e.x - p.x, e.y - p.y) < e.r + p.r) { fn(p, e); if (p.pierce-- <= 0) { p.dead = true; break; } } } } };
   const cam = (S, tx, ty, vw, vh, ww, wh, k) => { const c = S.ecam = S.ecam || { x:tx - vw / 2, y:ty - vh / 2, sh:0 };
     c.x += (clamp(tx - vw / 2, 0, Math.max(0, ww - vw)) - c.x) * (k || 0.12); c.y += (clamp(ty - vh / 2, 0, Math.max(0, wh - vh)) - c.y) * (k || 0.12); return c; };

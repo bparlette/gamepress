@@ -42,13 +42,14 @@ Every registered game (40), one run each: `seedcheck.cjs` (determinism + seed se
 | g17f | pass | HIVE CLEAR! | 38 | differs (declared) | green |
 | g17g | pass | HIVE CLEAR! | 38 | differs (declared) | green |
 | g17h | pass | HIVE CLEAR! | 36 | = pixel/HD/art (engine.js sim) | green |
+| g32 | pass | TRAINER SLEPT IN! (bot, seeds 1-8: 8/8, bed 12 left) | 55 | n/a (pixel only) | green |
 | s4 | pass | PODIUM P1/P2 | 19-23 | = pixel/HD/art | green |
 | s5 | pass | DUNGEON CLEARED! | 23-33 | = pixel/HD/art | green |
 | s1 | pass | SURVIVED! | 41 | = pixel/HD/art | green |
 | s2 | pass | COURSE CLEAR! | 10 | = pixel/HD/art | green |
 | s3 | pass | GATE HELD! | 127 | = pixel/HD/art | green |
 
-**39 of 43 green** (40 originally registered; g17h, s4, s5 added later; s4/s5 rows measured over seeds 1-8). Not green:
+**40 of 44 green** (40 originally registered; g17h, s4, s5, g32 added later; those rows measured over seeds 1-8). Not green:
 - **g1**: bot loses, seedcheck pass, bot outcome "GAME OVER"
 - **g5**: bot loses, seedcheck pass, bot outcome "GAME OVER"
 - **g14**: bot loses, seedcheck pass, bot outcome "YOU DIED"

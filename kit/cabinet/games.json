@@ -342,5 +342,13 @@
   "lb": "-",
   "keys": "<b>Keys:</b> arrows move, Z swings the sword, Enter starts, M mutes.",
   "mashup": "starter: mini-Zelda dungeon"
+ },
+ {
+  "id": "g32",
+  "title": "Critter Clash",
+  "la": "MOVE",
+  "lb": "-",
+  "keys": "<b>Keys:</b> arrows move, your critter fights by itself, Enter starts, M mutes.",
+  "mashup": "Clash of Critters (pixel)"
  }
 ]
