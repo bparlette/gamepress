@@ -261,5 +261,5 @@ const GAME = kit({ id:'g17e', tall:true, dir:'any', t1:'VAMPIRE', t2:'METROID CL
     if (p.x < 24) fx += 0.01; if (p.x > 232) fx -= 0.01; if (p.y < 36) fy += 0.01; if (p.y > 190) fy -= 0.01;
     return dirInp(i, Math.abs(fx) > 0.0004 ? Math.sign(fx) : 0, Math.abs(fy) > 0.0004 ? Math.sign(fy) : 0);
   },
-  info: S => ({ lvl:S.lvl, hp:Math.round(S.p.hp), en:S.en.length, boss:S.boss ? Math.round(S.boss.hp) : -1, lv:S.lv.join('') }),
+  info: S => ({ lvl:S.lvl, hp:Math.round(S.p.hp), en:S.en.length, boss:S.boss ? Math.round(S.boss.hp) : -1, lv:S.lv.join(''), px:Math.round(S.p.x), py:Math.round(S.p.y), bx:S.boss ? Math.round(S.boss.x) : -1, by:S.boss ? Math.round(S.boss.y) : -1, cam:S.hd && S.hd.cam ? S.hd.cam : null, hh:window.HD_H || 224 }),
 });

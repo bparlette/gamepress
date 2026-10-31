@@ -1,4 +1,5 @@
 # Kit API: signatures and units (one page)
+> **Starting a new game of any genre? Read [GENERIC-KIT.md](GENERIC-KIT.md) first** (one-command starters, engines, QA contract, traps, rig table), then [FEEL-SHEETS.md](FEEL-SHEETS.md) and [ART-TRANSFER.md](ART-TRANSFER.md).
 
 Coordinates are LOGICAL: the game world is 256x224 units (y down). Pixel edition: 1 unit = 1 pixel. HD/Art editions: canvas is 768 px wide, ctx pre-scaled 3x, so you still draw in logical units. Tall games: canvas height = 3*`window.HD_H` (224..480), world stays 256 wide.
 All colors are CSS strings in HD, palette indexes in the pixel `core.js` helpers.

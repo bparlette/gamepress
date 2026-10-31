@@ -294,5 +294,29 @@
   "lb": "DASH",
   "keys": "",
   "mashup": "Super Metroid x Vampire Survivors"
+ },
+ {
+  "id": "s1",
+  "title": "Arena Survivor",
+  "la": "MOVE",
+  "lb": "-",
+  "keys": "<b>Keys:</b> arrows move, auto-fire, Enter starts, M mutes.",
+  "mashup": "starter: arena survivor"
+ },
+ {
+  "id": "s2",
+  "title": "Tile Runner",
+  "la": "JUMP",
+  "lb": "-",
+  "keys": "<b>Keys:</b> arrows run, Z or Space jumps, Enter starts, M mutes.",
+  "mashup": "starter: platformer"
+ },
+ {
+  "id": "s3",
+  "title": "Gate Guard",
+  "la": "BUILD",
+  "lb": "-",
+  "keys": "<b>Keys:</b> arrows move cursor, Z or Space builds, Enter starts, M mutes.",
+  "mashup": "starter: tower defense"
  }
 ]

@@ -1,4 +1,4 @@
-// NEEDS: three
+// NEEDS: three, art
 // KEYS: Arrows move (auto-fire), Z/Space or X pick an upgrade when the level bar fills (Left/Right to choose).
 /* ===== VAMPIRE METROID: bounty hunter vs. endless cave bugs. Auto-fire, pellets, level-up picks, boss melt. ===== */
 const UP17 = ['SPAZER', 'ICE AURA', 'MINES', 'SCREW'];

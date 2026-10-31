@@ -1,5 +1,8 @@
 // KEYS: Arrows move (auto-fire), Z/Space or X pick an upgrade when the level bar fills (Left/Right to choose).
-/* ===== VAMPIRE METROID: bounty hunter vs. endless cave bugs. Auto-fire, pellets, level-up picks, boss melt. ===== */
+/* ===== VAMPIRE METROID: bounty hunter vs. endless cave bugs. Auto-fire, pellets, level-up picks, boss melt. =====
+   BRIEF  genre: arena survivor (Vampire Survivors x Metroid) | player: 8-way mover, auto-fire spazer | goal: kill the Hive Queen (~48 s)
+          lose: hp 0 (contact 5, boss 14) | hook: the swarm thickens to ~140 on screen | bot: kites away from nearby bugs, drifts to gems
+          juice: pellet spreads, ice aura, mines, screw orbit, boss melt | numbers: docs/FEEL-SHEETS.md section A */
 const UP17 = ['SPAZER', 'ICE AURA', 'MINES', 'SCREW'];
 
 /* ---- art: all from ART (artkit.js) ---- */
@@ -181,5 +184,5 @@ const GAME = kit({ id:'g17', t1:'VAMPIRE', t2:'METROID', sub:'SURVIVE. LEVEL. ME
     if (p.x < 24) fx += 0.01; if (p.x > 232) fx -= 0.01; if (p.y < 36) fy += 0.01; if (p.y > 190) fy -= 0.01;
     return dirInp(i, Math.abs(fx) > 0.0004 ? Math.sign(fx) : 0, Math.abs(fy) > 0.0004 ? Math.sign(fy) : 0);
   },
-  info: S => ({ lvl:S.lvl, hp:Math.round(S.p.hp), en:S.en.length, boss:S.boss ? Math.round(S.boss.hp) : -1, lv:S.lv.join('') }),
+  info: S => ({ lvl:S.lvl, hp:Math.round(S.p.hp), en:S.en.length, boss:S.boss ? Math.round(S.boss.hp) : -1, lv:S.lv.join(''), px:Math.round(S.p.x), py:Math.round(S.p.y), bx:S.boss ? Math.round(S.boss.x) : -1, by:S.boss ? Math.round(S.boss.y) : -1, cam:S.hd && S.hd.cam ? S.hd.cam : null, hh:window.HD_H || 224 }),
 });
