@@ -24,7 +24,7 @@ def build(g, local_font=False, outdir=None, hd=False, art=False):
            '<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">'
     html = (head.replace('%%TITLE%%', m['title']).replace('%%LA%%', m['la']).replace('%%LB%%', m['lb'])
             .replace('%%KEYS%%', m['keys']).replace('%%FONT%%', font)
-            .replace('%%CORE%%', (THREE_SRC if '// NEEDS: three' in src else '') + open(f'{base}/core.js').read() + open(f'{base}/gamekit.js').read() + open(f'{base}/engine.js').read() + open(f'{base}/artkit.js').read() + open(f'{base}/hdkit.js').read() + open(f'{base}/glpost.js').read() + open(f'{base}/rigkit.js').read())
+            .replace('%%CORE%%', (THREE_SRC if '// NEEDS: three' in src else '') + open(f'{base}/core.js').read() + open(f'{base}/gamekit.js').read() + open(f'{base}/engine.js').read() + open(f'{base}/pixrig.js').read() + open(f'{base}/artkit.js').read() + open(f'{base}/hdkit.js').read() + open(f'{base}/glpost.js').read() + open(f'{base}/rigkit.js').read())
             .replace('%%GAME%%', open(f'{base}/games/{g}.js').read())
             .replace('%%LOOP%%', open(f'{base}/loop.js').read()))
     if hd or art:

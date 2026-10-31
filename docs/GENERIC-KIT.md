@@ -96,4 +96,9 @@ viewBox / anchor are in SVG units; `scale` multiplies to logical px (256-wide sc
 7. Playable page opens with zero manual setup.
 **Grading:** 7 of 7 = the claim holds for this genre. Any failure is a doc gap to fix, then re-run with a *different* fresh tester.
 
-**Status: not run.** The checklist is defined here; no stranger has built the game yet. The roadmap's "any AI, any game" acceptance remains unproven until that run happens.
+**Status: run 2026-10-31, turn-based arena (g90), 7 of 7 lines pass with caveats.** A first attempt failed on setup only (stale worktree, nothing built). The second tester worked in a clean sandbox copy of the kit with only the docs listed above. Caveats it logged (full list: `docs/STRANGER-TEST-LOG.md`, 15 entries):
+- The symmetric bot won only ~half the games from the sheet's values; 40/40 needed a smarter bot plus a handicapped AI (enemy hp x0.7). The turn-based FEEL sheet gives too few numbers (unit kinds, damage, hit odds), so the tester invented them.
+- The art tier is not buildable from the kit alone (no SVG sources / `art/atlas.json`), so line 3's art parity was exercised with an empty atlas.
+- Undocumented helpers it had to discover: `bfs` (grid reachability, in gamekit.js), `dirInp`, `S.edge`, `popup`, `burst`, `hintS`; the non-starter form of `new.py` overwrites the game file.
+- Games ending in 20-45 s make seedcheck's 60 s sample land after game over.
+Not yet re-run with a second, different tester after fixing these; the genre-general claim stays "holds once the gaps in the log are closed".

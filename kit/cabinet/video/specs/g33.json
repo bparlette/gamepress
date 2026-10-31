@@ -1,0 +1,12 @@
+{"game":"g33.art","query":"demo=1&seed=7","titleFrames":45,"maxFrames":2400,
+ "hold":{"key":"ArrowRight","releaseAfterTicks":100},
+ "botWhen":"i.stash<=9 && f>100",
+ "rate":"botOn ? (slow>0 ? 2 : (i.mega>=0 ? (i.mega>35 && i.megaD>130 ? 4 : 2) : 6)) : (ticks<300 ? 2 : (i.near>120 ? 8 : 2))",
+ "events":[
+  {"name":"steal","when":"i.stash<p.stash","pop":"CANDY STOLEN!","shake":14,"sound":"hurt","sub":"-{d.stash} CANDY","color":"red"},
+  {"name":"join","when":"i.fam>p.fam","pop":"FAMILY MEMBER JOINS!","slow":90,"sound":"jingle","color":"yel"},
+  {"name":"boss","when":"i.mega>=0 && !seen.boss","pop":"MEGA DINO APPEARS!","slow":150,"sound":"boom","color":"red"},
+  {"name":"win","when":"seen.boss && i.mega<0 && !seen.win","pop":"135 HITS! DEFEATED!","sound":"jingle","color":"cyn"}],
+ "end":{"afterEvent":"win","frames":75},
+ "hooks":[{"text":["THEY'RE COMING","FOR OUR CANDY..."]},{"after":"steal","text":["THEY STOLE","OUR CANDY!!"]},{"after":"join","text":["THE FAMILY","FIGHTS BACK"]},{"after":"boss","text":["MEGA DINO","135 HITS TO KILL"]},{"after":"win","text":["WE DID IT!!","MEGA DINO DOWN"]}],
+ "hud":"CANDY STASH {stash}","cta":"PLAY FREE - LINK IN DESCRIPTION"}

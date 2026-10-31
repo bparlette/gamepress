@@ -60,3 +60,11 @@ Notes
 - "bot loses" means the scripted bot does not win within 180 s on seed 1; I have not checked whether these games were ever meant to be bot-winnable, so this is a map entry, not a declared defect.
 - Only the g17 family and s1-s3 have HD/Art tiers, so tier parity applies to 10 of 40. g17e/f/g differ by design (auto power-ups, analog move): declared with `--expect-diff`.
 - `g17g` is art-only: `seedcheck.cjs g17g.art`, since `build.py g17g` without `--art` fails by design.
+
+## Persona run, 2026-10-31 (`PERSONAS=1 node baseline.cjs <ids>`, 43 games, seed 1)
+Idle / clumsy (input 0.25 s late, 35% of button frames dropped) / expert (the game's bot). Page errors: none in any game. Flags are advisory: many score-attack games end with a non-win message when time runs out, so EXPERT-DIES there means "no win message", not "unbeatable".
+- **IDLE-OK (plays itself):** g19 (idle survives 180 s and outscores the expert's run). Candidate for a "needs input" fix.
+- **Cliff for sloppy play (CLUMSY-0):** g14, g25, g3 (clumsy scores under 10% of expert).
+- **Idle does well anyway:** g1, s4 (idle holds ~40-100% of expert's score or survives long; check they ask for input).
+- **Expert ends without a win message:** 14 games (g1 g14 g15 g21 g23 g24 g25 g26 g27 g32 g5 s1 s3 s4); read each one's end message before calling it a balance problem. g33's pass rates (idle loses at 66 s, clumsy and expert survive 180 s) are the intended shape.
+- Not yet run on g32c, g33 (non-art page), g17p; art pages need the `.art` id.

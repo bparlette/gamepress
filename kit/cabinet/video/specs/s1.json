@@ -1,0 +1,7 @@
+{"game":"s1","query":"seed=3","titleFrames":40,"maxFrames":1500,
+ "botWhen":"true","rate":"i.hp>60 ? 6 : 2",
+ "events":[{"name":"hurt","when":"i.hp<p.hp","pop":"OUCH!","shake":8,"sound":"hurt","color":"red"},
+           {"name":"swarm","when":"i.kills>=40 && !seen.swarm","pop":"40 KILLS!","slow":60,"sound":"jingle","color":"yel"}],
+ "end":{"afterMode":"over","frames":60},
+ "hooks":[{"text":["CAN YOU SURVIVE","THE HORDE?"]},{"after":"swarm","text":["THEY KEEP","COMING..."]}],
+ "hud":"KILLS {kills}","cta":"PLAY FREE - LINK IN DESCRIPTION"}

@@ -13,6 +13,7 @@
      ENG.hits(S,fn[,list])                 projectile vs swarm (or any {x,y,r,dead} list) collisions in one place: fn(proj,enemy) per hit (handles pierce/consume)
      ENG.path(pts) -> P                    polyline P.len, P.at(d)->{x,y,a}
      ENG.cam(S,tx,ty,vw,vh,ww,wh,k)        follow camera with lerp k and world clamp -> S.ecam={x,y,sh}; ENG.shake(S,amount)
+     ENG.impact(S,'weak'|'strong')         hit-stop + shake + flash (S.hs freezes step, S.eflash overlay alpha); reserved: S.hs S.eflash S.elastStop
    */
 const ENG = (() => {
   const move = (e, solid, dx, dy) => {
@@ -61,17 +62,24 @@ const ENG = (() => {
   const cam = (S, tx, ty, vw, vh, ww, wh, k) => { const c = S.ecam = S.ecam || { x:tx - vw / 2, y:ty - vh / 2, sh:0 };
     c.x += (clamp(tx - vw / 2, 0, Math.max(0, ww - vw)) - c.x) * (k || 0.12); c.y += (clamp(ty - vh / 2, 0, Math.max(0, wh - vh)) - c.y) * (k || 0.12); return c; };
   const shake = (S, a) => { const c = S.ecam = S.ecam || { x:0, y:0, sh:0 }; c.sh = Math.max(c.sh, a); };
+  /* feel timing (research: hit-stop 50-100ms, shake 2-3px weak / 8-10px strong, flash 50-100ms, <=~4 events/s):
+     ENG.impact(S,'weak'|'strong'|{stop,shake,flash}) freezes the sim step briefly (S.hs), shakes the camera, sets S.eflash (0..1 white flash, draw it as an overlay).
+     Rate-limited so spam hits cannot freeze the game: at most one stop per 0.22s. */
+  const IMP = { weak:{ stop:.05, shake:2, flash:.0 }, strong:{ stop:.09, shake:9, flash:.35 } };
+  const impact = (S, k) => { const o = typeof k === 'string' ? IMP[k] : k; if (!o) return; shake(S, o.shake || 0);
+    if (S.T - (S.elastStop || -9) >= .22) { S.hs = Math.max(S.hs || 0, o.stop || 0); S.elastStop = S.T; } if (o.flash) S.eflash = Math.max(S.eflash || 0, o.flash); };
   /* the lifecycle owner: called by kit() every sim step */
   const tick = (S, dt) => {
     if (S.efx) for (let i = S.efx.length - 1; i >= 0; i--) { const f = S.efx[i]; f.t += dt; if (f.t >= f.life) S.efx.splice(i, 1); }
     if (S.eproj) for (let i = S.eproj.length - 1; i >= 0; i--) { const p = S.eproj[i]; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; const b = p.bounds;
       if (p.dead || p.life <= 0 || (b && (p.x < b[0] || p.y < b[1] || p.x > b[2] || p.y > b[3]))) S.eproj.splice(i, 1); }
     if (S.swarm) for (const e of S.swarm.list) if (e.hit > 0) e.hit -= dt;
+    if (S.eflash > 0) S.eflash = Math.max(0, S.eflash - dt * 5);
     if (S.ecam && S.ecam.sh > 0) S.ecam.sh = Math.max(0, S.ecam.sh - dt * 30);
   };
   /* polyline path: P=ENG.path([[x,y],...]); P.len; P.at(d)->{x,y,a} point + heading at distance d along it (tower-defense creeps, rails, race tracks) */
   const path = pts => { const seg = [], cum = [0]; for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seg.push(l); cum.push(cum[i - 1] + l); }
     const len = cum[cum.length - 1]; return { len, pts, at(d) { d = clamp(d, 0, len); let i = 1; while (i < cum.length - 1 && cum[i] < d) i++; const a = pts[i - 1], b = pts[i], t = (d - cum[i - 1]) / (seg[i - 1] || 1);
       return { x:a[0] + (b[0] - a[0]) * t, y:a[1] + (b[1] - a[1]) * t, a:Math.atan2(b[1] - a[1], b[0] - a[0]) }; } }; };
-  return { path, move, grid, fx, proj, imp, swarm, hits, cam, shake, tick };
+  return { path, move, grid, fx, proj, imp, swarm, hits, cam, shake, impact, tick };
 })();

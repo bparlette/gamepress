@@ -41,6 +41,7 @@ function kit(c) {
       if (S.inv > 0) S.inv -= dt;
       if (typeof ENG !== 'undefined') ENG.tick(S, dt);   /* engines own effect/projectile/knockback lifecycles, not the renderer */
       if (S.parts) for (let i = S.parts.length - 1; i >= 0; i--) { const p = S.parts[i]; p.t -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; if (p.t <= 0) S.parts.splice(i, 1); }
+      if (S.hs > 0) { S.hs -= dt; return; }   /* hit-stop: sim freezes, effects above still age */
       if (c.step(S, dt, inp, S.att) === 'reset') fresh(true);
     },
     renderHD(g, mode) { if (c.drawHD) c.drawHD(S, g, mode); },
