@@ -174,3 +174,4 @@ function poseOf37(S, f) {
 window.__posesheet = (ch, names) => { rect(0, 0, 256, 224, K); rect(0, 150, 256, 74, DG); rect(0, 150, 256, 2, L);
   names.forEach((p, i) => { const col = i % 4, row = Math.floor(i / 4), x = 32 + col * 64, y = 70 + row * 70, free = /^j|dp|flash|tatsu|knock/.test(p); PRIG.draw('fighter', ch, p, x, y + (free ? -6 : 0), 1, 0.5, { sc:56, env:1, rot:p === 'flash' ? 200 : p === 'knock' ? 60 : 0 }); txt(p, x, y + 6, W, 8, 'center'); });
   for (let i = 0; i < buf.length; i++) px32[i] = PAL32[buf[i]]; ctx.putImageData(img, 0, 0); return document.getElementById('screen').toDataURL(); };
+window.__skelG = (...a) => PRIG.skelG(...a); /* QA hook: anatomy check */

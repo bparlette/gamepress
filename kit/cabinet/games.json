@@ -398,5 +398,77 @@
   "lb": "KICK",
   "keys": "<b>Keys:</b> arrows move, crouch, jump. U I O = light/medium/heavy punch, J K L = light/medium/heavy kick (Z/X = medium punch/kick). Fireball 236+P, Dragon Punch 623+P, Hurricane Kick 214+K; Guile: hold back then forward+P for Sonic Boom, hold down then up+K for Flash Kick. Close + forward/back + P throws.",
   "mashup": "Street Fighter II: Ryu vs Guile, one round"
+ },
+ {
+  "id": "g37p",
+  "title": "Ryu vs Guile 16-bit",
+  "la": "PUNCH",
+  "lb": "KICK",
+  "keys": "<b>Keys:</b> arrows move, crouch, jump. U I O = light/medium/heavy punch, J K L = light/medium/heavy kick (Z/X = medium punch/kick). Fireball 236+P, Dragon Punch 623+P, Hurricane Kick 214+K; Guile: hold back then forward+P for Sonic Boom, hold down then up+K for Flash Kick. Close + forward/back + P throws.",
+  "mashup": "Street Fighter II: Ryu vs Guile, one round"
+ },
+ {
+  "id": "g38",
+  "title": "Floppy Race",
+  "la": "TAP A",
+  "lb": "TAP B",
+  "keys": "<b>Keys:</b> tap Z then X alternately (or the A and B buttons) to run faster, Up jumps hurdles and mud, Enter starts. Trip on a hurdle and you flop. Beat three CPU runners over 100 m.",
+  "mashup": "Ragdoll sprint with the Ryu and Guile rigs"
+ },
+ {
+  "id": "g39",
+  "title": "Training Dojo",
+  "la": "PUNCH",
+  "lb": "KICK",
+  "keys": "<b>Keys:</b> arrows move, crouch, jump. U I O punches, J K L kicks (Z/X = medium). Fireball 236+P, Dragon Punch 623+P, Hurricane Kick 214+K. Land 15 hits on a standing dummy. Same move list as Ryu vs Guile.",
+  "mashup": "Ryu vs Guile variant"
+ },
+ {
+  "id": "g40",
+  "title": "Tournament Ladder",
+  "la": "PUNCH",
+  "lb": "KICK",
+  "keys": "<b>Keys:</b> arrows move, crouch, jump. U I O punches, J K L kicks (Z/X = medium). Fireball 236+P, Dragon Punch 623+P, Hurricane Kick 214+K. Three fights in a row against stronger CPUs. Health does not refill.",
+  "mashup": "Ryu vs Guile variant"
+ },
+ {
+  "id": "g41",
+  "title": "Boss Rush",
+  "la": "PUNCH",
+  "lb": "KICK",
+  "keys": "<b>Keys:</b> arrows move, crouch, jump. U I O punches, J K L kicks (Z/X = medium). Fireball 236+P, Dragon Punch 623+P, Hurricane Kick 214+K. One armoured boss (takes 45% damage), harder AI when he is hurt.",
+  "mashup": "Ryu vs Guile variant"
+ },
+ {
+  "id": "g42",
+  "title": "Street Brawl",
+  "la": "PUNCH",
+  "lb": "KICK",
+  "keys": "<b>Keys:</b> arrows walk in four directions, Z punches, X kicks. Clear three waves and the boss.",
+  "mashup": "Final Fight-style brawler with the Ryu and Guile rigs"
+ },
+ {
+  "id": "g43",
+  "title": "Sumo Shove",
+  "la": "TAP A",
+  "lb": "TAP B",
+  "keys": "<b>Keys:</b> tap Z then X alternately to shove. Out of the ring loses.",
+  "mashup": "Ring shove with the Ryu and Guile rigs"
+ },
+ {
+  "id": "g44",
+  "title": "Fireball Dodgeball",
+  "la": "LOW",
+  "lb": "HIGH",
+  "keys": "<b>Keys:</b> Z low fireball, X high fireball, Up jump (dodges low), Down duck (dodges high). Five hearts each.",
+  "mashup": "Ryu vs Guile projectile duel"
+ },
+ {
+  "id": "g45",
+  "title": "Grapple Duel",
+  "la": "STRIKE",
+  "lb": "GUARD",
+  "keys": "<b>Keys:</b> Z strike, X guard, Up throw. Strike beats throw, throw beats guard, guard beats strike. CPU repeats itself half the time.",
+  "mashup": "Strike/guard/throw mind game with the Ryu and Guile rigs"
  }
 ]
