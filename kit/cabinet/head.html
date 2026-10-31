@@ -1,10 +1,11 @@
 <title>%%TITLE%%</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 %%FONT%%
 <style>
-/* One arcade cabinet column: 256x224 pixel screen on top, NES-style pad below, built for a phone held upright. */
+/* Fullscreen stage: the 256x224 game fills the whole viewport (largest contain fit — full width in portrait, full height in landscape, never cropped), pad floats over the stage's lower edge on a soft gradient. */
 :root{
   --bg:#0d0e13;
   --frame:#c9c5b7;
@@ -20,25 +21,23 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--text)}
 body{
-  height:100dvh;min-height:100%;margin:0;
-  padding-top:max(6px, env(safe-area-inset-top, 0px));
-  padding-bottom:max(8px, env(safe-area-inset-bottom, 0px));
-  padding-left:max(8px, env(safe-area-inset-left, 0px));
-  padding-right:max(8px, env(safe-area-inset-right, 0px));
-  display:flex;justify-content:center;overflow:hidden;
+  height:100dvh;min-height:100%;margin:0;padding:0;
+  overflow:hidden;background:#000;
   font-family:var(--util);
   user-select:none;-webkit-user-select:none;touch-action:manipulation;
 }
-.cab{width:100%;max-width:520px;height:100%;display:flex;flex-direction:column;gap:8px;min-width:0}
-.screen-wrap{flex:1 1 0;min-height:0;background:#000;border:2px solid var(--frame);border-radius:10px;overflow:hidden;line-height:0;display:flex;align-items:center;justify-content:center;position:relative}
+.cab{position:fixed;inset:0;width:100%;height:100%;min-width:0}
+.screen-wrap{position:absolute;inset:0;background:#000;overflow:hidden;line-height:0}
 canvas{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none}
 .pad{
-  flex:none;display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"dpad mid ab";
+  position:absolute;left:0;right:0;bottom:0;z-index:5;
+  display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"dpad mid ab";
   gap:8px;align-items:center;
-  background:var(--frame);border-radius:14px;padding:8px 10px;
+  background:linear-gradient(to bottom, rgba(13,14,19,0), rgba(13,14,19,.68) 36%);
+  padding:30px max(10px, env(safe-area-inset-right, 0px)) max(10px, env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px));
   touch-action:none;
 }
-.dpad{grid-area:dpad;position:relative;width:118px;height:118px;touch-action:none;justify-self:start}
+.dpad{grid-area:dpad;position:relative;width:118px;height:118px;touch-action:none;justify-self:start;background:rgba(23,23,28,.5);border-radius:14px}
 .nub{position:absolute;left:calc(50% - 17px);top:calc(50% - 17px);width:34px;height:34px;border-radius:50%;background:#3a3a42;box-shadow:inset 0 0 0 2px #55555c;pointer-events:none;transition:transform .04s}
 .bar{position:absolute;background:var(--ink);border-radius:6px;box-shadow:inset 0 0 0 2px #2d2d33}
 .bar.h{left:0;right:0;top:calc(50% - 20px);height:40px}
