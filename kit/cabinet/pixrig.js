@@ -1,15 +1,45 @@
 /* ===== PRIG: native 8-bit character rig. Draws a soldier / zombie FRESH EVERY FRAME from a skeleton into the cabinet buffer: no sprite assets, unlimited poses.
    PRIG.draw(kind, var, pose, x, y, face, ph, opts)   x,y = feet on screen (buffer px), face +1/-1, ph = walk phase (radians), opts {sc: height px (default 40), flash: 0..1 white hit flash}
+   kind 'fighter' (var red|blue; ph = phase for idle/walk, progress 0..1 for punch/kick/hit/ko) poses: idle walk punch kick block hit jump ko
    kind 'soldier' poses: walk aim down | 'zombie' poses: walk attack hit down     var (zombie): 'green' 'grey' 'yellow'
    All colours are cabinet palette indices (ramps = [dark, base, light]); lit from the upper-left with checker dither between ramp steps; 1 px black outline per figure.
    Ported from the four-style stills experiment (art/stills4); ?PRIG.skel(kind,pose,ph) gives the joints if a game wants hit boxes / muzzle point. ===== */
 const PRIG = (() => {
   const RAMP = { cloth:[F, GR, E], vest:[DG, D, L], skin:[T, S, O], helm:[DG, F, GR], gun:[K, DG, D], boot:[K, M, T], pack:[K, M, BRK],
-    green:[F, GR, E], grey:[DG, D, L], yellow:[T, Y, V], shirt:[M, BRK, O], pants:[N, B, SKY], hair:[K, K, DG], mouth:[K, M, R], teeth:[L, V, W], eye:[Y, V, V] };
+    green:[F, GR, E], grey:[DG, D, L], yellow:[T, Y, V], shirt:[M, BRK, O], pants:[N, B, SKY], red:[M, R, O], blue:[N, B, SKY], belt:[K, DG, D], band:[D, L, W], hair:[K, K, DG], mouth:[K, M, R], teeth:[L, V, W], eye:[Y, V, V] };
   const rad = d => d * Math.PI / 180;
   const limb = (r, a1, l1, a2, l2) => { const m = [r[0] + l1 * Math.sin(rad(a1)), r[1] - l1 * Math.cos(rad(a1))]; return [m, [m[0] + l2 * Math.sin(rad(a2)), m[1] - l2 * Math.cos(rad(a2))]]; };
   /* skeleton in local units (150 = figure height), +x forward, y up, feet at 0 */
+  function skelF(pose, t) {   /* fighter: t = phase (idle/walk) or progress 0..1 (punch/kick/hit/ko) */
+    const J = {}, e = Math.sin(Math.PI * Math.min(1, t || 0)), bob = Math.sin((t || 0) * 6);
+    let lean = 6, hipy = 58 + 2 * bob, ta = [22, -16], tb = [-24, -12]; let ex = 0;
+    if (pose === 'walk') { const s = Math.sin(t), c = Math.cos(t); ta = [22 + 12 * s, -16 + 14 * Math.max(0, c)]; tb = [-24 - 12 * s, -12 + 14 * Math.max(0, -c)]; hipy = 58 + 1.5 * Math.abs(s); }
+    if (pose === 'punch') { lean = 6 + 10 * e; hipy = 56; ta = [28, -20]; tb = [-30, -10]; ex = e; }
+    if (pose === 'kick') { lean = 6 - 14 * e; hipy = 62; ta = [22 + 70 * e, -16 + 62 * e]; tb = [-4 - 4 * e, 0]; ex = e; }
+    if (pose === 'block') { lean = 2; hipy = 50; ta = [26, -22]; tb = [-26, -16]; }
+    if (pose === 'hit') { lean = -16 * (1 - 0.4 * (t || 0)); hipy = 58; ta = [14, -8]; tb = [-18, -6]; }
+    if (pose === 'jump') { lean = 4; hipy = 66; ta = [40, 60]; tb = [-30, 70]; }
+    if (pose === 'ko') { lean = 0; hipy = 62; ta = [6, 0]; tb = [-6, 0]; }
+    J.hip = [0, hipy]; J.sh = [44 * Math.sin(rad(lean)), hipy + 44 * Math.cos(rad(lean))]; J.head = [J.sh[0] + 17 * Math.sin(rad(lean - 4)), J.sh[1] + 17 * Math.cos(rad(lean - 4))];
+    [J.kneeA, J.footA] = limb(J.hip, ta[0], 33, ta[1], 33); [J.kneeB, J.footB] = limb(J.hip, tb[0], 33, tb[1], 33);
+    if (pose === 'kick') { J.footA = [J.hip[0] + 40 + 32 * ex, J.hip[1] + 6 + 14 * ex]; J.kneeA = [J.hip[0] + 24 + 12 * ex, J.hip[1] + 4 + 10 * ex]; }
+    if (pose === 'jump') { J.kneeA = [J.hip[0] + 24, J.hip[1] - 12]; J.footA = [J.hip[0] + 8, J.hip[1] - 30]; J.kneeB = [J.hip[0] - 20, J.hip[1] - 12]; J.footB = [J.hip[0] - 30, J.hip[1] - 28]; }
+    const g = (dx, dy) => [J.sh[0] + dx, J.sh[1] + dy];
+    if (pose === 'punch') { J.handA = g(26 + 36 * ex, 2); J.elbA = g(14 + 18 * ex, -6 + 2 * ex); J.handB = g(16, 8); J.elbB = g(2, -18); }
+    else if (pose === 'block') { J.handA = g(24, 14); J.elbA = g(14, -10); J.handB = g(18, 20); J.elbB = g(4, -8); }
+    else if (pose === 'hit') { J.handA = g(-10, -26); J.elbA = g(0, -16); J.handB = g(-22, -16); J.elbB = g(-10, -20); }
+    else if (pose === 'jump') { J.handA = g(26, 14); J.elbA = g(14, -6); J.handB = g(12, 22); J.elbB = g(0, -2); }
+    else if (pose === 'ko') { J.handA = g(10, -34); J.elbA = g(4, -18); J.handB = g(-6, -30); J.elbB = g(-4, -16); }
+    else { J.handA = g(26, 2); J.elbA = g(14, -18); J.handB = g(18, 8); J.elbB = g(4, -18); }
+    J.lying = pose === 'ko';
+    if (pose !== 'jump') { const low = Math.min(J.footA[1], J.footB[1]); for (const k in J) if (k !== 'lying') J[k] = [J[k][0], J[k][1] - low]; }
+    if (J.lying) { const c = J.hip; for (const k in J) if (k !== 'lying') { const x = J[k][0] - c[0], y = J[k][1] - c[1]; J[k] = [c[0] - y, c[1] + x]; }
+      const my = (J.hip[1] + J.sh[1] + J.head[1] + J.footA[1] + J.footB[1]) / 5; const sl = Math.min(1, (t || 0) * 3);    // slide down over the first third of the KO
+      for (const k in J) if (k !== 'lying') J[k] = [J[k][0] - 6, J[k][1] - my + 12 + (1 - sl) * 26]; }
+    return J;
+  }
   function skel(kind, pose, ph) {
+    if (kind === 'fighter') return skelF(pose, ph);
     ph = ph || 0; const sol = kind === 'soldier', J = {}; let lean, hipy, ta, tb;
     if (pose === 'walk') { const s = Math.sin(ph), c = Math.cos(ph); lean = sol ? 3 : 24; hipy = (sol ? 66 : 62) - 2.5 * Math.abs(s); ta = [(sol ? 26 : 22) * s, -10 + 34 * Math.max(0, c) * 0.5 - 2]; tb = [-(sol ? 26 : 16) * s, -10 + 34 * Math.max(0, -c) * 0.5 - 2]; }
     else if (pose === 'aim') { lean = -4; hipy = 66; ta = [8, 6]; tb = [-6, -2]; }
@@ -34,7 +64,7 @@ const PRIG = (() => {
     return J;
   }
   /* scratch layer: palette index per pixel, -1 = empty; figure is drawn here, outlined, then blitted */
-  const SW = 112, SH = 72, lay = new Int16Array(SW * SH); let ox = 0, oy = 0;
+  const SW = 176, SH = 140, lay = new Int16Array(SW * SH); let ox = 0, oy = 0;
   const put = (x, y, c) => { x = Math.round(x); y = Math.round(y); if (x >= 0 && y >= 0 && x < SW && y < SH) lay[y * SW + x] = c; };
   /* capsule: per-pixel shade from the signed distance across the limb (upper-left lit) */
   function cap(a, b, w1, w2, ramp, flat) {
@@ -59,7 +89,16 @@ const PRIG = (() => {
     const P = n => [cx + face * J[n][0] * k, cy - J[n][1] * k]; const S = {}; for (const n in J) if (n !== 'lying') S[n] = P(n);
     const f = (dx, dy, b) => [b[0] + face * dx * k, b[1] + dy * k], w = v => Math.max(1, v * k);
     const C = (a, b, w1, w2, r, fl) => cap(a, b, w(w1), w(w2), R[r] || r, fl);
-    if (sol) {
+    if (kind === 'fighter') {
+      const gi = R[vr || 'red'], hd = S.head;
+      C(S.sh, S.elbB, 6, 5, gi); C(S.elbB, S.handB, 5, 4.5, 'skin'); cap(S.handB, S.handB, w(5), w(5), R.skin);
+      C(S.hip, S.kneeB, 8.5, 7.5, gi); C(S.kneeB, S.footB, 7, 5.5, gi); C(S.footB, f(10, 0, S.footB), 4, 5, 'skin');
+      poly(quad(S.hip, S.sh, 12 * k, 13 * k), gi); poly(quad(S.hip, S.hip, 0, 0), gi); C(f(0, 0, S.hip), f(0, -2, S.hip), 12, 12, 'belt', true);
+      C(S.hip, S.kneeA, 8.5, 7.5, gi); C(S.kneeA, S.footA, 7, 5.5, gi); C(S.footA, f(11, 0, S.footA), 4, 5, 'skin');
+      C(f(0, 7, hd), S.sh, 4.5, 5.5, 'skin'); cap(hd, hd, w(13), w(13), R.skin); poly([f(-15, 0, hd), f(-13, -12, hd), f(-1, -16, hd), f(9, -12, hd), f(12, -5, hd), f(2, -5, hd), f(-9, 4, hd)], R.hair, true);
+      C(f(-14, -4, hd), f(13, -5, hd), 2, 2, 'band', true); put(f(7, 0, hd)[0], f(7, 0, hd)[1], K); put(f(7, -1, hd)[0], f(7, -1, hd)[1], K); put(f(10, 5, hd)[0], f(10, 5, hd)[1], M);
+      C(S.sh, S.elbA, 6.5, 5.5, gi); C(S.elbA, S.handA, 5.5, 5, 'skin'); cap(S.handA, S.handA, w(5.5), w(5.5), R.skin);
+    } else if (sol) {
       C(S.sh, S.elbB, 6, 5, 'cloth'); C(S.elbB, S.handB, 5, 4, 'cloth'); C(S.hip, S.kneeB, 7, 6, 'cloth'); C(S.kneeB, S.footB, 6, 5, 'cloth'); C(S.footB, f(12, 0, S.footB), 4, 5, 'boot');
       poly(J.lying ? quad(f(0, 4, S.hip), f(0, 4, S.sh), 9 * k, 11 * k) : quad(f(-4, 0, S.hip), f(-4, 0, S.sh), 12 * k, 13 * k), R.pack);
       poly(quad(S.hip, S.sh, 11 * k, 12 * k), R.cloth); poly(quad(S.hip, S.sh, 8 * k, 11 * k), R.vest);
@@ -81,7 +120,7 @@ const PRIG = (() => {
       if ((xx > 0 && lay[yy * SW + xx - 1] >= 0 && lay[yy * SW + xx - 1] !== 99) || (xx < SW - 1 && lay[yy * SW + xx + 1] >= 0 && lay[yy * SW + xx + 1] !== 99) || (yy > 0 && lay[(yy - 1) * SW + xx] >= 0 && lay[(yy - 1) * SW + xx] !== 99) || (yy < SH - 1 && lay[(yy + 1) * SW + xx] >= 0 && lay[(yy + 1) * SW + xx] !== 99)) lay[yy * SW + xx] = 99; }
     const fl = o.flash > 0;
     for (let yy = 0; yy < SH; yy++) for (let xx = 0; xx < SW; xx++) { const c = lay[yy * SW + xx]; if (c < 0) continue; px(Math.round(x) + xx - cx, Math.round(y) + yy - cy, c === 99 ? K : (fl ? W : c)); }
-    const m = S.muzzle; return { muzzle: m ? [Math.round(x) + m[0] - cx, Math.round(y) + m[1] - cy] : null, head: [Math.round(x) + S.head[0] - cx, Math.round(y) + S.head[1] - cy], chest: [Math.round(x) + S.sh[0] - cx, Math.round(y) + S.sh[1] - cy + 4] };
+    const m = S.muzzle; return { fist: [Math.round(x) + S.handA[0] - cx, Math.round(y) + S.handA[1] - cy], foot: [Math.round(x) + S.footA[0] - cx, Math.round(y) + S.footA[1] - cy], muzzle: m ? [Math.round(x) + m[0] - cx, Math.round(y) + m[1] - cy] : null, head: [Math.round(x) + S.head[0] - cx, Math.round(y) + S.head[1] - cy], chest: [Math.round(x) + S.sh[0] - cx, Math.round(y) + S.sh[1] - cy + 4] };
   }
   return { draw, skel };
 })();
