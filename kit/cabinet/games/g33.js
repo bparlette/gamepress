@@ -1,28 +1,31 @@
 // NEEDS: art
-// KEYS: Arrows move the little kid (everyone throws candy by themselves). Fill each costumed kid's bucket before they reach the porch. Every 12 happy kids a family member tries to join.
+// KEYS: Arrows move the little kid AND aim: everyone throws candy the way you last moved (auto-aims inside that cone). Survive 5 minutes. Fill each costumed kid's bucket before they reach the porch. Every 12 happy kids a family member tries to join.
 /* ===== G33 TRICK OR TREAT HOUSE: Halloween house-defense version of Critter Clash (tall screen, art rig tier).
-   BRIEF  genre: lane defense + auto-battler | player: little kid roaming a cutaway house, auto-throws candy | goal: keep the candy stash until midnight (60 s)
+   BRIEF  genre: lane defense + auto-battler | player: little kid roaming a cutaway house, auto-throws candy | goal: keep the candy stash until midnight (5 minutes)
           lose: stash empties (kids reaching the porch grab handfuls) | hook: the number over each kid is the CANDY THEIR BUCKET NEEDS; full bucket = happy kid runs home
           family: every 12 happy kids a family member tries to join (sister slingshot spray, mom rapid mini candy, dad king-size bar cannon); failure upgrades the candy
           costumes: ghost basic, cat fast+small, pumpkin tank, vampire cape-dash, robot armoured (bars work best), pirate steals 2, dino boss
           bot: parks near the front of the column | Original art + sim. Engine: path, proj, hits(list), fx. ===== */
-const TUNE33 = { win:60, stash:10, speed:62, evoEvery:12, famP:0.4, pity:1, shotV:190, range:200,
+const TUNE33 = { win:300, stash:10, speed:62, evoEvery:10, famP:0.5, pity:1, shotV:190, range:200,
   me:{ cd:0.4, dmg:3, r:4 }, sis:{ cd:0.95, dmg:2, r:4, n:3, spread:0.24 }, mom:{ cd:0.2, dmg:1, r:3 }, dad:{ cd:1.6, dmg:12, r:6, pierce:2, v:150 },
-  spawn:T => Math.max(0.42, 1.0 - T * 0.011),
+  spawn:T => Math.max(0.36, 1.2 - T * 0.0045),
   kinds:{ ghost:{ need:8, sp:22, r:11, sc:0.3, steal:1 }, cat:{ need:5, sp:40, r:9, sc:0.27, steal:1 }, pumpkin:{ need:24, sp:15, r:14, sc:0.33, steal:1 }, vampire:{ need:11, sp:24, r:10, sc:0.3, steal:1 },
     robot:{ need:16, sp:20, r:11, sc:0.31, steal:1 }, pirate:{ need:10, sp:24, r:10, sc:0.3, steal:2 }, dino:{ need:110, sp:12, r:18, sc:0.46, steal:3 } },
-  boss:[28, 48] };
+  boss:[40, 90, 140, 190, 240, 275] };
 const PATH33 = ENG.path([[272, 84], [24, 84], [24, 300], [128, 300]]);
 const RING33 = [128, 192];
 const PLX = { x0:58, x1:198, y0:150, y1:268 };
 const FAM33 = [null, { k:'hw_sister', x:70, y:178, sc:0.4 }, { k:'hw_mom', x:186, y:178, sc:0.43 }, { k:'hw_dad', x:128, y:280, sc:0.47 }];
 const FAMTXT = ['', 'BIG SISTER JOINED!', 'MOM JOINED!', 'DAD JOINED!'];
-function pick33(S) { const T = S.T, r = S.rng(); const w = [['ghost', 1], ['cat', 0.7]]; if (T > 7) w.push(['pumpkin', 0.5]); if (T > 13) w.push(['vampire', 0.55]); if (T > 19) w.push(['robot', 0.5]); if (T > 24) w.push(['pirate', 0.5]);
+function pick33(S) { const T = S.T, r = S.rng(); const w = [['ghost', 1], ['cat', 0.7]]; if (T > 20) w.push(['pumpkin', 0.5]); if (T > 45) w.push(['vampire', 0.55]); if (T > 80) w.push(['robot', 0.5]); if (T > 110) w.push(['pirate', 0.5]);
   let tot = 0; for (const x of w) tot += x[1]; let a = r * tot; for (const x of w) { a -= x[1]; if (a <= 0) return x[0]; } return 'ghost'; }
 function shoot33(S, x, y, tx, ty, o) { const a = Math.atan2(ty - y, tx - x) + (o.sp || 0), v = o.v || TUNE33.shotV;
   ENG.proj.fire(S, x, y, Math.cos(a) * v, Math.sin(a) * v, { life:o.life || 1.1, r:o.r, dmg:o.dmg, pierce:o.pierce || 0, bar:!!o.bar, c:S.shots++ % 5, bounds:[-30, -30, 290, 420] }); }
-function front33(S, x, y) { let t = null, b = -1; for (const e of S.en) if (!e.happy && !e.dead && e.d > b && Math.hypot(e.x - x, e.y - y) < TUNE33.range && e.x > -8 && e.x < 264) { b = e.d; t = e; } return t; }
-function spawn33(S, k) { const K = TUNE33.kinds[k]; const need = k === 'dino' ? K.need + S.bossN * 25 : K.need; S.en.push({ k, d:0, x:272, y:84, a:Math.PI, need, fill:0, sp:K.sp * (0.94 + S.rng() * 0.12), r:K.r, steal:K.steal, lane:((S.idx++ % 3) - 1) * 8, hit:0, happy:false, dead:false }); }
+function front33(S, x, y, me) { const p = S.p, L = Math.hypot(p.fx, p.fy) || 1, dx = p.fx / L, dy = p.fy / L; let t = null, b = -1, any = null, ab = -1;
+  for (const e of S.en) { if (e.happy || e.dead || e.x < -8 || e.x > 264) continue; const ex = e.x - x, ey = e.y - y, dd = Math.hypot(ex, ey); if (dd >= TUNE33.range) continue; if (e.d > ab) { ab = e.d; any = e; }
+    if ((ex * dx + ey * dy) / (dd || 1) > 0.5 && e.d > b) { b = e.d; t = e; } }
+  if (t) return t; if (!any) return null; if (!me) return any; return { x:x + dx * 120, y:y + dy * 120, d:0, stray:true }; }   /* aim assist (family: prefers targets in that cone, else the front-most kid; the little kid throws straight if nothing is in the cone) inside a 60-degree cone of the way you last moved; nothing there: throw straight that way */
+function spawn33(S, k) { const K = TUNE33.kinds[k]; const need = k === 'dino' ? K.need + S.bossN * 25 : Math.ceil(K.need * (1 + S.T / 140)); S.en.push({ k, d:0, x:272, y:84, a:Math.PI, need, fill:0, sp:K.sp * (0.94 + S.rng() * 0.12), r:K.r, steal:K.steal, lane:((S.idx++ % 3) - 1) * 8, hit:0, happy:false, dead:false }); }
 /* ---- art tier ---- */
 const CHR33 = { hw_kid:0.36, hw_sister:0.4, hw_mom:0.43, hw_dad:0.47, hw_ghost:0.3, hw_cat:0.27, hw_pumpkin:0.33, hw_vampire:0.3, hw_robot:0.31, hw_pirate:0.3, hw_dino:0.46 };
 for (const k in CHR33) RIG.def(k, { scale:CHR33[k], anchor:[50, 112], order:['legB', 'legF', 'torso', 'head', 'arm'], pivots:{ legB:[40, 80], legF:[60, 80], torso:[50, 62], head:[50, 40], arm:[66, 52] } });
@@ -108,11 +111,11 @@ function drawShooter33(S, g, k) { const T = S.T, p = S.p; const info = k === 0 ?
   HD.shadow(g, info.x, info.y + 1, 12, 4, 0.5); const lift = k === 0 ? -Math.abs(Math.sin(T * 9)) * 1.4 : 0;
   if (RIG.ready(info.key)) RIG.draw(g, info.key, info.x, info.y + 4 + lift, { flip:fl, pose:{ legB:{ rot:k === 0 ? sw * 0.3 : 0 }, legF:{ rot:k === 0 ? -sw * 0.3 : 0 }, torso:{ oy:Math.sin(ph) * 0.6 }, head:{ oy:Math.sin(ph) * 0.9, rot:Math.sin(T * 3 + k) * 0.05 }, arm:{ rot:(fl ? Math.PI - aim : aim) * 0.5 - 0.2 - rec * 0.5 } } });
   if (k > 0) { const f = FAM33[k]; g.font = FONT(6); g.textAlign = 'center'; } }
-const GAME = kit({ id:'g33', tall:true, dir:'any', t1:'TRICK', t2:'TREAT HOUSE', sub:'FILL BUCKETS. SAVE THE CANDY.', seed:933, off:33, secs:60, music:MUS(140, -19, false),
-  setup(S) { S.p = { x:128, y:230, ang:0, face:1 }; S.en = []; S.fam = 0; S.fails = 0; S.atk = 0; S.stash = TUNE33.stash; S.kills = 0; S.next = TUNE33.evoEvery; S.sp = 0.6; S.cd = [0.3, 0.5, 0.2, 0.9]; S.shots = 0; S.bossN = 0; S.idx = 0; S.msg = ''; S.mt = 0; S.hurt = 0; S.evo = 0; S.aim = [0, 0, 0, 0]; },
+const GAME = kit({ id:'g33', tall:true, dir:'any', t1:'TRICK', t2:'TREAT HOUSE', sub:'FILL BUCKETS. SAVE THE CANDY.', seed:933, off:33, secs:300, music:MUS(140, -19, false),
+  setup(S) { S.p = { x:128, y:230, ang:0, face:1, fx:0, fy:-1 }; S.en = []; S.fam = 0; S.fails = 0; S.atk = 0; S.stash = TUNE33.stash; S.kills = 0; S.next = TUNE33.evoEvery; S.sp = 0.6; S.cd = [0.3, 0.5, 0.2, 0.9]; S.shots = 0; S.bossN = 0; S.idx = 0; S.msg = ''; S.mt = 0; S.hurt = 0; S.evo = 0; S.aim = [0, 0, 0, 0]; },
   step(S, dt, inp) { const C = TUNE33, p = S.p;
     const ax = inp.ax !== undefined ? inp.ax : (inp.r ? 1 : 0) - (inp.l ? 1 : 0), ay = inp.ay !== undefined ? inp.ay : (inp.d ? 1 : 0) - (inp.u ? 1 : 0), m = Math.max(1, Math.hypot(ax, ay));
-    p.x = clamp(p.x + ax / m * C.speed * dt, PLX.x0, PLX.x1); p.y = clamp(p.y + ay / m * C.speed * dt, PLX.y0, PLX.y1); if (ax) p.face = ax > 0 ? 1 : -1;
+    p.x = clamp(p.x + ax / m * C.speed * dt, PLX.x0, PLX.x1); p.y = clamp(p.y + ay / m * C.speed * dt, PLX.y0, PLX.y1); if (ax) p.face = ax > 0 ? 1 : -1; if (ax || ay) { p.fx = ax / m; p.fy = ay / m; }
     S.hurt = Math.max(0, S.hurt - dt); S.mt -= dt; S.evo = Math.max(0, S.evo - dt);
     /* spawns */
     S.sp -= dt; if (S.sp <= 0) { S.sp += C.spawn(S.T); spawn33(S, pick33(S)); }
@@ -124,15 +127,15 @@ const GAME = kit({ id:'g33', tall:true, dir:'any', t1:'TRICK', t2:'TREAT HOUSE',
       if (e.d >= PATH33.len) { S.en.splice(i, 1); S.stash -= e.steal; S.hurt = 0.6; sfx('hurt'); ENG.shake(S, 3); ENG.fx.add(S, 'num', 128, 292, 0.9, { v:-e.steal, bad:true }); if (S.stash <= 0) { S.stash = 0; sfx('die'); return finish(S, 'THE CANDY IS GONE'); } } }
     /* shooters: kid, then family as they join */
     const live = () => S.en.filter(e => !e.happy && !e.dead);
-    S.cd[0] -= dt; if (S.cd[0] <= 0) { const t = front33(S, p.x, p.y - 20); if (t) { S.cd[0] = C.me.cd; S.aim[0] = Math.atan2(t.y - (p.y - 20), t.x - p.x); shoot33(S, p.x + 8 * p.face, p.y - 20, t.x, t.y, { r:C.me.r, dmg:C.me.dmg + S.atk }); sfx('swing'); } }
+    S.cd[0] -= dt; if (S.cd[0] <= 0) { const t = front33(S, p.x, p.y - 20, true); if (t) { S.cd[0] = C.me.cd; S.aim[0] = Math.atan2(t.y - (p.y - 20), t.x - p.x); shoot33(S, p.x + 8 * p.face, p.y - 20, t.x, t.y, { r:C.me.r, dmg:C.me.dmg + S.atk }); sfx('swing'); } }
     if (S.fam >= 1) { S.cd[1] -= dt; const f = FAM33[1]; if (S.cd[1] <= 0) { const t = front33(S, f.x, f.y - 24); if (t) { S.cd[1] = C.sis.cd; S.aim[1] = Math.atan2(t.y - f.y + 24, t.x - f.x); for (let k = -1; k <= 1; k++) shoot33(S, f.x, f.y - 24, t.x, t.y, { r:C.sis.r, dmg:C.sis.dmg + S.atk, sp:k * C.sis.spread, life:0.9 }); } } }
     if (S.fam >= 2) { S.cd[2] -= dt; const f = FAM33[2]; if (S.cd[2] <= 0) { const t = front33(S, f.x, f.y - 26); if (t) { S.cd[2] = C.mom.cd; S.aim[2] = Math.atan2(t.y - f.y + 26, t.x - f.x); shoot33(S, f.x, f.y - 26, t.x, t.y, { r:C.mom.r, dmg:C.mom.dmg + Math.floor(S.atk / 2), v:230, life:0.95 }); } } }
     if (S.fam >= 3) { S.cd[3] -= dt; const f = FAM33[3]; if (S.cd[3] <= 0) { const t = front33(S, f.x, f.y - 28); if (t) { S.cd[3] = C.dad.cd; S.aim[3] = Math.atan2(t.y - f.y + 28, t.x - f.x); shoot33(S, f.x + 10, f.y - 28, t.x, t.y, { r:C.dad.r, dmg:C.dad.dmg + S.atk * 2, pierce:C.dad.pierce, v:C.dad.v, life:1.5, bar:true }); ENG.shake(S, 1.5); sfx('boom'); } } }
     ENG.hits(S, (pr, e) => { let d = pr.dmg; if (e.k === 'robot') d *= pr.bar ? 1.5 : 0.4; e.fill += d; e.hit = 0.12; ENG.fx.add(S, 'pop', pr.x, pr.y, 0.2); }, live());
     for (const e of S.en) if (!e.happy && !e.dead && e.fill >= e.need) { e.happy = true; e.ht = 0; const l = Math.hypot(e.x - RING33[0], e.y - RING33[1]) || 1; e.hx = (e.x - RING33[0]) / l * 55; e.hy = (e.y - RING33[1]) / l * 55; S.kills++; S.score += e.k === 'dino' ? 100 : 10; sfx('pop'); burst(S, e.x, e.y - 10, PK, 6); ENG.fx.add(S, 'heart', e.x, e.y - 30, 0.9);
-      if (S.kills >= S.next) { S.next += C.evoEvery; S.evo = 1.4;
+      if (S.kills >= S.next) { S.tries = (S.tries || 0) + 1; S.next += C.evoEvery + S.tries * 2; S.evo = 1.4;
         if (S.fam < 3 && (S.fails >= C.pity || S.rng() < C.famP)) { S.fam++; S.fails = 0; S.msg = FAMTXT[S.fam]; S.mt = 2.4; sfx('super'); ENG.fx.add(S, 'join', FAM33[S.fam].x, FAM33[S.fam].y - 24, 0.9); }
-        else { S.fails++; S.atk++; S.msg = 'FAMILY BUSY - CANDY UPGRADE +1'; S.mt = 2.2; sfx('boom'); ENG.fx.add(S, 'join', p.x, p.y - 24, 0.7); } } }
+        else { S.fails++; S.atk = Math.min(S.atk + 1, 8); S.msg = 'FAMILY BUSY - CANDY UPGRADE +1'; S.mt = 2.2; sfx('boom'); ENG.fx.add(S, 'join', p.x, p.y - 24, 0.7); } } }
     if (S.T >= C.win) { sfx('win'); return finish(S, 'HAPPY HALLOWEEN!', S.stash * 50); } },
   draw(S) { clear(K); txt('USE THE ART BUILD', 128, 100, W, 8, 'center'); },
   drawHD(S, g) { drawHD33(S, g); },
