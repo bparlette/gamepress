@@ -108,21 +108,21 @@ function fighterHD(S, g, f, sh, sy) {
   const skin = ry ? ['#f6c58e', '#e0a070', '#a8683e'] : ['#f2c49a', '#d89c72', '#9c6040'], gi = ry ? ['#ffffff', '#e4e0da', '#8f8c9c'] : ['#e0c690', '#c0a06a', '#7a6038'], pants = ry ? ['#ffffff', '#d8d4d0', '#8a8898'] : ['#7c9c4c', '#587a38', '#2e4620'], glove = ['#ff6a50', '#d02828', '#7a1018'], boot = ry ? ['#e8c4a0', '#c08a60', '#7a4a2c'] : ['#6a6a78', '#3a3a48', '#1a1a24'];
   const sc = f.st === 'ko' || f.st === 'knock' ? 1.3 : 1; g.save(); g.fillStyle = 'rgba(0,0,0,.35)'; g.beginPath(); g.ellipse(f.x + sh, FY37 + 2, Math.max(8, 17 - f.y * .08) * sc * 1.1, 3.4, 0, 0, 6.283); g.fill(); g.restore();
   g.lineCap = 'round';
-  limb(g, Sh, P('elbB'), w(5.5), w(4.6), ry ? gi : skin, fl); limb(g, P('elbB'), P('handB'), w(4.6), w(4.2), ry ? glove : skin, fl); blob(g, P('handB')[0], P('handB')[1], w(5.2), w(5.2), ry ? glove : skin, fl);
-  limb(g, Hp, P('kneeB'), w(8.6), w(6.4), pants, fl); limb(g, P('kneeB'), P('footB'), w(6.2), w(4.4), pants, fl); const fb = P('footB'); blob(g, fb[0] + fc * w(4), fb[1] - w(1.2), w(6.4), w(3.2), boot, fl);
+  limb(g, P('shB'), P('elbB'), w(5.5), w(4.6), ry ? gi : skin, fl); limb(g, P('elbB'), P('handB'), w(4.6), w(4.2), ry ? glove : skin, fl); blob(g, P('handB')[0], P('handB')[1], w(5.2), w(5.2), ry ? glove : skin, fl);
+  limb(g, P('hipB'), P('kneeB'), w(8.6), w(6.4), pants, fl); limb(g, P('kneeB'), P('footB'), w(6.2), w(4.4), pants, fl); limb(g, P('heelB'), P('toeB'), w(3.9), w(3), boot, fl);
   /* torso: tapered trapezoid, wider at the shoulders, with belt/waistband */
   const ax = Sh[0] - Hp[0], ay = Sh[1] - Hp[1], an = Math.hypot(ax, ay) || 1, tx = -ay / an, ty = ax / an, ws = w(15), wh = w(11.5);
-  poly(g, [[Hp[0] + tx * wh, Hp[1] + ty * wh], [Sh[0] + tx * ws, Sh[1] + ty * ws], [Sh[0] - tx * ws, Sh[1] - ty * ws], [Hp[0] - tx * wh, Hp[1] - ty * wh]], gi, fl);
+  const Ch = P('chest'), wc = w(13); poly(g, [[Hp[0] + tx * wh, Hp[1] + ty * wh], [Ch[0] + tx * wc, Ch[1] + ty * wc], [Ch[0] - tx * wc, Ch[1] - ty * wc], [Hp[0] - tx * wh, Hp[1] - ty * wh]], gi, fl); poly(g, [[Ch[0] + tx * wc, Ch[1] + ty * wc], [Sh[0] + tx * ws, Sh[1] + ty * ws], [Sh[0] - tx * ws, Sh[1] - ty * ws], [Ch[0] - tx * wc, Ch[1] - ty * wc]], gi, fl);
   const bx = Hp[0] + ax * .12, by = Hp[1] + ay * .12; poly(g, [[bx + tx * wh, by + ty * wh], [bx + tx * wh * 1.02 + ax * .14, by + ty * wh + ay * .14], [bx - tx * wh + ax * .14, by - ty * wh + ay * .14], [bx - tx * wh, by - ty * wh]], ry ? ['#38384a', '#14141c', '#050508'] : ['#6a5a3a', '#3a2e1c', '#1a1208'], fl);
   if (ry) { const nk = [Sh[0] + ax * .02, Sh[1] + ay * .02]; g.strokeStyle = '#8f8c9c'; g.lineWidth = 1; g.beginPath(); g.moveTo(nk[0] - tx * w(2), nk[1] - ty * w(2)); g.lineTo(Hp[0] + ax * .5 + tx * w(1), Hp[1] + ay * .5 + ty * w(1)); g.stroke(); }
   else { g.fillStyle = '#c8c8d0'; g.fillRect(Sh[0] - ax * .1 - 1, Sh[1] - ay * .1, 1.6, 2.4); }
-  limb(g, Hp, P('kneeA'), w(9), w(6.8), pants, fl); limb(g, P('kneeA'), P('footA'), w(6.6), w(4.6), pants, fl); const fa = P('footA'); blob(g, fa[0] + fc * w(4), fa[1] - w(1.2), w(6.8), w(3.4), boot, fl);
+  limb(g, P('hipA'), P('kneeA'), w(9), w(6.8), pants, fl); limb(g, P('kneeA'), P('footA'), w(6.6), w(4.6), pants, fl); limb(g, P('heelA'), P('toeA'), w(4.1), w(3.1), boot, fl);
   /* head: neck, face, hair, headband tails / flat-top */
   limb(g, Sh, H, w(5), w(4.6), skin, fl); blob(g, H[0], H[1], w(8.4), w(9.4), skin, fl);
   if (ry) { g.fillStyle = fl ? '#fff' : '#201418'; g.beginPath(); g.ellipse(H[0] - fc * w(1.2), H[1] - w(3), w(8.8), w(7), 0, Math.PI, 6.283); g.fill(); g.fillStyle = fl ? '#fff' : '#e03030'; g.fillRect(H[0] - w(9), H[1] - w(4.4), w(18), w(3.2)); const t = S.rt * 9; for (let i = 0; i < 2; i++) { g.strokeStyle = fl ? '#fff' : '#e03030'; g.lineWidth = w(2); g.beginPath(); g.moveTo(H[0] - fc * w(8), H[1] - w(3)); g.lineTo(H[0] - fc * (w(16) + i * 3), H[1] - w(3) + Math.sin(t + i) * 2 + i * 3); g.stroke(); } }
   else { g.fillStyle = fl ? '#fff' : '#f4dc58'; g.beginPath(); g.moveTo(H[0] - w(8.4), H[1] - w(2)); g.lineTo(H[0] - w(7), H[1] - w(13)); g.lineTo(H[0] + w(8), H[1] - w(13)); g.lineTo(H[0] + w(8.6), H[1] - w(3)); g.lineTo(H[0] + w(4), H[1] - w(5)); g.lineTo(H[0] - w(4), H[1] - w(5)); g.closePath(); g.lineWidth = 1.6; g.strokeStyle = OL; g.stroke(); g.fill(); }
   const ex = H[0] + fc * w(4.6), ey = H[1] - w(.6); g.fillStyle = fl ? '#fff' : OL; g.fillRect(ex - .5, ey - w(1.4), 1.5, w(2.6)); g.fillRect(ex - fc * w(3.2) - .5, ey - w(1.4), 1.5, w(2.6)); g.fillRect(ex - fc * w(1) - w(2), ey - w(3.4), w(7) * 0.9, 1); g.fillRect(ex - w(1) + fc, H[1] + w(4.6), w(3.4), 1);
-  blob(g, P('handA')[0], P('handA')[1], w(5.6), w(5.6), ry ? glove : skin, fl); limb(g, Sh, P('elbA'), w(5.8), w(4.8), ry ? gi : skin, fl); limb(g, P('elbA'), P('handA'), w(4.8), w(4.4), ry ? glove : skin, fl); blob(g, P('handA')[0], P('handA')[1], w(5.6), w(5.6), ry ? glove : skin, fl);
+  blob(g, P('handA')[0], P('handA')[1], w(5.6), w(5.6), ry ? glove : skin, fl); limb(g, P('shA'), P('elbA'), w(5.8), w(4.8), ry ? gi : skin, fl); limb(g, P('elbA'), P('handA'), w(4.8), w(4.4), ry ? glove : skin, fl); blob(g, P('handA')[0], P('handA')[1], w(5.6), w(5.6), ry ? glove : skin, fl);
 }
 function drawHD37(S, g) {
   const C = TUNE37, sh = S.ecam && S.ecam.sh > 0 ? (S.rng() - .5) * S.ecam.sh * .5 : 0, sy = S.ecam && S.ecam.sh > 3 ? (S.rng() - .5) * S.ecam.sh * .3 : 0, t = S.rt;
@@ -221,6 +221,7 @@ const GAME = kit({ id:'g37p', t1:'RYU VS', t2:'GUILE', sub:'16-BIT. EVERY MOVE.'
   info(S) { const q = f => f.mv ? f.mv.id : f.st; return { x1:Math.round(S.p1.x), x2:Math.round(S.p2.x), hp1:Math.round(S.p1.hp), hp2:Math.round(S.p2.hp), st1:S.p1.st, st2:S.p2.st, mv1:q(S.p1), mv2:q(S.p2), y1:Math.round(S.p1.y), pr:S.pr.length, tl:+S.timeLeft.toFixed(1), c1:S.p1.chB, cr1:S.p1.cr ? 1 : 0, face1:S.p1.face }; },
   bot(S, i) { S.botOn = true; i.cmdI = {}; return i; } });
 function poseOf37(S, f) {
+  if (f.force) return f.force;
   const e = x => Math.max(0, Math.min(1, x));
   if (f.st === 'atk' && f.mv) { const m = f.mv, [s, a, r] = m.C.f, t = m.t; let env = t <= s ? e(t / s) : t <= s + a ? 1 : e(1 - (t - s - a) / r); let pose = m.C.pose, rot = 0, ph = f.ph;
     if (m.C.air && !m.special) env = e(t / 3); if (m.special && m.C.flip) { rot = 340 * Math.min(1, (t - m.C.f[0]) / 20); if (t < m.C.f[0]) rot = 0; env = 1; } if (m.special && m.C.spin) { pose = (Math.floor(t / 4) & 1) ? 'tatsu2' : 'tatsu'; env = t < s ? e(t / s) : 1; if (t > s + a) env = e(1 - (t - s - a) / r); }
@@ -235,3 +236,7 @@ function poseOf37(S, f) {
 window.__posesheet = (ch, names) => { rect(0, 0, 256, 224, K); rect(0, 150, 256, 74, DG); rect(0, 150, 256, 2, L);
   names.forEach((p, i) => { const col = i % 4, row = Math.floor(i / 4), x = 32 + col * 64, y = 70 + row * 70, free = /^j|dp|flash|tatsu|knock/.test(p); PRIG.draw('fighter', ch, p, x, y + (free ? -6 : 0), 1, 0.5, { sc:56, env:1, rot:p === 'flash' ? 200 : p === 'knock' ? 60 : 0 }); txt(p, x, y + 6, W, 8, 'center'); });
   for (let i = 0; i < buf.length; i++) px32[i] = PAL32[buf[i]]; ctx.putImageData(img, 0, 0); return document.getElementById('screen').toDataURL(); };
+window.__skelG = (...a) => PRIG.skelG(...a); /* QA hook: anatomy check */
+window.__posesheetHD = (ch, names) => { const g = document.getElementById('screen').getContext('2d'), S = { rt:0, rng:Math.random, ecam:null, combo:0, over:0 }; g.setTransform(3, 0, 0, 3, 0, 0); g.fillStyle = '#5a4a62'; g.fillRect(0, 0, 256, 224); g.fillStyle = '#a06a42'; g.fillRect(0, 150, 256, 74);
+  names.forEach((p, i) => { const col = i % 4, row = Math.floor(i / 4), f = { ch, x:32 + col * 64, y:FY37 - (80 + row * 72) + (/^j|dp|flash|tatsu|knock/.test(p) ? 14 : 0), face:1, st:'idle', flash:0, force:{ pose:p, env:1, ph:1.2, rot:0 } }; fighterHD(S, g, f, 0, 0); });
+  PIXPASS(g); return document.getElementById('screen').toDataURL(); };
