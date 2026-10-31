@@ -9,7 +9,7 @@ Every registered game (40), one run each: `seedcheck.cjs` (determinism + seed se
 | g3 | pass | ROUTE CLEAR | 76 | n/a (single tier) | green |
 | g4 | pass | ARENA CLEAR | 54 | n/a (single tier) | green |
 | g5 | pass | GAME OVER | 23 | n/a (single tier) | bot loses |
-| g6 | ERROR (crash in 60 s bot run) | KO! YOU WIN | 98 | n/a (single tier) | ERROR |
+| g6 | pass | KO! YOU WIN | 98 | n/a (single tier) | green |
 | g7 | pass | MAZE CLEAR | 14 | n/a (single tier) | green |
 | g8 | pass | SUMMIT FINISH! | 15 | n/a (single tier) | green |
 | g9 | pass | SUMMIT FINISH! | 14 | n/a (single tier) | green |
@@ -48,15 +48,14 @@ Every registered game (40), one run each: `seedcheck.cjs` (determinism + seed se
 | s2 | pass | COURSE CLEAR! | 10 | = pixel/HD/art | green |
 | s3 | pass | GATE HELD! | 127 | = pixel/HD/art | green |
 
-**38 of 43 green** (40 originally registered; g17h, s4, s5 added later; s4/s5 rows measured over seeds 1-8). Not green:
+**39 of 43 green** (40 originally registered; g17h, s4, s5 added later; s4/s5 rows measured over seeds 1-8). Not green:
 - **g1**: bot loses, seedcheck pass, bot outcome "GAME OVER"
 - **g5**: bot loses, seedcheck pass, bot outcome "GAME OVER"
-- **g6**: ERROR, seedcheck ERROR (crash in 60 s bot run), bot outcome "KO! YOU WIN"
 - **g14**: bot loses, seedcheck pass, bot outcome "YOU DIED"
 - **g26**: bot loses, seedcheck pass, bot outcome "TIME UP"
 
 Notes
-- `g6`: crashes in `phase1` (`foes6[i]` undefined mid-loop) on some seeds after 25 s (seed 123 reproduces; seed 1 happens to win). A one-line guard fixes it (`docs/patches-g6-crash-fix.patch.txt`, NOT applied; awaiting approval). With it, seedcheck passes and the bot still wins on seeds 1, 2, 3, 123, 124.
+- `g6`: crashes in `phase1` (`foes6[i]` undefined mid-loop) on some seeds after 25 s (seed 123 reproduces; seed 1 happens to win). A one-line guard fixes it (`docs/patches-g6-crash-fix.patch.txt`; APPLIED to `games/g6.js` on 2026-10-31 after approval). With it, seedcheck passes and the bot still wins on seeds 1, 2, 3, 123, 124.
 - "bot loses" means the scripted bot does not win within 180 s on seed 1; I have not checked whether these games were ever meant to be bot-winnable, so this is a map entry, not a declared defect.
 - Only the g17 family and s1-s3 have HD/Art tiers, so tier parity applies to 10 of 40. g17e/f/g differ by design (auto power-ups, analog move): declared with `--expect-diff`.
 - `g17g` is art-only: `seedcheck.cjs g17g.art`, since `build.py g17g` without `--art` fails by design.
