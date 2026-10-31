@@ -2,6 +2,36 @@
 
 Goal: replace the hand-drawn SVG characters/environment in the "Vampire Metroid" cabinet game with painted, high-detail raster art in the style of mobile hit "Last Extract" (Voodoo): chunky cartoon proportions, thick soft outlines, rich gradients, rim light, saturated colours, dark moody lab-floor world. Original characters only (do not copy any existing game's characters).
 
+## Files you need (GitHub, branch `cabinet-shell` of bparlette/gamepress; mirrored in Hawk `retro-nes-games`)
+Clone: `git clone -b cabinet-shell https://github.com/bparlette/gamepress.git` then `cd gamepress/kit/cabinet` (or `git clone -b retro-nes-games https://github.com/bparlette/Hawk.git` and use `tools/cabinet`).
+
+| what | link |
+|---|---|
+| This brief | https://github.com/bparlette/gamepress/blob/cabinet-shell/docs/PAINTED-ART-BRIEF.md |
+| Art rules (sizes, anchors, pivots, part names) | https://github.com/bparlette/gamepress/blob/cabinet-shell/docs/ART-CONVENTIONS.md |
+| Kit API and units | https://github.com/bparlette/gamepress/blob/cabinet-shell/docs/KIT-API.md |
+| Tiers and pipeline | https://github.com/bparlette/gamepress/blob/cabinet-shell/docs/HD-ART-TIER.md |
+| Environment/runbook (setup, build, register) | https://github.com/bparlette/gamepress/blob/cabinet-shell/docs/RUNBOOK-ENV.md |
+| Hero rig SVG (layout and pose reference) | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/hero_rig.svg (raw: https://raw.githubusercontent.com/bparlette/gamepress/cabinet-shell/kit/cabinet/art/hero_rig.svg) |
+| Zombie rig SVG | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/zombie_rig.svg |
+| Fast zombie / tank zombie SVGs | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/zombieR_rig.svg , https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/zombieT_rig.svg |
+| Elite zombie SVG | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/elite_rig.svg |
+| Boss (queen) SVG | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/queen.svg |
+| Gun SVG | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/gun.svg |
+| Environment tiles and props SVGs | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/env_floor.svg , https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/env_wall.svg , https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/env_props.svg |
+| Part atlas builder (SVG to atlas) | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/build-art.cjs |
+| **Pack your PNGs into the game** | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/pack-painted.cjs |
+| Preview sheet renderer | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/art/render.cjs |
+| Game using the rigs (pivots, poses, variants) | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/games/g17f.js |
+| Rig library (RIG.def / RIG.draw) | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/rigkit.js |
+| Build script | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/build.py |
+| Environment setup script | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/env.sh |
+| Tier parity check | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/tiers.cjs |
+| Register on the demo page | https://github.com/bparlette/gamepress/blob/cabinet-shell/kit/cabinet/register-demo.py |
+
+Drop painted parts in `kit/cabinet/art/painted/<set>/<part>.png` (folder names: hero, zombie, zombieR, zombieT, elite, queen, gun, envF, envW, envP), then run `source env.sh && node art/build-art.cjs && node art/pack-painted.cjs && python3 build.py g17f --art` and open `out/g17f.art.html`.
+Current published result for comparison (private artifacts, ask the owner for access): HD World https://claude.ai/artifact/E8sWa4GDAXL3x9jWgTN9cT
+
 ## What to deliver
 Layered transparent PNGs, one file per body part, plus full-body previews. All parts of one character share one canvas size and are painted in place in the neutral pose (so stacking all parts reproduces the character).
 
