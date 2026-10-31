@@ -25,15 +25,15 @@ function step(dt) {
     if (raw.start && overT > 1.5) { begin(); sfx('beep'); }
   }
 }
-function fitTall() { /* tall games: canvas height follows the screen area so the picture fills a portrait phone */
-  if (!GAME.tall) { window.HD_H = 224; return; }
-  const r = cv.parentNode.getBoundingClientRect(); if (!r.width || !r.height) { window.HD_H = window.HD_H || 224; return; }
-  const h = Math.max(224, Math.min(480, Math.round(256 * r.height / r.width))); window.HD_H = h;
-  if (cv.height !== h * 3) { cv.height = h * 3; if (window.GLPOST && GLPOST.el) GLPOST.el.height = cv.height; }
+function fitTall() { /* HD canvas size: width 256*K, height follows the screen for tall games (K = pixels per logical unit, default 3) */
+  const K = window.HD_K || 3;
+  if (!GAME.tall) window.HD_H = 224;
+  else { const r = cv.parentNode.getBoundingClientRect(); if (r.width && r.height) window.HD_H = Math.max(224, Math.min(480, Math.round(256 * r.height / r.width))); else window.HD_H = window.HD_H || 224; }
+  if (cv.width !== 256 * K) cv.width = 256 * K; if (cv.height !== window.HD_H * K) cv.height = window.HD_H * K;
 }
 function render() {
   if (window.HD_MODE) fitTall();
-  if (window.HD_MODE && GAME.renderHD) { ctx.setTransform(3, 0, 0, 3, 0, 0); ctx.imageSmoothingEnabled = true; GAME.renderHD(ctx, mode); }
+  if (window.HD_MODE && GAME.renderHD) { const K = window.HD_K || 3; ctx.setTransform(K, 0, 0, K, 0, 0); ctx.imageSmoothingEnabled = true; GAME.renderHD(ctx, mode); }
   else { GAME.render(mode);
   for (let i = 0; i < buf.length; i++) px32[i] = PAL32[buf[i]];
   ctx.putImageData(img, 0, 0); }

@@ -42,3 +42,9 @@ Full recipe: `HD-ART-TIER.md`. Short version:
 3. Add the id to `games.json` first, then `python3 build.py gN --art`.
 4. `./make-all.sh gN` builds every tier plus the Short; set `NODE_PATH=$(npm root -g)`.
 5. Publish each `out/*.html` as its own artifact; copy to Hawk `games/<id>/index.html`. Never commit videos.
+
+
+## `--art` / `// NEEDS:` requirements (build fails loudly)
+A game that declares `// NEEDS: art` (SVG atlas + WebGL) or `// NEEDS: three` (inlines `vendor/three.cjs`) must be built with `--art`
+(`python3 build.py g17g --art`); `build.py` exits non-zero and names the missing piece otherwise (missing flag, `art/atlas.json`, `vendor/three.cjs`, or an unknown NEEDS word).
+`python3 build.py` with no ids builds every game and adds `--art` automatically for those. Start-anywhere guide: `GENERIC-KIT.md`.

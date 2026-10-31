@@ -102,7 +102,8 @@ function phase1(dt, inp) {
   /* spawn + foes */
   spawnT6 -= dt; if (spawnT6 <= 0 && kills6 < GOAL) { spawnT6 = 1.5 + rng6() * 1.2; spawnFoe(); }
   for (let i = foes6.length - 1; i >= 0; i--) {
-    const f = foes6[i]; f.hit = Math.max(0, f.hit - dt); f.cd -= dt;
+    const f = foes6[i]; if (!f) continue;   /* foes6 can shrink mid-loop (a hit that ends the round clears it) */
+    f.hit = Math.max(0, f.hit - dt); f.cd -= dt;
     if (f.st === 'dead') { f.t += dt; f.x += f.dir * -50 * dt * (f.t < 0.3 ? 1 : 0); if (f.t > 0.6) foes6.splice(i, 1); continue; }
     const dx = p.x - f.x; f.dir = Math.sign(dx) || 1;
     if (f.k === 'g') {

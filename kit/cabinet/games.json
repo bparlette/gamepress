@@ -296,19 +296,67 @@
   "mashup": "Super Metroid x Vampire Survivors"
  },
  {
-  "id": "g32",
-  "title": "Maze Wrecker: Night Shift",
-  "la": "SMASH",
-  "lb": "DASH",
-  "keys": "<b>Keys:</b> Arrows move, Z swings the hammer (smash bricks, STUN ghosts), X dashes. Enter starts, M mutes.",
-  "mashup": "Pac-Man x Wrecking Crew"
+  "id": "s1",
+  "title": "Arena Survivor",
+  "la": "MOVE",
+  "lb": "-",
+  "keys": "<b>Keys:</b> arrows move, auto-fire, Enter starts, M mutes.",
+  "mashup": "starter: arena survivor"
  },
  {
-  "id": "g34",
-  "title": "Maze Wrecker (Cabinet)",
-  "la": "SMASH",
+  "id": "s2",
+  "title": "Tile Runner",
+  "la": "JUMP",
+  "lb": "-",
+  "keys": "<b>Keys:</b> arrows run, Z or Space jumps, Enter starts, M mutes.",
+  "mashup": "starter: platformer"
+ },
+ {
+  "id": "s3",
+  "title": "Gate Guard",
+  "la": "BUILD",
+  "lb": "-",
+  "keys": "<b>Keys:</b> arrows move cursor, Z or Space builds, Enter starts, M mutes.",
+  "mashup": "starter: tower defense"
+ },
+ {
+  "id": "g17h",
+  "title": "Vampire Metroid HD Engine",
+  "la": "JUMP",
   "lb": "DASH",
-  "keys": "<b>Keys:</b> arrows steer, Z or Space swings the hammer (smashes brick walls), X dashes, Enter starts, M mutes. Eat every pellet before the maze seals in 150 seconds \u2014 smash bricks to reroute the ghosts.",
-  "mashup": "Pac-Man x Wrecking Crew"
+  "keys": "",
+  "mashup": "Super Metroid x Vampire Survivors (engine.js sim)"
+ },
+ {
+  "id": "s4",
+  "title": "Loop Racer",
+  "la": "GAS",
+  "lb": "DRIFT",
+  "keys": "<b>Keys:</b> arrows steer, Z gas, X drift/brake, Enter starts, M mutes.",
+  "mashup": "starter: kart racer"
+ },
+ {
+  "id": "s5",
+  "title": "Keep Key",
+  "la": "SWORD",
+  "lb": "-",
+  "keys": "<b>Keys:</b> arrows move, Z swings the sword, Enter starts, M mutes.",
+  "mashup": "starter: mini-Zelda dungeon"
+ },
+ {
+  "id": "g32",
+  "title": "Critter Clash",
+  "la": "MOVE",
+  "lb": "-",
+  "keys": "<b>Keys:</b> arrows move, your critter fights by itself, Enter starts, M mutes.",
+  "mashup": "Clash of Critters (pixel)"
+ },
+ {
+  "id": "g32c",
+  "title": "Critter Clash Art Rig",
+  "la": "MOVE",
+  "lb": "-",
+  "keys": "<b>Keys:</b> arrows move, your critter fights by itself, Enter starts, M mutes.",
+  "mashup": "Clash of Critters (SVG rig + WebGL)"
  }
 ]

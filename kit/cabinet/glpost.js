@@ -58,7 +58,7 @@ const GLPOST = (() => {
     } catch (e) { P.on = false; P.err = String(e); return false; }
   };
   /* call at the end of every render(): uploads the 2D canvas and draws the post pass */
-  P.run = T => { if (!P.on) return; const c = P.gl, k = P.q; c.viewport(0, 0, P.el.width, P.el.height); c.bindTexture(c.TEXTURE_2D, P.tex);
+  P.run = T => { if (!P.on) return; if (P.el.width !== P.cv.width || P.el.height !== P.cv.height) { P.el.width = P.cv.width; P.el.height = P.cv.height; } const c = P.gl, k = P.q; c.viewport(0, 0, P.el.width, P.el.height); c.bindTexture(c.TEXTURE_2D, P.tex);
     c.texImage2D(c.TEXTURE_2D, 0, c.RGB, c.RGB, c.UNSIGNED_BYTE, P.cv); c.uniform2f(P.u.px, 1 / P.el.width, 1 / P.el.height); c.uniform1f(P.u.T, T % 7); c.uniform4f(P.u.q, k.bloom, k.grade, k.grain * 0 + k.ca, k.vig); const L = new Float32Array(32), LC = new Float32Array(24), Hz = new Float32Array(12);
     P.lights.forEach((l, i) => { L.set([l[0], l[1], l[2], l[3] * P.ambient], i * 4); LC.set(l[4], i * 3); }); P.haze.forEach((h, i) => Hz.set(h, i * 4));
     c.uniform4fv(P.u.L, L); c.uniform3fv(P.u.LC, LC); c.uniform4fv(P.u.Hz, Hz); c.uniform4f(P.u.F, P.fx.ca, P.fx.hurt, P.fx.flash, P.fx.ember);

@@ -39,6 +39,7 @@ function kit(c) {
       if (S.att && S.T > (c.secs || 60)) { fresh(true); return; }
       for (let i = S.pops.length - 1; i >= 0; i--) { S.pops[i].t += dt; if (S.pops[i].t > 1.1) S.pops.splice(i, 1); }
       if (S.inv > 0) S.inv -= dt;
+      if (typeof ENG !== 'undefined') ENG.tick(S, dt);   /* engines own effect/projectile/knockback lifecycles, not the renderer */
       if (S.parts) for (let i = S.parts.length - 1; i >= 0; i--) { const p = S.parts[i]; p.t -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; if (p.t <= 0) S.parts.splice(i, 1); }
       if (c.step(S, dt, inp, S.att) === 'reset') fresh(true);
     },

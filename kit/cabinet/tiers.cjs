@@ -1,4 +1,5 @@
 // Parity check: do all tiers of a game play out identically?  node tiers.cjs g17 g17.hd g17b.hd g17c.art g17d.art [--seeds 1,2,3] [--frames 3600]
+// Renders ONCE per checkpoint (sim never depends on renders: proven on g17), so art/WebGL tiers cost seconds, not minutes.
 // Each arg is out/<arg>.html (build first: python3 build.py g17 [--hd|--art]). Runs the bot on a fixed seed and compares the sim state at checkpoints.
 // Tiers that intentionally change rules (e.g. g17e: no pause menu, analog move) must be listed under --expect-diff so the difference is stated, not hidden.
 const { chromium } = require('playwright'); const path = require('path');
@@ -12,8 +13,8 @@ const keys = A, CP = [600, 1800, frames];
       await pg.goto('file://' + path.resolve(__dirname, 'out', k + '.html') + '?seed=' + seed); await pg.waitForTimeout(200);
       await pg.evaluate(() => { window.__shell.start(); window.__shell.bot(true); });
       const out = []; let done = 0;
-      for (const c of CP) { await pg.evaluate(n => { for (let i = 0; i < n; i++) { window.__shell.step(); if (i % 20 === 0) window.__shell.render(); } }, c - done); done = c;
-        const i = await pg.evaluate(() => window.__shell.info()); out.push(`${i.mode}|lvl${i.lvl}|hp${i.hp}|sc${i.score}|k${i.kills ?? ''}`); }
+      for (const c of CP) { await pg.evaluate(n => { for (let i = 0; i < n; i++) window.__shell.step(); window.__shell.render(); }, c - done); done = c;
+        const i = await pg.evaluate(() => window.__shell.info()); out.push(i.lvl !== undefined ? `${i.mode}|lvl${i.lvl}|hp${i.hp}|sc${i.score}|k${i.kills ?? ''}` : JSON.stringify(i, (k, v) => k === 'hi' ? undefined : v)); }   // generic games: the whole info() must match
       rows[k] = { sig: out.join(' > '), errs }; await pg.close(); }
     const base = rows[keys[0]].sig; console.log(`seed ${seed}`);
     for (const k of keys) { const r = rows[k], same = r.sig === base, ex = diff.includes(k.split('.')[0]), tag = r.errs.length ? 'ERROR ' + r.errs[0] : same ? 'same' : ex ? 'differs (expected)' : 'DIFFERS';

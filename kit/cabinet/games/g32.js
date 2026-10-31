@@ -1,240 +1,52 @@
-/* ===== MAZE WRECKER: NIGHT SHIFT — Pac-Man x Wrecking Crew, built on the shared gamekit.
-   Same lattice maze as Moth's g7, one new rule: the hammer is a weapon now — swing at a
-   foreman (ghost) to STUN him for 3 s (+50). Dusk palette, tighter 135 s seal.
-   All state on S; ghost steering uses the kit's shared bfs(). Updated to the artkit-era script: HUD icons draw in ui() (hud() is text-only - pixel calls there are discarded after the blit), particles renamed S.fx so the kit's own S.parts updater leaves them alone. Gameplay, map and 135 s seal unchanged. ===== */
-// KEYS: Arrows move, Z swings the hammer (smash bricks, STUN ghosts), X dashes.
-const MW32 = 16, MH32 = 14, TS32 = 16, SEAL32 = 135;
-const MAP32 = [
-  '################',
-  '#..............#',
-  '#.##.#.BB.#.##.#',
-  '#o...B....B...o#',
-  '#.####.##.####.#',
-  '#......##......#',
-  '##.##......##.##',
-  '#...#..gg..#...#',
-  '#.##...g...B##.#',
-  '#..B.##..##.B..#',
-  '#o##....B...##o#',
-  '#....#....#....#',
-  '#......P.......#',
-  '################',
-];
-const D32 = { l:[-1,0], r:[1,0], u:[0,-1], d:[0,1] };
-const DK32 = ['l','r','u','d'];
-const WRECKER32 = [
-  '..YYYY..',
-  '.YYYYYY.',
-  '.YSSSSY.',
-  '..SSSS..',
-  '.OOOOOO.',
-  'OSOOOOSO',
-  '.OOOOOO.',
-  '..OOOO..',
-  '..B..B..',
-  '..B..B..',
-  '.KK..KK.',
-];
-const GHOST32 = [
-  '..XXXX..',
-  '.XXXXXX.',
-  'XXXXXXXX',
-  'XWWXXWWX',
-  'XWKXXKWX',
-  'XXXXXXXX',
-  'XXXXXXXX',
-  'XX.XX.XX',
-];
-const tile32 = (S, x, y) => (x < 0 || y < 0 || x >= MW32 || y >= MH32) ? '#' : S.tiles[y][x];
-const pass32 = (S, x, y) => { const t = tile32(S, x, y); return t !== '#' && t !== 'B'; };
-function burst32(S, x, y, col, n) { for (let i = 0; i < n; i++) { const a = vr() * 6.283, sp = 14 + vr() * 40; S.fx.push({ x, y, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp - 12, t:0, life:0.4 + vr() * 0.3, col }); } }
-function snap32(e) { const cx = Math.round((e.x - 8) / TS32) * TS32 + 8, cy = Math.round((e.y - 8) / TS32) * TS32 + 8; return [cx, cy, Math.abs(e.x - cx) < 0.6 && Math.abs(e.y - cy) < 0.6]; }
-function resetPos32(S) {
-  const P = S.P;
-  P.x = P.sx * TS32 + 8; P.y = P.sy * TS32 + 8; P.dir = 'l'; P.want = 'l'; P.invuln = 2; P.dash = 0;
-  for (const g of S.ghosts) { g.x = g.sx * TS32 + 8; g.y = g.sy * TS32 + 8; g.eyes = false; g.stun = 0; }
-  S.frightT = 0;
-}
-/* one ghost step: kit bfs() toward a goal predicate, honouring the no-reverse rule */
-function ghostStep32(S, g, dt) {
-  const speed = g.stun > 0 ? 0 : g.eyes ? 92 : (S.frightT > 0 ? 34 : 48);
-  if (g.stun > 0) { g.stun -= dt; return; }
-  const [cx, cy, centered] = snap32(g);
-  if (centered) {
-    g.x = cx; g.y = cy;
-    const tx = (cx - 8) / TS32, ty = (cy - 8) / TS32;
-    if (g.eyes && tx === g.sx && ty === g.sy) { g.eyes = false; return; }
-    const P = S.P, pTx = Math.floor(P.x / TS32), pTy = Math.floor(P.y / TS32);
-    let goal;
-    if (g.eyes) goal = (x, y) => x === g.sx && y === g.sy;
-    else if (S.frightT > 0) goal = (x, y) => Math.abs(x - pTx) + Math.abs(y - pTy) >= 7;
-    else if (g.kind === 'chase') goal = (x, y) => x === pTx && y === pTy;
-    else if (g.kind === 'ambush') { const [dx, dy] = D32[P.dir]; const ax = clamp(pTx + dx * 4, 1, MW32 - 2), ay = clamp(pTy + dy * 4, 1, MH32 - 2); goal = pass32(S, ax, ay) ? ((x, y) => x === ax && y === ay) : ((x, y) => x === pTx && y === pTy); }
-    else { g.roamT -= 1; if (g.roamT <= 0 || (tx === g.roamTx && ty === g.roamTy)) { g.roamT = 240; const gx = 1 + Math.floor(S.rng() * (MW32 - 2)), gy = 1 + Math.floor(S.rng() * (MH32 - 2)); if (pass32(S, gx, gy)) { g.roamTx = gx; g.roamTy = gy; } } goal = (x, y) => x === g.roamTx && y === g.roamTy; }
-    const pass = (x, y) => pass32(S, x, y);
-    let step = bfs(MW32, MH32, pass, tx, ty, goal);
-    if (step) {
-      const rev = DK32.find(k => D32[k][0] === -D32[g.dir][0] && D32[k][1] === -D32[g.dir][1]);
-      const stepDir = DK32.find(k => D32[k][0] === step.dx && D32[k][1] === step.dy);
-      if (stepDir === rev) {
-        const bx = tx - step.dx, by = ty - step.dy;
-        const alt = bfs(MW32, MH32, (x, y) => pass(x, y) && !(x === bx && y === by), tx, ty, goal);
-        if (alt) step = alt;
-      }
-      if (step) g.dir = DK32.find(k => D32[k][0] === step.dx && D32[k][1] === step.dy) || g.dir;
-    }
-  }
-  const [dx, dy] = D32[g.dir];
-  g.x += dx * speed * dt; g.y += dy * speed * dt;
-}
-const GAME = kit({
-  id:'g32', t1:'MAZE', t2:'WRECKER', sub:'NIGHT SHIFT. STUN THE FOREMEN.',
-  secs:50, seed:132, off:32,
-  music:MUS(138, -24, true),
-  setup(S, att) {
-    S.tiles = MAP32.map(r => r.split(''));
-    S.pellets = 0; const spawns = []; let pStart = { x:8, y:12 };
-    for (let y = 0; y < MH32; y++) for (let x = 0; x < MW32; x++) {
-      const c = S.tiles[y][x];
-      if (c === '.' || c === 'o') S.pellets++;
-      if (c === 'P') { pStart = { x, y }; S.tiles[y][x] = ' '; }
-      if (c === 'g') { spawns.push({ x, y }); S.tiles[y][x] = ' '; }
-    }
-    S.total = S.pellets;
-    S.P = { x:pStart.x * TS32 + 8, y:pStart.y * TS32 + 8, dir:'l', want:'l', sx:pStart.x, sy:pStart.y, swing:0, swingCd:0, dash:0, dashCd:0, invuln:0 };
-    const cols = [O, CY, PK], kinds = ['chase', 'ambush', 'roam'];
-    S.ghosts = spawns.map((s, i) => ({ x:s.x * TS32 + 8, y:s.y * TS32 + 8, dir:DK32[i % 4], sx:s.x, sy:s.y, kind:kinds[i % 3], col:cols[i % 3], eyes:false, stun:0, roamT:0, roamTx:s.x, roamTy:s.y }));
-    S.fx = []; S.fruits = [];
-    S.lives = 3; S.timeLeft = SEAL32; S.frightT = 0; S.eaten = 0; S.stuns = 0;
-  },
-  step(S, dt, inp, att) {
-    const P = S.P;
-    for (let i = S.fx.length - 1; i >= 0; i--) { const p = S.fx[i]; p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 160 * dt; if (p.t > p.life) S.fx.splice(i, 1); }
-    if (inp.l) P.want = 'l'; if (inp.r) P.want = 'r'; if (inp.u) P.want = 'u'; if (inp.d) P.want = 'd';
-    P.swingCd -= dt; P.dashCd -= dt; P.invuln -= dt;
-    if (S.edge(inp, 'a') && P.swingCd <= 0) {
-      P.swing = 0.22; P.swingCd = 0.34; sfx('swing');
-      const [fx, fy] = D32[P.dir];
-      const tx = Math.floor(P.x / TS32) + fx, ty = Math.floor(P.y / TS32) + fy;
-      if (tile32(S, tx, ty) === 'B') {
-        S.tiles[ty][tx] = ' '; S.score += 5;
-        burst32(S, tx * TS32 + 8, ty * TS32 + 8, BRK, 10); burst32(S, tx * TS32 + 8, ty * TS32 + 8, T, 5);
-        sfx('boom'); popup(S, '+5', tx * TS32 + 8, ty * TS32, Y);
-      } else {
-        /* the new rule: a swing that reaches a foreman stuns him */
-        const hx = P.x + fx * 13, hy = P.y + fy * 13;
-        for (const g of S.ghosts) {
-          if (!g.eyes && g.stun <= 0 && Math.hypot(g.x - hx, g.y - hy) < 13) {
-            g.stun = 3; S.stuns++; S.score += 50;
-            popup(S, 'STUN!', g.x, g.y - 10, Y); burst32(S, g.x, g.y, Y, 8); sfx('hit');
-          }
-        }
-      }
-    }
-    if (P.swing > 0) P.swing -= dt;
-    if (S.edge(inp, 'b') && P.dashCd <= 0) { P.dash = 0.32; P.dashCd = 1.6; sfx('throw'); }
-    if (P.dash > 0) P.dash -= dt;
-    /* player tile movement (same feel as g7) */
-    {
-      const [cx, cy, centered] = snap32(P);
-      if (centered) {
-        P.x = cx; P.y = cy;
-        const tx = (cx - 8) / TS32, ty = (cy - 8) / TS32;
-        if (P.want !== P.dir) { const [dx, dy] = D32[P.want]; if (pass32(S, tx + dx, ty + dy)) P.dir = P.want; }
-        const [dx, dy] = D32[P.dir];
-        if (pass32(S, tx + dx, ty + dy)) { const sp = P.dash > 0 ? 98 : 57; P.x += dx * sp * dt; P.y += dy * sp * dt; }
-      } else { const [dx, dy] = D32[P.dir]; const sp = P.dash > 0 ? 98 : 57; P.x += dx * sp * dt; P.y += dy * sp * dt; }
-    }
-    const pTx = Math.floor(P.x / TS32), pTy = Math.floor(P.y / TS32);
-    const c = tile32(S, pTx, pTy);
-    if (Math.hypot(P.x - (pTx * TS32 + 8), P.y - (pTy * TS32 + 8)) < 6) {
-      if (c === '.') { S.tiles[pTy][pTx] = ' '; S.pellets--; S.eaten++; S.score += 10; sfx('coin'); if (S.eaten === 40 || S.eaten === 80) { S.fruits.push({ x:8, y:9, t:9 }); popup(S, 'BONUS FRUIT!', 128, 150, PK); } }
-      else if (c === 'o') { S.tiles[pTy][pTx] = ' '; S.pellets--; S.eaten++; S.score += 50; S.frightT = 6; sfx('power'); popup(S, 'GHOSTS SCARED!', 128, 30, CY); }
-    }
-    for (let i = S.fruits.length - 1; i >= 0; i--) { const f = S.fruits[i]; f.t -= dt; if (f.t <= 0) { S.fruits.splice(i, 1); continue; } if (f.x === pTx && f.y === pTy) { S.score += 300; popup(S, '+300', P.x, P.y - 10, PK); sfx('coin'); S.fruits.splice(i, 1); } }
-    if (S.frightT > 0) S.frightT -= dt;
-    for (const g of S.ghosts) ghostStep32(S, g, dt);
-    for (const g of S.ghosts) {
-      if (g.stun > 0 || g.eyes) continue;
-      if (Math.hypot(g.x - P.x, g.y - P.y) < 9) {
-        if (S.frightT > 0) { g.eyes = true; S.score += 200; popup(S, '+200', g.x, g.y - 10, W); burst32(S, g.x, g.y, CY, 8); sfx('pop'); }
-        else if (P.invuln <= 0) {
-          S.lives--; sfx('die'); burst32(S, P.x, P.y, O, 14);
-          if (S.lives <= 0) return finish(S, 'CAUGHT!');
-          popup(S, 'CAUGHT!', 128, 104, R); resetPos32(S); break;
-        }
-      }
-    }
-    if (!att) {
-      S.timeLeft -= dt;
-      if (S.timeLeft <= 10.05 && S.timeLeft > 0 && Math.abs(S.timeLeft % 1) < dt) sfx('tick');
-      if (S.timeLeft <= 0) return finish(S, 'SEALED IN!');
-    }
-    if (S.pellets <= 0) return finish(S, 'MAZE CLEAR!', Math.ceil(Math.max(0, S.timeLeft)) * 10 + S.lives * 100);
-  },
-  draw(S) {
-    clear(K);
-    const P = S.P;
-    for (let y = 0; y < MH32; y++) for (let x = 0; x < MW32; x++) {
-      const c = S.tiles[y][x], X = x * TS32, Y0 = y * TS32;
-      if (c === '#') { rect(X, Y0, TS32, TS32, N); rect(X, Y0, TS32, 2, DG); rect(X, Y0, 2, TS32, DG); }
-      else if (c === 'B') { rect(X, Y0, TS32, TS32, BRK); rect(X + 1, Y0 + 1, 6, 5, T); rect(X + 9, Y0 + 1, 6, 5, T); rect(X + 5, Y0 + 8, 6, 5, T); rect(X + 1, Y0 + 8, 3, 5, M); rect(X + 12, Y0 + 8, 3, 5, M); rect(X, Y0 + 7, TS32, 1, M); }
-      else {
-        if (c === '.') rect(X + 7, Y0 + 7, 2, 2, V);
-        else if (c === 'o') { const r = 4 + Math.sin(S.T * 6) * 1.2; fillCircle(X + 8, Y0 + 8, r, V); }
-      }
-    }
-    for (const f of S.fruits) { const X = f.x * TS32, Y0 = f.y * TS32; fillCircle(X + 6, Y0 + 10, 3, R); fillCircle(X + 11, Y0 + 11, 3, R); px(X + 8, Y0 + 4, GR); px(X + 9, Y0 + 3, GR); }
-    for (const g of S.ghosts) {
-      const gx = Math.round(g.x - 6), gy = Math.round(g.y - 6);
-      if (g.eyes) { px(gx + 2, gy + 4, W); px(gx + 3, gy + 4, W); px(gx + 8, gy + 4, W); px(gx + 9, gy + 4, W); px(gx + 3, gy + 5, B); px(gx + 9, gy + 5, B); }
-      else if (g.stun > 0) { spr(GHOST32, gx, gy, false, { X: DG, W: Y, K: Y }); px(gx + 1, gy - 2, Y); px(gx + 10, gy - 3, Y); px(gx + 5, gy - 4, Y); }
-      else if (S.frightT > 0) spr(GHOST32, gx, gy, false, { X: B, W: V, K: PK });
-      else spr(GHOST32, gx, gy, g.dir === 'l', { X: g.col });
-    }
-    spr(WRECKER32, Math.round(P.x - 5), Math.round(P.y - 6), P.dir === 'l', P.invuln > 0 && (Math.floor(S.T * 12) & 1) ? { Y: L, S: W, O: L, B: D, K: D } : null);
-    if (P.swing > 0) {
-      const [fx, fy] = D32[P.dir], hx = Math.round(P.x + fx * 11), hy = Math.round(P.y + fy * 11);
-      rect(hx - 1, hy - 5, 3, 8, T); rect(hx - 3, hy - 8, 7, 4, D);
-    }
-    for (const p of S.fx) px(p.x, p.y, p.col);
-    if (!S.att && S.timeLeft <= 10) { rect(0, 0, VW, 2, R); rect(0, VH - 2, VW, 2, R); }
-    if (!S.att && S.timeLeft <= 30 && S.timeLeft > 10 && (Math.floor(S.T * 2) & 1)) { rect(0, 0, VW, 2, O); rect(0, VH - 2, VW, 2, O); }
-  },
-  ui(S) {
-    /* HUD icons live here now: hud() runs after the blit, so spr() there never showed */
-    for (let i = 0; i < S.lives - 1; i++) spr(WRECKER32, 8 + i * 12, 212, false, null);
-  },
-  hud(S, mode) {
-    if (mode === 'title') return;
-    txt('SC ' + pad5(S.score), 6, 3, W, 8);
-    txt(Math.max(0, Math.ceil(S.timeLeft)) + 's', 128, 3, S.timeLeft <= 10 ? R : Y, 8, 'center');
-    txt(S.pellets + ' LEFT', 250, 3, CY, 8, 'right');
-  },
-  info(S) { return { pellets:S.pellets, lives:S.lives, time:+S.timeLeft.toFixed(1), eaten:S.eaten, stuns:S.stuns, px:Math.round(S.P.x), py:Math.round(S.P.y), ghosts:S.ghosts.map(g => Math.round(g.x) + ',' + Math.round(g.y)).join(' ') }; },
-  bot(S, i) {
-    const P = S.P, pTx = Math.floor(P.x / TS32), pTy = Math.floor(P.y / TS32);
-    let danger = null, dd = 1e9;
-    for (const g of S.ghosts) { if (!g.eyes && g.stun <= 0 && S.frightT <= 0) { const d = Math.hypot(g.x - P.x, g.y - P.y); if (d < dd) { dd = d; danger = g; } } }
-    if (danger && dd < 30) {
-      /* stun it if it's in the facing arc, else run */
-      const [fx, fy] = D32[P.dir];
-      if (Math.hypot(danger.x - (P.x + fx * 13), danger.y - (P.y + fy * 13)) < 14 && P.swingCd <= 0) { i.a = 1; return i; }
-      let bx = 0, by = 0, bv = -1;
-      for (const k of DK32) { const nx = pTx + D32[k][0], ny = pTy + D32[k][1]; if (!pass32(S, nx, ny)) continue; const v = Math.hypot(danger.x - (nx * TS32 + 8), danger.y - (ny * TS32 + 8)); if (v > bv) { bv = v; bx = D32[k][0]; by = D32[k][1]; } }
-      if (bx || by) { dirInp(i, bx, by); if (P.dashCd <= 0) i.b = 1; }
-      return i;
-    }
-    const huntGhost = S.frightT > 1 ? S.ghosts.find(g => !g.eyes && g.stun <= 0 && Math.hypot(g.x - P.x, g.y - P.y) < 80) : null;
-    const goal = huntGhost
-      ? ((x, y) => x === Math.floor(huntGhost.x / TS32) && y === Math.floor(huntGhost.y / TS32))
-      : ((x, y) => { const t = tile32(S, x, y); return t === '.' || t === 'o'; });
-    let step = bfs(MW32, MH32, (x, y) => pass32(S, x, y), pTx, pTy, goal);
-    if (!step) {
-      step = bfs(MW32, MH32, (x, y) => tile32(S, x, y) !== '#', pTx, pTy, goal);
-      if (step && tile32(S, pTx + step.dx, pTy + step.dy) === 'B') { dirInp(i, step.dx, step.dy); if (P.swingCd <= 0) i.a = 1; return i; }
-    }
-    if (step) dirInp(i, step.dx, step.dy);
-    return i;
-  },
+// KEYS: Arrows move your critter (it attacks by itself). Hold the road: do not let soldiers reach the sleeping trainer. Kills trigger evolution (25% success).
+/* ===== G32 CRITTER CLASH: pixel version of the "Clash of Critters" ad (square road ring, marching numbered soldiers, auto-attacking critter, evolution roulette).
+   BRIEF  genre: lane defense + auto-battler | player: 8-way critter inside the ring, auto slash + orbiting swords | goal: survive 55 s with the trainer asleep
+          lose: 12 soldiers reach the bed | hook: numbered HP soldiers file around the road; every 20 kills the critter tries to EVOLVE (25% success, else mutate +ATK)
+          bot: parks at the arena edge nearest the front of the column | juice: slash crescents, damage numbers, evolution flash/fail text, form colours
+   Reference: user-supplied frames (clash_frames_20.zip). Original pixel art, no assets copied. Engine: path, proj, hits(list), fx, imp unused. ===== */
+const TUNE32 = { win:55, bed:12, speed:56, form:{ slash:[4, 6, 9, 13], swords:[1, 2, 3, 4], cd:[1.0, 0.85, 0.7, 0.55] }, evoEvery:20, evoP:0.25, mutate:2, swordR:22, swordDps:8, swordTick:0.28,
+  slashR:70, slashSpeed:170, pierce:4,
+  spawn: T => Math.max(0.3, 0.5 - T * 0.005), kinds:{ grunt:{ hp:6, sp:24, r:4, w:0.35 }, soldier:{ hp:15, sp:19, r:5, w:0.45 }, heavy:{ hp:20, sp:16, r:5, w:0.2 } } };
+const PATH32 = ENG.path([[240, 196], [40, 196], [40, 44], [150, 44]]);
+const DIG32 = { 0:'111101101101111', 1:'010110010010111', 2:'111001111100111', 3:'111001111001111', 4:'101101111001001', 5:'111100111001111', 6:'111100111101111', 7:'111001001010010', 8:'111101111101111', 9:'111101111001111' };
+function num32(n, cx, y, col) { const s = String(Math.max(0, Math.ceil(n))), w = s.length * 4 - 1; let x = Math.round(cx - w / 2); for (const ch of s) { const d = DIG32[ch]; for (let i = 0; i < 15; i++) if (d[i] === '1') px(x + (i % 3), y + ((i / 3) | 0), col); x += 4; } }
+const FORM32 = [[GR, F], [O, T], [PU, N], [Y, O]];                        // body / petal colours per evolution form
+const GAME = kit({ id:'g32', t1:'CRITTER', t2:'CLASH', sub:'EVOLVE. HOLD THE ROAD.', seed:932, off:32, secs:55, music:MUS(140, -19, false),
+  setup(S) { S.p = { x:128, y:120, hp:1, ang:0, inv:0 }; S.en = []; S.form = 0; S.atk = 0; S.bed = TUNE32.bed; S.kills = 0; S.next = TUNE32.evoEvery; S.sp = 0.5; S.cd = 0; S.sw = 0; S.evo = 0; S.msg = ''; S.mt = 0; },
+  step(S, dt, inp) { const C = TUNE32, p = S.p, F_ = C.form;
+    const ax = inp.ax !== undefined ? inp.ax : (inp.r ? 1 : 0) - (inp.l ? 1 : 0), ay = inp.ay !== undefined ? inp.ay : (inp.d ? 1 : 0) - (inp.u ? 1 : 0), m = Math.max(1, Math.hypot(ax, ay));
+    p.x = clamp(p.x + ax / m * C.speed * dt, 58, 198); p.y = clamp(p.y + ay / m * C.speed * dt, 62, 178);
+    /* spawns: marching column along the road */
+    S.sp -= dt; if (S.sp <= 0) { S.sp += C.spawn(S.T); const r = S.rng(), k = r < C.kinds.grunt.w ? 'grunt' : r < C.kinds.grunt.w + C.kinds.soldier.w ? 'soldier' : 'heavy', K_ = C.kinds[k];
+      S.en.push({ k, d:0, x:240, y:196, hp:K_.hp, hpMax:K_.hp, sp:K_.sp * (0.94 + S.rng() * 0.12), r:K_.r, hit:0, oc:0, dead:false }); }
+    for (let i = S.en.length - 1; i >= 0; i--) { const e = S.en[i]; if (e.dead) { S.en.splice(i, 1); continue; } e.d += e.sp * dt; const q = PATH32.at(e.d); e.x = q.x; e.y = q.y; e.hit -= dt; e.oc -= dt;
+      if (e.d >= PATH32.len) { S.en.splice(i, 1); S.bed--; sfx('hurt'); ENG.shake(S, 3); popup(S, 'OW!', 166, 56, R); if (S.bed <= 0) { sfx('die'); return finish(S, 'TRAINER WOKE UP'); } } }
+    /* weapons: auto slash at the nearest enemy in range, orbiting swords */
+    S.cd -= dt; if (S.cd <= 0) { let t = null, td = C.slashR * C.slashR; for (const e of S.en) { const d = (e.x - p.x) ** 2 + (e.y - p.y) ** 2; if (d < td) { td = d; t = e; } }
+      if (t) { S.cd = F_.cd[S.form]; const a = Math.atan2(t.y - p.y, t.x - p.x); p.ang = a; ENG.proj.fire(S, p.x, p.y, Math.cos(a) * C.slashSpeed, Math.sin(a) * C.slashSpeed, { life:0.55, r:5, dmg:F_.slash[S.form] + S.atk, pierce:C.pierce, bounds:[-10, -10, 266, 234] }); sfx('tick'); } }
+    ENG.hits(S, (pr, e) => { e.hp -= pr.dmg; e.hit = 0.12; burst(S, e.x, e.y, W, 3); ENG.fx.add(S, 'num', e.x, e.y - 6, 0.5, { v:pr.dmg }); }, S.en);
+    S.sw += dt * 3.4; const n = F_.swords[S.form];
+    for (let k = 0; k < n; k++) { const a = S.sw + k * 6.2832 / n, sx = p.x + Math.cos(a) * C.swordR, sy = p.y + Math.sin(a) * C.swordR; for (const e of S.en) if (!e.dead && e.oc <= 0 && Math.hypot(e.x - sx, e.y - sy) < e.r + 4) { e.oc = C.swordTick; e.hp -= C.swordDps * C.swordTick + S.atk * 0.3; e.hit = 0.12; } }
+    for (const e of S.en) if (!e.dead && e.hp <= 0) { e.dead = true; S.kills++; S.score += 10; sfx('pop'); burst(S, e.x, e.y, e.k === 'heavy' ? BRK : PK, 5); ENG.fx.add(S, 'pop', e.x, e.y, 0.25);
+      if (S.kills >= S.next) { S.next += C.evoEvery; S.evo = 1.4; if (S.rng() < C.evoP && S.form < 3) { S.form++; S.msg = 'EVOLVED!'; sfx('super'); ENG.fx.add(S, 'evo', p.x, p.y, 0.8); } else { S.atk += C.mutate; S.msg = 'EVOLUTION FAILED  ATK+' + C.mutate; sfx('hurt'); } S.mt = 1.6; } }
+    S.mt -= dt; if (S.T >= C.win) { sfx('win'); return finish(S, 'TRAINER SLEPT IN!', S.bed * 50); } },
+  draw(S) { const C = TUNE32; clear(GR); for (let i = 0; i < 14; i++) { const x = (i * 53 + 17) % 256, y = (i * 71 + 9) % 224; if ((x < 30 || x > 226 || y < 26 || y > 208)) { fillCircle(x, y, 7, F); fillCircle(x, y - 2, 5, GR); } }
+    rect(26, 34, 204, 172, DG); rect(52, 56, 152, 128, E);                                                                           // road ring + arena
+    for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) fillCircle(76 + x * 52, 82 + y * 38, 9, GR);
+    for (let x = 30; x < 226; x += 14) { rect(x, 44, 7, 2, L); rect(x, 196, 7, 2, L); } for (let y = 40; y < 206; y += 14) { rect(36, y, 2, 7, L); rect(214, y, 2, 7, L); }
+    for (let i = 0; i < 6; i++) rect(150 + (i & 1) * 0, 36 + i * 3, 6, 3, i & 1 ? R : W);  rect(154, 38, 6, 16, R); for (let y = 38; y < 54; y += 4) rect(154, y, 6, 2, W);   // striped barrier
+    rect(162, 38, 20, 14, SKY); rect(162, 38, 20, 4, W); rect(164, 41, 8, 4, PK); rect(166, 36, 6, 6, S);                              // bed + sleeping trainer
+    const en = S.en.slice().sort((a, b) => a.y - b.y);
+    for (const e of en) { const x = Math.round(e.x), y = Math.round(e.y), body = e.k === 'heavy' ? B : e.k === 'soldier' ? T : BRK; if (e.hit > 0) { rect(x - 3, y - 4, 7, 9, W); } else { rect(x - 3, y - 4, 7, 4, e.k === 'heavy' ? N : M); rect(x - 3, y, 7, 5, body); rect(x - 4, y + 1, 1, 3, K); rect(x + 4, y + 1, 1, 3, K); } num32(e.hp, x, y - 11, W); }
+    ENG.fx.each(S, 'pop', (f, k) => fillCircle(Math.round(f.x), Math.round(f.y), Math.round(2 + k * 6), k < .5 ? W : Y));
+    const p = S.p, n = C.form.swords[S.form], bc = FORM32[S.form];
+    for (let k = 0; k < n; k++) { const a = S.sw + k * 6.2832 / n, sx = Math.round(p.x + Math.cos(a) * C.swordR), sy = Math.round(p.y + Math.sin(a) * C.swordR); rect(sx - 1, sy - 1, 3, 3, CY); px(sx, sy, W); px(sx + Math.round(Math.cos(a) * 2), sy + Math.round(Math.sin(a) * 2), CY); }
+    for (const q of S.eproj || []) { const a = Math.atan2(q.vy, q.vx); for (let t = 0; t < 4; t++) px(q.x - Math.cos(a) * t * 1.5 + Math.cos(a + 1.57) * (t - 1.5), q.y - Math.sin(a) * t * 1.5 + Math.sin(a + 1.57) * (t - 1.5), t < 2 ? W : CY); rect(Math.round(q.x) - 1, Math.round(q.y) - 1, 3, 3, W); }
+    fillCircle(Math.round(p.x), Math.round(p.y), 5 + (S.form > 1 ? 1 : 0), bc[0]); rect(Math.round(p.x) - 6, Math.round(p.y) - 7, 3, 3, bc[1]); rect(Math.round(p.x) + 3, Math.round(p.y) - 7, 3, 3, bc[1]); rect(Math.round(p.x) - 2, Math.round(p.y) - 1, 2, 2, K); rect(Math.round(p.x) + 1, Math.round(p.y) - 1, 2, 2, K); rect(Math.round(p.x) - 4, Math.round(p.y) - 4, 9, 2, bc[1]);
+    ENG.fx.each(S, 'num', (f, k) => num32(f.v, Math.round(f.x), Math.round(f.y - k * 10), Y));
+    ENG.fx.each(S, 'evo', (f, k) => { fillCircle(Math.round(f.x), Math.round(f.y), Math.round(8 + k * 40), k < .5 ? Y : W); fillCircle(Math.round(f.x), Math.round(f.y), Math.round(6 + k * 38), k < .5 ? W : GR); }); },
+  hud(S) { txt('BED ' + S.bed, 4, 4, W, 8); txt(S.kills + ' KO', 252, 4, Y, 8, 'right'); txt('FORM ' + (S.form + 1) + '/4', 128, 4, CY, 8, 'center'); if (S.mt > 0) txt(S.msg, 128, 120, S.msg[0] === 'E' && S.msg[1] === 'V' && S.msg[2] === 'O' && S.msg[3] === 'L' && S.msg[4] === 'V' ? Y : R, 8, 'center'); hintS(S, 'ARROWS MOVE  IT FIGHTS BY ITSELF', 8, 212); },
+  info(S) { return { bed:S.bed, kills:S.kills, form:S.form, atk:S.atk, en:S.en.length, x:Math.round(S.p.x), y:Math.round(S.p.y) }; },
+  bot(S, i) { const p = S.p; let tx = 128, ty = 120, best = -1; for (const e of S.en) if (e.d > best) { best = e.d; tx = e.x; ty = e.y; }
+    const gx = clamp(tx, 60, 196), gy = clamp(ty, 64, 176), dx = gx - p.x, dy = gy - p.y; return dirInp(i, Math.abs(dx) > 6 ? Math.sign(dx) : 0, Math.abs(dy) > 6 ? Math.sign(dy) : 0); },
 });
