@@ -374,5 +374,13 @@
   "lb": "DASH",
   "keys": "",
   "mashup": "Super Metroid x Vampire Survivors"
+ },
+ {
+  "id": "g35",
+  "title": "Locker Room Last Stand",
+  "la": "FIRE",
+  "lb": "FIRE",
+  "keys": "<b>Keys:</b> left/right move, Z or X fires, Enter starts, M mutes. Hold the locker room against the dead for 45 seconds.",
+  "mashup": "8-bit native code-drawn rig"
  }
 ]

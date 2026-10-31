@@ -57,3 +57,6 @@ All colors are CSS strings in HD, palette indexes in the pixel `core.js` helpers
 
 ## Input (core.js)
 Touch pad looks like a d-pad but is a stick: angle+strength decide output. `GAME.dir` picks the mapping (see table). Keyboard feeds the same fields.
+
+## PRIG (kit/cabinet/pixrig.js): native 8-bit character rig
+`PRIG.draw(kind, var, pose, x, y, face, ph, {sc, flash})` draws a soldier (`walk aim down`) or zombie (`walk attack hit down`; var `green grey yellow`) fresh every frame from a skeleton into the buffer, using only cabinet palette colours (ramps with checker dither + 1 px outline). `ph` = walk phase (radians, advance it while moving), `sc` = figure height in px (default 40; 56 reads well). Returns `{muzzle, head, chest}` screen points. `PRIG.skel(kind,pose,ph)` returns joints. Reference game: `games/g35.js`. No sprite assets; new poses are new numbers in `skel()`.
