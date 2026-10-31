@@ -326,5 +326,21 @@
   "lb": "DASH",
   "keys": "",
   "mashup": "Super Metroid x Vampire Survivors (engine.js sim)"
+ },
+ {
+  "id": "s4",
+  "title": "Loop Racer",
+  "la": "GAS",
+  "lb": "DRIFT",
+  "keys": "<b>Keys:</b> arrows steer, Z gas, X drift/brake, Enter starts, M mutes.",
+  "mashup": "starter: kart racer"
+ },
+ {
+  "id": "s5",
+  "title": "Keep Key",
+  "la": "SWORD",
+  "lb": "-",
+  "keys": "<b>Keys:</b> arrows move, Z swings the sword, Enter starts, M mutes.",
+  "mashup": "starter: mini-Zelda dungeon"
  }
 ]

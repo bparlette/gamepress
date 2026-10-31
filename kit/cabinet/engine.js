@@ -6,7 +6,7 @@
      ENG.grid(w,h,ts,fill) -> G            G.get/set(tx,ty), G.solidAt(px,py), G.rect(x,y,w,h) overlaps solid; G.w,G.h,G.ts; G.t[] flat tiles (1=solid)
      ENG.fx.add(S,kind,x,y,life,o)         (stored in S.efx) timed effect {kind,x,y,t,life,...o}; aged+expired by tick. fx.each(S,kind,fn(f,p01))
      ENG.proj.fire(S,x,y,vx,vy,o)          (S.eproj) projectile {x,y,vx,vy,life,r,dmg,pierce,team}; moved+expired by tick; o.bounds=[x0,y0,x1,y1]
-     ENG.imp.push(e,dx,dy,force)           impulse knockback on any entity with vx,vy,ix,iy; decays inside tick via ENG.imp.step(e,dt)
+     ENG.imp.push(e,dx,dy,force)           impulse knockback on any entity with vx,vy,ix,iy; decays via ENG.imp.step(e,dt[,solid]); pass a solid fn and knockback stops at walls
      ENG.swarm.init(S,cfg)                 S.swarm={list,cfg}; cfg={cap,spawn:(S)=>interval s,kinds:{k:{hp,sp,r,dmg,score}},pick:(S)=>kind,ring:[min,max],bounds}
      ENG.swarm.step(S,dt,tx,ty)            spawn on the curve, chase (tx,ty), separate, expire dead. returns array of kills this step
      ENG.swarm.hurt(S,e,dmg,kx,ky)         damage + knockback; marks e.dead when hp<=0 (removed next step, kills reported once)
@@ -29,7 +29,7 @@ const ENG = (() => {
     each(S, kind, fn) { for (const f of S.efx || []) if (!kind || f.kind === kind) fn(f, Math.min(1, f.t / f.life)); } };
   const proj = { fire(S, x, y, vx, vy, o) { (S.eproj = S.eproj || []).push(Object.assign({ x, y, vx, vy, life:1.2, r:2, dmg:1, pierce:0, team:'p' }, o)); } };
   const imp = { push(e, dx, dy, force) { const l = Math.hypot(dx, dy) || 1; e.ix = (e.ix || 0) + dx / l * force; e.iy = (e.iy || 0) + dy / l * force; },
-    step(e, dt) { if (e.ix || e.iy) { e.x += e.ix * dt; e.y += e.iy * dt; const d = Math.exp(-8 * dt); e.ix *= d; e.iy *= d; if (Math.abs(e.ix) < 1 && Math.abs(e.iy) < 1) e.ix = e.iy = 0; } } };
+    step(e, dt, solid) { if (e.ix || e.iy) { if (solid) move(e, solid, e.ix * dt, e.iy * dt); else { e.x += e.ix * dt; e.y += e.iy * dt; } const d = Math.exp(-8 * dt); e.ix *= d; e.iy *= d; if (Math.abs(e.ix) < 1 && Math.abs(e.iy) < 1) e.ix = e.iy = 0; } } };
   /* swarm cfg: {cap, spawn:(S)=>interval s, pick:(S)=>kind, kinds:{k:{hp, sp:number|[lo,hi], r, ...extra copied onto the entity}},
        ring:[min,max] OR spawnAt:(S)=>{x,y} (custom spawn points e.g. screen edges), bounds, separate:false to disable crowding push}.
      per-entity e.slow (default 1) scales chase speed for one step (auras, freeze). ENG.swarm.add(S,kind,x,y) places one by hand (bosses). */

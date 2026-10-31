@@ -9,6 +9,8 @@ cd kit/cabinet && source env.sh
 python3 new.py --starter arena      g40 "Ant Storm"      # top-down swarm survival      (from s1)
 python3 new.py --starter platformer g41 "Sky Hopper"     # side-scroll run + jump        (from s2)
 python3 new.py --starter tower      g42 "Moat Keeper"    # tower defense: path + waves   (from s3)
+python3 new.py --starter racer      g43 "Drift Club"     # kart racer: generated circuit  (from s4)
+python3 new.py --starter dungeon    g44 "Crypt Key"      # mini-Zelda: rooms, key, boss    (from s5)
 ```
 That copies the starter, renames ids/seed, registers it in `games.json`, builds it and runs `check.sh` (build, HUD lint, bot run, determinism + seed-sensitivity). You land on a playable, bot-winnable, deterministic page. Then iterate on: the `TUNE*` constant (numbers), `draw`/`drawHD` (look), `step` (rules). Each starter's header holds the filled 7-line BRIEF.
 
@@ -17,8 +19,10 @@ That copies the starter, renames ids/seed, registers it in `games.json`, builds 
 | arena survivor | `games/s1.js` | bot survives 40 s on seeds 1-8 (8/8), final hp 28-100 |
 | platformer | `games/s2.js` | bot clears a generated level on seeds 1-8 (8/8), no life lost |
 | tower defense | `games/s3.js` | bot holds the gate through 8 waves on seeds 1-8 (8/8), 9-10 lives left |
+| kart racer | `games/s4.js` | bot takes the podium on seeds 1-8 (8/8: P1 x6, P2 x2); generated circuit per seed; 4 laps in about 19 s |
+| mini-Zelda dungeon | `games/s5.js` | bot clears 4 rooms, takes the key, unlocks the door, beats the boss on seeds 1-8 (8/8), 23-33 s |
 
-**Not yet shipped as code** (honest list): kart racer, mini-Zelda dungeon, turn-based arena, deckbuilder, tycoon, 3D obby, prop hunt. For those, copy the nearest starter's *shape* (TUNE sheet + engine calls + info/bot contract below) and the feel notes in `FEEL-SHEETS.md`; they are labelled "unproven start values" there.
+**Not yet shipped as code** (honest list): turn-based arena, deckbuilder, tycoon, 3D obby, prop hunt. For those, copy the nearest starter's *shape* (TUNE sheet + engine calls + info/bot contract below) and the feel notes in `FEEL-SHEETS.md`; they are labelled "unproven start values" there.
 
 ## 2. Engines: `kit/cabinet/engine.js` (global `ENG`)
 `move` (AABB vs solid fn), `grid`, `path`, `proj`, `swarm`, `hits`, `imp` (knockback), `cam`/`shake`, `fx`. Full signatures are the header comment of `engine.js`. **Rule: engines own lifecycles.** `kit()` calls `ENG.tick(S, dt)` every sim step, so effects (`S.efx`), projectiles (`S.eproj`), knockback and camera shake age in the simulation, never inside a renderer. Renderers only *read*. (The bug this prevents: explosion effects aged inside the pixel renderer and piled up forever in HD/Art.) A game that imports the engine contains no hand-rolled collision, swarm or effect aging: see `s1.js`, 45 lines of rules.
