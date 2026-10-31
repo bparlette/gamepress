@@ -127,7 +127,7 @@ const GAME = kit({ id:'g33', tall:true, dir:'any', t1:'TRICK', t2:'TREAT HOUSE',
       if (e.happy) { e.ht += dt; e.x += e.hx * dt; e.y += e.hy * dt; if (e.ht > 1.4) S.en.splice(i, 1); continue; }
       let sp = e.sp; if (e.k === 'vampire' && e.d > PATH33.len - 150 && !e.dashed) { e.dash = (e.dash || 0) + dt; if (e.dash > 0.9) e.dashed = true; sp *= 2.8; }
       e.d += sp * dt; const q = PATH33.at(Math.min(e.d, PATH33.len)); e.a = q.a; e.x = q.x - Math.sin(q.a) * e.lane; e.y = q.y + Math.cos(q.a) * e.lane;
-      if (e.d >= PATH33.len) { S.en.splice(i, 1); S.stash -= e.steal; S.hurt = 0.6; sfx('hurt'); ENG.shake(S, 3); ENG.fx.add(S, 'num', 128, 292, 0.9, { v:-e.steal, bad:true }); if (S.stash <= 0) { S.stash = 0; sfx('die'); return finish(S, 'THE CANDY IS GONE'); } } }
+      if (e.d >= PATH33.len) { S.en.splice(i, 1); S.stash -= e.steal; S.hurt = 0.6; sfx('hurt'); ENG.impact(S, "strong"); ENG.fx.add(S, 'num', 128, 292, 0.9, { v:-e.steal, bad:true }); if (S.stash <= 0) { S.stash = 0; sfx('die'); return finish(S, 'THE CANDY IS GONE'); } } }
     /* shooters: kid, then family as they join */
     const live = () => S.en.filter(e => !e.happy && !e.dead);
     S.cd[0] -= dt; if (S.cd[0] <= 0) { const t = front33(S, p.x, p.y - 20, true); if (t) { S.cd[0] = C.me.cd; S.aim[0] = Math.atan2(t.y - (p.y - 20), t.x - p.x); shoot33(S, p.x + 8 * p.face, p.y - 20, t.x, t.y, { r:C.me.r, dmg:C.me.dmg + S.atk }); sfx('swing'); } }

@@ -24,7 +24,9 @@ function mkRng(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >
 /* ?seed=N (or any string) makes every run reproducible. Without it: attract mode uses its fixed seed, real play a per-run seed.
    runSeed(fixed, off) is the ONLY way a game should seed its RNG; the active seed is exposed as window.__shell.seed. */
 const SEED_Q = (() => { try {
-  const v = new URLSearchParams(location.search).get('seed'); if (v == null || v === '') return null;
+  const q = new URLSearchParams(location.search); let v = q.get('seed');
+  if ((v == null || v === '') && q.get('daily')) { const d = new Date(); return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate(); }   /* ?daily=1: everyone gets the same seed today */
+  if (v == null || v === '') return null;
   if (Number.isFinite(Number(v))) return Number(v) >>> 0;
   let h = 2166136261; for (let i = 0; i < v.length; i++) h = Math.imul(h ^ v.charCodeAt(i), 16777619); return h >>> 0;
 } catch (_) { return null; } })();
