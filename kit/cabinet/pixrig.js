@@ -41,7 +41,7 @@ const PRIG = (() => {
 
   /* ---- IK fighter poses (SF2-style move sets). Every pose is a handful of numbers: lean (deg), hip height, feet (x from hip, height above ground), hands (x,y relative to shoulder).
      skelG(pose, env, ph): env 0..1 blends guard -> pose peak (the game drives it from startup/active/recovery), ph = walk phase / spin phase, flips handled by `rot` (deg, + = backwards). */
-  const GUARD = { lean:6, hip:58, fa:[24, 0], fb:[-24, 0], ha:[28, 0], hb:[18, 8] };
+  const GUARD = { lean:8, hip:52, fa:[28, 0], fb:[-30, 0], ha:[28, 2], hb:[18, 8] };
   const PG = {
     idle:GUARD, crouch:{ lean:12, hip:36, fa:[34, 0], fb:[-26, 0], ha:[28, -6], hb:[18, 0] },
     jab:{ lean:8, hip:58, fa:[26, 0], fb:[-24, 0], ha:[62, 2], hb:[18, 8] }, cross:{ lean:12, hip:56, fa:[30, 0], fb:[-30, 0], ha:[68, 0], hb:[20, 6] }, hpunch:{ lean:18, hip:52, fa:[34, 0], fb:[-36, 0], ha:[76, -2], hb:[18, 6] },
@@ -56,16 +56,19 @@ const PRIG = (() => {
     sonic:{ lean:8, hip:56, fa:[34, 0], fb:[-34, 0], ha:[62, -2], hb:[-24, 12] }, flash:{ lean:0, hip:78, fa:[44, 104], fb:[-14, 40], ha:[10, 22], hb:[-10, 18] },
     hit:{ lean:-16, hip:58, fa:[16, 0], fb:[-20, 0], ha:[-10, -26], hb:[-22, -16] }, hitc:{ lean:-8, hip:36, fa:[34, 0], fb:[-26, 0], ha:[-6, -18], hb:[-14, -12] }, block:{ lean:2, hip:50, fa:[26, 0], fb:[-26, 0], ha:[24, 14], hb:[18, 20] }, blockc:{ lean:6, hip:34, fa:[34, 0], fb:[-26, 0], ha:[22, 10], hb:[16, 14] },
     knock:{ lean:-50, hip:70, fa:[20, 20], fb:[-10, 10], ha:[-20, 10], hb:[-30, 4] }, ko:{ lean:0, hip:62, fa:[6, 0], fb:[-6, 0], ha:[10, -34], hb:[-6, -30] }, getup:{ lean:30, hip:34, fa:[30, 0], fb:[-20, 0], ha:[24, -14], hb:[12, -10] } };
-  const ik = (r, p, l1, l2, sg) => { let dx = p[0] - r[0], dy = p[1] - r[1], d = Math.hypot(dx, dy), mx = l1 + l2 - 0.5; if (d > mx) { dx *= mx / d; dy *= mx / d; d = mx; } if (d < 1) d = 1;
-    const a = Math.acos(Math.max(-1, Math.min(1, (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d)))), b = Math.atan2(dy, dx) + sg * a; const m = [r[0] + l1 * Math.cos(b), r[1] + l1 * Math.sin(b)]; return [m, [r[0] + dx, r[1] + dy]]; };
+  /* 2-bone IK. kind 'leg': knee on the +x (forward) side; kind 'arm': elbow on the lower side. (A fixed sign bent the knees BACKWARDS: that was the awkward-legs bug.) */
+  const ik = (r, p, l1, l2, kind) => { let dx = p[0] - r[0], dy = p[1] - r[1], d = Math.hypot(dx, dy), mx = l1 + l2 - 0.5; if (d > mx) { dx *= mx / d; dy *= mx / d; d = mx; } if (d < 1) d = 1;
+    const a = Math.acos(Math.max(-1, Math.min(1, (l1 * l1 + d * d - l2 * l2) / (2 * l1 * d)))), b0 = Math.atan2(dy, dx); let best = null;
+    for (const sg of [-1, 1]) { const b = b0 + sg * a, m = [r[0] + l1 * Math.cos(b), r[1] + l1 * Math.sin(b)], sc = kind === 'leg' ? m[0] : -m[1] - 0.15 * m[0]; if (!best || sc > best.sc) best = { m, sc }; }
+    return [best.m, [r[0] + dx, r[1] + dy]]; };
   const mix = (a, b, e) => a + (b - a) * e, mix2 = (a, b, e) => [mix(a[0], b[0], e), mix(a[1], b[1], e)];
   function skelG(pose, env, ph, rotDeg) {
     const P = PG[pose] || GUARD, e = Math.max(0, Math.min(1, env === undefined ? 1 : env)), base = (pose === 'idle' || pose === 'walk') ? GUARD : (/^(crouch|cjab|cupper|clkick|cmkick|sweep|hitc|blockc)/.test(pose) ? PG.crouch : (/^j/.test(pose) ? PG.jump : GUARD)); const J = {};
     const lean = mix(base.lean, P.lean, e), hipy = mix(base.hip, P.hip, e) + (pose === 'idle' ? 2 * Math.sin(ph || 0) : 0); let fa = mix2(base.fa, P.fa, e), fb = mix2(base.fb, P.fb, e), ha = mix2(base.ha, P.ha, e), hb = mix2(base.hb, P.hb, e);
     if (pose === 'walk') { const s = Math.sin(ph), c = Math.cos(ph); fa = [24 + 14 * s, 14 * Math.max(0, c)]; fb = [-24 - 14 * s, 14 * Math.max(0, -c)]; }
     J.hip = [0, hipy]; J.sh = [44 * Math.sin(lean * Math.PI / 180), hipy + 44 * Math.cos(lean * Math.PI / 180)]; J.head = [J.sh[0] + 17 * Math.sin((lean - 4) * Math.PI / 180), J.sh[1] + 17 * Math.cos((lean - 4) * Math.PI / 180)];
-    [J.kneeA, J.footA] = ik(J.hip, [fa[0], fa[1]], 33, 33, -1); [J.kneeB, J.footB] = ik(J.hip, [fb[0], fb[1]], 33, 33, -1);
-    [J.elbA, J.handA] = ik(J.sh, [J.sh[0] + ha[0], J.sh[1] + ha[1]], 27, 26, 1); [J.elbB, J.handB] = ik(J.sh, [J.sh[0] + hb[0], J.sh[1] + hb[1]], 27, 26, 1);
+    [J.kneeA, J.footA] = ik([J.hip[0] + 3, J.hip[1]], [fa[0], fa[1]], 33, 33, 'leg'); [J.kneeB, J.footB] = ik([J.hip[0] - 3, J.hip[1]], [fb[0], fb[1]], 33, 33, 'leg');
+    [J.elbA, J.handA] = ik(J.sh, [J.sh[0] + ha[0], J.sh[1] + ha[1]], 27, 26, 'arm'); [J.elbB, J.handB] = ik(J.sh, [J.sh[0] + hb[0], J.sh[1] + hb[1]], 27, 26, 'arm');
     const rot = (rotDeg || 0) * Math.PI / 180; if (rot) { const c = J.hip, cs = Math.cos(rot), sn = Math.sin(rot); for (const k in J) { const x = J[k][0] - c[0], y = J[k][1] - c[1]; J[k] = [c[0] + x * cs - y * sn, c[1] + x * sn + y * cs]; } }
     J.lying = pose === 'ko'; J.free = !!rot || /^j|dp|flash|tatsu|knock/.test(pose);
     if (J.lying) { const c = J.hip; for (const k in J) if (typeof J[k] === 'object') { const x = J[k][0] - c[0], y = J[k][1] - c[1]; J[k] = [c[0] - y, c[1] + x]; } const my = (J.hip[1] + J.sh[1] + J.head[1] + J.footA[1] + J.footB[1]) / 5; for (const k in J) if (typeof J[k] === 'object') J[k] = [J[k][0] - 6, J[k][1] - my + 12]; }
@@ -169,5 +172,5 @@ const PRIG = (() => {
     for (let yy = 0; yy < SH; yy++) for (let xx = 0; xx < SW; xx++) { const c = lay[yy * SW + xx]; if (c < 0) continue; px(Math.round(x) + xx - cx, Math.round(y) + yy - cy, c === 99 ? K : (fl ? W : c)); }
     const m = S.muzzle; return { fist: [Math.round(x) + S.handA[0] - cx, Math.round(y) + S.handA[1] - cy], foot: [Math.round(x) + S.footA[0] - cx, Math.round(y) + S.footA[1] - cy], muzzle: m ? [Math.round(x) + m[0] - cx, Math.round(y) + m[1] - cy] : null, head: [Math.round(x) + S.head[0] - cx, Math.round(y) + S.head[1] - cy], chest: [Math.round(x) + S.sh[0] - cx, Math.round(y) + S.sh[1] - cy + 4] };
   }
-  return { draw, skel };
+  return { draw, skel, skelG };
 })();
