@@ -30,7 +30,7 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
   "trailer"), 9:16 safe zones, juice hierarchy (hit-stop first).
 - **Quality rule:** demo and full game differ only in LENGTH, never in
   quality — best physics, juice, and visuals in every demo.
-- **Assets:** sprite workflow + Lospec palettes, Kenney packs, Game Icons
+- **Assets:** sprite workflow + Lospec palettes, Kenney packs, Game Icons, PixelFX code-drawn effects
   (see Asset sources below). Sound: gameplay audio front and center.
 
 ### 2. Store assets — "gamepress assets"
