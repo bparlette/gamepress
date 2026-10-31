@@ -71,3 +71,23 @@ viewBox / anchor are in SVG units; `scale` multiplies to logical px (256-wide sc
 
 ## 7. Where the rest lives
 `FEEL-SHEETS.md` (numbers), `ART-TRANSFER.md` (anchors, Lux environment recipe, painted-art pipeline), `KIT-API.md`, `ART-CONVENTIONS.md`, `HD-ART-TIER.md`, `RUNBOOK-ENV.md`, `PAINTED-ART-BRIEF.md`.
+
+
+## 8. Stranger test (the acceptance check for "any AI can build any game")
+**Test genre: turn-based arena** (no starter exists; the nearest shapes are `s3` for state + cursor input and `s1` for the TUNE sheet). Brief for the tester, in one line: *"6x6 board, 4 units a side, move then attack, enemy AI, win by clearing the enemy side."*
+
+**Rules of the test**
+- The tester gets the repo and the docs only (`GENERIC-KIT.md`, `FEEL-SHEETS.md`, `ART-TRANSFER.md`, `KIT-API.md`, `engine.js` header, `games/s1-s3.js` as the permitted starters). It may not open any `g1`-`g31` or `g17*` source.
+- The tester logs every doc gap it hits (a value it had to guess, a trap it fell into) in `docs/STRANGER-TEST-LOG.md` as it goes. That log is the deliverable that matters.
+
+**Pass checklist (all must hold; score each line pass/fail)**
+1. `python3 new.py ...` or manual scaffold, then `./check.sh gNN 90` ends green: no page errors, no HUD lint, `repeat-equal true`, `other-seed-differs true`.
+2. Bot wins on seeds 1-8 (8/8), via `finish(S, ...)`; the game ends by itself.
+3. `info()` fingerprints state (board, units, hp, turn), and `tiers.cjs gNN gNN.hd gNN.art --seeds 1,2,3` prints `OK: tiers match` (Pixel + HD + HD/WebGL; each tier needs its own `draw`/`drawHD`).
+4. Uses `engine.js` for grid/path/fx; contains no hand-rolled collision, swarm or effect aging.
+5. A `TUNE` sheet exists at the top of the file with every number (board size, move range, hp, damage, hit odds, AI aggression) and the filled 7-line BRIEF is in the header.
+6. Hits none of the three traps (pixel calls in `hud()`, extra `kit()` config, `window.THREE`), and no value had to be guessed from a finished game.
+7. Playable page opens with zero manual setup.
+**Grading:** 7 of 7 = the claim holds for this genre. Any failure is a doc gap to fix, then re-run with a *different* fresh tester.
+
+**Status: not run.** The checklist is defined here; no stranger has built the game yet. The roadmap's "any AI, any game" acceptance remains unproven until that run happens.
