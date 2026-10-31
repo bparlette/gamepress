@@ -160,7 +160,7 @@ const GAME = kit({ id:'g40', t1:'TOURNAMENT', t2:'LADDER', sub:'THREE FIGHTS. NO
     if (S.intro < TUNE37.intro) { if (S.intro < .85) txt('ROUND ' + (S.round || 1), 128, 84, Y, 24, 'center'); else txt('FIGHT!', 128, 84, R, 32, 'center'); }
     if (S.combo > 1) txt(S.combo + ' HIT COMBO', 128, 40, Y, 8, 'center'); if (S.throwT > 0) txt(S.throwName, 128, 52, W, 8, 'center');
     if (S.over > 0) txt(S.timeLeft <= 0 ? 'TIME' : 'K.O.!', 128, 80, Y, 32, 'center'); hintS(S, 'WIN 3 FIGHTS IN A ROW  UIO PUNCH  JKL KICK', 8, 212); },
-  info(S) { const q = f => f.mv ? f.mv.id : f.st; return { x1:Math.round(S.p1.x), x2:Math.round(S.p2.x), hp1:Math.round(S.p1.hp), hp2:Math.round(S.p2.hp), st1:S.p1.st, st2:S.p2.st, mv1:q(S.p1), mv2:q(S.p2), y1:Math.round(S.p1.y), pr:S.pr.length, tl:+S.timeLeft.toFixed(1), c1:S.p1.chB, cr1:S.p1.cr ? 1 : 0, face1:S.p1.face }; },
+  info(S) { const q = f => f.mv ? f.mv.id : f.st; return { rd:S.round, x1:Math.round(S.p1.x), x2:Math.round(S.p2.x), hp1:Math.round(S.p1.hp), hp2:Math.round(S.p2.hp), st1:S.p1.st, st2:S.p2.st, mv1:q(S.p1), mv2:q(S.p2), y1:Math.round(S.p1.y), pr:S.pr.length, tl:+S.timeLeft.toFixed(1), c1:S.p1.chB, cr1:S.p1.cr ? 1 : 0, face1:S.p1.face }; },
   bot(S, i) { S.botOn = true; i.cmdI = {}; return i; } });
 function poseOf37(S, f) {
   const e = x => Math.max(0, Math.min(1, x));

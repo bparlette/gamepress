@@ -7,6 +7,7 @@ def need(a):
 def make(gid, t1, t2, sub, extra_setup, vstep, vend, hint, tweaks=()):
     s = src
     s = s.replace("id:'g37', t1:'RYU VS', t2:'GUILE', sub:'EVERY MOVE. ONE ROUND.', seed:937, off:37", f"id:'{gid}', t1:'{t1}', t2:'{t2}', sub:'{sub}', seed:9{gid[1:]}, off:{gid[1:]}")
+    s = s.replace("return { x1:Math.round(S.p1.x)", "return { rd:S.round, x1:Math.round(S.p1.x)", 1)
     s = s.replace("think37(S, f, o, .5)", "think37(S, f, o, S.lvl || .5)")
     s = s.replace("S.dummy = !!new URLSearchParams(location.search).get('dummy'); },", "S.dummy = !!new URLSearchParams(location.search).get('dummy'); " + extra_setup + " },")
     s = s.replace("return finish(S, S.loser === B ? 'YOU WIN' : 'YOU LOSE', S.loser === B ? Math.round(A.hp) * 5 : 0); }", "return VEND(S, A, B); }")
