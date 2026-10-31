@@ -35,7 +35,7 @@ filtered for what fits this repo's web/Roblox/viral-demo work.)
 | **ambientCG** — https://ambientcg.com | CC0 PBR materials (ground, walls, fabrics, terrain) | CC0. Pairs with Poly Haven for surface work; resolution options keep web builds light. |
 | **Sketchfab** — https://sketchfab.com | Huge 3D model marketplace/viewer, incl. free downloadable models | **License varies per model** — filter to downloadable + free and read each model's license (CC-BY common). Cars and one-off hero props are its strength. |
 | **Fab / Unity Asset Store (free sections)** — https://fab.com · https://assetstore.unity.com | Free + limited-time-free assets for Unreal (Fab) and Unity (Asset Store) | Reference-only for web builds; directly useful for the Unity/Unreal side projects. Limited-time free drops rotate — worth a periodic skim. |
-| **PixelSRPG-Forge** — https://github.com/Huu-Yuu/PixelSRPG-Forge | 30,000+ fantasy pixel SRPG assets (characters, monsters, terrain tiles, UI, skill icons, SFX) | **DO NOT SHIP — license trap, inspiration only.** GitHub labels the repo MIT, but its own README disclaimer says that covers only the repo's organization, not the assets: they were collected from internet downloads and commercial purchases and the maintainer states they do not know each asset's copyright status; commercial users are told to verify rights themselves and to use the pack as inspiration rather than direct copies. That fails this doc's license-before-use gate outright — pattern/style reference for SRPG work, never a source of shipped or prototype art. Via @songsong, Oct 31, 2026. |
+| **PixelSRPG-Forge** — https://github.com/Huu-Yuu/PixelSRPG-Forge | 30,000+ fantasy pixel SRPG assets (characters, monsters, terrain tiles, UI, skill icons, SFX) | **Local testing OK — NEVER SHIP.** GitHub labels the repo MIT, but its own README disclaimer says that covers only the repo's organization, not the assets: they were collected from internet downloads and commercial purchases and the maintainer states they do not know each asset's copyright status; commercial users are told to verify rights themselves and to use the pack as inspiration rather than direct copies. Per Cherie's Oct 31, 2026 ruling, unclear-provenance assets are fine for local tests and prototypes — but this pack must never appear in a shipped or public build, and its pattern/style reference value stands regardless. Via @songsong, Oct 31, 2026. |
 
 ## UI reference libraries (look at real games before designing screens)
 
@@ -84,6 +84,8 @@ From a 20-tool list posted by @hzxuang ("20 open-source skills" — animation, p
 
 - **License before use.** CC0 (Kenney, much of Freesound) ships anywhere. CC-BY needs an
   attribution line in the game's credits/readme. CC-BY-NC never goes in a paid release.
+  License gates govern what SHIPS: unclear-provenance assets may be used for local
+  testing/prototyping only, never in a shipped or public build (Cherie, Oct 31, 2026).
 - **Palettes from Lospec, packs from Kenney, icons from Game Icons, SFX from Freesound** —
   that combo covers most 2D viral demos without opening a generator.
 - Public-release rule still applies: no personal names or repo URLs in shipped files
