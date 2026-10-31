@@ -79,11 +79,10 @@ const GAME = kit({ id:'g38', t1:'FLOPPY', t2:'RACE', sub:'TAP. JUMP. DONT FACEPL
     const order = [...S.run].sort((a, b) => a.lane - b.lane);
     for (const r of order) { const gx = sx(r.x), gy = ly[r.lane]; for (let y = -2; y <= 2; y++) for (let x = -12; x <= 12; x++) if ((x * x) / 144 + (y * y) / 5 < 1 && (x + y) % 2 === 0) px(gx + x, gy + 2 + y, K);
       PRIG.draw('fighter', r.kind, 'idle', gx, gy - r.jy, 1, 0, { sc:C.sc, J:joints38(r), alt:r.alt }); if (r === S.run[0]) { rect(gx - 2, gy - 62, 5, 1, Y); px(gx, gy - 60, Y); } }
-    for (const s of S.parts || []) { }
+    rect(60, 10, 136, 3, DG); for (const r of S.run) rect(60 + Math.min(1, r.x / TUNE38.len) * 133, 8, 4, 7, r === S.run[0] ? Y : [N, R, B, GR][r.lane]);
   },
   hud(S) { const me = S.run[0], pl = S.run.filter(r => r.done).length, rank = 1 + S.run.filter(r => r !== me && (r.done ? (!me.done || r.place < me.place) : (!me.done && r.x > me.x))).length;
     txt(['1ST', '2ND', '3RD', '4TH'][rank - 1], 14, 6, rank === 1 ? Y : W, 16); txt(Math.max(0, Math.round((TUNE38.len - me.x) / 17)) + 'M', 242, 8, W, 8, 'right');
-    rect(60, 10, 136, 3, DG); for (const r of S.run) rect(60 + Math.min(1, r.x / TUNE38.len) * 133, 8, 4, 7, r === me ? Y : [N, R, B, GR][r.lane]);
     if (S.rt < TUNE38.intro) { const n = Math.ceil(TUNE38.intro - S.rt - .3); txt(n > 0 ? String(n) : 'GO!', 128, 70, n > 0 ? W : Y, 32, 'center'); } else if (S.rt < TUNE38.intro + .6) txt('GO!', 128, 70, Y, 32, 'center');
     if (me.done) txt(me.place === 1 ? 'YOU WIN!' : '#' + me.place, 128, 70, Y, 24, 'center');
     hintS(S, 'TAP Z X ALTERNATELY TO RUN   UP JUMP', 8, 212); },
