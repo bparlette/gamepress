@@ -52,7 +52,7 @@
   "title": "Maze Wrecker",
   "la": "SMASH",
   "lb": "DASH",
-  "keys": "<b>Keys:</b> arrows move, Z or Space swings the hammer (smash the wall in front of you or stun a patrol bot), X dashes, Enter starts, M mutes. Wrecked walls reveal dots; collect 26 before the timer seals the maze. Walls grow back.",
+  "keys": "<b>Keys:</b> arrows move, Z or Space swings the hammer (smash the wall in front of you or stun a patrol bot), X dashes, Enter starts, M mutes. Wrecked walls reveal dots; collect 20 before the timer seals the maze. Walls grow back.",
   "mashup": "Pac-Man x Wrecking Crew"
  },
  {
@@ -274,6 +274,22 @@
  {
   "id": "g17e",
   "title": "Vampire Metroid HD Close",
+  "la": "JUMP",
+  "lb": "DASH",
+  "keys": "",
+  "mashup": "Super Metroid x Vampire Survivors"
+ },
+ {
+  "id": "g17f",
+  "title": "Vampire Metroid HD World",
+  "la": "JUMP",
+  "lb": "DASH",
+  "keys": "",
+  "mashup": "Super Metroid x Vampire Survivors"
+ },
+ {
+  "id": "g17g",
+  "title": "Vampire Metroid 3D",
   "la": "JUMP",
   "lb": "DASH",
   "keys": "",
