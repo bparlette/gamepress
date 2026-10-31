@@ -406,5 +406,13 @@
   "lb": "KICK",
   "keys": "<b>Keys:</b> arrows move, crouch, jump. U I O = light/medium/heavy punch, J K L = light/medium/heavy kick (Z/X = medium punch/kick). Fireball 236+P, Dragon Punch 623+P, Hurricane Kick 214+K; Guile: hold back then forward+P for Sonic Boom, hold down then up+K for Flash Kick. Close + forward/back + P throws.",
   "mashup": "Street Fighter II: Ryu vs Guile, one round"
+ },
+ {
+  "id": "g38",
+  "title": "Floppy Race",
+  "la": "TAP A",
+  "lb": "TAP B",
+  "keys": "<b>Keys:</b> tap Z then X alternately (or the A and B buttons) to run faster, Up jumps hurdles and mud, Enter starts. Trip on a hurdle and you flop. Beat three CPU runners over 100 m.",
+  "mashup": "Ragdoll sprint with the Ryu and Guile rigs"
  }
 ]
