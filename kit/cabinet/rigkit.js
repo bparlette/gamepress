@@ -15,7 +15,9 @@ const RIG = (() => {
     g.save(); g.translate(X, Y); g.scale((o.flip ? -1 : 1) * (o.sx || 1), o.sy || 1); g.scale(sc, sc); g.translate(-d.anchor[0], -d.anchor[1]); if (o.a !== undefined) g.globalAlpha = o.a;
     const put = (key, p, w, h, at, as) => { const c = prep(key, sc * (as || 1)); if (!c) return; g.save(); const pv = d.pivots[p] || [0, 0], q = pose[p] || {};
       g.translate(pv[0] + (q.ox || 0), pv[1] + (q.oy || 0)); g.rotate(q.rot || 0); g.scale(q.sx || 1, q.sy || 1); g.translate(-pv[0], -pv[1]);
-      if (at) { g.translate(at[0], at[1]); g.scale(as || 1, as || 1); } g.drawImage(c, 0, 0, w, h);
+      if (at) { g.translate(at[0], at[1]); g.scale(as || 1, as || 1); }
+      if (R.outline) { const o = R.outline.w / sc / (as || 1), sil = HD.tinted(c, R.outline.col); if (o.toFixed) for (const [dx, dy] of [[o, 0], [-o, 0], [0, o], [0, -o]]) g.drawImage(sil, dx, dy, w, h); }   /* 16-bit tier: 1-sprite-pixel dark contour */
+      g.drawImage(c, 0, 0, w, h);
       if (o.tint && o.ta > 0) { g.globalAlpha = (o.a === undefined ? 1 : o.a) * o.ta; g.drawImage(HD.tinted(c, o.tint), 0, 0, w, h); } g.restore(); };
     for (const p of d.order) { const a = R.img[name + '.' + p]; if (a) put(name + '.' + p, p, a.w, a.h); for (const at of d.attach || []) if (at.to === p) { const b = R.img[at.key]; if (b) put(at.key, p, b.w, b.h, at.at, at.scale); } }
     g.restore(); return true; };
