@@ -85,6 +85,7 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
   gpphys, gpchar, gpsprites, gpaudio, gptouch (`docs/TOUCH.md`), gpviewport
   (9:16 safe zones), gpshaders / gptoon, gpretro + gbfixed (ports),
   gpmonetize. Index: `docs/KIT.md`.
+- **Simple-style blocky arcade games (`kit/cabinet`, g46-g47, plain rects, no rig):** g46 Crypt Gauntlet (top-down dungeon crawler: keys, doors, bone-pile spawners, draining health, 3 rooms) and g47 Skyfire 42 (vertical shooter with a plane/tank choice at the start; the CPU flies the other unit; loop dodge, POW upgrades, boss bomber).
 - **Cabinet rig games (`kit/cabinet`, g35-g45):** `pixrig.js` (PRIG) draws characters fresh
   every frame from a skeleton — no sprite assets: soldier/zombie/fighter kinds, a jointed
   fighter skeleton (pelvis, spine, two shoulders, knee/elbow flexion limits, heel/toe feet)

@@ -104,3 +104,8 @@ From a 20-tool list posted by @hzxuang ("20 open-source skills" — animation, p
   that combo covers most 2D viral demos without opening a generator.
 - Public-release rule still applies: no personal names or repo URLs in shipped files
   (see the itch.io/CrazyGames deliverable rules).
+
+## Cabinet simple-style games g46-g47
+
+- **Art/audio:** none imported; all rect-drawn in code, chiptune from the shell's synth.
+- **Third-party IP (flag, not cleared):** the genres are homages to classic arcade games (dungeon crawler, 1942-style shooter). Titles are original (Crypt Gauntlet, Skyfire 42); no names, sprites or assets from those games are used. Owner should confirm the names are acceptable before wider promotion.

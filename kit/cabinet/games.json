@@ -470,5 +470,21 @@
   "lb": "GUARD",
   "keys": "<b>Keys:</b> Z strike, X guard, Up throw. Strike beats throw, throw beats guard, guard beats strike. CPU repeats itself half the time.",
   "mashup": "Strike/guard/throw mind game with the Ryu and Guile rigs"
+ },
+ {
+  "id": "g46",
+  "title": "Crypt Gauntlet",
+  "la": "AXE",
+  "lb": "AXE",
+  "keys": "<b>Keys:</b> arrows move in eight directions, hold Z or X to throw axes (auto-aims). Keys open doors, bone piles spawn monsters, food refills your draining health.",
+  "mashup": "Top-down dungeon crawler, simple blocky style"
+ },
+ {
+  "id": "g47",
+  "title": "Skyfire 42",
+  "la": "FIRE",
+  "lb": "LOOP",
+  "keys": "<b>Keys:</b> arrows fly, hold Z or X to fire, press both for a loop-the-loop (two per game). Shoot the red wave for POW upgrades and beat the boss bomber.",
+  "mashup": "Vertical shooter, simple blocky style"
  }
 ]
