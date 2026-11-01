@@ -117,3 +117,12 @@ Not yet re-run with a second, different tester after fixing these; the genre-gen
 - Do **not** vendor the repo into the frozen shell. Bake frames, or copy single effects with attribution.
 - Authoring new effects: the repo ships a Claude Code skill (`skills/pixelfx/`) that runs the draft → render → look → refine loop; new effects get the same seed + palette-ramp treatment before they count as kit material.
 - Proven in-tree: bullet-impact and hit-spark already run in the cast test scene.
+
+## 10. Co-op stage games (design notes — no starter yet)
+The Harmony-of-Despair shape: up to 6 players run one large stage built from room-sized chunks, grab chests on the way, and race a timer to the boss. Source case: HarmonyRecomp, the static recompilation of the 2010 Xbox 360 original — its code is BSD 3-Clause, the game's assets are Konami's and never ship; a kit version is an original cast in this format. Three pieces of math carry the genre:
+
+- **Zoom camera (the signature).** Every frame, take the bounding box of all alive players, pad it, and fit it to the viewport: `targetZoom = clamp(min(vw / boxW, vh / boxH), stageFitZoom, 1)`, center on the box center, then smooth both with an exponential approach (`cam += (target - cam) * min(1, dt * 4)`). Pulled all the way out, the whole stage reads as a living map; punched in, it is a normal action camera. Never let a player leave the frame: if the box would exceed the stage fit, the fit wins and the stage edge clamps the center.
+- **Fixed-timestep clock.** The recomp had to synthesize its own 1 ms vblank clock or the game ran at the wrong speed; the kit version of the same lesson: accumulate real `dt`, step the sim at a fixed `h` (1/60), cap the accumulator (drop time past ~0.25 s rather than spiral), render after stepping. The same seed + same inputs then give the same `info()` on a 60 Hz laptop and a 144 Hz monitor — the §3 contract, kept under multiplayer.
+- **Stage data, baked.** Rooms are grid chunks with door/exit tables, baked at build time into JSON tilemaps; the runtime never parses source formats. Character kits differ in movement (double jump, hover, whip reach), never in collision rules.
+
+Netplay shape (room codes + lobby + host migration) already exists in the social-trial runtime; these notes are the game-side half. Until a starter ships and passes §8, this section is design guidance, not a proven recipe — it joins the honest list in §1.
