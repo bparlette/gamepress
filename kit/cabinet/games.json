@@ -486,5 +486,21 @@
   "lb": "LOOP",
   "keys": "<b>Keys:</b> pick plane, tank or archer with left/right and Z; the computer plays the other two. Arrows move, hold Z or X to fire, plane: Z+X together loops. Shoot red waves for POW, beat the boss bomber.",
   "mashup": "Vertical shooter, choose plane, tank or archer"
+ },
+ {
+  "id": "g48",
+  "title": "Skyfire 42: High-End 8-Bit",
+  "la": "FIRE",
+  "lb": "LOOP",
+  "keys": "<b>Keys:</b> pick plane, tank or archer with left/right and Z; the computer plays the other two. Arrows move, hold Z or X to fire, plane: Z+X together loops. Shoot red waves for POW, beat the boss bomber.",
+  "mashup": "Vertical shooter, high-end shaded 8-bit sprites"
+ },
+ {
+  "id": "g49",
+  "title": "Skyfire 42: Painted",
+  "la": "FIRE",
+  "lb": "LOOP",
+  "keys": "<b>Keys:</b> pick plane, tank or archer with left/right and Z; the computer plays the other two. Arrows move, hold Z or X to fire, plane: Z+X together loops. Shoot red waves for POW, beat the boss bomber.",
+  "mashup": "Vertical shooter, painted HD world"
  }
 ]

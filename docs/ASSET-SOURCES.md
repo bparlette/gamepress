@@ -105,7 +105,7 @@ From a 20-tool list posted by @hzxuang ("20 open-source skills" — animation, p
 - Public-release rule still applies: no personal names or repo URLs in shipped files
   (see the itch.io/CrazyGames deliverable rules).
 
-## Cabinet simple-style games g46-g47
+## Cabinet simple-style games g46-g49
 
 - **Art/audio:** none imported; all rect-drawn in code, chiptune from the shell's synth.
-- **Third-party IP (flag, not cleared):** the genres are homages to classic arcade games (dungeon crawler, 1942-style shooter). Titles are original (Crypt Gauntlet, Skyfire 42); no names, sprites or assets from those games are used. Owner should confirm the names are acceptable before wider promotion.
+- **Third-party IP (flag, not cleared):** the genres are homages to classic arcade games (dungeon crawler, 1942-style shooter). Titles are original (Crypt Gauntlet, Skyfire 42 in three editions); no names, sprites or assets from those games are used. Owner should confirm the names are acceptable before wider promotion.
