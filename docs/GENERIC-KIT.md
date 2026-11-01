@@ -102,3 +102,18 @@ viewBox / anchor are in SVG units; `scale` multiplies to logical px (256-wide sc
 - Undocumented helpers it had to discover: `bfs` (grid reachability, in gamekit.js), `dirInp`, `S.edge`, `popup`, `burst`, `hintS`; the non-starter form of `new.py` overwrites the game file.
 - Games ending in 20-45 s make seedcheck's 60 s sample land after game over.
 Not yet re-run with a second, different tester after fixing these; the genre-general claim stays "holds once the gaps in the log are closed".
+
+## 9. Effects: PixelFX (code-driven pixel VFX)
+244 pixel-art effects, every one a small piece of code — fire, explosions, portals, weather, hit sparks, full attack moves. Source: `github.com/patch-gg/pixelfx`, **MIT** (code and effects; the repo's gallery art and fonts are not part of the grant — see its NOTICE.md, and `docs/ASSET-SOURCES.md` for the full license entry). Method credit: Hugo Duprez's code-as-clay workflow; `src/core/sim.js` and the effects that say so adapt his open-source work, so keep the MIT notice with any adapted effect.
+
+**How a kit game uses it**
+- Pick from `docs/CATALOG.md` (ids like `fire/torch`, `ice/frost-nova`, `moves/ground-pound`), then recolor onto the cabinet's 22-color palette via a palette ramp — never ship the effect's native colors raw.
+- Two integration paths. **Bake (default):** `node tools/render.mjs <id> --sheet` emits a transparent PNG plus an Aseprite-format JSON — ship those frames as sprites. **Live:** copy the single effect's JS in, drive it from the sim, and map its colors onto the palette at draw time.
+- Sizes: effect canvases run up to 304x204, wider than the 256x224 buffer. Scale or crop when baking; a one-shot that overflows the buffer on purpose (ground-pound's leap) gets baked, not run live.
+
+**Contract fit (why this is safe for the QA harness)**
+- Deterministic: the particle core takes a `seed` (its own `Rng`, default 1) and the render tool takes `--seed N`. Feed it from `S.rng` so `seedcheck` parity holds; an unseeded effect is a parity bug.
+- Lifecycle: effects age in the sim, never in a renderer — the §2 rule. Spawn into `S.efx` and let `ENG.tick` age them; the renderer only reads.
+- Do **not** vendor the repo into the frozen shell. Bake frames, or copy single effects with attribution.
+- Authoring new effects: the repo ships a Claude Code skill (`skills/pixelfx/`) that runs the draft → render → look → refine loop; new effects get the same seed + palette-ramp treatment before they count as kit material.
+- Proven in-tree: bullet-impact and hit-spark already run in the cast test scene.
