@@ -95,6 +95,10 @@ From a 20-tool list posted by @hzxuang ("20 open-source skills" — animation, p
   their key hints also lean on that vocabulary. Decide before any store/itch/CrazyGames
   release whether to rename and redesign.
 
+## Playtesting / QA agents (mined Nov 1, 2026)
+
+- **Aura Autopilot** — https://github.com/ramenvr/autopilot (Apache-2.0, by the Aura team). An open-source agent that plays your game in the editor and hunts for bugs: it installs into Unreal 5, Unity 6, or Godot 4 projects, launches Play-In-Editor sessions from prompts (Explore / Test / Verify / Goal), reads the project source while it plays, and writes a report; a per-project memory makes later runs play smarter. It can drive through your own Claude Code or Codex subscription via its MCP server (`autopilot connect claude`). **Reference only for gamepress:** no HTML5/web or Roblox path — the editor-plugin model doesn't reach our browser games. The transferable idea is the loop itself (agent plays -> finds bugs -> reports -> remembers), which is the shape of our own headless QA: seedcheck and tiers.cjs for the cabinet kit, and the Chrome runtime checker in the worlds pipeline. Aura's "43% more accurate, almost 2x faster than Claude Code at playtesting" figures are the vendor's own benchmark, unverified here. Via @RoundtableSpace, Nov 1, 2026.
+
 ## Rules of thumb
 
 - **License before use.** CC0 (Kenney, much of Freesound) ships anywhere. CC-BY needs an
