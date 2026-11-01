@@ -484,7 +484,7 @@
   "title": "Skyfire 42",
   "la": "FIRE",
   "lb": "LOOP",
-  "keys": "<b>Keys:</b> arrows fly, hold Z or X to fire, press both for a loop-the-loop (two per game). Shoot the red wave for POW upgrades and beat the boss bomber.",
-  "mashup": "Vertical shooter, simple blocky style"
+  "keys": "<b>Keys:</b> pick plane, tank or archer with left/right and Z; the computer plays the other two. Arrows move, hold Z or X to fire, plane: Z+X together loops. Shoot red waves for POW, beat the boss bomber.",
+  "mashup": "Vertical shooter, choose plane, tank or archer"
  }
 ]
