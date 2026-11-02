@@ -69,7 +69,7 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
 | demo | browser demo page on GitHub Pages | `publish-demo` |
 | web-store | itch / CrazyGames / Steam / YouTube publishing | `build --target web\|steam`, `publish-pack`, `host` |
 | full-game | approved slice → full production game | `approve expand test grade pack host` |
-| roblox | Roblox experiences: Studio build, headless Luau tests, safe publish | `roblox`, `roblox-test`, `roblox-ship` — needs the owner's Open Cloud key (`docs/ROBLOX.md`) |
+| roblox | Roblox experiences: Studio build, headless Luau tests, safe publish | `roblox`, `roblox-test`, `roblox-ship` — needs the owner's Open Cloud key (`docs/ROBLOX.md`); `tools/roblox2three.mjs` — export a Studio scene to a Three.js page |
 | port | retro platform conversions (e.g. NES → Virtual Boy) | `kit/gbfixed.js`, `lib/nesextract.mjs`, `another6502` — user must own the source game; extracted assets stay private |
 | monetize | revenue micro-games / micro-SaaS, day-1 paywall | shared set + `kit/gpmonetize.js` |
 

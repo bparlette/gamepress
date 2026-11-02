@@ -8,3 +8,5 @@ Loop:
 3. `gamepress roblox-ship <file.rbxl> --test templates/roblox-smoke.luau`: save draft, test that version, publish only on pass.
 4. Spot-check the live game; use Roblox's retention guidance (Day-1: short skippable tutorial, joyful first loop, daily rewards, funnel analytics, performance monitoring). A first audit of Yeet Pets is summarized in `docs/ROBLOX.md`.
 Marketing for Roblox: record Studio/gameplay screen footage, then `gamepress scenes` + `pack social` for Shorts (no `drive`).
+
+Scene export (not publishing): `tools/roblox2three.mjs` turns a Studio scene (Parts, lights, Lighting) into one self-contained Three.js HTML page — web previews and dioramas of a build outside Studio. Usage and limits: the roblox2three section of `docs/ROBLOX.md`.

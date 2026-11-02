@@ -76,7 +76,8 @@
    "roblox",
    "roblox-test",
    "roblox-ship",
-   "scripts/roblox-key.sh"
+   "scripts/roblox-key.sh",
+   "tools/roblox2three.mjs"
   ],
   "needs": "Open Cloud API key in macOS Keychain (scopes: universe.place.write, luau-execution-session), universe + place ids",
   "purpose": "Roblox experiences: build in Studio, headless Luau tests, safe publish, retention audit."

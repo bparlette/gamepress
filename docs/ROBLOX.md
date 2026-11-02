@@ -56,3 +56,22 @@ Audit scripts: write a Luau file that walks `game:GetDescendants()` for LuaSourc
 Source: Rojo project in the Roblox repo (`~/RobloxWork/Roblox/prototype`, github.com/bparlette/Roblox). Its AGENTS.md says a Rojo build replaces the whole place and publishing is owner-approved.
 Safe loop for code changes: `sh scripts/check.sh` (tests + build) -> `rojo build -o /tmp/x.rbxl` -> `gamepress roblox /tmp/x.rbxl --type Saved --live` (draft, not live; prints versionNumber) -> `gamepress roblox-test <verify.luau> --version N` (loads real modules in Roblox's engine; this caught a wrong `require` path that Lune tests missed) -> owner approves -> publish.
 Caution: the live version 9 was published from a Studio-saved file, not from the Rojo build. Before publishing a Rojo build, diff what the live place has that the repo lacks (hand edits in Studio are lost).
+
+## Export a scene to Three.js: `tools/roblox2three.mjs`
+
+Converts a Studio scene (Parts, wedges, lights, Lighting settings) into one self-contained Three.js HTML page — web previews, store dioramas, or eyeballing a build outside Studio. Plain Node 18+, no dependencies, no AI in the loop.
+
+```
+node tools/roblox2three.mjs serve                 # receiver on 127.0.0.1:8787 -> scene.json
+node tools/roblox2three.mjs luau                  # prints the Studio exporter script
+# Studio: Game Settings -> Security -> "Allow HTTP Requests" ON, then run the exporter
+# in the command bar (exports the current Selection, or all of Workspace if nothing is selected)
+node tools/roblox2three.mjs build scene.json scene.html [--meshes meshes.json] [--three BASE] [--title T]
+node tools/roblox2three.mjs sample                # writes a 10-part test scene.json (every shape + both light types)
+```
+
+- The exporter POSTs parts in batches of 1,500 (keeps each request under HttpService's 1 MB limit): name, shape (Block / Ball / Cylinder / Wedge / CornerWedge / Mesh), Size, CFrame, Color, Material, Transparency, Reflectance, plus PointLights/SpotLights and the Lighting values (ambient, brightness, ClockTime, fog).
+- The builder groups parts by shape + material into `InstancedMesh`, so thousands of parts stay a handful of draw calls. Roblox and Three.js are both right-handed with +Y up, so a CFrame maps straight onto a Matrix4 — no axis flips. Verified by headless render test (sample scene: 10 parts, 9 draw calls, wedge/corner-wedge orientation and yaw handedness checked in isolated renders — no mirroring).
+- Materials are approximations (a roughness/metalness table close to Roblox's look). Neon and ForceField render unlit; Glass is forced to at least 35% transparency. Reflectance feeds metalness.
+- Not covered: Terrain, textures / SurfaceAppearance, decals, Surface inputs, animations, scripts, unions' CSG geometry. MeshParts and UnionOperations export as `Mesh` and render only when `--meshes` maps their MeshId asset URL to a local .glb file (the .glb is fitted to the part's Size); without a mapping they fall back to blocks.
+- The built page loads three.js from a CDN by default. `--three BASE` points the import map at a local copy instead (`BASE/build/three.module.js` + `BASE/examples/jsm/`) for offline work.
