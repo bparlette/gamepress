@@ -1,75 +1,86 @@
 {
- "kokoro-tts": {
-  "description": "Local TTS for trailers and in-game voice lines (zero API cost, CPU-friendly)",
-  "version": "v1.1",
-  "license": "MIT",
-  "install_dir": "~/.gamepress/tts",
-  "env_override": "GAMEPRESS_TTS_DIR",
-  "check_latest": "https://api.github.com/repos/thewh1teagle/kokoro-onnx/releases/latest",
-  "tag_prefix": "model-files-",
-  "python_deps": [
-   "kokoro-onnx",
-   "soundfile"
-  ],
-  "used_by": [
-   "gamepress voice",
-   "gamepress voices",
-   "gamepress drive --vo"
-  ],
-  "release_note": "int8-quantized English model (kokoro-v1.0.int8.onnx, 109MB) \u2014 65% smaller download than the 326MB full model, no quality regression expected for voiceover/voice-line use. English voices file (voices-v1.0.bin) unchanged. Skipped: fp16 variant (163MB) and kokoro-v1.1-zh (Chinese).",
-  "files": [
-   {
-    "name": "kokoro-v1.0.int8.onnx",
-    "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.int8.onnx",
-    "size_mb": 109,
-    "sha256": "ae315a79b623f244700e4afb9246c46a26066782e049ba174bf3ba433970ee9c"
-   },
-   {
-    "name": "voices-v1.0.bin",
-    "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin",
-    "size_mb": 28,
-    "sha256": "bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d"
-   }
-  ]
- },
- "edge-tts": {
-  "description": "Microsoft Edge Read Aloud TTS (network service, MP3 output) — fallback when Kokoro voices don't fit",
-  "version": "n/a (service)",
-  "license": "Microsoft (use per Edge terms; licensing unresolved — never call it cleared)",
-  "type": "network",
-  "install_dir": "~/.gamepress/edge-tts",
-  "used_by": [
-   "gamepress voices --engine edge"
-  ],
-  "release_note": "No download — a live network service (wss://speech.platform.bing.com). May be blocked from datacenter IPs; prefer kokoro-tts (offline). `pip install edge-tts` CLI improves reliability.",
-  "files": []
- },
- "another6502": {
-  "description": "Python 6502 CPU emulator (PyPI) — runs a game's own sound driver offline to capture APU register writes per frame for the port track's sound conversion",
-  "version": "0.1",
-  "license": "MIT",
-  "install_dir": "~/.gamepress/another6502",
-  "python_deps": [
-   "another6502"
-  ],
-  "used_by": [
-   "port track: offline sound-driver capture (6502 interpreter + APU register log → target sound format)"
-  ],
-  "release_note": "Instruction-stepped, NOT cycle-accurate — fine for offline per-frame APU register-log capture of a sound driver, not for cycle-timed audio tricks. Installs via pip (no files to download); requires Python >= 3.10. https://github.com/florianehmann/another6502",
-  "files": []
- }
-,
- "piskel": {
-  "description": "Free open-source pixel sprite editor (web app + desktop) — the hand-cleanup step for generated sprite sheets: fix walk-cycle frames, slice icons/props/UI sprites, preview multi-frame animation as GIF",
-  "version": "n/a (web app)",
-  "license": "Apache-2.0",
-  "type": "web-app",
-  "install_dir": "~/.gamepress/piskel",
-  "used_by": [
-   "art-first workflow: sprite cleanup and frame edits between generation and build",
-   "8-bit / 16-bit sheet touch-ups"
-  ],
-  "release_note": "No download — runs in the browser at https://www.piskelapp.com (desktop builds on GitHub for offline use). Output is yours to use commercially. It is an editor, not a generator: gamepress still generates/approves art first; Piskel is where a 90%-right sheet gets finished by hand. https://github.com/piskelapp/piskel",
-  "files": []
- }
+  "kokoro-tts": {
+    "description": "Local TTS for trailers and in-game voice lines (zero API cost, CPU-friendly)",
+    "version": "v1.1",
+    "license": "MIT",
+    "install_dir": "~/.gamepress/tts",
+    "env_override": "GAMEPRESS_TTS_DIR",
+    "check_latest": "https://api.github.com/repos/thewh1teagle/kokoro-onnx/releases/latest",
+    "tag_prefix": "model-files-",
+    "python_deps": [
+      "kokoro-onnx",
+      "soundfile"
+    ],
+    "used_by": [
+      "gamepress voice",
+      "gamepress voices",
+      "gamepress drive --vo"
+    ],
+    "release_note": "int8-quantized English model (kokoro-v1.0.int8.onnx, 109MB) \u2014 65% smaller download than the 326MB full model, no quality regression expected for voiceover/voice-line use. English voices file (voices-v1.0.bin) unchanged. Skipped: fp16 variant (163MB) and kokoro-v1.1-zh (Chinese).",
+    "files": [
+      {
+        "name": "kokoro-v1.0.int8.onnx",
+        "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/kokoro-v1.0.int8.onnx",
+        "size_mb": 109,
+        "sha256": "ae315a79b623f244700e4afb9246c46a26066782e049ba174bf3ba433970ee9c"
+      },
+      {
+        "name": "voices-v1.0.bin",
+        "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.1/voices-v1.0.bin",
+        "size_mb": 28,
+        "sha256": "bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d"
+      }
+    ]
+  },
+  "edge-tts": {
+    "description": "Microsoft Edge Read Aloud TTS (network service, MP3 output) \u2014 fallback when Kokoro voices don't fit",
+    "version": "n/a (service)",
+    "license": "Microsoft (use per Edge terms; licensing unresolved \u2014 never call it cleared)",
+    "type": "network",
+    "install_dir": "~/.gamepress/edge-tts",
+    "used_by": [
+      "gamepress voices --engine edge"
+    ],
+    "release_note": "No download \u2014 a live network service (wss://speech.platform.bing.com). May be blocked from datacenter IPs; prefer kokoro-tts (offline). `pip install edge-tts` CLI improves reliability.",
+    "files": []
+  },
+  "another6502": {
+    "description": "Python 6502 CPU emulator (PyPI) \u2014 runs a game's own sound driver offline to capture APU register writes per frame for the port track's sound conversion",
+    "version": "0.1",
+    "license": "MIT",
+    "install_dir": "~/.gamepress/another6502",
+    "python_deps": [
+      "another6502"
+    ],
+    "used_by": [
+      "port track: offline sound-driver capture (6502 interpreter + APU register log \u2192 target sound format)"
+    ],
+    "release_note": "Instruction-stepped, NOT cycle-accurate \u2014 fine for offline per-frame APU register-log capture of a sound driver, not for cycle-timed audio tricks. Installs via pip (no files to download); requires Python >= 3.10. https://github.com/florianehmann/another6502",
+    "files": []
+  },
+  "roblox_beta_ai": {
+    "mcp_proxy": "/Applications/RobloxStudio.app/Contents/MacOS/StudioMCP",
+    "capabilities": {
+      "generate_scene": "Text-to-Scene layout synthesizer producing ProceduralModel assemblies with semantic tags and configurable attributes",
+      "generate_mesh": "Text-to-3D-Mesh generator with automatic or explicit semantic part segmentation (up to 8 parts) and max triangle controls",
+      "generate_texture": "PBR texture synthesis for albedo, normal, roughness, and metalness",
+      "generate_material": "MaterialVariant synthesis for custom surface physics and visual detailing",
+      "generate_avatar": "Text-to-Rig character synthesis with humanoid setup",
+      "screen_capture": "Direct off-screen camera rendering at arbitrary 3D world coordinates bypassing GUI obstructions",
+      "execute_luau": "Low-latency direct DataModel execution across Edit, Server, and Client runtimes"
+    },
+    "benchmarks": {
+      "nome_gold": {
+        "barge_parts": 1528,
+        "seabed_parts": 7324,
+        "wired_gameplay_crevices": 45,
+        "wired_flippable_boulders": 7
+      },
+      "dig_flop_fling_race": {
+        "derby_arena_parts": 2642,
+        "rubber_tire_barriers": 48,
+        "grandstands": 2
+      }
+    }
+  }
 }
