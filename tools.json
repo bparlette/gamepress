@@ -16,7 +16,7 @@
       "gamepress voices",
       "gamepress drive --vo"
     ],
-    "release_note": "int8-quantized English model (kokoro-v1.0.int8.onnx, 109MB) \u2014 65% smaller download than the 326MB full model, no quality regression expected for voiceover/voice-line use. English voices file (voices-v1.0.bin) unchanged. Skipped: fp16 variant (163MB) and kokoro-v1.1-zh (Chinese).",
+    "release_note": "int8-quantized English model (kokoro-v1.0.int8.onnx, 109MB) — 65% smaller download than the 326MB full model, no quality regression expected for voiceover/voice-line use. English voices file (voices-v1.0.bin) unchanged. Skipped: fp16 variant (163MB) and kokoro-v1.1-zh (Chinese).",
     "files": [
       {
         "name": "kokoro-v1.0.int8.onnx",
@@ -33,19 +33,19 @@
     ]
   },
   "edge-tts": {
-    "description": "Microsoft Edge Read Aloud TTS (network service, MP3 output) \u2014 fallback when Kokoro voices don't fit",
+    "description": "Microsoft Edge Read Aloud TTS (network service, MP3 output) — fallback when Kokoro voices don't fit",
     "version": "n/a (service)",
-    "license": "Microsoft (use per Edge terms; licensing unresolved \u2014 never call it cleared)",
+    "license": "Microsoft (use per Edge terms; licensing unresolved — never call it cleared)",
     "type": "network",
     "install_dir": "~/.gamepress/edge-tts",
     "used_by": [
       "gamepress voices --engine edge"
     ],
-    "release_note": "No download \u2014 a live network service (wss://speech.platform.bing.com). May be blocked from datacenter IPs; prefer kokoro-tts (offline). `pip install edge-tts` CLI improves reliability.",
+    "release_note": "No download — a live network service (wss://speech.platform.bing.com). May be blocked from datacenter IPs; prefer kokoro-tts (offline). `pip install edge-tts` CLI improves reliability.",
     "files": []
   },
   "another6502": {
-    "description": "Python 6502 CPU emulator (PyPI) \u2014 runs a game's own sound driver offline to capture APU register writes per frame for the port track's sound conversion",
+    "description": "Python 6502 CPU emulator (PyPI) — runs a game's own sound driver offline to capture APU register writes per frame for the port track's sound conversion",
     "version": "0.1",
     "license": "MIT",
     "install_dir": "~/.gamepress/another6502",
@@ -53,9 +53,9 @@
       "another6502"
     ],
     "used_by": [
-      "port track: offline sound-driver capture (6502 interpreter + APU register log \u2192 target sound format)"
+      "port track: offline sound-driver capture (6502 interpreter + APU register log → target sound format)"
     ],
-    "release_note": "Instruction-stepped, NOT cycle-accurate \u2014 fine for offline per-frame APU register-log capture of a sound driver, not for cycle-timed audio tricks. Installs via pip (no files to download); requires Python >= 3.10. https://github.com/florianehmann/another6502",
+    "release_note": "Instruction-stepped, NOT cycle-accurate — fine for offline per-frame APU register-log capture of a sound driver, not for cycle-timed audio tricks. Installs via pip (no files to download); requires Python >= 3.10. https://github.com/florianehmann/another6502",
     "files": []
   },
   "roblox_beta_ai": {
@@ -82,5 +82,20 @@
         "grandstands": 2
       }
     }
+  },
+  "pyxel": {
+    "description": "Retro game engine for Python (fantasy-console constraints: 16 colors, 4 sound channels) with built-in sprite/tilemap/sound/music editors — tiny retro game prototypes, exportable to web HTML",
+    "version": "2.9.9",
+    "license": "MIT",
+    "install_dir": "~/.gamepress/pyxel",
+    "check_latest": "https://api.github.com/repos/kitao/pyxel/releases/latest",
+    "python_deps": [
+      "pyxel"
+    ],
+    "used_by": [
+      "prototype track: tiny 16-color retro game prototypes in Python (built-in editors; web export for demos)"
+    ],
+    "release_note": "Installs via pip (no files to download); requires Python >= 3.11. Specs: 3 image banks 256x256, 8 tilemaps 256x256, 8 music tracks. 18.5K GitHub stars, actively maintained (repo pushed 2026-11-04). https://github.com/kitao/pyxel — via @dextune post 2026-11-04, audited by Moth before registering.",
+    "files": []
   }
 }

@@ -28,6 +28,7 @@ They download on demand into `~/.gamepress/`:
 
 Current registry: `kokoro-tts` v1.1 (MIT) — local TTS for trailers and voice lines (int8 model, ~137MB total).
 `edge-tts` is also registered as a network-service fallback (`gamepress voices --engine edge`).
+`pyxel` 2.9.9 (MIT) is registered as a pip-installed Python retro game engine — 16 colors, 4 sound channels, built-in sprite/tilemap/sound/music editors, web export — for tiny retro prototypes (no downloaded files).
 To add a tool: append to `tools.json` (files with url/size_mb/sha256, version,
 check_latest, license); `lib/tools.mjs` handles the rest.
 
