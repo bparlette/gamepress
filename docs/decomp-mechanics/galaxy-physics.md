@@ -1,19 +1,22 @@
 # Super Mario Galaxy — Physics Mechanics (Decomp Reference)
 
-**Source:** `github.com/shibbo/Petari` (SMGCommunity Petari decompilation of Super Mario Galaxy)
-**Extracted:** October 19, 2026
+**Source:** `github.com/SMGCommunity/Petari` (SMGCommunity Petari decompilation of Super Mario Galaxy; repo moved from `shibbo/Petari`)
+**Extracted:** October 19, 2026 · **Refreshed against the 100% decomp:** November 5, 2026
 **Scope:** mechanics only — numbers, formulas, state machines. No assets, models, textures, audio, or level data.
+**Local reference clone:** `~/workspace/gamepress-reference/petari` (study copy only — never commit the decomp source into this repo).
+
+**AstroCore status (Nov 5, 2026):** the native PC port built on this decomp was announced by Luma's Workshop (human-coded, requires the player's own dumped ISO, distributed via their Discord). It is **announced, not released** — there is no public AstroCore code repo to vendor. What gamepress can use today is this decomp itself, via the mechanics in this doc. Caution: Nintendo filed a DMCA notice touching Galaxy decomp material on Oct 23, 2026 — keep the decomp a local reference; ship only original implementations of the mechanics.
 
 ## Decompilation completeness (honest note)
 
-The repo README describes itself as "a work-in-progress decompilation" and tracks progress on decomp.dev (badges in README). Community reports variously claim the project is ~23% complete (retroreversing-style aggregate) or ~100% of main.dol matched; I did not verify either claim — what I actually found in the local copy:
+**Update (Nov 5, 2026): the decompilation is complete.** SMGCommunity announced 100% decompiled for Galaxy 1 (late Sep 2026; the AstroCore port announcement followed Nov 3). Verified against a fresh clone of `SMGCommunity/Petari` on Nov 5, 2026 — every directory is now at its full file count and the stub gaps from the Oct 19 extraction are closed:
 
-- `src/Game/Gravity/` — **13 of 14 files fully decompiled** (the 14th, `GravityInfo.cpp`, is a trivial 15-line constructor; all shapes fully readable)
-- `src/Game/Player/` — **~101 of 107 files decompiled** (6 short stubs; `MarioMoveSphere.cpp` is constructor-only, but its logic lives in `MarioMove.cpp` which is complete)
-- `src/Game/Camera/` — **~88 of 127 files decompiled** (39 short stubs; `CameraFollow` and the planet-camera translators are complete)
-- `src/Game/MapObj/` — **~310 of 317 files decompiled**
-- `src/Game/Util/` — **~71 of 76 files decompiled**
-- **Zero `NONMATCHING` markers** in `Gravity/` and `Player/`
+- `src/Game/Gravity/` — **14 of 14 files** (all shapes fully readable)
+- `src/Game/Player/` — **107 of 107 files**
+- `src/Game/Camera/` — **127 of 127 files**
+- `src/Game/MapObj/` — **317 of 317 files**
+- `src/Game/Util/` — **76 of 76 files**
+- **Zero `NONMATCHING` markers** in `Gravity/`, `Player/`, and `Camera/`
 
 Everything quoted below was read from actual decompiled source in the repo, not inferred from gameplay. Where something was *not* in the decomp, I say so. File paths are relative to the Petari repo root.
 
@@ -239,7 +242,7 @@ The star pointer is the Wii-remote cursor system, not a gravity beam:
 
 ## 7. Pull-star / slingshot stars — NOT FOUND
 
-Searched the entire decomp for pull-star mechanics (`PullStar`, `pullstar`, slingshot, swing-ball player code): **no matches**. `Swinger`/`SwingLight` are unrelated (a pendulum helper and a light-volume effect). The object that grabs Mario and flings him between planetoids is either not yet decompiled or lives under an unrecognizable internal name. Do not treat §6's spin-pull (450-unit coin attraction) as the pull-star — different mechanic.
+Searched the entire decomp for pull-star mechanics (`PullStar`, `pullstar`, slingshot, swing-ball player code): **no matches** — re-verified Nov 5, 2026 against the now-complete tree, still no `PullStar`/`SlingStar` class. `Swinger`/`SwingLight` are unrelated (a pendulum helper and a light-volume effect), and `MapObj/JumpHole` is a different launch object with its own gravity vector (matched the search only via its `mLaunchStart` member). The object that grabs Mario and flings him between planetoids lives under an unrecognizable internal name. Do not treat §6's spin-pull (450-unit coin attraction) as the pull-star — different mechanic.
 
 ---
 

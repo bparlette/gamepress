@@ -30,7 +30,7 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
   "trailer"), 9:16 safe zones, juice hierarchy (hit-stop first).
 - **Quality rule:** demo and full game differ only in LENGTH, never in
   quality — best physics, juice, and visuals in every demo.
-- **Assets:** sprite workflow + Lospec palettes, Kenney packs, Game Icons, PixelFX code-drawn effects
+- **Assets:** sprite workflow + Lospec palettes, Kenney packs, Game Icons
   (see Asset sources below). Sound: gameplay audio front and center.
 
 ### 2. Store assets — "gamepress assets"
@@ -69,8 +69,8 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
 | demo | browser demo page on GitHub Pages | `publish-demo` |
 | web-store | itch / CrazyGames / Steam / YouTube publishing | `build --target web\|steam`, `publish-pack`, `host` |
 | full-game | approved slice → full production game | `approve expand test grade pack host` |
-| roblox | Roblox experiences: Studio build, headless Luau tests, safe publish | `roblox`, `roblox-test`, `roblox-ship` — needs the owner's Open Cloud key (`docs/ROBLOX.md`); `tools/roblox2three.mjs` — export a Studio scene to a Three.js page |
-| port | retro platform conversions (e.g. NES → Virtual Boy) | `kit/gbfixed.js`, `lib/nesextract.mjs`, `another6502` — user must own the source game; extracted assets stay private |
+| roblox | Roblox experiences: Studio build, headless Luau tests, safe publish | `roblox`, `roblox-test`, `roblox-ship` — needs the owner's Open Cloud key (`docs/ROBLOX.md`) |
+| port | retro platform conversions (e.g. NES → Virtual Boy) | `kit/gbfixed.js`, `lib/nesextract.mjs`, `another6502` — user must own the source game; extracted assets stay private · decomp mechanics references (formulas/numbers only): `docs/decomp-mechanics/` — SM64DS movement, Melee frame data, **Galaxy spherical gravity (100% decomp, refreshed Nov 5 2026)**, Pikmin 2 AI; index in `docs/DECOMP-REFERENCE.md` |
 | monetize | revenue micro-games / micro-SaaS, day-1 paywall | shared set + `kit/gpmonetize.js` |
 
 ## Building blocks
@@ -85,35 +85,10 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
   gpphys, gpchar, gpsprites, gpaudio, gptouch (`docs/TOUCH.md`), gpviewport
   (9:16 safe zones), gpshaders / gptoon, gpretro + gbfixed (ports),
   gpmonetize. Index: `docs/KIT.md`.
-- **Simple-style blocky arcade games (`kit/cabinet`, g46-g47, plain rects, no rig):** g46 Crypt Gauntlet (top-down dungeon crawler: keys, doors, bone-pile spawners, draining health, 3 rooms) and g47 Skyfire 42 (vertical shooter with a plane, tank or archer choice at the start; the CPU plays the other two; loop dodge, POW upgrades, boss bomber).
-- **Skyfire 42 in three styles (same rules, separate games):** g47 simple blocky rects, g48 high-end shaded 8-bit sprites (`spr` char maps, dithered shadows), g49 painted HD world (`drawHD` + `hdkit.js`, `// NEEDS: art`, build with `--art`, test as `g49.art`).
-- **Cabinet rig games (`kit/cabinet`, g35-g45):** `pixrig.js` (PRIG) draws characters fresh
-  every frame from a skeleton — no sprite assets: soldier/zombie/fighter kinds, a jointed
-  fighter skeleton (pelvis, spine, two shoulders, knee/elbow flexion limits, heel/toe feet)
-  and `PRIG.draw(..., {J})` for any caller-supplied joints. Games on it: g35 Locker Room
-  Last Stand, g36 Street Round, g37/g37p fighter (8-bit / 16-bit tier), g38 Floppy Race
-  (Verlet ragdoll with muscle springs), g39-g41 fighter variants (`variants37.py`), g42
-  Street Brawl, g43 Sumo Shove, g44 Fireball Dodgeball, g45 Grapple Duel. Checks:
-  `check.sh`, `seedcheck.cjs`, `baseline.cjs` (PERSONAS=1), `shots.cjs`, `test37.cjs`,
-  `test37-anatomy.cjs`; showcase video: `video/montage.cjs` + `montage.py`.
 - **Quality floor (80-pt rubric, in `gamepress context`):** ≥3 feel
   functions (hitstop / slowmo / popup / flash / shake / kick), particles +
-  ≥4 SFX types, `?auto=1` lose-first-then-win bot, video 1080×1920 per
-  `docs/SHORT-PIPELINE.md` (fused canvas+WebAudio capture, measured fps and
-  stream durations — never quoted from the recorder request),
+  ≥4 SFX types, `?auto=1` lose-first-then-win bot, video 1080×1920 @30fps,
   −14 LUFS, hook caption ≤1s.
-- **Case study — Miso, built three times:** Nintendo-style platformer,
-  then a photoreal city rebuild with a grapple-swing yarn and a vertical
-  level, then an all-3D three.js fighter/runner (Miso City Level 1).
-  Production lessons (iOS silent-switch audio fix, visual reference rule,
-  painted segment backdrops, invisible-floor rule, portrait OY pattern,
-  grapple-by-constraint, and §7: the GLB color-space trap, combat
-  readability, the verify harness, itch packaging): `docs/MISO-LESSONS.md`.
-- **What reads as premium (the top 3):** one coherent visual system (style
-  contract gate + normalised assets + unified lighting + one grade chain),
-  game feel as a system (forgiveness windows + per-event feedback budget +
-  layered audio), and a hard performance budget from day one (draw calls,
-  DPR cap, KTX2/Draco) — plus the anti-patterns to refuse: `docs/PREMIUM.md`.
 - **Voices/TTS (`tools.json` registry):** kokoro-tts (local, ~137 MB) for
   trailers and voice lines; edge-tts as network fallback (`gamepress
   voices --engine edge`); another6502 for port work. Registry rules:
@@ -145,11 +120,6 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
 - **Animation:** Mixamo (humanoid auto-rig + animations, free w/ Adobe
   account); **Mesh2Motion** (browser auto-rigger + 170 CC0 creature
   animations — the non-humanoid gap); Blender skills for cleanup/export.
-- **Free sprite→3D→rig chain:** see `docs/SPRITE-TO-3D.md` (TRELLIS.2 /
-  Hunyuan3D-2 via HF Spaces or Colab GPU, UniRig, local Blender rigger
-  fallback) — the $0 route when a sprite has to become a walking 3D
-  character; Meshy stays the paid alternative (free tier generates, but
-  downloads are Pro-paywalled).
 - **Sound:** Freesound (per-file license — CC-BY-NC never in a paid release).
 - **UI reference (look before designing):** Game UI Database (~78k screens),
   Interface In Game, Gamedexy + Flomob (mobile F2P flows), Mobbin (app flows).
