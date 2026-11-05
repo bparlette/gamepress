@@ -126,6 +126,16 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
 
 ## Video tools beyond gamepress (detail: videopress `docs/TOOLS.md`)
 
+- **Tesseract** (Mirage — **free**) — agent-native creative engine: video
+  editing, motion graphics, and 3D scenes (editable `.tsrct` projects;
+  agents control geometry, materials, lighting, cameras; path-traced
+  renders) driven through a CLI + agent skills
+  (https://github.com/mirage-hq/Tesseract). The local engine is fully
+  free, including preview, rendering, and export (to 4K60) — no account
+  or API key; the paid Captions cloud service is separate and not used.
+  Runs on macOS/Windows/Linux. Candidate for trailer/demo editing and
+  agent-built 3D scenes without an NLE; evaluate against the current
+  capture/ffmpeg flow before adopting. Via @trymirage, Nov 4, 2026.
 - **Editly** (MIT) — declarative Node+ffmpeg assembly; candidate spec layer
   for repeatable trailer formats.
 - **AutoSubs** (MIT) — on-device subtitles + Resolve/Premiere/AE bridges;
