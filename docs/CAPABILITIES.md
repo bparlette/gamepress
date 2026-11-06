@@ -132,6 +132,25 @@ better from what the kit already does better; the wins were adopted:
   (owner verdict: "looks horrible"), and nothing ships from it.
   Reference for fast 3D-feel prototypes only.
 
+## Minecraft (audited Nov 2026 — full detail: `docs/MINECRAFT.md`)
+
+- **Money:** the Bedrock Marketplace is the royalty route — curated
+  Partner Program (business entity + 3-piece portfolio to apply),
+  70% headline creator share vs Roblox's ~25%. Shortcut in: build
+  for an existing partner team (per-map royalty share). No-gate cash:
+  Java-server commissions/premade builds on BuiltByBit. Earnings
+  figures in the doc are secondary-guide estimates, not Microsoft
+  data.
+- **AI tooling:** no official Mojang MCP (Roblox's Studio MCP is
+  first-party; Minecraft's are community). MCP servers control a
+  Mineflayer **bot** (yuniko-software/minecraft-mcp-server is the
+  flagship) — player-speed building, demo-grade. For generation at
+  scale use **GDMC-HTTP + GDPC**: a Java mod exposing the live world
+  over HTTP + a Python client — code generates whole settlements.
+- **The catch:** all AI tooling is Java Edition; the Marketplace is
+  Bedrock. Pipeline: generate in Java → convert with Amulet/Chunker
+  → Bedrock gameplay in JavaScript (Script API) → package.
+
 ## Agent skills (`docs/agent-skills/` — index: `docs/agent-skills/INDEX.md`)
 
 - **Blender pipeline (19 skills vendored, MIT):** start every 3D job with
