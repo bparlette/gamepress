@@ -82,7 +82,8 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
   spawners, hooks (vacuum-collect, chain-explode, merge-tier, …),
   progressions — composed by `gamepress lego`.
 - **Kit modules (`kit/`):** gp2d / gp3d engines, gpfeel (juice), gpfx,
-  gpphys, gpchar, gpsprites, gpaudio, gptouch (`docs/TOUCH.md`), gpviewport
+  gpphys, gpchar, gpsprites, gpaudio, gpmusic (seeded BGM composer),
+  gptouch (`docs/TOUCH.md`), gpviewport
   (9:16 safe zones), gpshaders / gptoon, gpretro + gbfixed (ports),
   gpmonetize. Index: `docs/KIT.md`.
 - **Quality floor (80-pt rubric, in `gamepress context`):** ≥3 feel
@@ -95,6 +96,41 @@ human explicitly says "full game", "assets", or "trailer". Never ask.**
   `docs/TOOLING.md` — large tools are declared, never committed.
 - **Runtime:** Node 22+, Chrome (headless capture), ffmpeg 7+, git + gh.
   No npm dependencies; three.js r160 vendored.
+
+## Adopted from Pyxel (audited Nov 2026)
+
+Pyxel (Python fantasy console, MIT) was registered prototype-track on
+Nov 4. A hands-on build day (Nov 6) separated what it genuinely does
+better from what the kit already does better; the wins were adopted:
+
+- **Seeded BGM composition — adopted as `kit/gpmusic.js`.** Pyxel's
+  `gen_bgm` turns a genre preset + a seed into a finished loop in one
+  call. gamepress had SFX (gpaudio) and drones (gpfeel) but no composer.
+  `composeBGM(preset, seed)` returns melody/bass/drums as step data —
+  pure and deterministic, so music passes the same seedcheck discipline
+  as gameplay — plus a thin WebAudio player (`playBGM`). Presets:
+  field, battle, chill, dungeon, title. Tests: `test/gpmusic.test.mjs`.
+- **Touch controls appear automatically — adopted as a standard.**
+  Pyxel's web runtime shows a gamepad on touch devices with zero
+  per-game wiring; the game just reads one input API. The gamepress
+  form of the same rule: a game that reads pad input gets `gptouch`
+  controls by default (`docs/TOUCH.md`) — touch is never a per-game
+  extra, and a game is not done until its pad input works untouched
+  by a keyboard.
+- **One-command packaging — adopted with a correction.** Pyxel goes
+  source → shareable page in one step (`package` + `app2html`); match
+  that friction in `publish-pack`. But a shipped gamepress page must
+  be fully self-contained: Pyxel's export loads its runtime from
+  kitao.dev at play time, and an external runtime dependency fails
+  our package check.
+- **Pyxel itself — stays prototype-track.** 3.0 (Nov 5, 2026) added
+  Pyxel Cube, a textured-primitive retro 3D engine. Measured Nov 6:
+  two playable demos in a day (a 3D platformer level; a Zombie Metroid
+  remake with painted textures, backdrop composite, and HD+-style
+  juice transplanted in), but the 256×224 / 16-color dithered
+  renderer reads far below the kit's HD tiers on the same game
+  (owner verdict: "looks horrible"), and nothing ships from it.
+  Reference for fast 3D-feel prototypes only.
 
 ## Agent skills (`docs/agent-skills/` — index: `docs/agent-skills/INDEX.md`)
 
