@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Slashido-style fighter sprite (beret test)</title>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #8f8a82; }
+  canvas { display: block; }
+  #err { position: fixed; top: 8px; left: 8px; color: #fff; background: #a00;
+         font: 13px monospace; padding: 8px; max-width: 860px; white-space: pre-wrap; display: none; }
+</style>
+<script type="importmap">
+{ "imports": {
+    "three": "./kit/three.module.min.js",
+    "three/examples/jsm/utils/BufferGeometryUtils.js": "./kit/vendor/BufferGeometryUtils.js",
+    "gpchar": "./kit/gpchar.js",
+    "s1": "./kit/slashido/1_toon_shader.js",
+    "s2": "./kit/slashido/2_post_processing.js",
+    "s3": "./kit/slashido/3_character_material.js",
+    "s4": "./kit/slashido/4_mapped_toon.js"
+} }
+</script>
+</head>
+<body>
+<div id="err"></div>
+<script type="module">
+import * as THREE from 'three';
+import { buildHumanoid, setPose, update } from 'gpchar';
+import { LIGHT, outlineMat, smoothGeo } from 's1';
+import { Post } from 's2';
+import { toonMat } from 's3';
+import { mappedToonMat } from 's4';
+
+const errBox = document.getElementById('err');
+window.addEventListener('error', e => {
+  errBox.style.display = 'block';
+  errBox.textContent += 'ERROR: ' + e.message + '\n';
+});
+window.addEventListener('unhandledrejection', e => {
+  errBox.style.display = 'block';
+  errBox.textContent += 'REJECT: ' + (e.reason && e.reason.message || e.reason) + '\n';
+});
+
+// ---------- studio lighting (neutral, see the character clearly) ----------
+LIGHT.uMoonDir.value.set(0.45, 0.75, 0.55).normalize();   // warm key, front-right-top
+LIGHT.uMoonCol.value.setRGB(0.92, 0.87, 0.80);
+LIGHT.uFirePos.value.set(-2.5, 1.6, 2.2);                 // cool fill, front-left
+LIGHT.uFireCol.value.setRGB(0.55, 0.70, 1.0);
+LIGHT.uFireInt.value = 0.35;
+LIGHT.uAmbTop.value.setRGB(0.40, 0.42, 0.48);
+LIGHT.uAmbBot.value.setRGB(0.24, 0.22, 0.20);
+LIGHT.uFogCol.value.set(0x8f8a82);
+LIGHT.uFogDensity.value = 0.0;                            // no fog for sprite
+LIGHT.uTime.value = 0;
+
+const W = 900, H = 900;
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setSize(W, H);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x8f8a82);
+
+const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
+camera.position.set(2.6, 1.55, 2.2);
+camera.lookAt(0, 0.85, 0);
+
+// ---------- the fighter ----------
+const rig = buildHumanoid({
+  gi: 0xf5f1e6, giTrim: 0x2a3a6e, pants: 0xece7d8,
+  belt: 0x14141a, hair: 'bald',           // beret replaces hair
+  skin: 0xf1c27d, skirt: true,
+});
+
+// Swap every mesh material for the SLASHIDO toon look + ink outlines.
+// Rule: original material had a canvas map -> mapped toon (keeps painted
+// face/collar/pleats); otherwise flat toonMat in the original color.
+const matCache = new Map();
+function toonFor(orig) {
+  if (matCache.has(orig)) return matCache.get(orig);
+  let m;
+  const tune = { rim: 0.65, brush: 1.0, stain: 0.10, dirt: 0.25, grad: 0.22 };
+  if (orig.map) {
+    m = mappedToonMat(orig.map, tune);
+  } else {
+    const hex = orig.color ? orig.color.getHex() : 0xffffff;
+    m = toonMat({ color: hex, ...tune });
+  }
+  matCache.set(orig, m);
+  return m;
+}
+const meshes = [];
+rig.group.traverse(o => { if (o.isMesh) meshes.push(o); });
+// ink outline per mesh (child of the mesh -> follows joints automatically)
+for (const mesh of meshes) {
+  mesh.material = toonFor(mesh.material);
+  const o = new THREE.Mesh(smoothGeo(mesh.geometry), outlineMat(0.020, 0x0d0710));
+  o.raycast = () => {};
+  o.userData.isOutline = true;
+  mesh.add(o);
+}
+
+// ---------- beret: flattened tilted sphere, burgundy ----------
+const beretMat = toonMat({ color: 0x6e1423, shade: 0x2a0a12, rim: 0.7, brush: 0.8 });
+const beretGeo = new THREE.SphereGeometry(0.135, 18, 12);
+const beret = new THREE.Mesh(beretGeo, beretMat);
+beret.scale.set(1, 0.38, 1);
+beret.position.set(-0.012, 0.098, 0);
+beret.rotation.z = 0.17;
+beret.rotation.x = -0.08;
+{
+  const o = new THREE.Mesh(smoothGeo(beretGeo), outlineMat(0.016, 0x0d0710));
+  o.raycast = () => {};
+  o.userData.isOutline = true;
+  beret.add(o);
+}
+// little beret stalk
+const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.012, 0.035, 8), beretMat);
+stalk.position.set(-0.055, 0.135, 0);
+stalk.rotation.z = 0.17;
+{
+  const o = new THREE.Mesh(smoothGeo(stalk.geometry), outlineMat(0.012, 0x0d0710));
+  o.raycast = () => {};
+  o.userData.isOutline = true;
+  stalk.add(o);
+}
+rig.joints.head.add(beret);
+rig.joints.head.add(stalk);
+
+rig.group.rotation.y = -0.35;
+scene.add(rig.group);
+
+setPose(rig, 'guard', { lean: 0.08, crouch: 0.25 });
+for (let i = 0; i < 90; i++) update(rig, 1 / 60);
+
+// ---------- painted post pipeline ----------
+const post = new Post(renderer, 'high');
+
+try {
+  post.render(scene, camera, 0);
+  window.__ready = true;
+} catch (e) {
+  errBox.style.display = 'block';
+  errBox.textContent += 'POST FAILED: ' + e.message + '\nfalling back to direct render\n';
+  renderer.render(scene, camera);
+  window.__ready = true;
+  window.__fallback = true;
+}
+</script>
+</body>
+</html>

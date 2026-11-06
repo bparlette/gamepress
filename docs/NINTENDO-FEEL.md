@@ -118,6 +118,58 @@ const enemy = makeFSM({
 }, 'patrol');
 ```
 
+## Ball sports: pseudo-3D height via separate Z
+
+Classic Technōs / NES sports trick (proven in Retro Pickleball Smash). Track the
+ball's **court position** as `(x, y)` and its **aerial elevation** as `z` — three
+independent numbers, one render rule:
+
+```js
+// Physics
+ball.z += ball.vz; ball.vz -= GRAVITY * dt;
+if (ball.z <= 0) { ball.z = 0; ball.vz = -ball.vz * BOUNCE; onBounce(); }
+
+// Render
+shadow(ball.x, ball.y);                 // shadow stays on the ground
+drawSprite(ball.x, ball.y - ball.z);    // ball floats above it
+```
+
+Why it wins:
+
+- **Bounce is one comparison** (`z <= 0`). No plane math, no raycasts.
+- **Kitchen / no-volley rules become trivial**: a volley is illegal when the
+  ball is hit while `ball.z > NET_CLEARANCE` and the hitter stands in the zone —
+  ground collision only ever cares about `(x, y)`.
+- **Two-bounce rules** (serve + return must bounce before volleys) are just a
+  bounce counter per side: `if (ball.z > 5 && !twoBounceOK) fault()`.
+- **AI ball tracking** predicts the landing `(x, y)` by simulating the `z`
+  parabola — cheap and exact.
+
+**Tweak:** `GRAVITY` and `BOUNCE` set the rally rhythm. Higher gravity = faster,
+spikier rallies. Lower bounce = dink-heavy kitchen battles.
+
+## Hit-stop without screen shake
+
+`kit/gp2d.js` ships `g.hitstop(seconds)` and `gpfeel.js` documents a
+`HitStopManager` — but the usual pairing is hit-stop *plus* screen shake.
+Lesson from the pickleball build: **the freeze alone delivers ~90% of the arcade
+"crunch."** When screen shake is vetoed (or the game is too calm for it), freeze
+all updates for **4–6 frames (60–100ms)** while still rendering:
+
+```js
+if (hitstopFrames > 0) { hitstopFrames--; render(); return; } // skip update
+// on a solid slam/volley connect:
+hitstopFrames = 5;   // freeze
+spawnImpactStarburst(x, y);  // the visible payoff during the freeze
+sfx('smash');
+```
+
+- Render the frozen frame **plus** the impact effect — the starburst sells the
+  hit while the world holds still.
+- Trigger on the *connection* frame (paddle meets ball), not on the score.
+- 4 frames for volleys, 6 for match-point slams. Longer than ~100ms reads as a
+  bug, not juice.
+
 ## Legal note
 
 All constants and algorithms in `gpfeel.js` are **mathematical facts** extracted

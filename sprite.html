@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Fighter Sprite</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #8a8f98; overflow: hidden; }
+  canvas { display: block; }
+</style>
+<script type="importmap">
+{ "imports": {
+    "three": "./kit/three.module.min.js",
+    "gpchar": "./kit/gpchar.js"
+} }
+</script>
+</head>
+<body>
+<script type="module">
+import * as THREE from 'three';
+import { buildHumanoid, setPose, update } from 'gpchar';
+
+const W = 900, H = 900;
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(W, H);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x8a8f98);
+// subtle radial vignette via fog-free gradient: just use a big ground disc
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(6, 32),
+  new THREE.MeshLambertMaterial({ color: 0x6f747c })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
+// 3/4 front view, slightly above eye level (like the reference screenshot)
+camera.position.set(2.6, 1.55, 2.2);
+camera.lookAt(0, 0.85, 0);
+
+// lighting: warm key + cool fill + rim (console-game look)
+const key = new THREE.DirectionalLight(0xfff2dd, 2.6);
+key.position.set(3, 5, 2.5);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+scene.add(key);
+const fill = new THREE.DirectionalLight(0xbcd0ff, 0.9);
+fill.position.set(-3, 2, 2);
+scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffffff, 1.1);
+rim.position.set(-1.5, 3, -3.5);
+scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x4a4438, 0.7));
+
+// The fighter: white gi, black obi, topknot — the reference's left fighter
+const rig = buildHumanoid({
+  gi: 0xf5f1e6, giTrim: 0x2a3a6e, pants: 0xece7d8,
+  belt: 0x14141a, hair: 'topknot', hairColor: 0x191410,
+  skin: 0xf1c27d, skirt: true,
+});
+rig.group.rotation.y = -0.35; // slight turn toward camera
+scene.add(rig.group);
+
+setPose(rig, 'guard', { lean: 0.08, crouch: 0.25 });
+// settle the pose interpolation
+for (let i = 0; i < 90; i++) update(rig, 1 / 60);
+
+// expose a ready flag for the screenshot script
+window.__ready = true;
+
+function tick() {
+  requestAnimationFrame(tick);
+  renderer.render(scene, camera);
+}
+tick();
+</script>
+</body>
+</html>

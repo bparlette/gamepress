@@ -16,6 +16,14 @@ gamepress builds games for four different jobs. Know which one you're doing befo
 - "Done" = all three delivered. A demo without the video and title is incomplete.
 - **5-PLAY RULE (Cherie 2026-10-21): the video is NOT one continuous playthrough.** Record the bot playing 5 separate runs, then edit the best clips from each round into one highlight reel. Pick the juiciest moments — biggest combos, closest calls, funniest glitches, best payoffs. A single run is boring; 5 runs gives you 5x the chances for a viral moment.
 - **Capture standard: `docs/SHORT-PIPELINE.md`** — one-command pipeline (`tools/make_short.mjs`): in-game `?short=1` recorder (canvas stream + WebAudio tap = one fused, synced stream), deterministic coordinate/event stunt bot, full beginning-to-end runs, full-bleed 1080×1920 render, and the **ffprobe MEASURE gate** (real fps + per-stream durations + loudness/frame checks) before any spec is quoted. Real captured game audio only — never a dubbed or "representative" track.
+- **ART-FIRST RULE (Cherie 2026-10-21): no build starts until the art is approved.** Sprite quality is the #1 factor in demo quality — art is generated and presented BEFORE any game code is written:
+  1. **Sprites first — BOTH styles.** Generate character sprites in **two** versions using the pipeline in docs/SPRITE-ATLAS.md (prompt engineering §5, 8-bit vs 16-bit guidance in §5a, slicing tool `tools/slice_spritesheet.py`):
+     - **8-bit (NES style):** chunky pixels, ~16-color palette, heavy 2-3px outlines, 48-64px character height.
+     - **16-bit (SNES/Genesis style):** more detail, richer palette (~64+ colors), smoother dithered shading, 1-2px outlines, 64-96px character height.
+     Present both sprite sheets **side by side**. Cherie picks one. Do not proceed until she chooses.
+  2. **Background second — match the winner.** Generate the game background (court/arena/environment) in the **chosen sprite style** — same pixel-art aesthetic, same palette constraints, no photorealistic elements. Present to Cherie for approval. Do not proceed until she approves.
+  3. **Build only after both approvals.** Game code, bot recording, 5-play video edit, and delivery happen only after sprites + background are approved.
+  This replaces the old flow where art was generated inline during the build. She'd rather wait for good art than rebuild around bad art.
 - Examples: Steal the Treat, Catfishin' (Oct 2026).
 
 ## 2. Store assets

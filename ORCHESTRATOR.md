@@ -66,6 +66,15 @@ $ gamepress run --status a1b2c3d4 --json
 {"job": "a1b2c3d4", "state": "done", "done": true, "game": "https://bparlette.github.io/gamepress/run-a1b2c3d4/", "video": "https://bparlette.github.io/gamepress/run-a1b2c3d4/run-a1b2c3d4-hook.mp4", "hosted": true, "images": ["press/video/run-a1b2c3d4-hook.thumb.jpg", "publish/run-a1b2c3d4/press/out/steam/header_capsule.png", "..."]}
 ```
 
+## Art approval gates (viral demo builds)
+
+Sprite quality is the #1 factor in demo quality. Before writing any game code, the tool generates art in two stages — you relay each stage to the human for approval:
+
+1. **Sprites.** The tool sends `{"ask": "Approve these character sprites? ...", "images": [...]}` — show the sprite sheet image(s) to the human and ask whether to approve or revise. Relay their answer: `--answer '{"sprites": "approved"}'` — or pass their revision notes: `--answer '{"sprites": "change", "notes": "<what they said>"}'`.
+2. **Background.** The tool sends `{"ask": "Approve this background? ...", "images": [...]}` — same flow. The background is 8-bit art matching the sprite style.
+
+Game code, recording, and the video only start after both are approved. Never skip these gates — she'd rather wait for good art than rebuild around bad art.
+
 ## The QC gate (before delivery)
 
 The tooling is never the product. Before you hand over any finished game, ask yourself one question: **would a stranger actually play this?** Not "did it build" — "is it fun for 30 seconds?"

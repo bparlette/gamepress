@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Bushido Blade pink fighter — gamepress + SLASHIDO shader</title>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #8f8a82; }
+  canvas { display: block; }
+  #err { position: fixed; top: 8px; left: 8px; color: #fff; background: #a00;
+         font: 13px monospace; padding: 8px; max-width: 860px; white-space: pre-wrap; display: none; }
+</style>
+<script type="importmap">
+{ "imports": {
+    "three": "./kit/three.module.min.js",
+    "three/examples/jsm/utils/BufferGeometryUtils.js": "./kit/vendor/BufferGeometryUtils.js",
+    "s1": "./kit/slashido/1_toon_shader.js",
+    "s2": "./kit/slashido/2_post_processing.js",
+    "s3": "./kit/slashido/3_character_material.js",
+    "s4": "./kit/slashido/4_mapped_toon.js"
+} }
+</script>
+</head>
+<body>
+<div id="err"></div>
+<script type="module">
+import * as THREE from 'three';
+import { LIGHT, outlineMat, smoothGeo } from 's1';
+import { Post } from 's2';
+import { toonMat } from 's3';
+import { mappedToonMat } from 's4';
+
+const errBox = document.getElementById('err');
+window.addEventListener('error', e => {
+  errBox.style.display = 'block';
+  errBox.textContent += 'ERROR: ' + e.message + '\n';
+});
+window.addEventListener('unhandledrejection', e => {
+  errBox.style.display = 'block';
+  errBox.textContent += 'REJECT: ' + (e.reason && e.reason.message || e.reason) + '\n';
+});
+
+// ---------- lighting: warm studio key + cool fill ----------
+LIGHT.uMoonDir.value.set(0.45, 0.75, 0.55).normalize();
+LIGHT.uMoonCol.value.setRGB(0.95, 0.90, 0.84);
+LIGHT.uFirePos.value.set(-2.5, 1.6, 2.2);
+LIGHT.uFireCol.value.setRGB(0.55, 0.70, 1.0);
+LIGHT.uFireInt.value = 0.35;
+LIGHT.uAmbTop.value.setRGB(0.40, 0.42, 0.48);
+LIGHT.uAmbBot.value.setRGB(0.24, 0.22, 0.20);
+LIGHT.uFogCol.value.set(0x8f8a82);
+LIGHT.uFogDensity.value = 0.0;
+LIGHT.uTime.value = 0;
+
+const W = 900, H = 900;
+const renderer = new THREE.WebGLRenderer({ antialias: false });
+renderer.setSize(W, H);
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x8f8a82);
+const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 50);
+camera.position.set(3.10, 1.72, 2.50);
+camera.lookAt(0, 1.10, 0);
+
+// ============================================================
+// canvas texture painters
+// ============================================================
+function _cv(s) { const c = document.createElement('canvas'); c.width = c.height = s; return c; }
+function _ctex(c) {
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 4;
+  return t;
+}
+// Female face, +X facing sphere. SphereGeometry UVs: +X at u=0.5 -> canvas x=128.
+function femaleFaceTex() {
+  const S = 256, c = _cv(S), g = c.getContext('2d');
+  const P = (dy, dz) => {
+    const u = 0.5 + Math.atan2(dz, 1) / (Math.PI * 2);
+    const len = Math.sqrt(1 + dy * dy + dz * dz);
+    const v = Math.acos(Math.max(-1, Math.min(1, dy / len))) / Math.PI;
+    return [u * S, v * S]; // canvas top (y=0) = sphere +Y (verified empirically)
+  };
+  // pale skin base
+  g.fillStyle = '#f6d3b8'; g.fillRect(0, 0, S, S);
+  const fg = g.createLinearGradient(0, 30, 0, 240);
+  fg.addColorStop(0, 'rgba(255,255,255,0.12)');
+  fg.addColorStop(0.6, 'rgba(0,0,0,0)');
+  fg.addColorStop(1, 'rgba(120,60,40,0.18)');
+  g.fillStyle = fg; g.fillRect(0, 0, S, S);
+  const ink = '#201412';
+  // ---- eyes: larger, delicate, slight upward wing
+  for (const s of [-1, 1]) {
+    const [ex, ey] = P(0.22, s * 0.36);
+    g.fillStyle = '#faf6ee';
+    g.beginPath(); g.ellipse(ex, ey, 11.5, 7.8, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#2e1c12';
+    g.beginPath(); g.arc(ex, ey + 0.8, 5.8, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#0c0806';
+    g.beginPath(); g.arc(ex, ey + 0.8, 3.0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#ffffff';
+    g.beginPath(); g.arc(ex - 2.0, ey - 1.8, 1.9, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(255,255,255,0.7)';
+    g.beginPath(); g.arc(ex + 1.8, ey + 2.2, 1.1, 0, Math.PI * 2); g.fill();
+    // upper lid: thick with wing
+    g.strokeStyle = ink; g.lineWidth = 3.2; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(ex - 10.5, ey - 1);
+    g.quadraticCurveTo(ex, ey - 9, ex + 11.5, ey - 4); g.stroke();
+    g.lineWidth = 1.1; g.strokeStyle = 'rgba(32,20,18,0.5)';
+    g.beginPath(); g.moveTo(ex - 8, ey + 6);
+    g.quadraticCurveTo(ex, ey + 8.5, ex + 8, ey + 6); g.stroke();
+  }
+  // ---- brows: thin, gently arched
+  for (const s of [-1, 1]) {
+    const [bx, by] = P(0.55, s * 0.36);
+    g.strokeStyle = '#241a14'; g.lineWidth = 3; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(bx - s * 12, by + 2);
+    g.quadraticCurveTo(bx, by - 5, bx + s * 12, by - 1); g.stroke();
+  }
+  // ---- nose: whisper of shading
+  {
+    const [nx, ny] = P(-0.02, 0);
+    g.strokeStyle = 'rgba(140,85,60,0.5)'; g.lineWidth = 1.6; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(nx - 3, ny - 12); g.lineTo(nx - 4.5, ny + 3); g.stroke();
+    g.fillStyle = 'rgba(120,60,40,0.5)';
+    g.beginPath(); g.ellipse(nx - 4, ny + 6, 1.8, 1.1, 0, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.ellipse(nx + 4, ny + 6, 1.8, 1.1, 0, 0, Math.PI * 2); g.fill();
+  }
+  // ---- lips: red, defined, fuller
+  {
+    const [mx, my] = P(-0.42, 0);
+    g.fillStyle = '#b81f30';
+    g.beginPath(); // upper lip with cupid's bow
+    g.moveTo(mx - 13, my);
+    g.quadraticCurveTo(mx - 5, my - 5.5, mx, my - 2);
+    g.quadraticCurveTo(mx + 5, my - 5.5, mx + 13, my);
+    g.quadraticCurveTo(mx + 5, my + 1.5, mx, my + 1.5);
+    g.quadraticCurveTo(mx - 5, my + 1.5, mx - 13, my);
+    g.fill();
+    g.fillStyle = '#d8455a'; // lower lip fuller + highlight
+    g.beginPath(); g.ellipse(mx, my + 6.5, 10, 5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = 'rgba(255,255,255,0.4)';
+    g.beginPath(); g.ellipse(mx, my + 5.5, 4.5, 1.8, 0, 0, Math.PI * 2); g.fill();
+  }
+  // ---- blush
+  for (const s of [-1, 1]) {
+    const [cx, cy] = P(-0.10, s * 0.55);
+    const rg = g.createRadialGradient(cx, cy, 1, cx, cy, 16);
+    rg.addColorStop(0, 'rgba(235,120,140,0.20)');
+    rg.addColorStop(1, 'rgba(235,120,140,0)');
+    g.fillStyle = rg;
+    g.beginPath(); g.arc(cx, cy, 16, 0, Math.PI * 2); g.fill();
+  }
+  const t = _ctex(c); t.userData.face = true; return t;
+}
+// Pink kimono with subtle white pattern
+function kimonoTex() {
+  const S = 256, c = _cv(S), g = c.getContext('2d');
+  g.fillStyle = '#f0a3c2'; g.fillRect(0, 0, S, S);
+  // subtle white diamond lattice
+  g.strokeStyle = 'rgba(255,255,255,0.16)'; g.lineWidth = 1.4;
+  const st = 32;
+  for (let y = -st; y < S + st; y += st) {
+    for (let x = -st; x < S + st; x += st) {
+      const ox = ((y / st) % 2) * st / 2;
+      g.beginPath();
+      g.moveTo(x + ox, y - 7); g.lineTo(x + ox + 7, y); g.lineTo(x + ox, y + 7); g.lineTo(x + ox - 7, y);
+      g.closePath(); g.stroke();
+    }
+  }
+  // soft vertical fold shading
+  for (let i = 0; i < 7; i++) {
+    const x = 20 + i * 34 + Math.random() * 8;
+    const gr = g.createLinearGradient(x - 9, 0, x + 9, 0);
+    gr.addColorStop(0, 'rgba(120,40,80,0)');
+    gr.addColorStop(0.5, 'rgba(120,40,80,0.10)');
+    gr.addColorStop(1, 'rgba(120,40,80,0)');
+    g.fillStyle = gr; g.fillRect(x - 9, 0, 18, S);
+  }
+  return _ctex(c);
+}
+// Tsuka: black with blue diamond wrap
+function tsukaTex() {
+  const S = 128, c = _cv(S), g = c.getContext('2d');
+  g.fillStyle = '#141418'; g.fillRect(0, 0, S, S);
+  g.strokeStyle = '#2a4ad8'; g.lineWidth = 7; g.lineCap = 'round';
+  const st = 32;
+  for (let i = -S; i < S * 2; i += st) {
+    g.beginPath(); g.moveTo(i, 0); g.lineTo(i + S, S); g.stroke();
+    g.beginPath(); g.moveTo(i + S, 0); g.lineTo(i, S); g.stroke();
+  }
+  return _ctex(c);
+}
+
+// ============================================================
+// helpers
+// ============================================================
+function M(geo, mat, x = 0, y = 0, z = 0) {
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, y, z);
+  return m;
+}
+function J(x = 0, y = 0, z = 0) {
+  const g = new THREE.Group(); g.position.set(x, y, z); return g;
+}
+const sph = (r, w = 14, h = 11) => new THREE.SphereGeometry(r, w, h);
+const cap = (r, len) => new THREE.CapsuleGeometry(r, len, 4, 10);
+const cyl = (rt, rb, h, s = 14) => new THREE.CylinderGeometry(rt, rb, h, s);
+const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+function displaceFolds(geo, folds, amp) {
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i);
+    const r = Math.sqrt(x * x + z * z);
+    if (r > 0.02) {
+      const a = Math.atan2(z, x);
+      const d = 1 + (amp * Math.sin(a * folds)) / r;
+      pos.setX(i, x * d); pos.setZ(i, z * d);
+    }
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+// ribbon strip along a curve (for the scarf)
+function ribbon(curve, width, segs = 28) {
+  const pos = [], uvA = [], idx = [];
+  const pts = curve.getPoints(segs);
+  let prevSide = new THREE.Vector3(0, 0, 1);
+  for (let i = 0; i <= segs; i++) {
+    const p = pts[i];
+    const t = curve.getTangent(i / segs);
+    let side = new THREE.Vector3().crossVectors(t, new THREE.Vector3(0, 1, 0));
+    if (side.length() < 0.2) side = new THREE.Vector3().crossVectors(t, new THREE.Vector3(1, 0, 0));
+    side.normalize().multiplyScalar(width / 2);
+    prevSide = side.clone();
+    pos.push(p.x + side.x, p.y + side.y, p.z + side.z,
+             p.x - side.x, p.y - side.y, p.z - side.z);
+    uvA.push(0, i / segs, 1, i / segs);
+    if (i < segs) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uvA, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+// ink outline every mesh in a group (children follow joints)
+function inkify(root, thick = 0.018) {
+  const meshes = [];
+  root.traverse(o => { if (o.isMesh && !o.userData.isOutline) meshes.push(o); });
+  for (const m of meshes) {
+    const o = new THREE.Mesh(smoothGeo(m.geometry), outlineMat(thick, 0x0d0710));
+    o.raycast = () => {}; o.userData.isOutline = true;
+    m.add(o);
+  }
+}
+
+// ============================================================
+// materials (SLASHIDO toon)
+// ============================================================
+const tune = { rim: 0.32, brush: 1.0, stain: 0.06, dirt: 0.15, grad: 0.20 };
+const skinM   = toonMat({ color: 0xf6d3b8, shade: 0xb98a68, rim: 0.18, brush: 0.9 });
+const kimonoM = mappedToonMat(kimonoTex(), { ...tune, rim: 0.35 });
+const sleeveM = toonMat({ color: 0xf5f0e6, ...tune, rim: 0.32 });
+const redTrimM= toonMat({ color: 0xc81e2a, ...tune, rim: 0.3 });
+const hakamaM = toonMat({ color: 0xd21f26, ...tune, rim: 0.35, brush: 1.2 });
+const obiM    = toonMat({ color: 0xa81620, ...tune, rim: 0.3 });
+const scarfM  = toonMat({ color: 0xf27bb0, ...tune, rim: 0.4, side: THREE.DoubleSide });
+const hairM   = toonMat({ color: 0x14100e, shade: 0x050304, rim: 0.45, brush: 0.7 });
+const goldM   = toonMat({ color: 0xd8a820, shade: 0x6e4a10, spec: 1.4, rim: 0.5, brush: 0.4 });
+const steelM  = toonMat({ color: 0xb9c6d2, shade: 0x3d4656, spec: 1.3, rim: 0.5, brush: 0.5 });
+const tsukaM  = mappedToonMat(tsukaTex(), { rim: 0.25, brush: 0.8 });
+const darkM   = toonMat({ color: 0x16121a, ...tune, rim: 0.25 });
+const faceM   = mappedToonMat(femaleFaceTex(), { color: 0xffffff, shade: 0xc99878, rim: 0.35, brush: 0.9, grad: 0.10 });
+
+// ============================================================
+// the fighter (faces +X)
+// ============================================================
+const fighter = new THREE.Group();
+scene.add(fighter);
+const HIPS_Y = 0.80;
+
+// ---- hakama: long vivid-red flared skirt ----
+{
+  const g = displaceFolds(cyl(0.20, 0.37, 0.74, 18), 9, 0.020);
+  const skirt = M(g, hakamaM, 0, HIPS_Y - 0.31, 0);
+  skirt.scale.x = 0.80;
+  fighter.add(skirt);
+}
+// ---- obi: red waist band + back knot ----
+{
+  const obi = M(cyl(0.205, 0.215, 0.15, 16), obiM, 0, HIPS_Y + 0.07, 0);
+  obi.scale.x = 0.82;
+  fighter.add(obi);
+  const knot = M(box(0.12, 0.10, 0.08), obiM, -0.20, HIPS_Y + 0.06, 0);
+  fighter.add(knot);
+}
+// ---- kimono torso: pink with pattern ----
+{
+  const torso = M(cyl(0.155, 0.185, 0.52, 16), kimonoM, 0, 1.16, 0);
+  torso.scale.x = 0.74;
+  fighter.add(torso);
+}
+// ---- red collar (eri) at the neckline ----
+{
+  for (const s of [-1, 1]) {
+    const lap = M(box(0.035, 0.16, 0.05), redTrimM, 0.10, 1.40, s * 0.055);
+    lap.rotation.z = -0.5; lap.rotation.y = s * 0.25;
+    fighter.add(lap);
+  }
+}
+// ---- neck + head ----
+const headG = J(0, 1.56, 0);
+fighter.add(headG);
+{
+  const neck = M(cyl(0.045, 0.045, 0.10, 10), skinM, 0, 1.47, 0);
+  fighter.add(neck);
+  const head = M(sph(0.105, 20, 16), faceM, 0, 0, 0);
+  head.scale.set(0.95, 1.08, 0.90);
+  // gentle sculpt: jaw taper
+  const p = head.geometry.attributes.position;
+  for (let i = 0; i < p.count; i++) {
+    const y = p.getY(i);
+    if (y < -0.03) { const f = 1 - (-0.03 - y) * 1.6; p.setX(i, p.getX(i) * Math.max(0.72, f)); p.setZ(i, p.getZ(i) * Math.max(0.78, f)); }
+  }
+  head.geometry.computeVertexNormals();
+  headG.add(head);
+  for (const s of [-1, 1]) {
+    const e = M(sph(0.105 * 0.24, 8, 6), skinM, 0, 0.002, s * 0.105 * 0.90);
+    e.scale.set(0.55, 1, 0.7);
+    headG.add(e);
+  }
+}
+// ---- long black hair: back mass + two front strands + ornaments ----
+{
+  const back = M(sph(0.11, 14, 12), hairM, -0.105, -0.06, 0);
+  back.scale.set(0.62, 1.55, 0.78);
+  headG.add(back);
+  const capT = M(sph(0.108, 14, 10), hairM, -0.012, 0.045, 0);
+  capT.scale.set(1, 0.62, 1);
+  headG.add(capT);
+  for (const s of [-1, 1]) { // front strands framing the face
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(0.055, 0.06, s * 0.075),
+      new THREE.Vector3(0.075, -0.12, s * 0.105),
+      new THREE.Vector3(0.06, -0.30, s * 0.10),
+      new THREE.Vector3(0.045, -0.44, s * 0.085),
+    ]);
+    const strand = M(new THREE.TubeGeometry(curve, 12, 0.020, 8), hairM);
+    headG.add(strand);
+  }
+  // gold ornament (right side) + blue beads (left side)
+  const goldOrn = M(sph(0.020, 10, 8), goldM, 0.01, 0.075, -0.105);
+  goldOrn.scale.set(1, 1.25, 0.6);
+  headG.add(goldOrn);
+  for (let i = 0; i < 4; i++) {
+    const bead = M(sph(0.011, 8, 6), toonMat({ color: 0x2a4ad8, spec: 1.0, rim: 0.8 }),
+      0.035 - i * 0.012, 0.085 - i * 0.028, 0.10);
+    headG.add(bead);
+  }
+}
+// ---- gold chest ornaments ----
+for (const s of [-1, 1]) {
+  const med = M(sph(0.024, 10, 8), goldM, 0.135, 1.27, s * 0.048);
+  med.scale.set(0.55, 1, 1);
+  fighter.add(med);
+}
+// ---- arms ----
+function buildArm(side) { // side: -1 right(-Z), +1 left(+Z)
+  const sh = J(0, 1.36, side * 0.215);
+  fighter.add(sh);
+  // wide sleeve + red cuff band (cylinder: smooth normals for clean rim light)
+  const sleeve = M(box(0.17, 0.30, 0.24), sleeveM, 0, -0.16, 0);
+  sh.add(sleeve);
+  const cuff = M(cyl(0.105, 0.115, 0.07, 14), redTrimM, 0, -0.30, 0);
+  sh.add(cuff);
+  // upper arm inside sleeve
+  sh.add(M(cap(0.05, 0.14), sleeveM, 0, -0.12, 0));
+  const el = J(0, -0.28, 0);
+  sh.add(el);
+  el.add(M(cap(0.042, 0.15), skinM, 0, -0.11, 0)); // bare forearm
+  const wr = J(0, -0.24, 0);
+  el.add(wr);
+  return { sh, el, wr };
+}
+const armR = buildArm(-1), armL = buildArm(1);
+// hands: simple fist (palm + curled fingers read at sprite distance)
+function fist(wr) {
+  const palm = M(sph(0.045, 10, 8), skinM, 0, -0.05, 0);
+  palm.scale.set(0.9, 1.25, 1.0);
+  wr.add(palm);
+  const thumb = M(cap(0.014, 0.035), skinM, 0.02, -0.05, -0.035);
+  thumb.rotation.x = 0.7;
+  wr.add(thumb);
+  return palm;
+}
+fist(armR.wr); fist(armL.wr);
+// ---- legs (mostly hidden) + feet ----
+for (const s of [-1, 1]) {
+  const leg = M(cap(0.075, 0.30), hakamaM, 0.02 + (s < 0 ? 0.06 : -0.06), 0.42, s * 0.11);
+  fighter.add(leg);
+  const foot = M(sph(0.07, 10, 8), sleeveM, 0.10 + (s < 0 ? 0.06 : -0.06), 0.045, s * 0.11);
+  foot.scale.set(1.7, 0.5, 0.95);
+  fighter.add(foot);
+}
+// ---- pink scarf: flowing ribbon from the waist to her left ----
+{
+  const curve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-0.05, 0.90, 0.18),
+    new THREE.Vector3(-0.02, 0.82, 0.42),
+    new THREE.Vector3(0.06, 0.66, 0.62),
+    new THREE.Vector3(0.02, 0.50, 0.80),
+    new THREE.Vector3(0.10, 0.38, 0.94),
+  ]);
+  const sc = M(ribbon(curve, 0.16), scarfM);
+  fighter.add(sc);
+}
+// ---- saya (scabbard) held at left waist ----
+{
+  const saya = M(box(0.045, 0.72, 0.028), darkM, 0.10, 0.68, 0.24);
+  saya.rotation.z = -0.55; saya.rotation.y = 0.15;
+  fighter.add(saya);
+}
+
+// ============================================================
+// katana (built along +Y, grip at local y~0.15)
+// ============================================================
+const katana = new THREE.Group();
+{
+  const blade = M(box(0.030, 0.60, 0.010), steelM, 0, 0.30 + 0.30, 0);
+  katana.add(blade);
+  const tip = M(new THREE.ConeGeometry(0.021, 0.07, 4), steelM, 0, 0.30 + 0.60 + 0.035, 0);
+  tip.rotation.y = Math.PI / 4; tip.scale.z = 0.35;
+  katana.add(tip);
+  const tsuba = M(cyl(0.052, 0.052, 0.014, 18), goldM, 0, 0.29, 0);
+  katana.add(tsuba);
+  const tsuka = M(cyl(0.018, 0.020, 0.26, 12), tsukaM, 0, 0.15, 0);
+  katana.add(tsuka);
+  const kashira = M(cyl(0.020, 0.022, 0.022, 12), goldM, 0, 0.011, 0);
+  katana.add(kashira);
+}
+
+// ============================================================
+// pose: sword raised upright (reference)
+// ============================================================
+armR.sh.rotation.z = 1.92;   // right arm up-forward (sword raised)
+armR.sh.rotation.y = -0.15;
+armR.el.rotation.z = 0.55;   // elbow bend
+armL.sh.rotation.z = 0.42;   // left arm slightly forward
+armL.sh.rotation.y = 0.20;
+armL.el.rotation.z = 1.15;   // bent toward waist
+headG.rotation.y = -0.12;    // face slightly toward camera
+headG.rotation.z = 0.05;
+fighter.rotation.y = -0.28;  // 3/4 stance
+
+// attach katana to right fist, blade pointing world +Y
+armR.wr.add(katana);
+katana.position.set(0, -0.055, 0);
+{
+  armR.wr.updateWorldMatrix(true, false);
+  const hq = new THREE.Quaternion();
+  armR.wr.getWorldQuaternion(hq);
+  katana.quaternion.copy(hq.invert()); // local = world^-1 * identity
+}
+
+// ink outlines on everything
+inkify(fighter, 0.018);
+
+// ============================================================
+// render through the painted post pipeline
+// ============================================================
+const post = new Post(renderer, 'high');
+try {
+  post.render(scene, camera, 0);
+  window.__ready = true;
+} catch (e) {
+  errBox.style.display = 'block';
+  errBox.textContent += 'POST FAILED: ' + e.message + '\nfalling back to direct render\n';
+  renderer.render(scene, camera);
+  window.__ready = true;
+  window.__fallback = true;
+}
+</script>
+</body>
+</html>

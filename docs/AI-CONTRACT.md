@@ -113,7 +113,7 @@ gamepress already does the informal version: tests catch regressions, docs get c
 
 Sources: [@akshay_pachaar](https://x.com/akshay_pachaar/status/2111753928031531232), [@Marktechpost](https://x.com/marktechpost/status/2111737885141688348) (Oct 18, 2026).
 
-## 13. Cherie's 12 rules for AI game developers
+## 13. Cherie's 13 rules for AI game developers
 
 These are the highest-impact rules for any AI building games. Some overlap with sections above — they're collected here as the checklist.
 
@@ -129,3 +129,4 @@ These are the highest-impact rules for any AI building games. Some overlap with 
 10. **Silent fallback.** If cloud, API, or upload is unavailable, fall back to local automatically. Never error out. One stderr line, then local output.
 11. **Don't ask for what they have.** Check for files, videos, and info before asking the human to provide them.
 12. **Every game in a git repo.** From the first file. No exceptions.
+13. **Art first, build second — with a style choice.** For viral demos: generate character sprites in BOTH 8-bit and 16-bit versions, present side by side for Cherie to choose; then generate the background in the winning style, present it for approval. Write game code only after both are approved. Sprite quality is the #1 factor in demo quality. See docs/SPRITE-ATLAS.md (§5a for the 8-bit vs 16-bit prompt difference) for the sprite pipeline.

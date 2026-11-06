@@ -9,7 +9,7 @@ Feel constants and their sources: `docs/NINTENDO-FEEL.md`. Recipe wiring: `docs/
 | `gp2d.js` | 2D games | `createGame({id,title,sub,hook,bg,style})`: 540x960 canvas, fixed 1/60 step, touch + keys, `g.btn` on-screen buttons, juice (`hitstop slowmo shake flash popup burst tween showBanner`), title/pause/results/replay/best, 6 art styles, `?auto` bot hook (`g.dumb()`), `g.end({win,score})` (banner always visible), `window.__game`, `window.__ends`. Re-exports `gpmath` and `sfx`. |
 | `gpmath.js` | all | seeded `R rnd ri pick shuffle chance`, `clamp lerp dist ang smooth ease.*`, `aabb circ inRect`, `shade`, `tweens`. |
 | `gpaudio.js` | all | layered `sfx(type,{pitch,vol})` (jump coin hit boom shoot laser pop ding click merge powerup thud step whoosh meow bark groan win lose tick), `comboPitch(n)`. |
-| `gpsprites.js` | 2D | `cat dog zombie person` side-view characters (`drawChar(kind,...)`), `face`, `heart star coin ship`; style-aware outlines. |
+| `gpsprites.js` | 2D | `cat dog zombie person` side-view characters (`drawChar(kind,...)`), `face`, `heart star coin ship`; style-aware outlines. For real pixel-art frames instead of procedural characters, see `docs/SPRITE-ATLAS.md`. |
 | `gpphys.js` | 2D | `World` (circles, gravity, walls, impulses: merge, peggle), `Terrain` (destructible heightfield: artillery), `moveBox` (tile platformer movement). |
 | `gpgrid.js` | 2D | `tileMap` (ASCII), `bfs`, `DIRS`, `manhattan`. |
 | `gp3d.js` | 3D | `createStage` (three.js r160, 6 styles incl. post-process), input, HUD, `st.shell/st.end/st.rearm`, juice, `st.cine` camera moves. |

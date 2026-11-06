@@ -47,6 +47,38 @@ description, and `gamepress <cmd> --help` for flags. The per-command reference f
 Local AI: `docs/local-ai-integration.md` covers the Qwen 14B local-AI setup
 (`--local-ai` coprocessor for spec enrichment, vision grading, and self-healing).
 
+### Sprite sheet slicer (`tools/slice_spritesheet.py`)
+
+Slices a labeled sprite-sheet image (AI-generated production sheets) into clean
+game-ready frames. PIL + numpy only.
+
+```bash
+python3 tools/slice_spritesheet.py sheet.jpg \
+  --rows 2 --cols 8 --title-h 75 --grid-h 610 --label-h 45 \
+  --bg auto --bg-tolerance 80 --grid-color "#4a5667" \
+  --out-dir ./sprites/ --manifest spritesheet.json \
+  --layout "spike:idle,run1,run2,run3,swing,strike,dink,smash;ace:idle,run1,run2,run3,swing,strike,dink,smash"
+```
+
+What it does:
+- Auto-detects grid cells (`--rows/--cols`, or `--cell-w/--cell-h`, or full
+  auto-detect via `detect_grid_lines()` which counts long continuous bright
+  runs so character pixels don't create false detections)
+- Keys background to transparent (`--bg auto` samples from edges, or hex;
+  `--bg-tolerance` sets Manhattan distance)
+- Removes grid lines (`--grid-color` with desaturation guard — protects
+  saturated character colors like blues from being eaten)
+- Crops text labels (`--label-h` px off bottom of each cell)
+- Tight-crops each frame, clears 1px corner remnants
+- Outputs individual RGBA PNGs (`--pattern`, default `{char}_{action}_{i}.png`),
+  assembled uniform-grid sheet (feet bottom-aligned), and JSON manifest
+  (`{char: {action: [x,y,w,h]}}`)
+- `--verify` (default on) checks every frame has transparency, no empties,
+  all manifest rects in bounds
+
+See `docs/SPRITE-ATLAS.md` §5–6 for the prompt engineering method and neural
+mechanics behind AI sprite generation.
+
 ## Files
 ```
 bin/gamepress.mjs        CLI
