@@ -163,6 +163,46 @@ better from what the kit already does better; the wins were adopted:
 - **Also vendored:** web-engines (three.js companions), disciplines,
   genres, workflows, router, other-engines — see the INDEX.
 
+## Borrowed from the agent-skills ecosystem (audited Nov 2026, free only)
+
+Two finds via @RoundtableSpace, filtered by the standing **free-only**
+rule — anything that costs money per use is noted as not adopted.
+
+- **awesome-gamedev-agent-skills (Apache-2.0, free)** —
+  https://github.com/gamedev-skills/awesome-gamedev-agent-skills
+  A 77-skill collection in portable SKILL.md format with a router
+  that loads only the skill matching the engine/task. The parts that
+  overlap this stack, kept as reference (upstream, not vendored —
+  quality varies per skill and nothing here is proven by a shipped
+  game yet): the **three.js** and **Phaser** engine skills, the
+  **Roblox** skills, the art-production / character-animation /
+  performance-optimization disciplines, and the **steam-publish**
+  and **itch-publish** workflows. The Godot set (16 skills, Godot
+  4.7) is the deepest if a Godot project ever starts. Install for
+  coding-agent harnesses: `npx skills add
+  gamedev-skills/awesome-gamedev-agent-skills`.
+- **Video to Game — techniques adopted, pipeline NOT adopted** —
+  skill: https://github.com/lovisdotio/video-to-game (MIT, free);
+  gallery: https://fal-video-to-game.vercel.app/
+  The author's pipeline generates a 10–15 s AI gameplay video on
+  fal (MiniMax H3 Max / Seedance 2.5), has the agent study it frame
+  by frame, generate matching assets, and write a single-file
+  Three.js game. Running it costs roughly $0.79–$15.48 per game in
+  fal generation — **paid per use, so the pipeline is not adopted.**
+  Two zero-cost techniques are:
+  - **Self-playtest loop:** after building, the agent plays its own
+    game and fixes what it finds — falls, wall clips, dead moments —
+    before a human ever sees it. This is a behavior pattern, not a
+    tool: add "play it and fix what breaks" as a required pass in
+    agent build prompts, ahead of the human phone verdict.
+  - **Spec-by-video:** a short clip as the build spec — the clip
+    fixes the look, the camera, and one mechanic, and the agent
+    builds toward matching it. Free when the clip is our own
+    capture (a reference game's trailer moment, a previous build's
+    best run, a hand-made mock). Never point it at someone else's
+    game footage to reproduce their game — originals only; the
+    technique is neutral, the input decides.
+
 ## Asset sources (full table: `docs/ASSET-SOURCES.md`)
 
 - **First stops (CC0, ship anywhere):** Kenney (packs), Quaternius (low-poly
